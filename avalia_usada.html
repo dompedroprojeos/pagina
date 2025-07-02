@@ -264,10 +264,7 @@
         }
         .otimo-bg {
             background-color: rgba(46, 204, 113, 0.15);
-            border: 2px solid #2ecc71;
-        }
-        .bom-bg {
-            background-color: rgba(52, 152, 219, 0.15);
+            ample: #3498db;
             border: 2px solid #3498db;
         }
         .ruim-bg {
@@ -449,7 +446,7 @@
             background-color: #e74c3c;
             border-color: #e74c3c;
         }
-        .comentario-desligamento {
+        .motivo-desligamento {
             display: none;
             margin-top: 15px;
         }
@@ -490,17 +487,36 @@
 <body>
 <div class="container">
     <div class="custom-header">
-        <h2><i class="fas fa-chart-bar"></i> FORMULÁRIO DE AVALIAÇÃO</h2>
+        <h2><i class="fas fa-chart-bar"></i> Entrevista de Desligamento </h2>
         <p>Seu feedback é fundamental para a melhoria contínua</p>
     </div>
     <div class="header">
         <div class="logo-container">
-            <img src="https://www.sicoobengecred.coop.br/wp-content/uploads/2023/03/net-promoter-score-nps.jpg" alt="Logo da Empresa">
+            <img src="http://bloqueio.central.rdptec.com.br/img/logo.png" alt="Logo da Empresa">
         </div>
-        <h1><i class="fas fa-clipboard-list"></i> Avaliação de Desempenho</h1>
+        <h1><i class="fas fa-clipboard-list"></i> Entrevista de Desligamento</h1>
         <p class="subtitle">Sua opinião é muito importante para nós</p>
     </div>
     <form action="#" method="post" id="avaliacaoForm">
+        <div class="form-section">
+            <div class="section-title"><i class="fas fa-sign-out-alt"></i> Tipo de Desligamento</div>
+            <div class="desligamento-options">
+                <div class="desligamento-option">
+                    <input type="radio" id="tipoDemissao" name="tipoDesligamento" value="demissao" checked required>
+                    <label for="tipoDemissao"><i class="fas fa-user-slash"></i> Demissão</label>
+                </div>
+                <div class="desligamento-option">
+                    <input type="radio" id="tipoPedidoDemissao" name="tipoDesligamento" value="pedidoDemissao">
+                    <label for="tipoPedidoDemissao"><i class="fas fa-file-signature"></i> Pedido de Demissão</label>
+                </div>
+            </div>
+            <div class="motivo-desligamento" id="motivoDesligamento">
+                <div class="input-wrapper">
+                    <i class="fas fa-pencil-alt"></i>
+                    <textarea id="motivoComentarios" name="motivoComentarios" placeholder="Por favor, explique o motivo do pedido de demissão..."></textarea>
+                </div>
+            </div>
+        </div>
         <div class="form-section">
             <div class="section-title"><i class="fas fa-user-tie"></i> Informações do Gerente</div>
             <div class="input-wrapper">
@@ -521,7 +537,7 @@
                     <label for="gerente2"><i class="far fa-frown-open"></i><span class="rating-number">2</span></label>
                 </div>
                 <div class="rating-item">
-                    <input type="radio" id="gerente3" name="notaGerente" value="3">
+                    <input type="radio" id="gerentespe3" name="notaGerente" value="3">
                     <label for="gerente3"><i class="far fa-meh"></i><span class="rating-number">3</span></label>
                 </div>
                 <div class="rating-item">
@@ -603,7 +619,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-section">
+        <div class="form-section" id="clarezaDesligamentoSection">
             <div class="section-title"><i class="fas fa-comment-alt"></i> Foi claro o seu desligamento?</div>
             <div class="desligamento-options">
                 <div class="desligamento-option">
@@ -676,6 +692,8 @@
         const resultMessage = document.getElementById('resultMessage');
         const resetBtn = document.getElementById('resetBtn');
         const comentarioDesligamento = document.getElementById('comentarioDesligamento');
+        const motivoDesligamento = document.getElementById('motivoDesligamento');
+        const clarezaDesligamentoSection = document.getElementById('clarezaDesligamentoSection');
         const notaGerenteValor = document.getElementById('notaGerenteValor');
         const notaEquipeValor = document.getElementById('notaEquipeValor');
         const notaEstruturaValor = document.getElementById('notaEstruturaValor');
@@ -684,6 +702,19 @@
         const notaEquipeItem = document.getElementById('notaEquipeItem');
         const notaEstruturaItem = document.getElementById('notaEstruturaItem');
         const notaBeneficiosItem = document.getElementById('notaBeneficiosItem');
+
+        document.querySelectorAll('input[name="tipoDesligamento"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'pedidoDemissao') {
+                    motivoDesligamento.style.display = 'block';
+                    clarezaDesligamentoSection.style.display = 'none';
+                } else {
+                    motivoDesligamento.style.display = 'none';
+                    clarezaDesligamentoSection.style.display = 'block';
+                    comentarioDesligamento.style.display = document.querySelector('input[name="desligamento"]:checked')?.value === 'nao' ? 'block' : 'none';
+                }
+            });
+        });
 
         document.querySelectorAll('input[name="desligamento"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -768,14 +799,25 @@
             const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked');
             const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked');
             const notaBeneficios = document.querySelector('input[name="beneficios"]:checked');
-            const desligamento = document.querySelector('input[name="desligamento"]:checked');
-            if (!notaGerente || !notaEquipe || !notaEstrutura || !notaBeneficios || !desligamento) {
-                mostrarStatus('Por favor, responda a todas as perguntas', '#e74c3c');
+            const tipoDesligamento = document.querySelector('input[name="tipoDesligamento"]:checked');
+            if (!notaGerente || !notaEquipe || !notaEstrutura || !notaBeneficios || !tipoDesligamento) {
+                mostrarStatus('Por favor, responda a todas as perguntas obrigatórias', '#e74c3c');
                 return;
             }
-            if (desligamento.value === 'nao' && document.getElementById('comentarios').value.trim() === '') {
-                mostrarStatus('Por favor, explique por que não foi claro o desligamento', '#e74c3c');
+            if (tipoDesligamento.value === 'pedidoDemissao' && document.getElementById('motivoComentarios').value.trim() === '') {
+                mostrarStatus('Por favor, explique o motivo do pedido de demissão', '#e74c3c');
                 return;
+            }
+            if (tipoDesligamento.value === 'demissao') {
+                const desligamento = document.querySelector('input[name="desligamento"]:checked');
+                if (!desligamento) {
+                    mostrarStatus('Por favor, indique se o desligamento foi claro', '#e74c3c');
+                    return;
+                }
+                if (desligamento.value === 'nao' && document.getElementById('comentarios').value.trim() === '') {
+                    mostrarStatus('Por favor, explique por que não foi claro o desligamento', '#e74c3c');
+                    return;
+                }
             }
             const total = parseInt(notaGerente.value) + parseInt(notaEquipe.value) + 
                           parseInt(notaEstrutura.value) + parseInt(notaBeneficios.value);
@@ -829,40 +871,58 @@
                         link.download = 'avaliacao.png';
                         link.click();
 
-                        const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
-                        const mensagem = encodeURIComponent(
-                            'Avaliação de Desempenho:\n' +
+                        const tipoDesligamento = document.querySelector('input[name="tipoDesligamento"]:checked').value;
+                        let mensagem = 'Avaliação de Desempenho:\n' +
                             `Gerente: ${document.getElementById('gerente').value}\n` +
                             `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                             `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                             `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                             `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                            `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
-                            `Comentário: ${comentarios}\n` +
-                            `Pontuação Total: ${total}/20\n` +
-                            'Imagem da avaliação salva localmente. Por favor, anexe a imagem manualmente no WhatsApp.'
-                        );
+                            `Tipo de Desligamento: ${tipoDesligamento === 'demissao' ? 'Demissão' : 'Pedido de Demissão'}\n`;
+
+                        if (tipoDesligamento === 'pedidoDemissao') {
+                            const motivoComentarios = document.getElementById('motivoComentarios').value || 'Nenhum comentário fornecido';
+                            mensagem += `Motivo do Pedido de Demissão: ${motivoComentarios}\n`;
+                        } else {
+                            const desligamento = document.querySelector('input[name="desligamento"]:checked').value;
+                            const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
+                            mensagem += `Desligamento Claro: ${desligamento}\n` +
+                                       `Comentário: ${comentarios}\n`;
+                        }
+
+                        mensagem += `Pontuação Total: ${total}/20\n` +
+                                   'Imagem da avaliação salva localmente. Por favor, anexe a imagem manualmente no WhatsApp.';
+                        const mensagemEncoded = encodeURIComponent(mensagem);
                         const numeroWhatsApp = '+5535984016706';
-                        window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
+                        window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`);
                         mostrarStatus('Imagem salva e WhatsApp aberto! Anexe a imagem manualmente.', '#2ecc71');
                         exibirResultado(total);
                     }).catch(err => {
                         console.error('Erro ao capturar imagem:', err);
                         mostrarStatus('Erro ao capturar imagem. Enviando apenas texto...', '#e74c3c');
-                        const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
-                        const mensagem = encodeURIComponent(
-                            'Avaliação de Desempenho:\n' +
+                        const tipoDesligamento = document.querySelector('input[name="tipoDesligamento"]:checked').value;
+                        let mensagem = 'Avaliação de Desempenho:\n' +
                             `Gerente: ${document.getElementById('gerente').value}\n` +
                             `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                             `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                             `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                             `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                            `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
-                            `Comentário: ${comentarios}\n` +
-                            `Pontuação Total: ${total}/20`
-                        );
+                            `Tipo de Desligamento: ${tipoDesligamento === 'demissao' ? 'Demissão' : 'Pedido de Demissão'}\n`;
+
+                        if (tipoDesligamento === 'pedidoDemissao') {
+                            const motivoComentarios = document.getElementById('motivoComentarios').value || 'Nenhum comentário fornecido';
+                            mensagem += `Motivo do Pedido de Demissão: ${motivoComentarios}\n`;
+                        } else {
+                            const desligamento = document.querySelector('input[name="desligamento"]:checked').value;
+                            const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
+                            mensagem += `Desligamento Claro: ${desligamento}\n` +
+                                       `Comentário: ${comentarios}\n`;
+                        }
+
+                        mensagem += `Pontuação Total: ${total}/20`;
+                        const mensagemEncoded = encodeURIComponent(mensagem);
                         const numeroWhatsApp = '+5535984016706';
-                        window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
+                        window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`);
                         mostrarStatus('Texto enviado pelo WhatsApp!', '#2ecc71');
                         exibirResultado(total);
                     });
@@ -870,20 +930,29 @@
                 .catch(err => {
                     console.error('Erro ao carregar html2canvas:', err);
                     mostrarStatus('Erro ao carregar biblioteca de captura. Enviando apenas texto...', '#e74c3c');
-                    const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
-                    const mensagem = encodeURIComponent(
-                        'Avaliação de Desempenho:\n' +
+                    const tipoDesligamento = document.querySelector('input[name="tipoDesligamento"]:checked').value;
+                    let mensagem = 'Avaliação de Desempenho:\n' +
                         `Gerente: ${document.getElementById('gerente').value}\n` +
                         `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                         `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                         `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                         `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                        `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
-                        `Comentário: ${comentarios}\n` +
-                        `Pontuação Total: ${total}/20`
-                    );
+                        `Tipo de Desligamento: ${tipoDesligamento === 'demissao' ? 'Demissão' : 'Pedido de Demissão'}\n`;
+
+                    if (tipoDesligamento === 'pedidoDemissao') {
+                        const motivoComentarios = document.getElementById('motivoComentarios').value || 'Nenhum comentário fornecido';
+                        mensagem += `Motivo do Pedido de Demissão: ${motivoComentarios}\n`;
+                    } else {
+                        const desligamento = document.querySelector('input[name="desligamento"]:checked').value;
+                        const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
+                        mensagem += `Desligamento Claro: ${desligamento}\n` +
+                                   `Comentário: ${comentarios}\n`;
+                    }
+
+                    mensagem += `Pontuação Total: ${total}/20`;
+                    const mensagemEncoded = encodeURIComponent(mensagem);
                     const numeroWhatsApp = '+5535984016706';
-                    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
+                    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`);
                     mostrarStatus('Texto enviado pelo WhatsApp!', '#2ecc71');
                     exibirResultado(total);
                 });
@@ -895,6 +964,8 @@
             notasSelecionadas.style.display = 'none';
             resultSummary.style.display = 'none';
             comentarioDesligamento.style.display = 'none';
+            motivoDesligamento.style.display = 'none';
+            clarezaDesligamentoSection.style.display = 'block';
             notaGerenteValor.innerHTML = '';
             notaEquipeValor.innerHTML = '';
             notaEstruturaValor.innerHTML = '';
