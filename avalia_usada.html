@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -433,53 +434,6 @@
             margin: 5px 0;
         }
         
-        /* Estilo para o campo de desligamento */
-        .desligamento-options {
-            display: flex;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        .desligamento-option {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .desligamento-option input[type="radio"] {
-            display: none;
-        }
-        
-        .desligamento-option label {
-            display: block;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid #ddd;
-            font-weight: 600;
-        }
-        
-        .desligamento-option input[type="radio"]:checked + label {
-            background-color: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
-        
-        .desligamento-option input[value="sim"]:checked + label {
-            background-color: #2ecc71;
-            border-color: #2ecc71;
-        }
-        
-        .desligamento-option input[value="nao"]:checked + label {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-        }
-        
-        .comentario-desligamento {
-            display: none;
-            margin-top: 15px;
-        }
-        
         @media screen and (max-width: 480px) {
             .container {
                 padding: 25px;
@@ -503,13 +457,6 @@
             }
             .custom-footer {
                 margin-bottom: -25px;
-            }
-            .desligamento-options {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .desligamento-option label {
-                padding: 10px;
             }
         }
 
@@ -641,24 +588,10 @@
         </div>
 
         <div class="form-section">
-            <div class="section-title"><i class="fas fa-comment-alt"></i> Foi claro o seu desligamento?</div>
-            
-            <div class="desligamento-options">
-                <div class="desligamento-option">
-                    <input type="radio" id="desligamentoSim" name="desligamento" value="sim" required>
-                    <label for="desligamentoSim"><i class="fas fa-check"></i> Sim</label>
-                </div>
-                <div class="desligamento-option">
-                    <input type="radio" id="desligamentoNao" name="desligamento" value="nao">
-                    <label for="desligamentoNao"><i class="fas fa-times"></i> Não</label>
-                </div>
-            </div>
-            
-            <div class="comentario-desligamento" id="comentarioDesligamento">
-                <div class="input-wrapper">
-                    <i class="fas fa-pencil-alt"></i>
-                    <textarea id="comentarios" name="comentarios" placeholder="Por favor, explique por que não foi claro o seu desligamento..."></textarea>
-                </div>
+            <div class="section-title"><i class="fas fa-comment-alt"></i> Fico claro  o seu desligamento</div>
+            <div class="input-wrapper">
+                <i class="fas fa-pencil-alt"></i>
+                <textarea id="comentarios" name="comentarios" placeholder="Deixe seus comentários, sugestões ou críticas aqui..."></textarea>
             </div>
         </div>
 
@@ -724,8 +657,6 @@
         const resultMessage = document.getElementById('resultMessage');
         const resetBtn = document.getElementById('resetBtn');
         const saveImageBtn = document.getElementById('saveImageBtn');
-        const desligamentoNao = document.getElementById('desligamentoNao');
-        const comentarioDesligamento = document.getElementById('comentarioDesligamento');
         
         // Elementos de notas individuais
         const notaGerenteValor = document.getElementById('notaGerenteValor');
@@ -737,17 +668,6 @@
         const notaEquipeItem = document.getElementById('notaEquipeItem');
         const notaEstruturaItem = document.getElementById('notaEstruturaItem');
         const notaBeneficiosItem = document.getElementById('notaBeneficiosItem');
-        
-        // Mostrar/ocultar campo de comentário sobre desligamento
-        document.querySelectorAll('input[name="desligamento"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'nao') {
-                    comentarioDesligamento.style.display = 'block';
-                } else {
-                    comentarioDesligamento.style.display = 'none';
-                }
-            });
-        });
         
         // Função para atualizar notas
         function atualizarNotas() {
@@ -835,16 +755,9 @@
             const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked');
             const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked');
             const notaBeneficios = document.querySelector('input[name="beneficios"]:checked');
-            const desligamento = document.querySelector('input[name="desligamento"]:checked');
             
-            if (!notaGerente || !notaEquipe || !notaEstrutura || !notaBeneficios || !desligamento) {
-                mostrarStatus('Por favor, responda a todas as perguntas', '#e74c3c');
-                return;
-            }
-            
-            // Se desligamento não foi claro, verificar se há comentário
-            if (desligamento.value === 'nao' && document.getElementById('comentarios').value.trim() === '') {
-                mostrarStatus('Por favor, explique por que não foi claro o desligamento', '#e74c3c');
+            if (!notaGerente || !notaEquipe || !notaEstrutura || !notaBeneficios) {
+                mostrarStatus('Por favor, atribua notas a todos os itens', '#e74c3c');
                 return;
             }
             
@@ -852,115 +765,115 @@
             const total = parseInt(notaGerente.value) + parseInt(notaEquipe.value) + 
                           parseInt(notaEstrutura.value) + parseInt(notaBeneficios.value);
             
-            // Se desligamento não foi claro, abrir WhatsApp com a imagem
-            if (desligamento.value === 'nao') {
-                mostrarStatus('Preparando para enviar pelo WhatsApp...', '#27ae60');
-                capturarEEnviarWhatsApp();
-                return;
+            // Exibir resumo do resultado
+            resultSummary.style.display = 'block';
+            resultScore.textContent = `${total}/20 pontos`;
+            
+            if (total <= 8) {
+                resultSummary.className = 'result-summary ruim-bg';
+                resultIcon.innerHTML = '<i class="far fa-frown"></i>';
+                resultText.textContent = 'Resultado Ruim';
+                resultMessage.textContent = 'Precisamos melhorar em vários aspectos. Sua avaliação é muito importante para nós.';
+            } else if (total <= 16) {
+                resultSummary.className = 'result-summary bom-bg';
+                resultIcon.innerHTML = '<i class="far fa-smile"></i>';
+                resultText.textContent = 'Resultado Bom';
+                resultMessage.textContent = 'Estamos no caminho certo, mas ainda podemos melhorar com suas sugestões.';
+            } else {
+                resultSummary.className = 'result-summary otimo-bg';
+                resultIcon.innerHTML = '<i class="far fa-grin-stars"></i>';
+                resultText.textContent = 'Resultado Ótimo';
+                resultMessage.textContent = 'Excelente! Sua avaliação positiva nos motiva a continuar mantendo a qualidade.';
             }
             
-            // Caso contrário, mostrar resultado normal
-            exibirResultado(total);
+            // Rolar para o resultado
+            resultSummary.scrollIntoView({ behavior: 'smooth' });
+            
+            mostrarStatus('Avaliação enviada com sucesso!', '#2ecc71');
         });
         
-                function exibirResultado(total) {
-            let iconClass, textClass, message;
-
-            if (total <= 8) {
-                iconClass = 'fas fa-frown ruim-bg';
-                textClass = 'nota-valor-ruim';
-                message = 'Obrigado pelo seu feedback! Identificamos áreas que precisam de melhorias.';
-            } else if (total <= 16) {
-                iconClass = 'fas fa-smile bom-bg';
-                textClass = 'nota-valor-bom';
-                message = 'Obrigado pelo seu feedback! Estamos no caminho certo, mas há espaço para melhorias.';
-            } else {
-                iconClass = 'fas fa-grin-stars otimo-bg';
-                textClass = 'nota-valor-otimo';
-                message = 'Excelente! Agradecemos pelo feedback positivo!';
-            }
-
-            resultIcon.className = `result-icon ${iconClass}`;
-            resultText.className = `result-text ${textClass}`;
-            resultText.textContent = 'Avaliação Concluída';
-            resultScore.className = `result-score ${textClass}`;
-            resultScore.textContent = `${total}/20`;
-            resultMessage.textContent = message;
-
-            mostrarStatus('Avaliação enviada com sucesso!', '#2ecc71');
-        }
-
+        // Função para mostrar status
         function mostrarStatus(mensagem, cor) {
             statusIndicator.textContent = mensagem;
             statusIndicator.style.backgroundColor = cor;
             statusIndicator.style.opacity = '1';
+            
             setTimeout(() => {
                 statusIndicator.style.opacity = '0';
             }, 3000);
         }
-
-        function capturarEEnviarWhatsApp() {
-            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
-                .then(({ default: html2canvas }) => {
-                    html2canvas(document.querySelector('.container')).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
-                        const link = document.createElement('a');
-                        link.href = imgData;
-                        link.download = 'avaliacao.png';
-                        link.click();
-
-                        const mensagem = encodeURIComponent(
-                            'Avaliação com problema no desligamento:\n' +
-                            `Gerente: ${document.getElementById('gerente').value}\n` +
-                            `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
-                            `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
-                            `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
-                            `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                            `Comentário: ${document.getElementById('comentarios').value}`
-                        );
-                        const numeroWhatsApp = '5535999616947'; // Substitua pelo número desejado
-                        window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
-                    });
-                })
-                .catch(err => {
-                    console.error('Erro ao carregar html2canvas:', err);
-                    mostrarStatus('Erro ao capturar imagem', '#e74c3c');
-                });
-        }
-
+        
+        // Limpar formulário
         resetBtn.addEventListener('click', function() {
             form.reset();
             pontuacaoTotal.style.display = 'none';
             notasSelecionadas.style.display = 'none';
             resultSummary.style.display = 'none';
-            comentarioDesligamento.style.display = 'none';
-            notaGerenteValor.innerHTML = '';
-            notaEquipeValor.innerHTML = '';
-            notaEstruturaValor.innerHTML = '';
-            notaBeneficiosValor.innerHTML = '';
-            notaGerenteItem.className = 'nota-item';
-            notaEquipeItem.className = 'nota-item';
-            notaEstruturaItem.className = 'nota-item';
-            notaBeneficiosItem.className = 'nota-item';
-            mostrarStatus('Formulário limpo com sucesso!', '#3498db');
+            mostrarStatus('Formulário limpo!', '#95a5a6');
         });
-
+        
+        // Função para salvar como imagem (real)
         saveImageBtn.addEventListener('click', function() {
-            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
-                .then(({ default: html2canvas }) => {
-                    html2canvas(document.querySelector('.container')).then(canvas => {
-                        const link = document.createElement('a');
-                        link.href = canvas.toDataURL('image/png');
-                        link.download = 'avaliacao.png';
-                        link.click();
-                        mostrarStatus('Imagem salva com sucesso!', '#2ecc71');
-                    });
-                })
-                .catch(err => {
-                    console.error('Erro ao carregar html2canvas:', err);
-                    mostrarStatus('Erro ao salvar imagem', '#e74c3c');
-                });
+            if (document.querySelector('input[name="notaGerente"]:checked') &&
+                document.querySelector('input[name="notaEquipe"]:checked') &&
+                document.querySelector('input[name="notaEstrutura"]:checked') &&
+                document.querySelector('input[name="beneficios"]:checked')) {
+                
+                mostrarStatus('Preparando para salvar imagem...', '#27ae60');
+                
+                // Incluir script html2canvas se não estiver incluído
+                if (!window.html2canvas) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = function() {
+                        capturarEBaixarImagem();
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    capturarEBaixarImagem();
+                }
+            } else {
+                mostrarStatus('Complete a avaliação antes de salvar', '#e74c3c');
+            }
         });
+        
+        // Função para capturar o conteúdo e baixar
+        function capturarEBaixarImagem() {
+            mostrarStatus('Capturando a tela...', '#27ae60');
+            
+            // Preparar o formulário para captura
+            const container = document.querySelector('.container');
+            const gerente = document.getElementById('gerente').value || 'Não informado';
+            
+            // Capturar o conteúdo usando html2canvas
+            html2canvas(container, {
+                allowTaint: true,
+                useCORS: true,
+                scale: 5,
+                backgroundColor: null,
+                logging: false
+            }).then(function(canvas) {
+                mostrarStatus('Gerando imagem...', '#27ae60');
+                
+                // Converter canvas para URL de dados
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Criar link para download
+                const link = document.createElement('a');
+                link.download = 'Avaliacao_' + gerente.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.png';
+                link.href = imgData;
+                
+                // Disparar o download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                mostrarStatus('Imagem salva com sucesso!', '#2ecc71');
+            }).catch(function(error) {
+                console.error('Erro ao capturar tela:', error);
+                mostrarStatus('Erro ao salvar imagem. Tente novamente.', '#e74c3c');
+            });
+        }
     });
 </script>
 </body>
