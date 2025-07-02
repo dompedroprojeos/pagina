@@ -779,12 +779,7 @@
             }
             const total = parseInt(notaGerente.value) + parseInt(notaEquipe.value) + 
                           parseInt(notaEstrutura.value) + parseInt(notaBeneficios.value);
-            if (desligamento.value === 'nao') {
-                mostrarStatus('Capturando imagem e enviando para o WhatsApp...', '#27ae60');
-                capturarEEnviarWhatsApp();
-                return;
-            }
-            exibirResultado(total);
+            capturarEEnviarWhatsApp(total);
         });
 
         function exibirResultado(total) {
@@ -808,7 +803,7 @@
             resultScore.className = `result-score ${textClass}`;
             resultScore.textContent = `${total}/20`;
             resultMessage.textContent = message;
-            mostrarStatus('Avaliação enviada com sucesso!', '#2ecc71');
+            resultSummary.style.display = 'block';
         }
 
         function mostrarStatus(mensagem, cor) {
@@ -820,7 +815,7 @@
             }, 3000);
         }
 
-        function capturarEEnviarWhatsApp() {
+        function capturarEEnviarWhatsApp(total) {
             import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
                 .then(({ default: html2canvas }) => {
                     html2canvas(document.querySelector('.container'), {
@@ -834,51 +829,63 @@
                         link.download = 'avaliacao.png';
                         link.click();
 
+                        const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
                         const mensagem = encodeURIComponent(
-                            'Avaliação com problema no desligamento:\n' +
+                            'Avaliação de Desempenho:\n' +
                             `Gerente: ${document.getElementById('gerente').value}\n` +
                             `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                             `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                             `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                             `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                            `Comentário: ${document.getElementById('comentarios').value}\n` +
+                            `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
+                            `Comentário: ${comentarios}\n` +
+                            `Pontuação Total: ${total}/20\n` +
                             'Imagem da avaliação salva localmente. Por favor, anexe a imagem manualmente no WhatsApp.'
                         );
                         const numeroWhatsApp = '+5535984016706';
                         window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
-                        mostrarStatus('Imagem salva! Abra o WhatsApp e anexe a imagem manualmente.', '#2ecc71');
+                        mostrarStatus('Imagem salva e WhatsApp aberto! Anexe a imagem manualmente.', '#2ecc71');
+                        exibirResultado(total);
                     }).catch(err => {
                         console.error('Erro ao capturar imagem:', err);
                         mostrarStatus('Erro ao capturar imagem. Enviando apenas texto...', '#e74c3c');
+                        const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
                         const mensagem = encodeURIComponent(
-                            'Avaliação com problema no desligamento:\n' +
+                            'Avaliação de Desempenho:\n' +
                             `Gerente: ${document.getElementById('gerente').value}\n` +
                             `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                             `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                             `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                             `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                            `Comentário: ${document.getElementById('comentarios').value}`
+                            `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
+                            `Comentário: ${comentarios}\n` +
+                            `Pontuação Total: ${total}/20`
                         );
                         const numeroWhatsApp = '+5535984016706';
                         window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
                         mostrarStatus('Texto enviado pelo WhatsApp!', '#2ecc71');
+                        exibirResultado(total);
                     });
                 })
                 .catch(err => {
                     console.error('Erro ao carregar html2canvas:', err);
                     mostrarStatus('Erro ao carregar biblioteca de captura. Enviando apenas texto...', '#e74c3c');
+                    const comentarios = document.getElementById('comentarios').value || 'Nenhum comentário fornecido';
                     const mensagem = encodeURIComponent(
-                        'Avaliação com problema no desligamento:\n' +
+                        'Avaliação de Desempenho:\n' +
                         `Gerente: ${document.getElementById('gerente').value}\n` +
                         `Nota Gerente: ${document.querySelector('input[name="notaGerente"]:checked').value}\n` +
                         `Nota Equipe: ${document.querySelector('input[name="notaEquipe"]:checked').value}\n` +
                         `Nota Estrutura: ${document.querySelector('input[name="notaEstrutura"]:checked').value}\n` +
                         `Nota Benefícios: ${document.querySelector('input[name="beneficios"]:checked').value}\n` +
-                        `Comentário: ${document.getElementById('comentarios').value}`
+                        `Desligamento Claro: ${document.querySelector('input[name="desligamento"]:checked').value}\n` +
+                        `Comentário: ${comentarios}\n` +
+                        `Pontuação Total: ${total}/20`
                     );
                     const numeroWhatsApp = '+5535984016706';
                     window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`);
                     mostrarStatus('Texto enviado pelo WhatsApp!', '#2ecc71');
+                    exibirResultado(total);
                 });
         }
 
