@@ -1,282 +1,1808 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação de Código - Sistema de Estoque</title>
+    <title>Dashboard Checklist de Limpeza - Rede Dom Pedro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Roboto+Slab:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background-color: #1e1e1e;
+        :root {
+            --orange-primary: #FF6D00;
+            --orange-light: #FF9E40;
+            --orange-dark: #DD2C00;
+            --blue-primary: #1565C0;
+            --blue-light: #5E92F3;
+            --blue-dark: #003C8F;
+            --white: #FFFFFF;
+            --gray-light: #F5F5F5;
+            --gray-medium: #E0E0E0;
+            --gray-dark: #616161;
+            --black: #212121;
+
+            --primary-gradient: linear-gradient(135deg, var(--orange-primary) 0%, var(--orange-dark) 100%);
+            --secondary-gradient: linear-gradient(135deg, var(--blue-light) 0%, var(--blue-dark) 100%);
+            --success-gradient: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-light) 100%);
+            --warning-gradient: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%);
+            --danger-gradient: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+            --accent-gradient: linear-gradient(135deg, var(--orange-light) 0%, var(--orange-primary) 100%);
+
+            --bg-primary: var(--gray-light);
+            --bg-secondary: var(--white);
+            --bg-glass: rgba(255, 255, 255, 0.25);
+            --bg-dark: #2d3748;
+
+            --text-primary: var(--black);
+            --text-secondary: var(--gray-dark);
+            --text-light: #94a3b8;
+
+            --border-color: var(--gray-medium);
+            --border-light: #f1f5f9;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        * {
             margin: 0;
-            padding: 20px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            color: #d4d4d4;
-            overflow: hidden;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .editor {
-            background-color: #1e1e1e;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            max-width: 800px;
+
+        body {
+            font-family: 'Roboto Slab', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 210mm; /* Largura A4 */
             margin: 0 auto;
-            overflow: hidden;
+            padding: 10mm;
+            background-color: var(--white);
+            box-shadow: var(--shadow-md);
         }
-        
-        .title-bar {
-            background-color: #3c3c3c;
-            padding: 8px 15px;
+
+        /* Scroll Button */
+        .scroll-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .scroll-btn button {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
         }
-        
-        .dots {
+
+        .scroll-btn button:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .scroll-btn i {
+            font-size: 1.5rem;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .header-content {
             display: flex;
-            margin-right: 15px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
         }
-        
-        .dot {
-            width: 12px;
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--orange-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h1 i {
+            font-size: 1.8rem;
+            color: var(--orange-primary);
+        }
+
+        .header-subtitle {
+            font-size: 1rem;
+            color: var(--blue-primary);
+            font-weight: 500;
+        }
+
+        .logo-section .logo {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--orange-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--blue-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            font-size: 1.2rem;
+            color: var(--blue-primary);
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--blue-primary);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .form-label i {
+            font-size: 1.1rem;
+            color: var(--blue-primary);
+            width: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: var(--white);
+            font-family: 'Roboto Slab', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--orange-primary);
+            box-shadow: 0 0 0 2px rgba(255, 109, 0, 0.1);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            color: white;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .progress-percentage {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
             height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
+            position: relative;
+            z-index: 1;
         }
-        
-        .dot-red { background-color: #ff5f56; }
-        .dot-yellow { background-color: #ffbd2e; }
-        .dot-green { background-color: #27c93f; }
-        
-        .file-name {
-            font-size: 13px;
-            color: #b0b0b0;
+
+        .progress-bar {
+            height: 100%;
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
         }
-        
-        .code-container {
-            padding: 15px;
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
             position: relative;
         }
-        
-        .line-numbers {
-            position: absolute;
-            left: 15px;
-            top: 15px;
-            color: #858585;
-            text-align: right;
-            user-select: none;
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
         }
-        
-        .code {
-            margin-left: 40px;
-            white-space: pre;
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: var(--orange-primary);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--blue-primary);
+        }
+
+        .stat-label {
+            color: var(--gray-dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Checklist Styles */
+        .checklist-container {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .checklist-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .checklist-section {
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--blue-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title i {
+            font-size: 1.2rem;
+            color: var(--blue-primary);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .checklist-item:hover {
+            border-color: var(--orange-primary);
+        }
+
+        .checklist-item.checked {
+            background: rgba(255, 109, 0, 0.05);
+            border-color: var(--orange-primary);
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--orange-primary);
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .item-title i {
+            font-size: 1rem;
+            color: var(--orange-primary);
+            width: 16px;
+        }
+
+        .item-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .chart-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--blue-primary);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            flex-grow: 1;
+        }
+
+        /* Photo Section */
+        .photo-section {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .photo-card {
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
             overflow: hidden;
-            font-size: 14px;
-            line-height: 1.5;
-            tab-size: 2;
+            border: 1px solid var(--border-color);
         }
-        
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background-color: #d4d4d4;
-            animation: blink 1s infinite;
-            vertical-align: middle;
+
+        .photo-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
         }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+
+        .photo-details {
+            padding: 12px;
         }
-        
-        .keyword { color: #569cd6; }
-        .function { color: #dcdcaa; }
-        .string { color: #ce9178; }
-        .comment { color: #6a9955; }
-        .number { color: #b5cea8; }
-        .operator { color: #d4d4d4; }
-        .variable { color: #9cdcfe; }
-        .type { color: #4ec9b0; }
+
+        .photo-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .photo-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .photo-observation {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            resize: vertical;
+            min-height: 60px;
+            margin-bottom: 6px;
+            font-family: 'Roboto Slab', sans-serif;
+        }
+
+        /* Button Styles */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-family: 'Roboto Slab', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #757575 0%, #424242 100%);
+            color: white;
+        }
+
+        /* Print Styles */
+              @media print {
+            :root {
+                --orange-primary: #FF6D00;
+                --blue-primary: #1565C0;
+                --white: #FFFFFF;
+                --gray-light: #F5F5F5;
+                --gray-medium: #E0E0E0;
+                --gray-dark: #616161;
+                --black: #212121;
+                --radius-sm: 4px;
+                --radius-md: 8px;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Roboto Slab', sans-serif;
+                background: var(--white) !important;
+                font-size: 10pt;
+                color: var(--black) !important;
+                line-height: 1.2;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+
+            .main-header {
+                border: 1px solid #ccc;
+                border-radius: var(--radius-sm);
+                padding: 8px;
+                page-break-after: avoid;
+            }
+
+            .header-title h1 {
+                font-size: 14pt;
+                color: var(--orange-primary) !important;
+            }
+
+            .header-subtitle {
+                font-size: 9pt;
+                color: var(--blue-primary) !important;
+            }
+
+            .logo-section .logo {
+                height: 40px;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                page-break-inside: avoid;
+            }
+
+            .stat-card {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                padding: 6px;
+                text-align: center;
+            }
+
+            .stat-value {
+                font-size: 11pt;
+                color: var(--blue-primary) !important;
+            }
+
+            .stat-label {
+                font-size: 8pt;
+                color: #666 !important;
+            }
+
+            .progress-section {
+                background: var(--orange-primary) !important;
+                border: 1px solid #ccc;
+                border-radius: var(--radius-sm);
+                padding: 8px;
+                color: var(--white) !important;
+                page-break-inside: avoid;
+            }
+
+            .progress-title {
+                font-size: 11pt;
+                color: var(--white) !important;
+            }
+
+            .progress-percentage {
+                font-size: 12pt;
+                color: var(--white) !important;
+            }
+
+            .progress-container {
+                background: rgba(255, 255, 255, 0.3) !important;
+                border-radius: var(--radius-sm);
+                height: 12px;
+            }
+
+            .progress-bar {
+                background: var(--white) !important;
+                height: 100%;
+                border-radius: var(--radius-sm);
+            }
+
+            .charts-section {
+                page-break-inside: avoid;
+            }
+
+            .chart-card {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                padding: 8px;
+                page-break-inside: avoid;
+            }
+
+            .chart-title {
+                font-size: 11pt;
+                color: var(--blue-primary) !important;
+                text-align: center;
+            }
+
+            .chart-container {
+                height: 150px;
+            }
+
+            .checklist-container {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                border-radius: var(--radius-sm);
+                padding: 8px;
+                page-break-inside: avoid;
+            }
+
+            .checklist-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .checklist-section {
+                background: #f5f5f5 !important;
+                border: 1px solid #ccc;
+                border-radius: var(--radius-sm);
+                padding: 8px;
+                page-break-inside: avoid;
+            }
+
+            .section-title {
+                font-size: 11pt;
+                color: var(--blue-primary) !important;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 6px;
+                margin-bottom: 8px;
+            }
+
+            .checklist-item {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                padding: 6px;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: flex-start;
+                gap: 6px;
+                page-break-inside: avoid;
+            }
+
+            .checklist-item.checked {
+                background: rgba(255, 109, 0, 0.05) !important;
+                border-color: var(--orange-primary) !important;
+            }
+
+            .checklist-item::before {
+                content: '';
+                width: 12px;
+                height: 12px;
+                margin-top: 2px;
+                border: 1px solid #ccc;
+                display: inline-block;
+            }
+
+            .checklist-item.checked::before {
+                content: '✔';
+                font-size: 10pt;
+                color: var(--orange-primary);
+                text-align: center;
+                line-height: 12px;
+                border-color: var(--orange-primary);
+            }
+
+            .item-title {
+                font-size: 9pt;
+                color: var(--black) !important;
+            }
+
+            .item-description {
+                font-size: 8pt;
+                color: #666 !important;
+            }
+
+            .photo-section {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                border-radius: var(--radius-sm);
+                padding: 8px;
+                page-break-inside: avoid;
+            }
+
+            .photo-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .photo-card {
+                background: var(--white) !important;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+
+            .photo-img {
+                height: 80px;
+                width: 100%;
+                object-fit: cover;
+            }
+
+            .photo-title {
+                font-size: 8pt;
+                border: 1px solid #ccc;
+                padding: 4px;
+                color: var(--black) !important;
+                width: 100%;
+            }
+
+            .photo-timestamp {
+                font-size: 7pt;
+                color: #666 !important;
+            }
+
+            .photo-observation {
+                font-size: 7pt;
+                border: 1px solid #ccc;
+                padding: 4px;
+                color: var(--black) !important;
+                min-height: 40px;
+                width: 100%;
+            }
+        }
+@media print {
+    /* Suas regras existentes... */
+
+    /* Remover botões */
+    button, .btn, .button, [class*="button"], [class*="btn"] {
+        display: none !important;
+    }
+
+    /* Se tiver elementos específicos que são botões (ajuste conforme necessário) */
+    .action-buttons, .print-hide, .no-print {
+        display: none !important;
+    }
+}
+@media print {
+    .progress-chart, 
+    .progress-chart .chart-container {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+}
     </style>
 </head>
 <body>
-    <div class="editor">
-        <div class="title-bar">
-            <div class="dots">
-                <div class="dot dot-red"></div>
-                <div class="dot dot-yellow"></div>
-                <div class="dot dot-green"></div>
+    <div class="container">
+        <!-- Header Principal -->
+        <div class="main-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>
+                        <i class="fas fa-clipboard-list"></i>
+                        Dashboard Checklist de Limpeza
+                    </h1>
+                    <p class="header-subtitle">Sistema de Monitoramento e Controle de Qualidade - Rede Dom Pedro</p>
+                </div>
+                <div class="logo-section">
+                    <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Logo Rede Dom Pedro" class="logo">
+                </div>
             </div>
-            <div class="file-name">estoque.js</div>
         </div>
-        <div class="code-container">
-            <div class="line-numbers" id="line-numbers">1</div>
-            <div class="code" id="code"></div>
+
+        <!-- Scroll Buttons -->
+        <div class="scroll-btn">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Subir">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Descer">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+        </div>
+
+        <!-- Grid do Dashboard -->
+        <div class="dashboard-grid">
+            <!-- Informações do Posto -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-gas-pump"></i>
+                        Informações do Posto
+                    </h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-building"></i>
+                            Nome do Posto
+                        </label>
+                        <input type="text" class="form-control" id="nomePosto" placeholder="Ex: Dom Pedro Centro">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Endereço
+                        </label>
+                        <input type="text" class="form-control" id="endereco" placeholder="Rua, número, bairro">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i>
+                            Responsável
+                        </label>
+                        <input type="text" class="form-control" id="responsavel" placeholder="Nome do responsável">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i>
+                            Data
+                        </label>
+                        <input type="date" class="form-control" id="dataChecklist">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-clock"></i>
+                            Turno
+                        </label>
+                        <select class="form-control" id="turno">
+                            <option value="">Selecione o turno</option>
+                            <option value="manha">Manhã (06:00 - 14:00)</option>
+                            <option value="tarde">Tarde (14:00 - 22:00)</option>
+                            <option value="noite">Noite (22:00 - 06:00)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Estatísticas do Dia
+                    </h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-value" id="totalItens">0</div>
+                        <div class="stat-label">Total de Itens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-value" id="itensCompletos">0</div>
+                        <div class="stat-label">Concluídos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="itensPendentes">0</div>
+                        <div class="stat-label">Pendentes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-value" id="porcentagemCompleta">0%</div>
+                        <div class="stat-label">Progresso</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Progresso -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <div class="progress-title">
+                    <i class="fas fa-chart-line"></i>
+                    Progresso Geral do Checklist
+                </div>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Progresso por Área
+                </h3>
+                <div class="chart-container">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container do Checklist -->
+        <div class="checklist-container" id="checklistContainer">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-clipboard-check"></i>
+                    Checklist de Limpeza
+                </h2>
+            </div>
+            
+            <div class="checklist-grid">
+                <!-- Área Externa -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-home"></i>
+                        Área Externa
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="patio_varrido">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-broom"></i>
+                                Pátio varrido e limpo
+                            </div>
+                            <div class="item-description">Varrer toda área externa, removendo folhas, papéis e detritos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="bombas_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-gas-pump"></i>
+                                Bombas de combustível limpas
+                            </div>
+                            <div class="item-description">Limpar displays, mangueiras e área ao redor das bombas</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="placas_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-sign"></i>
+                                Placas e totens limpos
+                            </div>
+                            <div class="item-description">Limpeza de todas as placas de preços e totens publicitários</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="lixeiras_esvaziadas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-trash"></i>
+                                Lixeiras esvaziadas
+                            </div>
+                            <div class="item-description">Esvaziar e limpar todas as lixeiras da área externa</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="jardim_cuidado">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-leaf"></i>
+                                Jardim e plantas cuidados
+                            </div>
+                            <div class="item-description">Regar plantas, remover ervas daninhas e manter jardim organizado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loja de Conveniência -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-store"></i>
+                        Loja de Conveniência
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="piso_varrido">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-broom"></i>
+                                Piso varrido e passado pano
+                            </div>
+                            <div class="item-description">Varrer e passar pano úmido em todo o piso da loja</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prateleiras_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-boxes"></i>
+                                Prateleiras organizadas e limpas
+                            </div>
+                            <div class="item-description">Limpar prateleiras e organizar produtos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="geladeiras_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-snowflake"></i>
+                                Geladeiras e freezers limpos
+                            </div>
+                            <div class="item-description">Limpeza interna e externa de geladeiras e freezers</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="balcao_limpo">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-cash-register"></i>
+                                Balcão de atendimento limpo
+                            </div>
+                            <div class="item-description">Limpar balcão, caixa registradora e área de atendimento</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="vidros_limpos">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-window-maximize"></i>
+                                Vidros e espelhos limpos
+                            </div>
+                            <div class="item-description">Limpeza de todas as superfícies de vidro e espelhos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banheiros -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-restroom"></i>
+                        Banheiros
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="sanitarios_desinfetados">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-toilet"></i>
+                                Sanitários desinfetados
+                            </div>
+                            <div class="item-description">Desinfecção completa de vasos sanitários e assentos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="pias_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-sink"></i>
+                                Pias e torneiras limpas
+                            </div>
+                            <div class="item-description">Limpeza e desinfecção de pias, torneiras e cubas</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="espelhos_limpos">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-mirror"></i>
+                                Espelhos limpos
+                            </div>
+                            <div class="item-description">Limpeza completa de todos os espelhos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="papel_reposto">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-toilet-paper"></i>
+                                Papel higiênico reposto
+                            </div>
+                            <div class="item-description">Verificar e repor papel higiênico em todos os banheiros</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="sabonete_reposto">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-pump-soap"></i>
+                                Sabonete líquido reposto
+                            </div>
+                            <div class="item-description">Verificar e repor sabonete líquido nos dispensers</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="lixo_banheiro">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Lixeiras esvaziadas e limpas
+                            </div>
+                            <div class="item-description">Esvaziar, limpar e trocar sacos das lixeiras</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escritório -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-building"></i>
+                        Escritório
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="mesa_limpa">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-desk"></i>
+                                Mesas e superfícies limpas
+                            </div>
+                            <div class="item-description">Limpeza de mesas, cadeiras e superfícies de trabalho</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="computadores_limpos">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-desktop"></i>
+                                Equipamentos limpos
+                            </div>
+                            <div class="item-description">Limpeza de monitores, teclados e equipamentos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="arquivo_organizado">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-file-alt"></i>
+                                Arquivos organizados
+                            </div>
+                            <div class="item-description">Organização de documentos e materiais de escritório</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="lixo_escritorio">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-trash"></i>
+                                Lixeira esvaziada
+                            </div>
+                            <div class="item-description">Esvaziar e limpar lixeira do escritório</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área de Serviços -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-tools"></i>
+                        Área de Serviços
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="elevador_limpo">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-car"></i>
+                                Elevador hidráulico limpo
+                            </div>
+                            <div class="item-description">Limpeza e organização da área do elevador</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="ferramentas_organizadas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-wrench"></i>
+                                Ferramentas organizadas
+                            </div>
+                            <div class="item-description">Organização e limpeza de ferramentas e equipamentos</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="oleo_descartado">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-oil-can"></i>
+                                Óleo usado descartado corretamente
+                            </div>
+                            <div class="item-description">Verificar descarte adequado de óleo e materiais</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="area_servicos_varrida">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-broom"></i>
+                                Área varrida e limpa
+                            </div>
+                            <div class="item-description">Varrer e limpar toda a área de serviços</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segurança e Emergência -->
+                <div class="checklist-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Segurança e Emergência
+                    </h3>
+                    
+                    <div class="checklist-item">
+                        <input type="checkbox" id="extintores_verificados">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-fire-extinguisher"></i>
+                                Extintores verificados
+                            </div>
+                            <div class="item-description">Verificar estado e limpeza dos extintores</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="saidas_desobstruidas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-door-open"></i>
+                                Saídas de emergência desobstruídas
+                            </div>
+                            <div class="item-description">Verificar se saídas estão livres e sinalizadas</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="cameras_limpas">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-video"></i>
+                                Câmeras de segurança limpas
+                            </div>
+                            <div class="item-description">Limpeza das lentes das câmeras de monitoramento</div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="kit_primeiros_socorros">
+                        <div class="item-content">
+                            <div class="item-title">
+                                <i class="fas fa-first-aid"></i>
+                                Kit primeiros socorros verificado
+                            </div>
+                            <div class="item-description">Verificar estado e completude do kit de primeiros socorros</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Fotos -->
+        <div class="photo-section">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-camera"></i>
+                    Registro Fotográfico
+                </h2>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="adicionarFoto()">
+                    <i class="fas fa-plus"></i>
+                    Adicionar Foto
+                </button>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" multiple>
+            </div>
+            
+            <div class="photo-grid" id="photoGrid">
+                <!-- Fotos serão adicionadas dinamicamente aqui -->
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="imprimirChecklist()">
+                <i class="fas fa-print"></i>
+                Imprimir Checklist
+            </button>
+            <button class="btn btn-warning" onclick="limparFormulario()">
+                <i class="fas fa-eraser"></i>
+                Limpar Tudo
+            </button>
+            <button class="btn btn-secondary" onclick="exportarBackup()">
+                <i class="fas fa-download"></i>
+                Exportar Backup
+            </button>
+            <button class="btn btn-success" onclick="restaurarBackup()">
+                <i class="fas fa-upload"></i>
+                Restaurar Backup
+            </button>
+            <input type="file" id="restoreInput" accept=".json" style="display: none;">
         </div>
     </div>
 
     <script>
-        // Código que será "digitado"
-        const fullCode = [
-`class Produto {`,
-`  constructor(id, nome, quantidade, preco) {`,
-`    this.id = id;`,
-`    this.nome = nome;`,
-`    this.quantidade = quantidade;`,
-`    this.preco = preco;`,
-`  }`,
-`}`,
-``,
-`class Estoque {`,
-`  constructor() {`,
-`    this.produtos = [];`,
-`    this.ultimoId = 0;`,
-`  }`,
-``,
-`  // Adiciona um novo produto ao estoque`,
-`  adicionarProduto(nome, quantidade, preco) {`,
-`    this.ultimoId++;`,
-`    const novoProduto = new Produto(`,
-`      this.ultimoId,`,
-`      nome,`,
-`      quantidade,`,
-`      preco`,
-`    );`,
-`    this.produtos.push(novoProduto);`,
-`    return novoProduto;`,
-`  }`,
-``,
-`  // Remove produto pelo ID`,
-`  removerProduto(id) {`,
-`    const index = this.produtos.findIndex(p => p.id === id);`,
-`    if (index !== -1) {`,
-`      return this.produtos.splice(index, 1)[0];`,
-`    }`,
-`    return null;`,
-`  }`,
-``,
-`  // Atualiza quantidade de um produto`,
-`  atualizarQuantidade(id, novaQuantidade) {`,
-`    const produto = this.produtos.find(p => p.id === id);`,
-`    if (produto) {`,
-`      produto.quantidade = novaQuantidade;`,
-`      return true;`,
-`    }`,
-`    return false;`,
-`  }`,
-``,
-`  // Lista todos os produtos`,
-`  listarProdutos() {`,
-`    return [...this.produtos];`,
-`  }`,
-``,
-`  // Busca produto por nome (case insensitive)`,
-`  buscarPorNome(termo) {`,
-`    const termoLower = termo.toLowerCase();`,
-`    return this.produtos.filter(p => `,
-`      p.nome.toLowerCase().includes(termoLower)`,
-`    );`,
-`  }`,
-``,
-`  // Calcula valor total do estoque`,
-`  calcularValorTotal() {`,
-`    return this.produtos.reduce(`,
-`      (total, produto) => total + (produto.quantidade * produto.preco),`,
-`      0`,
-`    );`,
-`  }`,
-`}`,
-``,
-`// Exemplo de uso:`,
-`const meuEstoque = new Estoque();`,
-``,
-`meuEstoque.adicionarProduto("Notebook Dell", 10, 4500.00);`,
-`meuEstoque.adicionarProduto("Mouse Sem Fio", 50, 120.00);`,
-`meuEstoque.adicionarProduto("Teclado Mecânico", 25, 350.00);`,
-``,
-`console.log("Valor total do estoque:", `,
-`  meuEstoque.calcularValorTotal().toLocaleString('pt-BR', {`,
-`    style: 'currency',`,
-`    currency: 'BRL'`,
-`  })`,
-`);`,
-``,
-`// Saída esperada:`,
-`// Valor total do estoque: R$ 62.000,00`];
+        // Variáveis globais
+        let checklistData = {};
+        let photoCounter = 0;
+        let charts = {
+            progress: null
+        };
 
-        // Função para adicionar syntax highlighting
-        function highlightCode(code) {
-            return code
-                .replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>')
-                .replace(/\b(class|constructor|return|new|if|else|const|let|var)\b/g, '<span class="keyword">$1</span>')
-                .replace(/\b(Produto|Estoque|true|false|null)\b/g, '<span class="type">$1</span>')
-                .replace(/\b(adicionarProduto|removerProduto|atualizarQuantidade|listarProdutos|buscarPorNome|calcularValorTotal|findIndex|find|filter|reduce|push|splice|toLowerCase|includes|toLocaleString)\b/g, '<span class="function">$1</span>')
-                .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
-                .replace(/\b(\d+)\b/g, '<span class="number">$1</span>')
-                .replace(/([{}()[\];=,+\-*\/])/g, '<span class="operator">$1</span>')
-                .replace(/(this\.\w+)/g, '<span class="variable">$1</span>');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarApp();
+            configurarEventListeners();
+            carregarDadosSalvos();
+            atualizarEstatisticas();
+            criarGraficos();
+            definirDataAtual();
+        });
+
+        function inicializarApp() {
+            console.log('Dashboard Checklist de Limpeza inicialized');
         }
 
-        // Elementos do DOM
-        const codeElement = document.getElementById('code');
-        const lineNumbersElement = document.getElementById('line-numbers');
-        
-        // Variáveis de controle
-        let currentLine = 0;
-        let currentChar = 0;
-        let typingSpeed = 20; // ms por caractere
-        let newLineDelay = 500; // ms após cada linha
-        
-        // Função principal para "digitar" o código
-        function typeCode() {
-            if (currentLine < fullCode.length) {
-                const line = fullCode[currentLine];
-                
-                if (currentChar < line.length) {
-                    // Adiciona próximo caractere
-                    const char = line.charAt(currentChar);
-                    codeElement.innerHTML = highlightCode(
-                        codeElement.textContent + char
-                    ) + '<span class="cursor"></span>';
-                    currentChar++;
-                    
-                    // Atualiza números das linhas
-                    updateLineNumbers();
-                    
-                    // Agenda próximo caractere
-                    setTimeout(typeCode, typingSpeed);
-                } else {
-                    // Muda para próxima linha
-                    codeElement.innerHTML = highlightCode(
-                        codeElement.textContent + '\n'
-                    ) + '<span class="cursor"></span>';
-                    currentLine++;
-                    currentChar = 0;
-                    
-                    // Atualiza números das linhas
-                    updateLineNumbers();
-                    
-                    // Pequena pausa antes da próxima linha
-                    setTimeout(typeCode, newLineDelay);
+        function definirDataAtual() {
+            const hoje = new Date();
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            document.getElementById('dataChecklist').value = dataFormatada;
+            salvarDadosFormulario();
+        }
+
+        function configurarEventListeners() {
+            // Event listeners para checkboxes
+            const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const item = this.closest('.checklist-item');
+                    if (this.checked) {
+                        item.classList.add('checked');
+                    } else {
+                        item.classList.remove('checked');
+                    }
+                    atualizarEstatisticas();
+                    atualizarGraficos();
+                    salvarDadosFormulario();
+                });
+            });
+
+            // Event listener para input de arquivo (fotos)
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                processarFotos(e.target.files);
+            });
+
+            // Event listener para input de restore
+            document.getElementById('restoreInput').addEventListener('change', function(e) {
+                restaurarBackupFile(e.target.files[0]);
+            });
+
+            // Event listeners para campos do formulário
+            const campos = ['nomePosto', 'endereco', 'responsavel', 'dataChecklist', 'turno'];
+            campos.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (elemento) {
+                    elemento.addEventListener('change', salvarDadosFormulario);
                 }
-            } else {
-                // Código completo - mantém cursor piscando
-                codeElement.innerHTML = highlightCode(codeElement.textContent) + 
-                    '<span class="cursor"></span>';
+            });
+        }
+
+        function carregarDadosSalvos() {
+            try {
+                const savedData = localStorage.getItem('checklistData');
+                if (savedData) {
+                    checklistData = JSON.parse(savedData);
+
+                    document.getElementById('nomePosto').value = checklistData.nomePosto || '';
+                    document.getElementById('endereco').value = checklistData.endereco || '';
+                    document.getElementById('responsavel').value = checklistData.responsavel || '';
+                    document.getElementById('dataChecklist').value = checklistData.dataChecklist || '';
+                    document.getElementById('turno').value = checklistData.turno || '';
+
+                    Object.keys(checklistData.checklist).forEach(id => {
+                        const checkbox = document.getElementById(id);
+                        if (checkbox) {
+                            checkbox.checked = checklistData.checklist[id];
+                            const item = checkbox.closest('.checklist-item');
+                            if (checkbox.checked) {
+                                item.classList.add('checked');
+                            } else {
+                                item.classList.remove('checked');
+                            }
+                        }
+                    });
+
+                    const photoGrid = document.getElementById('photoGrid');
+                    photoGrid.innerHTML = '';
+                    checklistData.photos.forEach(photo => {
+                        adicionarFotoExistente(photo.img, photo.title, photo.observation, photo.timestamp);
+                    });
+
+                    atualizarEstatisticas();
+                    atualizarGraficos();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados salvos:', error);
             }
         }
-        
-        // Atualiza os números das linhas
-        function updateLineNumbers() {
-            const lineCount = codeElement.textContent.split('\n').length;
-            let numbers = '';
-            for (let i = 1; i <= lineCount; i++) {
-                numbers += i + '\n';
+
+        function salvarDadosFormulario() {
+            try {
+                checklistData = {
+                    nomePosto: document.getElementById('nomePosto').value,
+                    endereco: document.getElementById('endereco').value,
+                    responsavel: document.getElementById('responsavel').value,
+                    dataChecklist: document.getElementById('dataChecklist').value,
+                    turno: document.getElementById('turno').value,
+                    checklist: {},
+                    photos: []
+                };
+
+                const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checklistData.checklist[checkbox.id] = checkbox.checked;
+                });
+
+                const photoCards = document.querySelectorAll('.photo-card');
+                photoCards.forEach(card => {
+                    const img = card.querySelector('.photo-img').src;
+                    const title = card.querySelector('.photo-title').value;
+                    const observation = card.querySelector('.photo-observation').value;
+                    const timestamp = card.querySelector('.photo-timestamp').textContent;
+                    checklistData.photos.push({ img, title, observation, timestamp });
+                });
+
+                localStorage.setItem('checklistData', JSON.stringify(checklistData));
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                alert('Erro ao salvar os dados. Verifique o console para mais detalhes.');
             }
-            lineNumbersElement.textContent = numbers;
         }
-        
-        // Inicia a animação
-        setTimeout(typeCode, 1000);
+
+        function atualizarEstatisticas() {
+            const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+            const total = checkboxes.length;
+            const completos = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+            const pendentes = total - completos;
+            const porcentagem = total > 0 ? Math.round((completos / total) * 100) : 0;
+
+            document.getElementById('totalItens').textContent = total;
+            document.getElementById('itensCompletos').textContent = completos;
+            document.getElementById('itensPendentes').textContent = pendentes;
+            document.getElementById('porcentagemCompleta').textContent = porcentagem + '%';
+            
+            document.getElementById('progressPercentage').textContent = porcentagem + '%';
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = porcentagem + '%';
+        }
+
+        function criarGraficos() {
+            criarGraficoProgresso();
+        }
+
+        function criarGraficoProgresso() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            charts.progress = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Área Externa', 'Loja', 'Banheiros', 'Escritório', 'Serviços', 'Segurança'],
+                    datasets: [{
+                        label: 'Progresso (%)',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(255, 109, 0, 0.7)', // Área Externa
+                            'rgba(21, 101, 192, 0.7)', // Loja
+                            'rgba(255, 109, 0, 0.5)', // Banheiros
+                            'rgba(21, 101, 192, 0.5)', // Escritório
+                            'rgba(255, 109, 0, 0.3)', // Serviços
+                            'rgba(21, 101, 192, 0.3)'  // Segurança
+                        ],
+                        borderColor: [
+                            'rgba(255, 109, 0, 1)',
+                            'rgba(21, 101, 192, 1)',
+                            'rgba(255, 109, 0, 1)',
+                            'rgba(21, 101, 192, 1)',
+                            'rgba(255, 109, 0, 1)',
+                            'rgba(21, 101, 192, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: { size: 10, family: 'Roboto Slab' }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 10, family: 'Roboto Slab' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function atualizarGraficos() {
+            const secoes = {
+                'Área Externa': ['patio_varrido', 'bombas_limpas', 'placas_limpas', 'lixeiras_esvaziadas', 'jardim_cuidado'],
+                'Loja': ['piso_varrido', 'prateleiras_limpas', 'geladeiras_limpas', 'balcao_limpo', 'vidros_limpos'],
+                'Banheiros': ['sanitarios_desinfetados', 'pias_limpas', 'espelhos_limpos', 'papel_reposto', 'sabonete_reposto', 'lixo_banheiro'],
+                'Escritório': ['mesa_limpa', 'computadores_limpos', 'arquivo_organizado', 'lixo_escritorio'],
+                'Serviços': ['elevador_limpo', 'ferramentas_organizadas', 'oleo_descartado', 'area_servicos_varrida'],
+                'Segurança': ['extintores_verificados', 'saidas_desobstruidas', 'cameras_limpas', 'kit_primeiros_socorros']
+            };
+
+            const progressoPorSecao = Object.keys(secoes).map(secao => {
+                const itens = secoes[secao];
+                const completos = itens.filter(id => document.getElementById(id).checked).length;
+                return Math.round((completos / itens.length) * 100);
+            });
+
+            charts.progress.data.datasets[0].data = progressoPorSecao;
+            charts.progress.update();
+        }
+
+        function restaurarBackup() {
+            document.getElementById('restoreInput').click();
+        }
+
+        function restaurarBackupFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    checklistData = JSON.parse(e.target.result);
+
+                    document.getElementById('nomePosto').value = checklistData.nomePosto || '';
+                    document.getElementById('endereco').value = checklistData.endereco || '';
+                    document.getElementById('responsavel').value = checklistData.responsavel || '';
+                    document.getElementById('dataChecklist').value = checklistData.dataChecklist || '';
+                    document.getElementById('turno').value = checklistData.turno || '';
+
+                    Object.keys(checklistData.checklist).forEach(id => {
+                        const checkbox = document.getElementById(id);
+                        if (checkbox) {
+                            checkbox.checked = checklistData.checklist[id];
+                            const item = checkbox.closest('.checklist-item');
+                            if (checkbox.checked) {
+                                item.classList.add('checked');
+                            } else {
+                                item.classList.remove('checked');
+                            }
+                        }
+                    });
+
+                    const photoGrid = document.getElementById('photoGrid');
+                    photoGrid.innerHTML = '';
+                    checklistData.photos.forEach(photo => {
+                        adicionarFotoExistente(photo.img, photo.title, photo.observation, photo.timestamp);
+                    });
+
+                    atualizarEstatisticas();
+                    atualizarGraficos();
+                    salvarDadosFormulario();
+                    alert('Backup restaurado com sucesso!');
+                } catch (error) {
+                    alert('Erro ao restaurar o backup: arquivo inválido.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function adicionarFoto() {
+            document.getElementById('fileInput').click();
+        }
+
+        function processarFotos(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const timestamp = new Date().toLocaleString('pt-BR');
+                    adicionarFotoExistente(e.target.result, '', '', timestamp);
+                    salvarDadosFormulario();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function adicionarFotoExistente(imgSrc, title = '', observation = '', timestamp) {
+            const photoGrid = document.getElementById('photoGrid');
+            const photoCard = document.createElement('div');
+            photoCard.className = 'photo-card';
+            photoCard.innerHTML = `
+                <img src="${imgSrc}" alt="Foto do checklist" class="photo-img">
+                <div class="photo-details">
+                    <input type="text" class="photo-title form-control" placeholder="Título da foto" value="${title}">
+                    <div class="photo-timestamp">${timestamp}</div>
+                    <textarea class="photo-observation" placeholder="Observações">${observation}</textarea>
+                    <button class="btn btn-danger" onclick="removerFoto(this)">
+                        <i class="fas fa-trash"></i>
+                        Remover
+                    </button>
+                </div>
+            `;
+            photoGrid.appendChild(photoCard);
+
+            const titleInput = photoCard.querySelector('.photo-title');
+            const observationInput = photoCard.querySelector('.photo-observation');
+            titleInput.addEventListener('change', salvarDadosFormulario);
+            observationInput.addEventListener('change', salvarDadosFormulario);
+        }
+
+        function removerFoto(button) {
+            button.closest('.photo-card').remove();
+            salvarDadosFormulario();
+            atualizarEstatisticas();
+        }
+
+        function limparFormulario() {
+            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                document.getElementById('nomePosto').value = '';
+                document.getElementById('endereco').value = '';
+                document.getElementById('responsavel').value = '';
+                document.getElementById('dataChecklist').value = '';
+                document.getElementById('turno').value = '';
+
+                const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.closest('.checklist-item').classList.remove('checked');
+                });
+
+                document.getElementById('photoGrid').innerHTML = '';
+                photoCounter = 0;
+
+                localStorage.removeItem('checklistData');
+                checklistData = {};
+
+                atualizarEstatisticas();
+                atualizarGraficos();
+                alert('Formulário limpo com sucesso!');
+            }
+        }
+
+        function exportarBackup() {
+            salvarDadosFormulario();
+            const dataStr = JSON.stringify(checklistData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Checklist_Backup_${document.getElementById('nomePosto').value || 'Dom_Pedro'}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('Backup exportado com sucesso!');
+        }
+
+        function imprimirChecklist() {
+            window.print();
+        }
     </script>
 </body>
 </html>
