@@ -867,7 +867,6 @@
                                 </label>
                             </div>
                          <div class="rating-item">
-                               <div class="rating-item">
                                 <input type="radio" id="estrutura5" name="notaEstrutura" value="5">
                                 <label for="estrutura5" class="rating-label">
                                     <i class="far fa-grin-stars rating-icon"></i>
@@ -1035,10 +1034,6 @@
                         <i class="fas fa-paper-plane"></i>
                         Enviar Formulário
                     </button>
-                    <button type="button" class="btn btn-secondary" id="downloadBtn">
-                        <i class="fas fa-download"></i>
-                        Baixar Imagem
-                    </button>
                     <button type="button" class="btn btn-secondary" id="clearBtn">
                         <i class="fas fa-eraser"></i>
                         Limpar
@@ -1068,7 +1063,6 @@
         const summarySection = document.getElementById('summarySection');
         const notification = document.getElementById('notification');
         const submitBtn = document.getElementById('submitBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
         const clearBtn = document.getElementById('clearBtn');
 
         // Elementos de resumo
@@ -1164,136 +1158,8 @@
             showNotification('Formulário limpo com sucesso!', 'warning');
         }
 
-        // Função para capturar imagem do formulário
-        async function captureFormImage() {
-            try {
-                // Garantir que o resumo esteja visível
-                if (summarySection.style.display === 'none') {
-                    updateSummary();
-                }
-
-                const canvas = await html2canvas(document.querySelector('.main-container'), {
-                    backgroundColor: '#ffffff',
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    height: document.querySelector('.main-container').scrollHeight,
-                    width: document.querySelector('.main-container').scrollWidth
-                });
-
-                return canvas.toDataURL('image/jpeg', 0.9);
-            } catch (error) {
-                console.error('Erro ao capturar imagem:', error);
-                showNotification('Erro ao gerar imagem do formulário.', 'error');
-                return null;
-            }
-        }
-
-        // Função para fazer download da imagem
-        async function downloadFormImage() {
-            downloadBtn.innerHTML = '<div class="loading"></div> Gerando...';
-            downloadBtn.disabled = true;
-
-            const imageData = await captureFormImage();
-            
-            if (imageData) {
-                const link = document.createElement('a');
-                link.download = `formulario_demissao_${new Date().toISOString().split('T')[0]}.jpg`;
-                link.href = imageData;
-                link.click();
-                
-                showNotification('Imagem baixada com sucesso!', 'success');
-            }
-
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Baixar Imagem';
-            downloadBtn.disabled = false;
-        }
-
-        // Função para enviar via WhatsApp
-        async function sendViaWhatsApp(imageData, formData) {
-            // Criar mensagem de texto
-            const message = `
-*FORMULÁRIO DE DEMISSÃO*
-
-👤 *Gerente:* ${formData.gerente}
-
-⭐ *Avaliações:*
-• Gerente: ${formData.avaliacoes.gerente}/5
-• Equipe: ${formData.avaliacoes.equipe}/5
-• Estrutura: ${formData.avaliacoes.estrutura}/5
-• Ambiente: ${formData.avaliacoes.ambiente}/5
-
-📊 *Pontuação Total:* ${formData.pontuacaoTotal}/20
-
-${formData.motivos.length > 0 ? `\n🔍 *Motivos:*\n${formData.motivos.map(m => `• ${m}`).join('\n')}` : ''}
-
-${formData.comentarios ? `\n💬 *Comentários:*\n${formData.comentarios}` : ''}
-
-📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
-            `.trim();
-
-            // Abrir WhatsApp Web com a mensagem
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        }
-
-        // Função para enviar via email
-        async function sendViaEmail(imageData, formData) {
-            const subject = `Formulário de Demissão - ${formData.gerente}`;
-            const body = `
-Formulário de Demissão
-
-Gerente: ${formData.gerente}
-Pontuação Total: ${formData.pontuacaoTotal}/20
-
-Avaliações:
-- Gerente: ${formData.avaliacoes.gerente}/5
-- Equipe: ${formData.avaliacoes.equipe}/5
-- Estrutura: ${formData.avaliacoes.estrutura}/5
-- Ambiente: ${formData.avaliacoes.ambiente}/5
-
-Motivos: ${formData.motivos.join(', ')}
-
-Comentários: ${formData.comentarios}
-
-Data: ${new Date().toLocaleDateString('pt-BR')}
-            `.trim();
-
-            const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoUrl, '_blank');
-        }
-
-        // Função para enviar para servidor
-        async function sendToServer(imageData, formData) {
-            const payload = {
-                ...formData,
-                image: imageData
-            };
-
-            try {
-                const response = await fetch('/api/demissao', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    showNotification('Formulário enviado com sucesso para o servidor!', 'success');
-                    return true;
-                } else {
-                    throw new Error('Erro no servidor');
-                }
-            } catch (error) {
-                console.error('Erro ao enviar para servidor:', error);
-                showNotification('Erro ao enviar para servidor. Tente outro método.', 'error');
-                return false;
-            }
-        }
-
-        // Event listener para botão de download
-        downloadBtn.addEventListener('click', downloadFormImage);
+        // Event listener para botão limpar
+        clearBtn.addEventListener('click', clearForm);
 
         // Função para validar formulário
         function validateForm() {
@@ -1344,7 +1210,7 @@ Data: ${new Date().toLocaleDateString('pt-BR')}
         }
 
         // Função para submeter formulário
-        async function submitForm(event) {
+        function submitForm(event) {
             event.preventDefault();
 
             if (!validateForm()) {
@@ -1356,62 +1222,27 @@ Data: ${new Date().toLocaleDateString('pt-BR')}
             submitBtn.innerHTML = '<div class="loading"></div> Enviando...';
             submitBtn.disabled = true;
 
-            try {
+            // Simular envio (aqui você faria a integração real)
+            setTimeout(() => {
                 const formData = collectFormData();
-                const imageData = await captureFormImage();
-
-                if (imageData) {
-                    // Escolher método de envio
-                    const sendMethod = prompt(
-                        "Escolha o método de envio:\n" +
-                        "1 - WhatsApp\n" +
-                        "2 - Email\n" +
-                        "3 - Servidor\n" +
-                        "4 - Apenas baixar imagem\n" +
-                        "Digite o número da opção:"
-                    );
-
-                    switch (sendMethod) {
-                        case '1':
-                            await sendViaWhatsApp(imageData, formData);
-                            break;
-                        case '2':
-                            await sendViaEmail(imageData, formData);
-                            break;
-                        case '3':
-                            const sent = await sendToServer(imageData, formData);
-                            if (!sent) return;
-                            break;
-                        case '4':
-                            const link = document.createElement('a');
-                            link.download = `formulario_demissao_${new Date().toISOString().split('T')[0]}.jpg`;
-                            link.href = imageData;
-                            link.click();
-                            break;
-                        default:
-                            showNotification('Opção inválida. Formulário não enviado.', 'warning');
-                            return;
-                    }
-
-                    showNotification('Formulário processado com sucesso!', 'success');
-                    
-                    // Limpar formulário após envio
-                    setTimeout(() => {
-                        clearForm();
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                showNotification('Erro ao processar formulário.', 'error');
-            } finally {
+                
+                // Aqui você integraria com seu backend
+                console.log('Dados do formulário:', formData);
+                
+                // Simular resposta de sucesso
+                showNotification('Formulário enviado com sucesso! Obrigado pelo feedback.', 'success');
+                
                 // Resetar botão
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-            }
+                
+                // Limpar formulário após envio
+                setTimeout(() => {
+                    clearForm();
+                }, 2000);
+                
+            }, 1500);
         }
-
-        // Event listener para botão limpar
-        clearBtn.addEventListener('click', clearForm);
 
         // Event listener para submit do formulário
         form.addEventListener('submit', submitForm);
