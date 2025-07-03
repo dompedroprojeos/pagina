@@ -1134,50 +1134,6 @@
         }
     }
 
-    // Event listeners para ratings
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', updateSummary);
-    });
-
-    // Função para limpar formulário
-    function clearForm() {
-        form.reset();
-        summarySection.style.display = 'none';
-
-        // Resetar valores do resumo
-        summaryGerente.querySelector('span').textContent = '-';
-        summaryEquipe.querySelector('span').textContent = '-';
-        summaryEstrutura.querySelector('span').textContent = '-';
-        summaryAmbiente.querySelector('span').textContent = '-';
-        totalValue.textContent = '0';
-
-        showNotification('Formulário limpo com sucesso!', 'warning');
-    }
-
-    // Event listener para botão limpar
-    clearBtn.addEventListener('click', clearForm);
-
-    // Função para validar formulário
-    function validateForm() {
-        const gerente = document.getElementById('gerente').value.trim();
-        const notaGerente = document.querySelector('input[name="notaGerente"]:checked');
-        const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked');
-        const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked');
-        const notaAmbiente = document.querySelector('input[name="notaAmbiente"]:checked');
-
-        if (!gerente) {
-            showNotification('Por favor, preencha o nome do gerente.', 'error');
-            return false;
-        }
-
-        if (!notaGerente || !notaEquipe || !notaEstrutura || !notaAmbiente) {
-            showNotification('Por favor, avalie todos os itens.', 'error');
-            return false;
-        }
-
-        return true;
-    }
-
     // Função para coletar dados do formulário
     function collectFormData() {
         const formData = {
@@ -1215,6 +1171,11 @@
             },
             body: JSON.stringify({ image_prompt: imagePrompt })
         });
+
+        if (!response.ok) {
+            throw new Error('Erro ao gerar a imagem');
+        }
+
         const imageBlob = await response.blob();
         const imageUrl = URL.createObjectURL(imageBlob);
         return imageUrl;
@@ -1230,6 +1191,7 @@
     async function submitForm(event) {
         event.preventDefault();
 
+        // Validação do formulário
         if (!validateForm()) {
             return;
         }
@@ -1239,127 +1201,22 @@
         submitBtn.innerHTML = '<div class="loading"></div> Enviando...';
         submitBtn.disabled = true;
 
-        // Simular envio (aqui você faria a integração real)
-        setTimeout(async () => {
+        try {
             const formData = collectFormData();
             const imageUrl = await generateImage(formData);
             sendWhatsApp(imageUrl);
-
-            // Simular resposta de sucesso
-            showNotification('Formulário enviado com sucesso! Obrigado pelo feedback.', 'success');
-
-            // Resetar botão
+            showNotification('Formulário enviado com sucesso!', 'success');
+        } catch (error) {
+            showNotification('Erro ao enviar o formulário: ' + error.message, 'error');
+        } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
-
-            // Limpar formulário após envio
-            setTimeout(() => {
-                clearForm();
-            }, 2000);
-
-        }, 1500);
+            clearForm();
+        }
     }
 
     // Event listener para submit do formulário
     form.addEventListener('submit', submitForm);
-
-    // Animação de entrada
-    document.addEventListener('DOMContentLoaded', function() {
-        const sections = document.querySelectorAll('.form-section');
-        sections.forEach((section, index) => {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                section.style.transition = 'all 0.5s ease-out';
-                section.style.opacity = '1';
-                section.style.transform = 'translateY(0)';
-            }, index * 200);
-        });
-    });
-
-    // Contador de caracteres para textarea
-    const textarea = document.getElementById('comentarios');
-    const maxLength = 1000;
-
-    textarea.addEventListener('input', function() {
-        const currentLength = this.value.length;
-        const remaining = maxLength - currentLength;
-
-        // Criar ou atualizar contador (se não existir)
-        let counter = document.getElementById('char-counter');
-        if (!counter) {
-            counter = document.createElement('div');
-            counter.id = 'char-counter';
-            counter.style.cssText = `
-                text-align: right;
-                font-size: 0.8rem;
-                color: var(--gray-500);
-                margin-top: 0.5rem;
-            `;
-            this.parentNode.appendChild(counter);
-        }
-
-        counter.textContent = `${currentLength}/${maxLength} caracteres`;
-
-        if (remaining < 100) {
-            counter.style.color = 'var(--warning)';
-        } else if (remaining < 50) {
-            counter.style.color = 'var(--danger)';
-        } else {
-            counter.style.color = 'var(--gray-500)';
-        }
-    });
-
-    // Efeito de hover melhorado para ratings
-    document.querySelectorAll('.rating-label').forEach(label => {
-        label.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-6px) scale(1.05)';
-        });
-        
-        label.addEventListener('mouseleave', function() {
-            if (!this.previousElementSibling.checked) {
-                this.style.transform = 'translateY(0) scale(1)';
-            }
-        });
-    });
-
-    // Validação em tempo real
-    document.getElementById('gerente').addEventListener('input', function() {
-        const value = this.value.trim();
-        const wrapper = this.closest('.input-wrapper');
-        
-        if (value.length > 0) {
-            wrapper.classList.add('valid');
-            wrapper.classList.remove('invalid');
-        } else {
-            wrapper.classList.remove('valid');
-            wrapper.classList.add('invalid');
-        }
-    });
-
-    // Adicionar estilos para validação em tempo real
-    const style = document.createElement('style');
-    style.textContent = `
-        .input-wrapper.valid .input-field {
-            border-color: var(--success);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-        
-        .input-wrapper.valid .input-icon {
-            color: var(--success);
-        }
-        
-        .input-wrapper.invalid .input-field {
-            border-color: var(--danger);
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-        
-        .input-wrapper.invalid .input-icon {
-            color: var(--danger);
-        }
-    `;
-    document.head.appendChild(style);
 </script>
 </body>
 </html>
