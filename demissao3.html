@@ -1060,17 +1060,9 @@
 <script>
     // Variáveis globais
     const form = document.getElementById('demissaoForm');
-    const summarySection = document.getElementById('summarySection');
     const notification = document.getElementById('notification');
     const submitBtn = document.getElementById('submitBtn');
     const clearBtn = document.getElementById('clearBtn');
-
-    // Elementos de resumo
-    const summaryGerente = document.getElementById('summaryGerente');
-    const summaryEquipe = document.getElementById('summaryEquipe');
-    const summaryEstrutura = document.getElementById('summaryEstrutura');
-    const summaryAmbiente = document.getElementById('summaryAmbiente');
-    const totalValue = document.getElementById('totalValue');
 
     // Função para mostrar notificação
     function showNotification(message, type = 'success') {
@@ -1080,58 +1072,6 @@
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
-    }
-
-    // Função para atualizar resumo
-    function updateSummary() {
-        const notaGerente = document.querySelector('input[name="notaGerente"]:checked');
-        const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked');
-        const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked');
-        const notaAmbiente = document.querySelector('input[name="notaAmbiente"]:checked');
-
-        let total = 0;
-        let hasRatings = false;
-
-        if (notaGerente) {
-            summaryGerente.querySelector('span').textContent = notaGerente.value;
-            total += parseInt(notaGerente.value);
-            hasRatings = true;
-        }
-
-        if (notaEquipe) {
-            summaryEquipe.querySelector('span').textContent = notaEquipe.value;
-            total += parseInt(notaEquipe.value);
-            hasRatings = true;
-        }
-
-        if (notaEstrutura) {
-            summaryEstrutura.querySelector('span').textContent = notaEstrutura.value;
-            total += parseInt(notaEstrutura.value);
-            hasRatings = true;
-        }
-
-        if (notaAmbiente) {
-            summaryAmbiente.querySelector('span').textContent = notaAmbiente.value;
-            total += parseInt(notaAmbiente.value);
-            hasRatings = true;
-        }
-
-        totalValue.textContent = total;
-
-        // Mostrar/esconder seção de resumo
-        summarySection.style.display = hasRatings ? 'block' : 'none';
-
-        // Atualizar cor da pontuação total
-        const totalScore = document.getElementById('totalScore');
-        if (total >= 16) {
-            totalScore.style.background = 'var(--success-gradient)';
-        } else if (total >= 12) {
-            totalScore.style.background = 'var(--primary-gradient)';
-        } else if (total >= 8) {
-            totalScore.style.background = 'var(--warning-gradient)';
-        } else {
-            totalScore.style.background = 'var(--danger-gradient)';
-        }
     }
 
     // Função para coletar dados do formulário
@@ -1154,41 +1094,34 @@
             formData.motivos.push(checkbox.value);
         });
 
-        // Calcular pontuação total
-        formData.pontuacaoTotal = Object.values(formData.avaliacoes)
-            .reduce((sum, value) => sum + parseInt(value), 0);
-
         return formData;
     }
 
-    // Função para gerar imagem
-    async function generateImage(data) {
-        const imagePrompt = `Formulário de Demissão: Gerente: ${data.gerente}`;
-        const response = await fetch('/generate-image', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ image_prompt: imagePrompt })
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao gerar a imagem');
-        }
-
-        const imageBlob = await response.blob();
-        const imageUrl = URL.createObjectURL(imageBlob);
-        return imageUrl;
-    }
-
-    // Função para enviar imagem pelo WhatsApp
-    function sendWhatsApp(imageUrl) {
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=5535984016706&text=Veja%20o%20formulário%20de%20demissão%20aqui:%20${encodeURIComponent(imageUrl)}`;
+    // Função para enviar dados pelo WhatsApp
+    function sendWhatsApp(data) {
+        const mensagem = `
+        *Formulário de Demissão*
+        
+        *Gerente:* ${data.gerente}
+        *Avaliações:*
+        - Gerente: ${data.avaliacoes.gerente}
+        - Equipe: ${data.avaliacoes.equipe}
+        - Estrutura: ${data.avaliacoes.estrutura}
+        - Ambiente: ${data.avaliacoes.ambiente}
+        
+        *Motivos da Demissão:*
+        ${data.motivos.length > 0 ? data.motivos.join(', ') : 'Nenhum motivo selecionado.'}
+        
+        *Comentários:*
+        ${data.comentarios || 'Nenhum comentário.'}
+        `;
+        
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=5535984016706&text=${encodeURIComponent(mensagem)}`;
         window.open(whatsappUrl, '_blank');
     }
 
     // Função para submeter formulário
-    async function submitForm(event) {
+    function submitForm(event) {
         event.preventDefault();
 
         // Validação do formulário
@@ -1201,18 +1134,16 @@
         submitBtn.innerHTML = '<div class="loading"></div> Enviando...';
         submitBtn.disabled = true;
 
-        try {
-            const formData = collectFormData();
-            const imageUrl = await generateImage(formData);
-            sendWhatsApp(imageUrl);
-            showNotification('Formulário enviado com sucesso!', 'success');
-        } catch (error) {
-            showNotification('Erro ao enviar o formulário: ' + error.message, 'error');
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            clearForm();
-        }
+        const formData = collectFormData();
+        sendWhatsApp(formData);
+        showNotification('Formulário enviado com sucesso!', 'success');
+
+        // Resetar botão
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+
+        // Limpar formulário após envio
+        clearForm();
     }
 
     // Event listener para submit do formulário
