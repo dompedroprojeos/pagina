@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas por Forma de Pagamento</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Existing styles remain unchanged */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        body[data-theme="dark"] {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-2,
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff8c42, #1e3a8a);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        body[data-theme="dark"] .card {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(148, 163, 184, 0.2);
+            color: #f1f5f9;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .card:hover .card-icon::before {
+            transform: translateX(100%);
+        }
+
+        .card-icon.primary {
+            background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+        }
+
+        .card-icon.secondary {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+        }
+
+        .card-icon.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .card-icon.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        body[data-theme="dark"] .card-header p {
+            color: #94a3b8;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        body[data-theme="dark"] .toolbar {
+            background: rgba(30, 41, 59, 0.3);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .toolbar-left h2 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 66, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon {
+            padding: 0.75rem;
+            width: 2.75rem;
+            height: 2.75rem;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        body[data-theme="dark"] .input-label {
+            color: #e5e7eb;
+        }
+
+        .textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: 'Inter', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: #ff8c42;
+            box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body[data-theme="dark"] .textarea {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .textarea:focus {
+            background: rgba(15, 23, 42, 0.95);
+            border-color: #ff8c42;
+        }
+
+        .period-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .process-button {
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .process-button .btn {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+            font-weight: 700;
+        }
+
+        .summary-card .summary-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        body[data-theme="dark"] .summary-card .summary-value {
+            color: #f1f5f9;
+        }
+
+        .summary-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        body[data-theme="dark"] .summary-label {
+            color: #94a3b8;
+        }
+
+        .summary-change {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .summary-change.positive {
+            color: #10b981;
+        }
+
+        .summary-change.negative {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        body[data-theme="dark"] .table-container {
+            border-color: #475569;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        body[data-theme="dark"] .table {
+            background: #1e293b;
+        }
+
+        .table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        body[data-theme="dark"] .table th {
+            background: #0f172a;
+            border-color: #475569;
+            color: #e5e7eb;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        body[data-theme="dark"] .table td {
+            border-color: #475569;
+        }
+
+        .table tr:hover {
+            background: #f8fafc;
+        }
+
+        body[data-theme="dark"] .table tr:hover {
+            background: #334155;
+        }
+
+        .table .positive {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .table .negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .debug-info {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        body[data-theme="dark"] .debug-info {
+            background: #451a03;
+            border-color: #92400e;
+            color: #fbbf24;
+        }
+
+        .debug-toggle {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .debug-toggle:hover {
+            background: #e5e7eb;
+        }
+
+        body[data-theme="dark"] .debug-toggle {
+            background: #374151;
+            color: #d1d5db;
+        }
+
+        body[data-theme="dark"] .debug-toggle:hover {
+            background: #4b5563;
+        }
+
+        .floating-nav {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-top,
+        .btn-bottom {
+            width: 3rem;
+            height: 3rem;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-top:hover,
+        .btn-bottom:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 140, 66, 0.6);
+        }
+
+        .print-header,
+        .print-footer {
+            display: none;
+        }
+
+        /* New Popup Styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+        }
+
+        body[data-theme="dark"] .popup {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(148, 163, 184, 0.2);
+            color: #f1f5f9;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .popup-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        body[data-theme="dark"] .popup-close {
+            color: #94a3b8;
+        }
+
+        .popup-actions {
+            margin: 1rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .popup-chart-container {
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .floating-nav,
+            .toolbar,
+            .debug-info,
+            .debug-toggle,
+            .popup-close {
+                display: none !important;
+            }
+            
+            .print-header,
+            .print-footer {
+                display: block;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 2rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid #000;
+            }
+            
+            .print-footer {
+                text-align: center;
+                margin-top: 2rem;
+                padding-top: 1rem;
+                border-top: 1px solid #000;
+                font-size: 0.875rem;
+            }
+            
+            .logo-placeholder {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .card {
+                background: white !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                margin-bottom: 1rem;
+            }
+            
+            .chart-container,
+            .popup-chart-container {
+                height: 300px;
+            }
+            
+            .popup {
+                position: static;
+                transform: none;
+                width: 100%;
+                max-height: none;
+                box-shadow: none;
+                border: none;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content h1 {
+                font-size: 2rem;
+            }
+            
+            .header-content p {
+                font-size: 1rem;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .toolbar-right {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .floating-nav {
+                right: 1rem;
+            }
+            
+            .summary-card .summary-value {
+                font-size: 2rem;
+            }
+            
+            .chart-container,
+            .popup-chart-container {
+                height: 300px;
+            }
+            
+            .popup {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="floating-nav">
+        <button class="btn-top" onclick="scrollToTop()" title="Ir para o topo">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="btn-bottom" onclick="scrollToBottom()" title="Ir para o final">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <div class="print-header">
+        <div class="logo-placeholder">
+            <i class="fas fa-chart-line"></i> LOGO
+        </div>
+        <h1>Relatório de Análise Comparativa de Vendas</h1>
+        <p>Dashboard Executivo - Análise por Forma de Pagamento</p>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h2>
+                    <i class="fas fa-chart-bar"></i>
+                    Análise Comparativa
+                </h2>
+            </div>
+            <div class="toolbar-right">
+                <button id="debug-toggle" class="btn btn-secondary btn-icon" title="Mostrar Debug">
+                    <i class="fas fa-bug"></i>
+                </button>
+                <button id="theme-toggle" class="btn btn-secondary btn-icon" title="Alternar Tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="print-btn" class="btn btn-secondary" title="Imprimir Relatório">
+                    <i class="fas fa-print"></i>
+                    Imprimir
+                </button>
+                <button id="export-btn" class="btn btn-secondary" title="Exportar Dados">
+                    <i class="fas fa-download"></i>
+                    Exportar
+                </button>
+
+            </div>
+        </div>
+
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-analytics"></i> Dashboard de Vendas</h1>
+                <p>Plataforma inteligente de análise comparativa por forma de pagamento com insights detalhados e visualizações avançadas</p>
+            </div>
+        </header>
+
+        <div id="input-section" class="grid grid-cols-3">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon primary">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <h2>Primeiro Período</h2>
+                        <p>Insira os dados do período inicial para comparação</p>
+                    </div>
+                </div>
+                <div id="period-1-display" class="period-display hidden">
+                    <i class="fas fa-info-circle"></i> Período não identificado
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-period-1">
+                        <i class="fas fa-paste"></i> Dados do Período 1
+                    </label>
+                    <textarea 
+                        id="input-period-1" 
+                        class="textarea" 
+                        placeholder="Cole aqui os dados do primeiro período...
+
+Exemplo de formato aceito:
+VENDAS POR FORMA DE PAGAMENTO
+Período: Jan/2024
+NOTAS A PRAZO 36.22 96.322.096,80
+PIX 28.45 75.681.234,56
+CARTÃO DE CRÉDITO 15.30 40.567.890,45
+DINHEIRO 8.75 23.234.567,32
+..."
+                    ></textarea>
+                </div>
+                <div id="debug-1" class="debug-info hidden">
+                    <strong>🔍 Debug Período 1:</strong><br>
+                    <div id="debug-1-content"></div>
+                </div>
+                <div class="debug-toggle" onclick="toggleDebug('debug-1')">🔧 Mostrar informações de debug</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon secondary">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h2>Segundo Período</h2>
+                        <p>Insira os dados do período de comparação</p>
+                    </div>
+                </div>
+                <div id="period-2-display" class="period-display hidden">
+                    <i class="fas fa-info-circle"></i> Período não identificado
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-period-2">
+                        <i class="fas fa-paste"></i> Dados do Período 2
+                    </label>
+                    <textarea 
+                        id="input-period-2" 
+                        class="textarea" 
+                        placeholder="Cole aqui os dados do segundo período...
+
+Exemplo de formato aceito:
+VENDAS POR FORMA DE PAGAMENTO
+Período: Fev/2024
+NOTAS A PRAZO 38.45 102.567.890,45
+PIX 30.22 80.234.567,89
+CARTÃO DE CRÉDITO 16.15 42.890.123,56
+DINHEIRO 9.10 24.567.890,12
+..."
+                    ></textarea>
+                </div>
+                <div id="debug-2" class="debug-info hidden">
+                    <strong>🔍 Debug Período 2:</strong><br>
+                    <div id="debug-2-content"></div>
+                </div>
+                <div class="debug-toggle" onclick="toggleDebug('debug-2')">🔧 Mostrar informações de debug</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon success">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h2>Terceiro Período</h2>
+                        <p>Insira os dados do terceiro período para comparação</p>
+                    </div>
+                </div>
+                <div id="period-3-display" class="period-display hidden">
+                    <i class="fas fa-info-circle"></i> Período não identificado
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-period-3">
+                        <i class="fas fa-paste"></i> Dados do Período 3
+                    </label>
+                    <textarea 
+                        id="input-period-3" 
+                        class="textarea" 
+                        placeholder="Cole aqui os dados do terceiro período...
+
+Exemplo de formato aceito:
+VENDAS POR FORMA DE PAGAMENTO
+Período: Mar/2024
+NOTAS A PRAZO 40.12 108.123.456,78
+PIX 31.78 85.678.901,23
+CARTÃO DE CRÉDITO 17.25 46.789.012,34
+DINHEIRO 9.85 26.543.210,56
+..."
+                    ></textarea>
+                </div>
+                <div id="debug-3" class="debug-info hidden">
+                    <strong>🔍 Debug Período 3:</strong><br>
+                    <div id="debug-3-content"></div>
+                </div>
+                <div class="debug-toggle" onclick="toggleDebug('debug-3')">🔧 Mostrar informações de debug</div>
+            </div>
+        </div>
+
+        <div id="process-button-section" class="process-button">
+            <button id="process-btn" class="btn btn-primary" onclick="processData()">
+                <i class="fas fa-magic"></i>
+                Processar e Analisar Dados
+            </button>
+        </div>
+
+        <div id="results-section" class="hidden">
+            <div class="grid grid-cols-3">
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <div class="card-icon success">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <h2>Total Período 1</h2>
+                            <p>Valor total de vendas</p>
+                        </div>
+                    </div>
+                    <div class="summary-value" id="total-period-1">R$ 0,00</div>
+                    <div class="summary-label">Volume de Vendas</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <div class="card-icon warning">
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <div>
+                            <h2>Total Período 2</h2>
+                            <p>Valor total de vendas</p>
+                        </div>
+                    </div>
+                    <div class="summary-value" id="total-period-2">R$ 0,00</div>
+                    <div class="summary-label">Volume de Vendas</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <div class="card-icon primary">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div>
+                            <h2>Total Período 3</h2>
+                            <p>Valor total de vendas</p>
+                        </div>
+                    </div>
+                    <div class="summary-value" id="total-period-3">R$ 0,00</div>
+                    <div class="summary-label">Volume de Vendas</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon primary">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div>
+                            <h2>Comparação por Valor</h2>
+                            <p>Análise dos valores por forma de pagamento</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="value-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon secondary">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <h2>Distribuição Percentual</h2>
+                            <p>Participação de cada forma de pagamento</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="percentage-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon success">
+                        <i class="fas fa-table"></i>
+                    </div>
+                    <div>
+                        <h2>Análise Detalhada</h2>
+                        <p>Comparação completa com variações e insights</p>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-check-square"></i> Selecionar</th>
+                                <th><i class="fas fa-credit-card"></i> Forma de Pagamento</th>
+                                <th><i class="fas fa-calendar"></i> Período 1 (%)</th>
+                                <th><i class="fas fa-money-bill"></i> Período 1 (Valor)</th>
+                                <th><i class="fas fa-calendar-check"></i> Período 2 (%)</th>
+                                <th><i class="fas fa-money-bill-wave"></i> Período 2 (Valor)</th>
+                                <th><i class="fas fa-calendar-plus"></i> Período 3 (%)</th>
+                                <th><i class="fas fa-money-bill-alt"></i> Período 3 (Valor)</th>
+                                <th><i class="fas fa-chart-line"></i> Variação P2/P1 (%)</th>
+                                <th><i class="fas fa-chart-line"></i> Variação P3/P2 (%)</th>
+                                <th><i class="fas fa-lightbulb"></i> Insight</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailed-table-body">
+                            <!-- Dados serão inseridos dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="process-button">
+                    <button id="show-aggregate-btn" class="btn btn-primary" onclick="showAggregatePopup()">
+                        <i class="fas fa-eye"></i>
+                        Visualizar Agregado
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon warning">
+                        <i class="fas fa-trending-up"></i>
+                    </div>
+                    <div>
+                        <h2>Análise de Tendências</h2>
+                        <p>Gráfico de evolução das formas de pagamento</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup for Aggregated Data -->
+        <div id="aggregate-popup" class="popup">
+            <div class="popup-header">
+                <h2>Análise Agregada de Formas de Pagamento Selecionadas</h2>
+                <button class="popup-close" onclick="closeAggregatePopup()">✕</button>
+            </div>
+            <div class="popup-content">
+                <div class="popup-chart-container">
+                    <canvas id="aggregate-chart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-credit-card"></i> Forma de Pagamento</th>
+                                <th><i class="fas fa-calendar"></i> Período 1 (%)</th>
+                                <th><i class="fas fa-money-bill"></i> Período 1 (Valor)</th>
+                                <th><i class="fas fa-calendar-check"></i> Período 2 (%)</th>
+                                <th><i class="fas fa-money-bill-wave"></i> Período 2 (Valor)</th>
+                                <th><i class="fas fa-calendar-plus"></i> Período 3 (%)</th>
+                                <th><i class="fas fa-money-bill-alt"></i> Período 3 (Valor)</th>
+                                <th><i class="fas fa-chart-line"></i> Variação P2/P1 (%)</th>
+                                <th><i class="fas fa-chart-line"></i> Variação P3/P2 (%)</th>
+                                <th><i class="fas fa-lightbulb"></i> Insight</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aggregate-table-body">
+                            <!-- Dados agregados serão inseridos dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="popup-actions">
+                    <button class="btn btn-primary" onclick="printAggregateReport()">
+                        <i class="fas fa-print"></i> Imprimir Relatório Agregado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="print-footer">
+        <p>Dashboard de Análise de Vendas - Gerado automaticamente em <span id="print-date"></span></p>
+    </div>
+
+    <script>
+        // Global variables
+        let period1Data = null;
+        let period2Data = null;
+        let period3Data = null;
+        let charts = {};
+        let selectedMethods = new Set();
+
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.querySelector('#theme-toggle i');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Debug functionality
+        function toggleDebug(debugId) {
+            const debugElement = document.getElementById(debugId);
+            debugElement.classList.toggle('hidden');
+        }
+
+        function showGlobalDebug() {
+            const debugBtn = document.getElementById('debug-toggle');
+            const allDebug = document.querySelectorAll('.debug-info');
+            
+            allDebug.forEach(debug => {
+                debug.classList.toggle('hidden');
+            });
+            
+            const icon = debugBtn.querySelector('i');
+            if (icon.classList.contains('fa-bug')) {
+                icon.className = 'fas fa-bug-slash';
+                debugBtn.title = 'Ocultar Debug';
+            } else {
+                icon.className = 'fas fa-bug';
+                debugBtn.title = 'Mostrar Debug';
+            }
+        }
+
+        function hideInputSection() {
+            const inputSection = document.getElementById('input-section');
+            if (inputSection) {
+                inputSection.style.display = 'none';
+            }
+            
+            const showInputBtn = document.getElementById('show-input-btn');
+            if (showInputBtn) {
+                showInputBtn.style.display = 'inline-block';
+            }
+        }
+
+        function showInputSection() {
+            const inputSection = document.getElementById('input-section');
+            if (inputSection) {
+                inputSection.style.display = 'block';
+            }
+            
+            const showInputBtn = document.getElementById('show-input-btn');
+            if (showInputBtn) {
+                showInputBtn.style.display = 'none';
+            }
+        }
+
+        function extractDateFromPeriod(periodText) {
+            const datePatterns = [
+                /(\d{1,2}\/\d{1,2}\/\d{4})/g,
+                /(\d{1,2}-\d{1,2}-\d{4})/g,
+                /(\d{4}-\d{1,2}-\d{1,2})/g,
+                /(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+\d{4}/gi,
+                /(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+\d{4}/gi,
+                /\d{4}/g
+            ];
+            
+            for (let pattern of datePatterns) {
+                const matches = periodText.match(pattern);
+                if (matches && matches.length > 0) {
+                    return matches.join(' - ');
+                }
+            }
+            
+            return periodText.trim();
+        }
+
+function parseData(text, debugElementId) {
+    const debugElement = document.getElementById(debugElementId);
+    let debugInfo = [];
+    
+    try {
+        debugInfo.push(`📄 Texto original (${text.length} caracteres)`);
+        
+        const lines = text.split('\n').filter(line => line.trim());
+        debugInfo.push(`📋 ${lines.length} linhas encontradas`);
+        
+        let period = 'Não identificado';
+        const data = [];
+        
+        // Identifica o período
+        for (let line of lines) {
+            const periodMatch = line.match(/período:?\s*(.+?)$/i);
+            if (periodMatch) {
+                period = periodMatch[1].trim();
+                debugInfo.push(`📅 Período identificado: "${period}"`);
+                continue;
+            }
+        }
+        
+        const formattedDate = extractDateFromPeriod(period);
+        
+        for (let line of lines) {
+            line = line.trim();
+            
+            // Ignora linhas que são exatamente "% Valor" ou "Rótulo" (case-insensitive)
+            if (line.toLowerCase() === '% valor' || line.toLowerCase() === 'rótulo') {
+                debugInfo.push(`ℹ️ Linha ignorada: "${line}"`);
+                continue;
+            }
+            
+            // Padrões para identificar linhas de dados válidas
+            const patterns = [
+                /^(.+?)\s+(\d+[,\.]\d+)\s+([\d\.,]+)$/ // Ex.: "NOTAS A PRAZO 41.04 1.347.578.727,42"
+            ];
+            
+            let matched = false;
+            for (let pattern of patterns) {
+                const match = line.match(pattern);
+                if (match) {
+                    const paymentMethod = match[1].trim();
+                    const percentage = parseFloat(match[2].replace(',', '.'));
+                    const valueStr = match[3].replace(/[^\d,\.]/g, '');
+                    const value = parseFloat(valueStr.replace(/\./g, '').replace(',', '.'));
+                    
+                    if (!isNaN(percentage) && !isNaN(value) && paymentMethod.length > 0) {
+                        data.push({
+                            method: paymentMethod,
+                            percentage: percentage,
+                            value: value
+                        });
+                        
+                        debugInfo.push(`✅ ${paymentMethod}: ${percentage}% - R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+                        matched = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!matched && line.length > 5 && /\d/.test(line)) {
+                debugInfo.push(`❌ Linha não reconhecida: "${line}"`);
+            }
+        }
+        
+        debugInfo.push(`🎯 Total de ${data.length} formas de pagamento processadas`);
+        
+        const result = { 
+            period: period, 
+            formattedDate: formattedDate,
+            data: data 
+        };
+        debugElement.innerHTML = debugInfo.join('<br>');
+        
+        return result;
+        
+    } catch (error) {
+        debugInfo.push(`🚨 ERRO: ${error.message}`);
+        debugElement.innerHTML = debugInfo.join('<br>');
+        return null;
+    }
+}
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        function processData() {
+            const input1 = document.getElementById('input-period-1').value;
+            const input2 = document.getElementById('input-period-2').value;
+            const input3 = document.getElementById('input-period-3').value;
+            
+            if (!input1.trim() || !input2.trim() || !input3.trim()) {
+                alert('Por favor, insira os dados dos três períodos.');
+                return;
+            }
+            
+            period1Data = parseData(input1, 'debug-1-content');
+            period2Data = parseData(input2, 'debug-2-content');
+            period3Data = parseData(input3, 'debug-3-content');
+            
+            if (!period1Data || !period2Data || !period3Data) {
+                alert('Erro ao processar os dados. Verifique o formato dos dados inseridos.');
+                return;
+            }
+            
+            if (period1Data.data.length === 0 || period2Data.data.length === 0 || period3Data.data.length === 0) {
+                alert('Nenhum dado válido foi encontrado. Verifique o formato dos dados.');
+                return;
+            }
+            
+            document.getElementById('period-1-display').innerHTML = `
+                <strong>Período 1:</strong> ${period1Data.period}<br>
+                <small class="text-gray-600">📅 ${period1Data.formattedDate}</small>
+            `;
+            document.getElementById('period-1-display').classList.remove('hidden');
+            
+            document.getElementById('period-2-display').innerHTML = `
+                <strong>Período 2:</strong> ${period2Data.period}<br>
+                <small class="text-gray-600">📅 ${period2Data.formattedDate}</small>
+            `;
+            document.getElementById('period-2-display').classList.remove('hidden');
+            
+            document.getElementById('period-3-display').innerHTML = `
+                <strong>Período 3:</strong> ${period3Data.period}<br>
+                <small class="text-gray-600">📅 ${period3Data.formattedDate}</small>
+            `;
+            document.getElementById('period-3-display').classList.remove('hidden');
+            
+            hideInputSection();
+            
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            generateSummary();
+            generateCharts();
+            generateDetailedTable();
+            
+            document.getElementById('results-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        function generateSummary() {
+            const total1 = period1Data.data.reduce((sum, item) => sum + item.value, 0);
+            const total2 = period2Data.data.reduce((sum, item) => sum + item.value, 0);
+            const total3 = period3Data.data.reduce((sum, item) => sum + item.value, 0);
+            
+            document.getElementById('total-period-1').textContent = formatCurrency(total1);
+            document.getElementById('total-period-2').textContent = formatCurrency(total2);
+            document.getElementById('total-period-3').textContent = formatCurrency(total3);
+        }
+
+        function generateCharts() {
+            generateValueChart();
+            generatePercentageChart();
+            generateTrendChart();
+        }
+
+        function generateValueChart() {
+            const ctx = document.getElementById('value-chart').getContext('2d');
+            
+            if (charts.valueChart) {
+                charts.valueChart.destroy();
+            }
+            
+            const methods = [...new Set([
+                ...period1Data.data.map(d => d.method),
+                ...period2Data.data.map(d => d.method),
+                ...period3Data.data.map(d => d.method)
+            ])];
+            
+            const period1Values = methods.map(method => {
+                const item = period1Data.data.find(d => d.method === method);
+                return item ? item.value : 0;
+            });
+            
+            const period2Values = methods.map(method => {
+                const item = period2Data.data.find(d => d.method === method);
+                return item ? item.value : 0;
+            });
+            
+            const period3Values = methods.map(method => {
+                const item = period3Data.data.find(d => d.method === method);
+                return item ? item.value : 0;
+            });
+            
+            charts.valueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: methods,
+                    datasets: [
+                        {
+                            label: `${period1Data.formattedDate}`,
+                            data: period1Values,
+                            backgroundColor: 'rgba(255, 140, 66, 0.8)',
+                            borderColor: 'rgba(255, 140, 66, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: `${period2Data.formattedDate}`,
+                            data: period2Values,
+                            backgroundColor: 'rgba(30, 58, 138, 0.8)',
+                            borderColor: 'rgba(30, 58, 138, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: `${period3Data.formattedDate}`,
+                            data: period3Values,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generatePercentageChart() {
+            const ctx = document.getElementById('percentage-chart').getContext('2d');
+            
+            if (charts.percentageChart) {
+                charts.percentageChart.destroy();
+            }
+            
+            charts.percentageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: period3Data.data.map(d => d.method),
+                    datasets: [{
+                        data: period3Data.data.map(d => d.percentage),
+                        backgroundColor: [
+                            '#FF8C42',
+                            '#1E3A8A',
+                            '#0891B2',
+                            '#F59E0B',
+                            '#10B981',
+                            '#EF4444',
+                            '#8B5CF6',
+                            '#EC4899'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Distribuição - ${period3Data.formattedDate}`,
+                            font: {
+                                family: 'Inter',
+                                weight: '600',
+                                size: 8
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateTrendChart() {
+            const ctx = document.getElementById('trend-chart').getContext('2d');
+            
+            if (charts.trendChart) {
+                charts.trendChart.destroy();
+            }
+            
+            const methods = [...new Set([
+                ...period1Data.data.map(d => d.method),
+                ...period2Data.data.map(d => d.method),
+                ...period3Data.data.map(d => d.method)
+            ])];
+            
+            const period1Percentages = methods.map(method => {
+                const item = period1Data.data.find(d => d.method === method);
+                return item ? item.percentage : 0;
+            });
+            
+            const period2Percentages = methods.map(method => {
+                const item = period2Data.data.find(d => d.method === method);
+                return item ? item.percentage : 0;
+            });
+            
+            const period3Percentages = methods.map(method => {
+                const item = period3Data.data.find(d => d.method === method);
+                return item ? item.percentage : 0;
+            });
+            
+            charts.trendChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: methods,
+                    datasets: [
+                        {
+                            label: `${period1Data.formattedDate}`,
+                            data: period1Percentages,
+                            backgroundColor: 'rgba(255, 140, 66, 0.8)',
+                            borderColor: 'rgba(255, 140, 66, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
+                        },
+                        {
+                            label: `${period2Data.formattedDate}`,
+                            data: period2Percentages,
+                            backgroundColor: 'rgba(30, 58, 138, 0.8)',
+                            borderColor: 'rgba(30, 58, 138, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
+                        },
+                        {
+                            label: `${period3Data.formattedDate}`,
+                            data: period3Percentages,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateDetailedTable() {
+            const tbody = document.getElementById('detailed-table-body');
+            tbody.innerHTML = '';
+            selectedMethods.clear();
+            
+            const methods = [...new Set([
+                ...period1Data.data.map(d => d.method),
+                ...period2Data.data.map(d => d.method),
+                ...period3Data.data.map(d => d.method)
+            ])];
+            
+            methods.forEach(method => {
+                const period1Item = period1Data.data.find(d => d.method === method);
+                const period2Item = period2Data.data.find(d => d.method === method);
+                const period3Item = period3Data.data.find(d => d.method === method);
+                
+                const p1Percentage = period1Item ? period1Item.percentage : 0;
+                const p1Value = period1Item ? period1Item.value : 0;
+                const p2Percentage = period2Item ? period2Item.percentage : 0;
+                const p2Value = period2Item ? period2Item.value : 0;
+                const p3Percentage = period3Item ? period3Item.percentage : 0;
+                const p3Value = period3Item ? period3Item.value : 0;
+                
+                const variationP2P1 = p1Percentage > 0 ? ((p2Percentage - p1Percentage) / p1Percentage) * 100 : 0;
+                const variationP3P2 = p2Percentage > 0 ? ((p3Percentage - p2Percentage) / p2Percentage) * 100 : 0;
+                
+                let insight = '';
+                if (variationP3P2 > 10) {
+                    insight = '📈 Crescimento significativo';
+                } else if (variationP3P2 > 0) {
+                    insight = '📊 Crescimento moderado';
+                } else if (variationP3P2 < -10) {
+                    insight = '📉 Declínio significativo';
+                } else if (variationP3P2 < 0) {
+                    insight = '📊 Declínio moderado';
+                } else {
+                    insight = '➖ Estável';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="method-checkbox" value="${method}" onchange="updateSelectedMethods(this, '${method}')"></td>
+                    <td><strong>${method}</strong></td>
+                    <td>${p1Percentage.toFixed(2)}%</td>
+                    <td>${formatCurrency(p1Value)}</td>
+                    <td>${p2Percentage.toFixed(2)}%</td>
+                    <td>${formatCurrency(p2Value)}</td>
+                    <td>${p3Percentage.toFixed(2)}%</td>
+                    <td>${formatCurrency(p3Value)}</td>
+                    <td class="${variationP2P1 >= 0 ? 'positive' : 'negative'}">${variationP2P1.toFixed(2)}%</td>
+                    <td class="${variationP3P2 >= 0 ? 'positive' : 'negative'}">${variationP3P2.toFixed(2)}%</td>
+                    <td>${insight}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSelectedMethods(checkbox, method) {
+            if (checkbox.checked) {
+                selectedMethods.add(method);
+            } else {
+                selectedMethods.delete(method);
+            }
+        }
+
+        function showAggregatePopup() {
+            if (selectedMethods.size === 0) {
+                alert('Por favor, selecione pelo menos uma forma de pagamento.');
+                return;
+            }
+
+            const popup = document.getElementById('aggregate-popup');
+            popup.style.display = 'block';
+
+            generateAggregateTable();
+            generateAggregateChart();
+        }
+
+        function closeAggregatePopup() {
+            const popup = document.getElementById('aggregate-popup');
+            popup.style.display = 'none';
+            
+            if (charts.aggregateChart) {
+                charts.aggregateChart.destroy();
+            }
+        }
+
+        function generateAggregateTable() {
+    const tbody = document.getElementById('aggregate-table-body');
+    tbody.innerHTML = '';
+
+    let p1TotalPercentage = 0, p1TotalValue = 0;
+    let p2TotalPercentage = 0, p2TotalValue = 0;
+    let p3TotalPercentage = 0, p3TotalValue = 0;
+
+    selectedMethods.forEach(method => {
+        const period1Item = period1Data.data.find(d => d.method === method);
+        const period2Item = period2Data.data.find(d => d.method === method);
+        const period3Item = period3Data.data.find(d => d.method === method);
+        
+        p1TotalPercentage += period1Item ? period1Item.percentage : 0;
+        p1TotalValue += period1Item ? period1Item.value : 0;
+        p2TotalPercentage += period2Item ? period2Item.percentage : 0;
+        p2TotalValue += period2Item ? period2Item.value : 0;
+        p3TotalPercentage += period3Item ? period3Item.percentage : 0;
+        p3TotalValue += period3Item ? period3Item.value : 0;
+    });
+
+    const variationP2P1 = p1TotalPercentage > 0 ? ((p2TotalPercentage - p1TotalPercentage) / p1TotalPercentage) * 100 : 0;
+    const variationP3P2 = p2TotalPercentage > 0 ? ((p3TotalPercentage - p2TotalPercentage) / p2TotalPercentage) * 100 : 0;
+
+    let insight = '';
+    if (variationP3P2 > 10) {
+        insight = '📈 Crescimento significativo';
+    } else if (variationP3P2 > 0) {
+        insight = '📊 Crescimento moderado';
+    } else if (variationP3P2 < -10) {
+        insight = '📉 Declínio significativo';
+    } else if (variationP3P2 < 0) {
+        insight = '📊 Declínio moderado';
+    } else {
+        insight = '➖ Estável';
+    }
+
+    // Lista os nomes das formas de pagamento selecionadas
+    const selectedMethodsNames = Array.from(selectedMethods).join(', ');
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><strong>Selecionados: ${selectedMethodsNames}</strong></td>
+        <td>${p1TotalPercentage.toFixed(2)}%</td>
+        <td>${formatCurrency(p1TotalValue)}</td>
+        <td>${p2TotalPercentage.toFixed(2)}%</td>
+        <td>${formatCurrency(p2TotalValue)}</td>
+        <td>${p3TotalPercentage.toFixed(2)}%</td>
+        <td>${formatCurrency(p3TotalValue)}</td>
+        <td class="${variationP2P1 >= 0 ? 'positive' : 'negative'}">${variationP2P1.toFixed(2)}%</td>
+        <td class="${variationP3P2 >= 0 ? 'positive' : 'negative'}">${variationP3P2.toFixed(2)}%</td>
+        <td>${insight}</td>
+    `;
+    
+    tbody.appendChild(row);
+}
+
+function generateAggregateChart() {
+    const ctx = document.getElementById('aggregate-chart').getContext('2d');
+    
+    if (charts.aggregateChart) {
+        charts.aggregateChart.destroy();
+    }
+
+    let p1TotalValue = 0, p2TotalValue = 0, p3TotalValue = 0;
+
+    selectedMethods.forEach(method => {
+        const period1Item = period1Data.data.find(d => d.method === method);
+        const period2Item = period2Data.data.find(d => d.method === method);
+        const period3Item = period3Data.data.find(d => d.method === method);
+        
+        p1TotalValue += period1Item ? period1Item.value : 0;
+        p2TotalValue += period2Item ? period2Item.value : 0;
+        p3TotalValue += period3Item ? period3Item.value : 0;
+    });
+
+    // Lista os nomes das formas de pagamento selecionadas
+    const selectedMethodsNames = Array.from(selectedMethods).join(', ');
+
+    charts.aggregateChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Período 1', 'Período 2', 'Período 3'],
+            datasets: [{
+                label: `Selecionados: ${selectedMethodsNames}`,
+                data: [p1TotalValue, p2TotalValue, p3TotalValue],
+                backgroundColor: [
+                    'rgba(255, 140, 66, 0.8)',
+                    'rgba(30, 58, 138, 0.8)',
+                    'rgba(16, 185, 129, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 140, 66, 1)',
+                    'rgba(30, 58, 138, 1)',
+                    'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: 'Inter',
+                            weight: '600'
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Valores Agregados - ${selectedMethodsNames}`,
+                    font: {
+                        family: 'Inter',
+                        weight: '600',
+                        size: 16
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatCurrency(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+      function printAggregateReport() {
+    // Atualiza a data de impressão
+    document.getElementById('print-date').textContent = new Date().toLocaleDateString('pt-BR');
+    
+    // Elementos a serem ocultados durante a impressão
+    const elementsToHide = [
+        '#input-section',
+        '#debug-toggle',
+        '#theme-toggle',
+        '#show-input-btn',
+        '#print-btn',
+        '#export-btn',
+        '#results-section',
+        '.debug-info',
+        '.no-print',
+        '.floating-nav',
+        '.toolbar'
+    ];
+    
+    // Oculta os elementos
+    elementsToHide.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            el.style.display = 'none';
+        });
+    });
+
+    // Exibe apenas o popup
+    const popup = document.getElementById('aggregate-popup');
+    popup.style.display = 'block';
+
+    // Aplica estilos específicos para impressão
+    const printStyles = document.createElement('style');
+    printStyles.innerHTML = `
+        @page {
+            size: landscape;
+            margin: 15mm;
+        }
+        @media print {
+            body {
+                font-family: 'Inter', Arial, sans-serif;
+                margin: 0;
+                padding: 15mm;
+                font-size: 10pt;
+                background: white !important;
+                color: black !important;
+            }
+            .popup {
+                position: static;
+                transform: none;
+                width: auto !important;
+                max-width: 100%;
+                height: auto !important;
+                max-height: none;
+                box-shadow: none;
+                border: none;
+                margin: 0;
+                padding: 1cm;
+                overflow: visible !important;
+            }
+            .popup-header {
+                margin-bottom: 0.5cm;
+            }
+            .popup-close {
+                display: none !important;
+            }
+            .popup-chart-container {
+                height: 250px !important;
+                width: 100% !important;
+                page-break-inside: avoid;
+                margin-bottom: 0.5cm;
+            }
+            .table-container {
+                width: 100%;
+                margin-top: 0.5cm;
+                page-break-before: auto;
+            }
+            table {
+                width: 100%;
+                font-size: 9pt;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 6pt;
+                border: 1px solid #000;
+            }
+            .print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 1cm;
+                padding-bottom: 0.5cm;
+                border-bottom: 2px solid #000;
+            }
+            .print-footer {
+                display: block;
+                text-align: center;
+                margin-top: 1cm;
+                padding-top: 0.5cm;
+                border-top: 1px solid #000;
+                font-size: 8pt;
+            }
+        }
+    `;
+    document.head.appendChild(printStyles);
+
+    // Redimensiona o gráfico agregado, se existir
+    if (charts.aggregateChart) {
+        charts.aggregateChart.resize();
+    }
+
+    // Força a impressão
+    window.print();
+
+    // Restaura o estado após a impressão
+    setTimeout(() => {
+        elementsToHide.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                el.style.display = '';
+            });
+        });
+        popup.style.display = 'none';
+        document.head.removeChild(printStyles);
+        
+        // Redimensiona o gráfico novamente para o estado normal
+        if (charts.aggregateChart) {
+            charts.aggregateChart.resize();
+        }
+    }, 1000);
+}
+
+        function printReport() {
+            document.getElementById('print-date').textContent = new Date().toLocaleDateString('pt-BR');
+            
+            const elementsToHide = [
+                'input-section',
+                'debug-toggle',
+                'theme-toggle',
+                'show-input-btn',
+                'print-btn',
+                'export-btn',
+                '.debug-info',
+                '.no-print'
+            ];
+            
+            elementsToHide.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                    el.style.display = 'none';
+                });
+            });
+            
+            const printStyles = document.createElement('style');
+            printStyles.innerHTML = `
+                @page {
+                    size: landscape;
+                    margin: 15mm;
+                }
+                @media print {
+                    body {
+                        font-family: 'Inter', Arial, sans-serif;
+                        margin: 0;
+                        padding: 15mm;
+                        font-size: 10pt;
+                    }
+                    .container {
+                        max-width: none;
+                        margin: 0;
+                        width: 100%;
+                    }
+                    .results-section {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1cm;
+                    }
+                    .summary-section {
+                        page-break-inside: avoid;
+                        margin-bottom: 1cm;
+                    }
+                    .chart-container {
+                        width: 33% !important;
+                        height: 250px !important;
+                        display: inline-block !important;
+                        vertical-align: top;
+                        page-break-inside: avoid;
+                    }
+                    .charts-row {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 1cm;
+                        page-break-inside: avoid;
+                    }
+                    .table-container {
+                        width: 100%;
+                        margin-top: 1cm;
+                        page-break-before: always;
+                    }
+                    table {
+                        width: 100%;
+                        font-size: 9pt;
+                        border-collapse: collapse;
+                    }
+                    th, td {
+                        padding: 6pt;
+                        border: 1px solid #000;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .break-page {
+                        page-break-before: always;
+                    }
+                    h1, h2, h3 {
+                        font-size: 12pt;
+                        margin: 0.5cm 0;
+                    }
+                    #print-date {
+                        font-size: 8pt;
+                        text-align: right;
+                        margin-bottom: 0.5cm;
+                    }
+                }
+            `;
+            document.head.appendChild(printStyles);
+            
+            if (charts.valueChart) charts.valueChart.resize();
+            if (charts.percentageChart) charts.percentageChart.resize();
+            if (charts.trendChart) charts.trendChart.resize();
+            
+            window.print();
+            
+            setTimeout(() => {
+                elementsToHide.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        el.style.display = '';
+                    });
+                });
+                document.head.removeChild(printStyles);
+                
+                if (charts.valueChart) charts.valueChart.resize();
+                if (charts.percentageChart) charts.percentageChart.resize();
+                if (charts.trendChart) charts.trendChart.resize();
+            }, 1000);
+        }
+
+        function exportData() {
+            if (!period1Data || !period2Data || !period3Data) {
+                alert('Não há dados para exportar. Processe os dados primeiro.');
+                return;
+            }
+            
+            const exportData = {
+                period1: period1Data,
+                period2: period2Data,
+                period3: period3Data,
+                analysis: {
+                    generatedAt: new Date().toISOString(),
+                    generatedDate: new Date().toLocaleDateString('pt-BR'),
+                    total1: period1Data.data.reduce((sum, item) => sum + item.value, 0),
+                    total2: period2Data.data.reduce((sum, item) => sum + item.value, 0),
+                    total3: period3Data.data.reduce((sum, item) => sum + item.value, 0)
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                type: 'application/json'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `analise-vendas-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+      // Previous code remains unchanged until the incomplete line
+    // Completing the DOMContentLoaded event listener
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('debug-toggle').addEventListener('click', showGlobalDebug);
+        document.getElementById('print-btn').addEventListener('click', printReport);
+        document.getElementById('export-btn').addEventListener('click', exportData);
+
+        // Ensure show-input-btn exists before adding event listener
+        const showInputBtn = document.getElementById('show-input-btn');
+        if (showInputBtn) {
+            showInputBtn.addEventListener('click', showInputSection);
+        }
+
+        // Initialize charts object
+        charts = {
+            valueChart: null,
+            percentageChart: null,
+            trendChart: null,
+            aggregateChart: null
+        };
+
+        // Update print date on load
+        document.getElementById('print-date').textContent = new Date().toLocaleDateString('pt-BR');
+    });
+
+    // Scroll functions for floating navigation
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToBottom() {
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    // Ensure charts resize on window resize
+    window.addEventListener('resize', () => {
+        if (charts.valueChart) charts.valueChart.resize();
+        if (charts.percentageChart) charts.percentageChart.resize();
+        if (charts.trendChart) charts.trendChart.resize();
+        if (charts.aggregateChart) charts.aggregateChart.resize();
+    });
+
+    // Prevent default form submission if any forms exist
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', (e) => e.preventDefault());
+    });
+</script>
+
+</body>
+</html>
