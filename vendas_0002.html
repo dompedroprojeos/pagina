@@ -1176,11 +1176,13 @@ function parseData(text, debugElementId) {
     try {
         debugInfo.push(`📄 Texto original (${text.length} caracteres)`);
         
-        const lines = text.split('\n').filter(line => line.trim());
+        // Divide o texto em linhas, remove espaços em branco e filtra linhas vazias
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         debugInfo.push(`📋 ${lines.length} linhas encontradas`);
         
         let period = 'Não identificado';
         const data = [];
+        let currentMethod = null;
         
         // Identifica o período
         for (let line of lines) {
@@ -1194,8 +1196,9 @@ function parseData(text, debugElementId) {
         
         const formattedDate = extractDateFromPeriod(period);
         
-        for (let line of lines) {
-            line = line.trim();
+        // Processa as linhas para capturar formas de pagamento e valores
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             
             // Ignora linhas que são exatamente "% Valor" ou "Rótulo" (case-insensitive)
             if (line.toLowerCase() === '% valor' || line.toLowerCase() === 'rótulo') {
@@ -1203,40 +1206,68 @@ function parseData(text, debugElementId) {
                 continue;
             }
             
-            // Padrões para identificar linhas de dados válidas
-            const patterns = [
-                /^(.+?)\s+(\d+[,\.]\d+)\s+([\d\.,]+)$/ // Ex.: "NOTAS A PRAZO 41.04 1.347.578.727,42"
-            ];
+            // Verifica se a linha contém apenas texto (nome da forma de pagamento)
+            // Aceita letras, hífens, espaços e outros caracteres comuns, mas sem números
+            if (/^[^\d]+$/.test(line) && line.length > 0) {
+                currentMethod = line;
+                debugInfo.push(`💳 Forma de pagamento detectada: "${currentMethod}"`);
+                continue;
+            }
             
-            let matched = false;
-            for (let pattern of patterns) {
-                const match = line.match(pattern);
-                if (match) {
-                    const paymentMethod = match[1].trim();
-                    const percentage = parseFloat(match[2].replace(',', '.'));
-                    const valueStr = match[3].replace(/[^\d,\.]/g, '');
+            // Verifica se a linha contém valores (percentual e valor monetário)
+            // Padrão ajustado para aceitar percentuais como "0.00" e valores com diferentes separadores
+            const valuePattern = /^(\d+[,\.]\d{1,2}|0\.00)\s+([\d\.,]+)$/;
+            const match = line.match(valuePattern);
+            if (match && currentMethod) {
+                const percentage = parseFloat(match[1].replace(',', '.'));
+                const valueStr = match[2].replace(/[^\d,\.]/g, '');
+                const value = parseFloat(valueStr.replace(/\./g, '').replace(',', '.'));
+                
+                if (!isNaN(percentage) && !isNaN(value)) {
+                    data.push({
+                        method: currentMethod,
+                        percentage: percentage,
+                        value: value
+                    });
+                    
+                    debugInfo.push(`✅ ${currentMethod}: ${percentage}% - R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+                    currentMethod = null; // Reseta após processar
+                } else {
+                    debugInfo.push(`❌ Dados inválidos para "${currentMethod}": "${line}"`);
+                }
+            } else {
+                // Tenta processar linhas que contêm nome, percentual e valor na mesma linha
+                const combinedPattern = /^(.+?)\s+(\d+[,\.]\d{1,2}|0\.00)\s+([\d\.,]+)$/;
+                const combinedMatch = line.match(combinedPattern);
+                if (combinedMatch) {
+                    const method = combinedMatch[1].trim();
+                    const percentage = parseFloat(combinedMatch[2].replace(',', '.'));
+                    const valueStr = combinedMatch[3].replace(/[^\d,\.]/g, '');
                     const value = parseFloat(valueStr.replace(/\./g, '').replace(',', '.'));
                     
-                    if (!isNaN(percentage) && !isNaN(value) && paymentMethod.length > 0) {
+                    if (!isNaN(percentage) && !isNaN(value) && method.length > 0) {
                         data.push({
-                            method: paymentMethod,
+                            method: method,
                             percentage: percentage,
                             value: value
                         });
                         
-                        debugInfo.push(`✅ ${paymentMethod}: ${percentage}% - R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
-                        matched = true;
-                        break;
+                        debugInfo.push(`✅ ${method}: ${percentage}% - R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+                    } else {
+                        debugInfo.push(`❌ Dados inválidos: "${line}"`);
                     }
+                } else if (line.length > 5 && /\d/.test(line) && !line.match(/período:/i)) {
+                    debugInfo.push(`❌ Linha não reconhecida: "${line}"`);
                 }
-            }
-            
-            if (!matched && line.length > 5 && /\d/.test(line)) {
-                debugInfo.push(`❌ Linha não reconhecida: "${line}"`);
             }
         }
         
         debugInfo.push(`🎯 Total de ${data.length} formas de pagamento processadas`);
+        
+        // Verifica se todos os dados foram processados corretamente
+        if (data.length === 0) {
+            debugInfo.push(`⚠️ Nenhum dado válido encontrado. Verifique o formato dos dados.`);
+        }
         
         const result = { 
             period: period, 
