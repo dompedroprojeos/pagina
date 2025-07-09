@@ -320,6 +320,23 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .search-input {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
     </style>
 </head>
 <body class="p-4 lg:p-8">
@@ -425,6 +442,23 @@
             </div>
         </div>
 
+        <!-- Filtros e Busca -->
+        <div class="px-8 pb-4 no-print">
+            <div class="flex flex-col sm:flex-row gap-4 items-center">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por empresa...">
+                <div class="flex gap-2">
+                    <button id="sortAsc" class="action-button secondary">
+                        <i class="fas fa-sort-amount-up"></i>
+                        % À Vista Crescente
+                    </button>
+                    <button id="sortDesc" class="action-button secondary">
+                        <i class="fas fa-sort-amount-down"></i>
+                        % À Vista Decrescente
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabela -->
         <div class="px-8 pb-8">
             <div class="table-container">
@@ -455,6 +489,8 @@
         // Variáveis globais
         let salesData = [];
         let chartInstance = null;
+        let filteredData = [];
+        let sortOrder = null; // null, 'asc', or 'desc'
         
         // Elementos DOM
         const fileInput = document.getElementById('fileInput');
@@ -464,11 +500,17 @@
         const loadingSpinner = document.getElementById('loadingSpinner');
         const successMessage = document.getElementById('successMessage');
         const printValues = document.getElementById('printValues');
+        const searchInput = document.getElementById('searchInput');
+        const sortAscButton = document.getElementById('sortAsc');
+        const sortDescButton = document.getElementById('sortDesc');
         
         // Event listeners
         fileInput.addEventListener('change', handleFiles);
         document.getElementById('exportCSV').addEventListener('click', exportToCSV);
         document.getElementById('clearData').addEventListener('click', clearAllData);
+        searchInput.addEventListener('input', handleSearch);
+        sortAscButton.addEventListener('click', () => sortData('asc'));
+        sortDescButton.addEventListener('click', () => sortData('desc'));
         
         // Drag and drop functionality
         fileInputArea.addEventListener('dragover', (e) => {
@@ -507,6 +549,7 @@
             const savedData = localStorage.getItem('salesReportData');
             if (savedData) {
                 salesData = JSON.parse(savedData);
+                filteredData = [...salesData];
                 updateDisplay();
             }
         }
@@ -523,7 +566,7 @@
             
             for (const file of files) {
                 try {
-                    const fileName = file.name.replace('.pdf', '');
+                    const fileName = file.name.replace('.pdf', '').replace(/_/g, ' ').trim();
                     const fileData = await extractDataFromPDF(file);
                     
                     // Verificar se já existe
@@ -550,6 +593,7 @@
                 }
             }
             
+            filteredData = [...salesData];
             loadingSpinner.style.display = 'none';
             saveData();
             updateDisplay();
@@ -569,6 +613,30 @@
             }, 3000);
         }
         
+        function handleSearch() {
+            const searchTerm = searchInput.value.toLowerCase();
+            filteredData = salesData.filter(data => 
+                data.fileName.toLowerCase().includes(searchTerm)
+            );
+            if (sortOrder) {
+                sortData(sortOrder);
+            } else {
+                updateDisplay();
+            }
+        }
+        
+        function sortData(order) {
+            sortOrder = order;
+            filteredData.sort((a, b) => {
+                if (order === 'asc') {
+                    return a.onSightPercent - b.onSightPercent;
+                } else {
+                    return b.onSightPercent - a.onSightPercent;
+                }
+            });
+            updateDisplay();
+        }
+        
         function updateDisplay() {
             updateTable();
             updateStats();
@@ -579,7 +647,7 @@
             tableBody.innerHTML = '';
             tableFooter.innerHTML = '';
             
-            salesData.forEach(data => {
+            filteredData.forEach(data => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="font-medium">${data.fileName}</td>
@@ -592,10 +660,10 @@
                 tableBody.appendChild(row);
             });
             
-            if (salesData.length > 0) {
-                const totalPreDated = salesData.reduce((sum, data) => sum + data.preDated, 0);
-                const totalOnSight = salesData.reduce((sum, data) => sum + data.onSight, 0);
-                const grandTotal = salesData.reduce((sum, data) => sum + data.total, 0);
+            if (filteredData.length > 0) {
+                const totalPreDated = filteredData.reduce((sum, data) => sum + data.preDated, 0);
+                const totalOnSight = filteredData.reduce((sum, data) => sum + data.onSight, 0);
+                const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
                 const totalPreDatedPercent = grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0;
                 const totalOnSightPercent = grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0;
                 
@@ -613,195 +681,189 @@
         }
         
         function updateStats() {
-            const totalPreDated = salesData.reduce((sum, data) => sum + data.preDated, 0);
-            const totalOnSight = salesData.reduce((sum, data) => sum + data.onSight, 0);
-            const grandTotal = salesData.reduce((sum, data) => sum + data.total, 0);
+            const totalPreDated = filteredData.reduce((sum, data) => sum + data.preDated, 0);
+            const totalOnSight = filteredData.reduce((sum, data) => sum + data.onSight, 0);
+            const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
             
             document.getElementById('totalSales').textContent = formatarValor(grandTotal);
             document.getElementById('preDatedTotal').textContent = formatarValor(totalPreDated);
             document.getElementById('onSightTotal').textContent = formatarValor(totalOnSight);
-            document.getElementById('companiesCount').textContent = salesData.length;
+            document.getElementById('companiesCount').textContent = filteredData.length;
         }
         
-     function updateChart() {
-    // Check if Chart.js is loaded
-    if (typeof Chart === 'undefined') {
-        console.error('Chart.js não foi carregado.');
-        printValues.innerHTML = '<p>Erro: Chart.js não carregado.</p>';
-        return;
-    }
-
-    const ctx = document.getElementById('salesChart')?.getContext('2d');
-    if (!ctx) {
-        console.error('Canvas com ID "salesChart" não encontrado.');
-        printValues.innerHTML = '<p>Erro: Elemento de canvas não encontrado.</p>';
-        return;
-    }
-
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-
-    if (!salesData || salesData.length === 0) {
-        console.warn('Nenhum dado disponível em salesData.');
-        printValues.innerHTML = '<p>Nenhum dado disponível.</p>';
-        return;
-    }
-
-    // Sort data by timestamp
-    const sortedData = [...salesData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    // Use company names (fileName) as labels
-    const labels = sortedData.map(data => data.fileName);
-
-    const preDatedData = sortedData.map(data => data.preDated);
-    const onSightData = sortedData.map(data => data.onSight);
-
-    // Aggregate totals for print values
-    const totalPreDated = sortedData.reduce((sum, data) => sum + data.preDated, 0);
-    const totalOnSight = sortedData.reduce((sum, data) => sum + data.onSight, 0);
-    const grandTotal = sortedData.reduce((sum, data) => sum + data.total, 0);
-
-    // Update printed values
-    printValues.innerHTML = `
-        <h3 class="text-lg font-bold mb-4">Valores Detalhados</h3>
-        <ul>
-            <li><span>Cheque Pré-Datado:</span> <strong>${formatarValor(totalPreDated)}</strong></li>
-            <li><span>Cheque À Vista:</span> <strong>${formatarValor(totalOnSight)}</strong></li>
-            <li><span>Total Geral:</span> <strong>${formatarValor(grandTotal)}</strong></li>
-            <li><span>% Pré-Datado:</span> <strong>${grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
-            <li><span>% À Vista:</span> <strong>${grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
-        </ul>
-    `;
-
-    // Line chart configuration
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Cheque Pré-Datado',
-                    data: preDatedData,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    pointBackgroundColor: '#dc2626',
-                    pointRadius: 4,
-                    pointHoverRadius: 7
-                },
-                {
-                    label: 'Cheque À Vista',
-                    data: onSightData,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    pointBackgroundColor: '#059669',
-                    pointRadius: 4,
-                    pointHoverRadius: 7
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Empresas',
-                        font: {
-                            size: 14,
-                            weight: '600'
-                        }
-                    },
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        autoSkip: false,
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Valor (R$)',
-                        font: {
-                            size: 14,
-                            weight: '600'
-                        }
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return formatarValor(value);
-                        }
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 14,
-                            weight: '600'
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        color: '#374151'
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Evolução de Cheques Pré-Datado e À Vista por Empresa',
-                    font: {
-                        size: 20,
-                        weight: 'bold'
-                    },
-                    padding: {
-                        top: 20,
-                        bottom: 30
-                    },
-                    color: '#374151'
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: {
-                        size: 16,
-                        weight: '600'
-                    },
-                    bodyFont: {
-                        size: 14
-                    },
-                    padding: 12,
-                    cornerRadius: 8,
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.dataset.label;
-                            const value = context.raw;
-                            const percentage = grandTotal ? ((value / grandTotal) * 100).toFixed(2) : 0;
-                            return `${label}: ${formatarValor(value)} (${percentage}%)`;
-                        }
-                    }
-                }
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
+        function updateChart() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js não foi carregado.');
+                printValues.innerHTML = '<p>Erro: Chart.js não carregado.</p>';
+                return;
             }
+
+            const ctx = document.getElementById('salesChart')?.getContext('2d');
+            if (!ctx) {
+                console.error('Canvas com ID "salesChart" não encontrado.');
+                printValues.innerHTML = '<p>Erro: Elemento de canvas não encontrado.</p>';
+                return;
+            }
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (!filteredData || filteredData.length === 0) {
+                console.warn('Nenhum dado disponível em filteredData.');
+                printValues.innerHTML = '<p>Nenhum dado disponível.</p>';
+                return;
+            }
+
+            const labels = filteredData.map(data => data.fileName);
+            const preDatedData = filteredData.map(data => data.preDated);
+            const onSightData = filteredData.map(data => data.onSight);
+
+            const totalPreDated = filteredData.reduce((sum, data) => sum + data.preDated, 0);
+            const totalOnSight = filteredData.reduce((sum, data) => sum + data.onSight, 0);
+            const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
+
+            printValues.innerHTML = `
+                <h3 class="text-lg font-bold mb-4">Valores Detalhados</h3>
+                <ul>
+                    <li><span>Cheque Pré-Datado:</span> <strong>${formatarValor(totalPreDated)}</strong></li>
+                    <li><span>Cheque À Vista:</span> <strong>${formatarValor(totalOnSight)}</strong></li>
+                    <li><span>Total Geral:</span> <strong>${formatarValor(grandTotal)}</strong></li>
+                    <li><span>% Pré-Datado:</span> <strong>${grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+                    <li><span>% À Vista:</span> <strong>${grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+                </ul>
+            `;
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cheque Pré-Datado',
+                            data: preDatedData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false,
+                            pointBackgroundColor: '#dc2626',
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Cheque À Vista',
+                            data: onSightData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false,
+                            pointBackgroundColor: '#059669',
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Empresas',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valor (R$)',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarValor(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                color: '#374151'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Vendas por Forma de Pagamento por Empresa',
+                            font: {
+                                size: 20,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 20,
+                                bottom: 30
+                            },
+                            color: '#374151'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 16,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label;
+                                    const value = context.raw;
+                                    const percentage = grandTotal ? ((value / grandTotal) * 100).toFixed(2) : 0;
+                                    return `${label}: ${formatarValor(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
         }
-    });
-}
         
         function exportToCSV() {
-            if (salesData.length === 0) {
+            if (filteredData.length === 0) {
                 alert('Nenhum dado para exportar!');
                 return;
             }
@@ -809,7 +871,7 @@
             const headers = ['Empresa', 'Cheque Pré-Datado', '% Pré-Datado', 'Cheque À Vista', '% À Vista', 'Total de Vendas'];
             const csvContent = [
                 headers.join(','),
-                ...salesData.map(data => [
+                ...filteredData.map(data => [
                     data.fileName,
                     data.preDated.toFixed(2),
                     data.preDatedPercent.toFixed(2),
@@ -831,6 +893,9 @@
         function clearAllData() {
             if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode be desfeita.')) {
                 salesData = [];
+                filteredData = [];
+                sortOrder = null;
+                searchInput.value = '';
                 localStorage.removeItem('salesReportData');
                 updateDisplay();
                 if (chartInstance) {
@@ -896,7 +961,6 @@
                             }
                         });
 
-                        // Filtrar os cheques
                         const chequeAVista = tableData.find(item => 
                             item.label.match(/CHEQUE A VISTA/i)
                         ) || { percent: 0, value: 0 };
@@ -905,7 +969,6 @@
                             item.label.match(/CHEQUE PRE DATADO|CHEQUE PRÉ-DATADO/i)
                         ) || { percent: 0, value: 0 };
 
-                        // Extrair o TOTAL
                         let totalVendas = 0;
                         for (let i = lines.length - 1; i >= 0; i--) {
                             if (lines[i].includes('Total')) {
