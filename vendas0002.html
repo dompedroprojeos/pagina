@@ -623,180 +623,182 @@
             document.getElementById('companiesCount').textContent = salesData.length;
         }
         
-        function updateChart() {
-            // Check if Chart.js is loaded
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js não foi carregado.');
-                printValues.innerHTML = '<p>Erro: Chart.js não carregado.</p>';
-                return;
-            }
+     function updateChart() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js não foi carregado.');
+        printValues.innerHTML = '<p>Erro: Chart.js não carregado.</p>';
+        return;
+    }
 
-            const ctx = document.getElementById('salesChart')?.getContext('2d');
-            if (!ctx) {
-                console.error('Canvas com ID "salesChart" não encontrado.');
-                printValues.innerHTML = '<p>Erro: Elemento de canvas não encontrado.</p>';
-                return;
-            }
+    const ctx = document.getElementById('salesChart')?.getContext('2d');
+    if (!ctx) {
+        console.error('Canvas com ID "salesChart" não encontrado.');
+        printValues.innerHTML = '<p>Erro: Elemento de canvas não encontrado.</p>';
+        return;
+    }
 
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
 
-            if (!salesData || salesData.length === 0) {
-                console.warn('Nenhum dado disponível em salesData.');
-                printValues.innerHTML = '<p>Nenhum dado disponível.</p>';
-                return;
-            }
+    if (!salesData || salesData.length === 0) {
+        console.warn('Nenhum dado disponível em salesData.');
+        printValues.innerHTML = '<p>Nenhum dado disponível.</p>';
+        return;
+    }
 
-            // Sort data by timestamp
-            const sortedData = [...salesData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    // Sort data by timestamp
+    const sortedData = [...salesData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-            // Prepare labels and datasets
-            const labels = sortedData.map(data => {
-                const match = data.fileName.match(/(\d{2})_(\d{4})/); // e.g., "vendas_06_2023"
-                return match ? `${match[1]}/${match[2]}` : new Date(data.timestamp).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
-            });
+    // Use company names (fileName) as labels
+    const labels = sortedData.map(data => data.fileName);
 
-            const preDatedData = sortedData.map(data => data.preDated);
-            const onSightData = sortedData.map(data => data.onSight);
+    const preDatedData = sortedData.map(data => data.preDated);
+    const onSightData = sortedData.map(data => data.onSight);
 
-            // Aggregate totals for print values
-            const totalPreDated = sortedData.reduce((sum, data) => sum + data.preDated, 0);
-            const totalOnSight = sortedData.reduce((sum, data) => sum + data.onSight, 0);
-            const grandTotal = sortedData.reduce((sum, data) => sum + data.total, 0);
+    // Aggregate totals for print values
+    const totalPreDated = sortedData.reduce((sum, data) => sum + data.preDated, 0);
+    const totalOnSight = sortedData.reduce((sum, data) => sum + data.onSight, 0);
+    const grandTotal = sortedData.reduce((sum, data) => sum + data.total, 0);
 
-            // Update printed values
-            printValues.innerHTML = `
-                <h3 class="text-lg font-bold mb-4">Valores Detalhados</h3>
-                <ul>
-                    <li><span>Cheque Pré-Datado:</span> <strong>${formatarValor(totalPreDated)}</strong></li>
-                    <li><span>Cheque À Vista:</span> <strong>${formatarValor(totalOnSight)}</strong></li>
-                    <li><span>Total Geral:</span> <strong>${formatarValor(grandTotal)}</strong></li>
-                    <li><span>% Pré-Datado:</span> <strong>${grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
-                    <li><span>% À Vista:</span> <strong>${grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
-                </ul>
-            `;
+    // Update printed values
+    printValues.innerHTML = `
+        <h3 class="text-lg font-bold mb-4">Valores Detalhados</h3>
+        <ul>
+            <li><span>Cheque Pré-Datado:</span> <strong>${formatarValor(totalPreDated)}</strong></li>
+            <li><span>Cheque À Vista:</span> <strong>${formatarValor(totalOnSight)}</strong></li>
+            <li><span>Total Geral:</span> <strong>${formatarValor(grandTotal)}</strong></li>
+            <li><span>% Pré-Datado:</span> <strong>${grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+            <li><span>% À Vista:</span> <strong>${grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+        </ul>
+    `;
 
-            // Line chart configuration
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Cheque Pré-Datado',
-                            data: preDatedData,
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            fill: false,
-                            pointBackgroundColor: '#dc2626',
-                            pointRadius: 4,
-                            pointHoverRadius: 7
-                        },
-                        {
-                            label: 'Cheque À Vista',
-                            data: onSightData,
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            fill: false,
-                            pointBackgroundColor: '#059669',
-                            pointRadius: 4,
-                            pointHoverRadius: 7
-                        }
-                    ]
+    // Line chart configuration
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Cheque Pré-Datado',
+                    data: preDatedData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false,
+                    pointBackgroundColor: '#dc2626',
+                    pointRadius: 4,
+                    pointHoverRadius: 7
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Período',
-                                font: {
-                                    size: 14,
-                                    weight: '600'
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Valor (R$)',
-                                font: {
-                                    size: 14,
-                                    weight: '600'
-                                }
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return formatarValor(value);
-                                }
-                            }
+                {
+                    label: 'Cheque À Vista',
+                    data: onSightData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false,
+                    pointBackgroundColor: '#059669',
+                    pointRadius: 4,
+                    pointHoverRadius: 7
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Empresas',
+                        font: {
+                            size: 14,
+                            weight: '600'
                         }
                     },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                padding: 20,
-                                font: {
-                                    size: 14,
-                                    weight: '600'
-                                },
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                color: '#374151'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Evolução de Cheques Pré-Datado e À Vista',
-                            font: {
-                                size: 20,
-                                weight: 'bold'
-                            },
-                            padding: {
-                                top: 20,
-                                bottom: 30
-                            },
-                            color: '#374151'
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: {
-                                size: 16,
-                                weight: '600'
-                            },
-                            bodyFont: {
-                                size: 14
-                            },
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.dataset.label;
-                                    const value = context.raw;
-                                    const percentage = grandTotal ? ((value / grandTotal) * 100).toFixed(2) : 0;
-                                    return `${label}: ${formatarValor(value)} (${percentage}%)`;
-                                }
-                            }
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Valor (R$)',
+                        font: {
+                            size: 14,
+                            weight: '600'
                         }
                     },
-                    animation: {
-                        duration: 2000,
-                        easing: 'easeInOutQuart'
+                    ticks: {
+                        callback: function(value) {
+                            return formatarValor(value);
+                        }
                     }
                 }
-            });
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        color: '#374151'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Evolução de Cheques Pré-Datado e À Vista por Empresa',
+                    font: {
+                        size: 20,
+                        weight: 'bold'
+                    },
+                    padding: {
+                        top: 20,
+                        bottom: 30
+                    },
+                    color: '#374151'
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 16,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label;
+                            const value = context.raw;
+                            const percentage = grandTotal ? ((value / grandTotal) * 100).toFixed(2) : 0;
+                            return `${label}: ${formatarValor(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            }
         }
+    });
+}
         
         function exportToCSV() {
             if (salesData.length === 0) {
