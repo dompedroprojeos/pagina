@@ -1183,14 +1183,22 @@
             document.getElementById('currentScore').textContent = total;
         }
 
-      function enviarAvaliacao() {
+   function enviarAvaliacao() {
     // Validar formulário
     if (!validarFormulario()) {
         return;
     }
 
-    // Simular envio para o número cadastrado (substitua pelo número real)
-    const numeroWhatsApp = "5511999999999"; // Substitua pelo número correto
+    // Número de WhatsApp (substitua pelo número real)
+    const numeroWhatsApp = "5535984016706"; // Formato: código do país + DDD + número
+    
+    // Verificar se o número é válido (apenas dígitos, mínimo 10 caracteres)
+    if (!/^\d{10,}$/.test(numeroWhatsApp)) {
+        showToast('Número de WhatsApp inválido!', 'error');
+        return;
+    }
+
+    // Criar mensagem formatada
     const mensagem = `*Nova Avaliação de Pedido de Demissão*\n\n` +
                      `*Gerente:* ${formState.gerente}\n` +
                      `*Avaliação do Gerente:* ${formState.notaGerente}/5\n` +
@@ -1200,29 +1208,55 @@
                      `*Motivos:* ${formState.motivos.join(', ')}\n` +
                      `*Observações:* ${formState.observacoes || 'Nenhuma'}`;
 
-    // Criar link do WhatsApp (isso abrirá o WhatsApp Web ou app com a mensagem pronta)
-    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-    
-    // Abrir nova janela com o WhatsApp
-    window.open(urlWhatsApp, '_blank');
+    // Verificar tamanho da mensagem (limite de ~4000 caracteres para URLs)
+    if (mensagem.length > 2000) {
+        showToast('Mensagem muito longa! Reduza o texto.', 'error');
+        return;
+    }
 
-    // Mostrar mensagem de sucesso
-    showToast('Avaliação enviada com sucesso!', 'success');
+    // Codificar a mensagem para URL
+    const mensagemCodificada = encodeURIComponent(mensagem);
     
-    // Limpar formulário
-    limparFormulario();
+    // Criar link do WhatsApp
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemCodificada}`;
     
-    // Mostrar resultado (opcional)
-    mostrarResultado();
+    // Tentar abrir o WhatsApp
+    try {
+        // Abrir em nova aba (melhor compatibilidade)
+        const novaAba = window.open(urlWhatsApp, '_blank');
+        
+        if (!novaAba || novaAba.closed || typeof novaAba.closed == 'undefined') {
+            // Se o pop-up foi bloqueado, redirecionar na mesma aba
+            window.location.href = urlWhatsApp;
+        }
+        
+        // Mostrar feedback visual
+        showToast('Redirecionando para WhatsApp...', 'success');
+        
+        // Limpar formulário sem confirmação
+        setTimeout(() => {
+            limparFormulario(false);
+            mostrarResultado();
+        }, 1000);
+        
+    } catch (e) {
+        showToast('Erro ao abrir WhatsApp!', 'error');
+        console.error('Erro ao abrir WhatsApp:', e);
+    }
 }
 
-// Modificar a função limparFormulario para não pedir confirmação quando chamada pelo envio
-function limparFormulario(confirmar = true) {
+function limparFormulario(confirmar = false) {
+    // Se confirmar=true, pede confirmação (usado no botão Limpar)
+    // Se confirmar=false, limpa automaticamente (usado após envio)
+    
     if (confirmar && !confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
         return;
     }
     
+    // Resetar formulário HTML
     form.reset();
+    
+    // Resetar estado
     formState = {
         gerente: '',
         notaGerente: 0,
@@ -1233,7 +1267,7 @@ function limparFormulario(confirmar = true) {
         observacoes: ''
     };
     
-    // Limpar scores
+    // Resetar visualizações
     document.querySelectorAll('[id^="score"]').forEach(el => {
         if (el.id !== 'scoreCard') {
             el.textContent = '0';
@@ -1241,19 +1275,16 @@ function limparFormulario(confirmar = true) {
         }
     });
     
-    // Desmarcar todos os radio buttons
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.checked = false;
+    // Desmarcar todos os radios e checkboxes
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+        input.checked = false;
     });
     
-    // Desmarcar todos os checkboxes
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    
+    // Atualizar UI
     scoreCard.style.display = 'none';
     updateProgress();
     
+    // Feedback visual apenas se foi ação manual
     if (confirmar) {
         showToast('Formulário limpo!', 'info');
     }
