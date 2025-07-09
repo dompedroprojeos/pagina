@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas por Forma de Pagamento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -3px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .action-button.secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .action-button.secondary:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+        }
+
+        .action-button.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .action-button.danger:hover {
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6);
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .file-input:hover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modern-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .modern-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+
+        .modern-table tr:hover td {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .chart-3d {
+            background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .icon-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .dashboard-container {
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .header-gradient {
+                border-radius: 0;
+                padding: 20px !important;
+            }
+            
+            .chart-container {
+                page-break-inside: avoid;
+                display: flex !important;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px !important;
+                box-shadow: none;
+                border: none;
+            }
+            
+            #salesChart {
+                width: 60% !important;
+                height: auto !important;
+            }
+            
+            .print-values {
+                display: block !important;
+                background: #f8fafc;
+                border-radius: 12px;
+                padding: 20px;
+                margin-left: 30px;
+                min-width: 200px;
+            }
+            
+            .print-values ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .print-values li {
+                margin-bottom: 12px;
+                font-size: 16px;
+                display: flex;
+                justify-content: space-between;
+            }
+            
+            .print-values strong {
+                font-weight: 600;
+            }
+            
+            .table-container {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: none;
+            }
+            
+            .modern-table th, .modern-table td {
+                padding: 8px 12px;
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .print-values {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto dashboard-container">
+        <!-- Header com Logo -->
+        <div class="header-gradient p-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="logo-container">
+                        <i class="fas fa-chart-pie text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Dashboard de Vendas</h1>
+                        <p class="text-white/80 mt-2">Análise de Formas de Pagamento</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 no-print">
+                    <button id="printButton" class="action-button" onclick="window.print()">
+                        <i class="fas fa-print"></i>
+                        Imprimir
+                    </button>
+                    <button id="exportCSV" class="action-button secondary">
+                        <i class="fas fa-download"></i>
+                        Exportar CSV
+                    </button>
+                    <button id="clearData" class="action-button danger">
+                        <i class="fas fa-trash"></i>
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload de Arquivos -->
+        <div class="p-8 no-print">
+            <div class="file-input" id="fileInputArea">
+                <input type="file" id="fileInput" multiple accept=".pdf">
+                <div class="text-center">
+                    <i class="fas fa-cloud-upload-alt text-4xl icon-gradient mb-4"></i>
+                    <p class="text-lg font-semibold text-gray-700">Arraste os arquivos PDF aqui ou clique para selecionar</p>
+                    <p class="text-sm text-gray-500 mt-2">Suporte para múltiplos arquivos PDF</p>
+                </div>
+            </div>
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
+            <div id="successMessage" style="display: none;"></div>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="px-8 pb-8 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total de Vendas</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalSales">R$ 0,00</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Cheque Pré-Datado</p>
+                            <p class="text-2xl font-bold text-gray-900" id="preDatedTotal">R$ 0,00</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Cheque À Vista</p>
+                            <p class="text-2xl font-bold text-gray-900" id="onSightTotal">R$ 0,00</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-eye text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Empresas Analisadas</p>
+                            <p class="text-2xl font-bold text-gray-900" id="companiesCount">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-building text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="px-8 pb-8">
+            <div class="chart-container chart-3d">
+                <canvas id="salesChart" class="w-full h-96"></canvas>
+                <div class="print-values" id="printValues"></div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="px-8 pb-8">
+            <div class="table-container">
+                <div class="overflow-x-auto">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-building mr-2"></i>Empresa</th>
+                                <th class="text-right"><i class="fas fa-calendar-alt mr-2"></i>Cheque Pré-Datado</th>
+                                <th class="text-right"><i class="fas fa-percentage mr-2"></i>% Pré-Datado</th>
+                                <th class="text-right"><i class="fas fa-eye mr-2"></i>Cheque À Vista</th>
+                                <th class="text-right"><i class="fas fa-percentage mr-2"></i>% À Vista</th>
+                                <th class="text-right"><i class="fas fa-dollar-sign mr-2"></i>Total de Vendas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                        <tfoot id="tableFooter" class="bg-gray-50 font-semibold"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+        
+        // Variáveis globais
+        let salesData = [];
+        let chartInstance = null;
+        
+        // Elementos DOM
+        const fileInput = document.getElementById('fileInput');
+        const fileInputArea = document.getElementById('fileInputArea');
+        const tableBody = document.getElementById('tableBody');
+        const tableFooter = document.getElementById('tableFooter');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const successMessage = document.getElementById('successMessage');
+        const printValues = document.getElementById('printValues');
+        
+        // Event listeners
+        fileInput.addEventListener('change', handleFiles);
+        document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+        document.getElementById('clearData').addEventListener('click', clearAllData);
+        
+        // Drag and drop functionality
+        fileInputArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = '#667eea';
+        });
+        
+        fileInputArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = '#cbd5e1';
+        });
+        
+        fileInputArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = '#cbd5e1';
+            const files = e.dataTransfer.files;
+            handleFiles({ target: { files } });
+        });
+        
+        fileInputArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Função para formatar valores monetários
+        function formatarValor(valor) {
+            if (isNaN(valor)) return 'R$ 0,00';
+            return 'R$ ' + valor.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        
+        // Carregar dados salvos ao inicializar
+        window.addEventListener('load', loadSavedData);
+        
+        function loadSavedData() {
+            const savedData = localStorage.getItem('salesReportData');
+            if (savedData) {
+                salesData = JSON.parse(savedData);
+                updateDisplay();
+            }
+        }
+        
+        function saveData() {
+            localStorage.setItem('salesReportData', JSON.stringify(salesData));
+        }
+        
+        async function handleFiles(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+            
+            loadingSpinner.style.display = 'block';
+            
+            for (const file of files) {
+                try {
+                    const fileName = file.name.replace('.pdf', '');
+                    const fileData = await extractDataFromPDF(file);
+                    
+                    // Verificar se já existe
+                    const existingIndex = salesData.findIndex(item => item.fileName === fileName);
+                    
+                    const newData = {
+                        fileName,
+                        preDated: fileData.chequePreDatado,
+                        preDatedPercent: fileData.percentChequePreDatado,
+                        onSight: fileData.chequeAVista,
+                        onSightPercent: fileData.percentChequeAVista,
+                        total: fileData.totalVendas,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    if (existingIndex >= 0) {
+                        salesData[existingIndex] = newData;
+                    } else {
+                        salesData.push(newData);
+                    }
+                    
+                } catch (error) {
+                    console.error(`Erro ao processar o arquivo ${file.name}:`, error);
+                }
+            }
+            
+            loadingSpinner.style.display = 'none';
+            saveData();
+            updateDisplay();
+            showSuccessMessage(`${files.length} arquivo(s) processado(s) com sucesso!`);
+        }
+        
+        function showSuccessMessage(message) {
+            successMessage.innerHTML = `
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    ${message}
+                </div>
+            `;
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+        
+        function updateDisplay() {
+            updateTable();
+            updateStats();
+            updateChart();
+        }
+        
+        function updateTable() {
+            tableBody.innerHTML = '';
+            tableFooter.innerHTML = '';
+            
+            salesData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="font-medium">${data.fileName}</td>
+                    <td class="text-right">${formatarValor(data.preDated)}</td>
+                    <td class="text-right">${data.preDatedPercent.toFixed(2)}%</td>
+                    <td class="text-right">${formatarValor(data.onSight)}</td>
+                    <td class="text-right">${data.onSightPercent.toFixed(2)}%</td>
+                    <td class="text-right font-semibold">${formatarValor(data.total)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            if (salesData.length > 0) {
+                const totalPreDated = salesData.reduce((sum, data) => sum + data.preDated, 0);
+                const totalOnSight = salesData.reduce((sum, data) => sum + data.onSight, 0);
+                const grandTotal = salesData.reduce((sum, data) => sum + data.total, 0);
+                const totalPreDatedPercent = grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0;
+                const totalOnSightPercent = grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0;
+                
+                const footerRow = document.createElement('tr');
+                footerRow.innerHTML = `
+                    <td class="font-bold text-gray-900">TOTAL GERAL</td>
+                    <td class="text-right font-bold text-gray-900">${formatarValor(totalPreDated)}</td>
+                    <td class="text-right font-bold text-gray-900">${totalPreDatedPercent}%</td>
+                    <td class="text-right font-bold text-gray-900">${formatarValor(totalOnSight)}</td>
+                    <td class="text-right font-bold text-gray-900">${totalOnSightPercent}%</td>
+                    <td class="text-right font-bold text-gray-900">${formatarValor(grandTotal)}</td>
+                `;
+                tableFooter.appendChild(footerRow);
+            }
+        }
+        
+        function updateStats() {
+            const totalPreDated = salesData.reduce((sum, data) => sum + data.preDated, 0);
+            const totalOnSight = salesData.reduce((sum, data) => sum + data.onSight, 0);
+            const grandTotal = salesData.reduce((sum, data) => sum + data.total, 0);
+            
+            document.getElementById('totalSales').textContent = formatarValor(grandTotal);
+            document.getElementById('preDatedTotal').textContent = formatarValor(totalPreDated);
+            document.getElementById('onSightTotal').textContent = formatarValor(totalOnSight);
+            document.getElementById('companiesCount').textContent = salesData.length;
+        }
+        
+        function updateChart() {
+            // Check if Chart.js is loaded
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js não foi carregado.');
+                printValues.innerHTML = '<p>Erro: Chart.js não carregado.</p>';
+                return;
+            }
+
+            const ctx = document.getElementById('salesChart')?.getContext('2d');
+            if (!ctx) {
+                console.error('Canvas com ID "salesChart" não encontrado.');
+                printValues.innerHTML = '<p>Erro: Elemento de canvas não encontrado.</p>';
+                return;
+            }
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (!salesData || salesData.length === 0) {
+                console.warn('Nenhum dado disponível em salesData.');
+                printValues.innerHTML = '<p>Nenhum dado disponível.</p>';
+                return;
+            }
+
+            // Sort data by timestamp
+            const sortedData = [...salesData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            // Prepare labels and datasets
+            const labels = sortedData.map(data => {
+                const match = data.fileName.match(/(\d{2})_(\d{4})/); // e.g., "vendas_06_2023"
+                return match ? `${match[1]}/${match[2]}` : new Date(data.timestamp).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            });
+
+            const preDatedData = sortedData.map(data => data.preDated);
+            const onSightData = sortedData.map(data => data.onSight);
+
+            // Aggregate totals for print values
+            const totalPreDated = sortedData.reduce((sum, data) => sum + data.preDated, 0);
+            const totalOnSight = sortedData.reduce((sum, data) => sum + data.onSight, 0);
+            const grandTotal = sortedData.reduce((sum, data) => sum + data.total, 0);
+
+            // Update printed values
+            printValues.innerHTML = `
+                <h3 class="text-lg font-bold mb-4">Valores Detalhados</h3>
+                <ul>
+                    <li><span>Cheque Pré-Datado:</span> <strong>${formatarValor(totalPreDated)}</strong></li>
+                    <li><span>Cheque À Vista:</span> <strong>${formatarValor(totalOnSight)}</strong></li>
+                    <li><span>Total Geral:</span> <strong>${formatarValor(grandTotal)}</strong></li>
+                    <li><span>% Pré-Datado:</span> <strong>${grandTotal ? ((totalPreDated / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+                    <li><span>% À Vista:</span> <strong>${grandTotal ? ((totalOnSight / grandTotal) * 100).toFixed(2) : 0}%</strong></li>
+                </ul>
+            `;
+
+            // Line chart configuration
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cheque Pré-Datado',
+                            data: preDatedData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false,
+                            pointBackgroundColor: '#dc2626',
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Cheque À Vista',
+                            data: onSightData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false,
+                            pointBackgroundColor: '#059669',
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Período',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valor (R$)',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarValor(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                color: '#374151'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evolução de Cheques Pré-Datado e À Vista',
+                            font: {
+                                size: 20,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 20,
+                                bottom: 30
+                            },
+                            color: '#374151'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 16,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label;
+                                    const value = context.raw;
+                                    const percentage = grandTotal ? ((value / grandTotal) * 100).toFixed(2) : 0;
+                                    return `${label}: ${formatarValor(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+        
+        function exportToCSV() {
+            if (salesData.length === 0) {
+                alert('Nenhum dado para exportar!');
+                return;
+            }
+            
+            const headers = ['Empresa', 'Cheque Pré-Datado', '% Pré-Datado', 'Cheque À Vista', '% À Vista', 'Total de Vendas'];
+            const csvContent = [
+                headers.join(','),
+                ...salesData.map(data => [
+                    data.fileName,
+                    data.preDated.toFixed(2),
+                    data.preDatedPercent.toFixed(2),
+                    data.onSight.toFixed(2),
+                    data.onSightPercent.toFixed(2),
+                    data.total.toFixed(2)
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            showSuccessMessage('Relatório exportado com sucesso!');
+        }
+        
+        function clearAllData() {
+            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode be desfeita.')) {
+                salesData = [];
+                localStorage.removeItem('salesReportData');
+                updateDisplay();
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                showSuccessMessage('Todos os dados foram limpos!');
+            }
+        }
+        
+        async function extractDataFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function() {
+                    try {
+                        const typedArray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                        const page = await pdf.getPage(1);
+                        const textContent = await page.getTextContent();
+                        
+                        const lines = [];
+                        let currentLine = '';
+                        
+                        textContent.items.forEach((item, index) => {
+                            if (item.str.includes('\n') || (item.transform[4] < (textContent.items[index-1]?.transform[4] || 0))) {
+                                if (currentLine.trim() !== '') {
+                                    lines.push(currentLine.trim());
+                                }
+                                currentLine = item.str;
+                            } else {
+                                currentLine += item.str;
+                            }
+                        });
+                        
+                        if (currentLine.trim() !== '') {
+                            lines.push(currentLine.trim());
+                        }
+
+                        const tableData = [];
+                        let inTable = false;
+                        
+                        lines.forEach(line => {
+                            if (line.includes('Rótulo') && line.includes('%') && line.includes('Valor')) {
+                                inTable = true;
+                                return;
+                            }
+                            
+                            if (inTable && line.trim() !== '') {
+                                const columns = line.split(/\s+/).filter(Boolean);
+                                
+                                if (columns.length >= 3) {
+                                    const label = columns.slice(0, -2).join(' ');
+                                    const percent = columns[columns.length - 2];
+                                    const value = columns[columns.length - 1];
+                                    
+                                    tableData.push({
+                                        label,
+                                        percent: parseFloat(percent.replace(',', '.')),
+                                        value: parseFloat(value.replace(/\./g, '').replace(',', '.'))
+                                    });
+                                }
+                            }
+                        });
+
+                        // Filtrar os cheques
+                        const chequeAVista = tableData.find(item => 
+                            item.label.match(/CHEQUE A VISTA/i)
+                        ) || { percent: 0, value: 0 };
+                        
+                        const chequePreDatado = tableData.find(item => 
+                            item.label.match(/CHEQUE PRE DATADO|CHEQUE PRÉ-DATADO/i)
+                        ) || { percent: 0, value: 0 };
+
+                        // Extrair o TOTAL
+                        let totalVendas = 0;
+                        for (let i = lines.length - 1; i >= 0; i--) {
+                            if (lines[i].includes('Total')) {
+                                const totalParts = lines[i].split(/\s+/);
+                                const totalValue = totalParts[totalParts.length - 1];
+                                if (totalValue) {
+                                    totalVendas = parseFloat(totalValue.replace(/\./g, '').replace(',', '.'));
+                                }
+                                break;
+                            }
+                        }
+
+                        resolve({
+                            chequePreDatado: chequePreDatado.value,
+                            percentChequePreDatado: chequePreDatado.percent,
+                            chequeAVista: chequeAVista.value,
+                            percentChequeAVista: chequeAVista.percent,
+                            totalVendas: totalVendas,
+                            fullTableData: tableData
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
+            });
+        }
+    </script>
+</body>
+</html>
