@@ -1183,114 +1183,81 @@
             document.getElementById('currentScore').textContent = total;
         }
 
-        function enviarAvaliacao() {
-            // Validar formulário
-            if (!validarFormulario()) {
-                return;
-            }
+      function enviarAvaliacao() {
+    // Validar formulário
+    if (!validarFormulario()) {
+        return;
+    }
 
-            // Simular envio (aqui você faria a requisição para o servidor)
-            showToast('Enviando avaliação...', 'info');
-            
-            setTimeout(() => {
-                showToast('Avaliação enviada com sucesso!', 'success');
-                mostrarResultado();
-            }, 2000);
+    // Simular envio para o número cadastrado (substitua pelo número real)
+    const numeroWhatsApp = "5511999999999"; // Substitua pelo número correto
+    const mensagem = `*Nova Avaliação de Pedido de Demissão*\n\n` +
+                     `*Gerente:* ${formState.gerente}\n` +
+                     `*Avaliação do Gerente:* ${formState.notaGerente}/5\n` +
+                     `*Avaliação da Equipe:* ${formState.notaEquipe}/5\n` +
+                     `*Avaliação da Estrutura:* ${formState.notaEstrutura}/5\n` +
+                     `*Avaliação de Benefícios:* ${formState.beneficios}/5\n` +
+                     `*Motivos:* ${formState.motivos.join(', ')}\n` +
+                     `*Observações:* ${formState.observacoes || 'Nenhuma'}`;
+
+    // Criar link do WhatsApp (isso abrirá o WhatsApp Web ou app com a mensagem pronta)
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+    
+    // Abrir nova janela com o WhatsApp
+    window.open(urlWhatsApp, '_blank');
+
+    // Mostrar mensagem de sucesso
+    showToast('Avaliação enviada com sucesso!', 'success');
+    
+    // Limpar formulário
+    limparFormulario();
+    
+    // Mostrar resultado (opcional)
+    mostrarResultado();
+}
+
+// Modificar a função limparFormulario para não pedir confirmação quando chamada pelo envio
+function limparFormulario(confirmar = true) {
+    if (confirmar && !confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
+        return;
+    }
+    
+    form.reset();
+    formState = {
+        gerente: '',
+        notaGerente: 0,
+        notaEquipe: 0,
+        notaEstrutura: 0,
+        beneficios: 0,
+        motivos: [],
+        observacoes: ''
+    };
+    
+    // Limpar scores
+    document.querySelectorAll('[id^="score"]').forEach(el => {
+        if (el.id !== 'scoreCard') {
+            el.textContent = '0';
+            el.className = 'score-points score-medium';
         }
-
-        function validarFormulario() {
-            if (!formState.gerente.trim()) {
-                showToast('Por favor, digite o nome do gerente', 'error');
-                return false;
-            }
-
-            if (formState.notaGerente === 0) {
-                showToast('Por favor, avalie o gerente', 'error');
-                return false;
-            }
-
-            if (formState.notaEquipe === 0) {
-                showToast('Por favor, avalie a equipe', 'error');
-                return false;
-            }
-
-            if (formState.notaEstrutura === 0) {
-                showToast('Por favor, avalie a estrutura', 'error');
-                return false;
-            }
-
-            if (formState.beneficios === 0) {
-                showToast('Por favor, avalie os benefícios', 'error');
-                return false;
-            }
-
-            if (formState.motivos.length === 0) {
-                showToast('Por favor, selecione pelo menos um motivo', 'error');
-                return false;
-            }
-
-            return true;
-        }
-
-        function mostrarResultado() {
-            const total = formState.notaGerente + formState.notaEquipe + 
-                         formState.notaEstrutura + formState.beneficios;
-            
-            let icon, title, message;
-            
-            if (total <= 8) {
-                icon = '😔';
-                title = 'Avaliação Recebida';
-                message = 'Lamentamos que sua experiência não tenha sido positiva. Usaremos seu feedback para melhorar nossos processos.';
-            } else if (total <= 16) {
-                icon = '🙂';
-                title = 'Avaliação Recebida';
-                message = 'Obrigado pelo seu feedback! Identificamos pontos de melhoria e trabalharemos neles.';
-            } else {
-                icon = '🎉';
-                title = 'Excelente Avaliação!';
-                message = 'Ficamos felizes com sua avaliação positiva! Continuaremos trabalhando para manter este padrão.';
-            }
-
-            document.getElementById('resultIcon').textContent = icon;
-            document.getElementById('resultTitle').textContent = title;
-            document.getElementById('resultMessage').textContent = message;
-            
-            resultModal.style.display = 'flex';
-        }
-
-        function fecharModal() {
-            resultModal.style.display = 'none';
-            // Opcional: limpar formulário após envio bem-sucedido
-            // limparFormulario();
-        }
-
-        function limparFormulario() {
-            if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
-                form.reset();
-                formState = {
-                    gerente: '',
-                    notaGerente: 0,
-                    notaEquipe: 0,
-                    notaEstrutura: 0,
-                    beneficios: 0,
-                    motivos: [],
-                    observacoes: ''
-                };
-                
-                // Limpar scores
-                document.querySelectorAll('[id^="score"]').forEach(el => {
-                    if (el.id !== 'scoreCard') {
-                        el.textContent = '0';
-                        el.className = 'score-points score-medium';
-                    }
-                });
-                
-                scoreCard.style.display = 'none';
-                updateProgress();
-                showToast('Formulário limpo!', 'info');
-            }
-        }
+    });
+    
+    // Desmarcar todos os radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+    });
+    
+    // Desmarcar todos os checkboxes
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    scoreCard.style.display = 'none';
+    updateProgress();
+    
+    if (confirmar) {
+        showToast('Formulário limpo!', 'info');
+    }
+}
 
         function showToast(message, type) {
             statusToast.textContent = message;
