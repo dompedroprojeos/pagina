@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Vendas por Forma de Pagamento Rede Dom Pedro </title>
+    <title>Dashboard de Vendas por Forma de Pagamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
@@ -484,8 +485,8 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
 .logo-circle img {
-    width: 80px;   /* Aumente proporcionalmente */
-    height: 80px;  /* Aumente proporcionalmente */
+    width: 60px;   /* Aumente proporcionalmente */
+    height: 60px;  /* Aumente proporcionalmente */
 }
 
 .header-gradient {
@@ -509,7 +510,7 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
         <!-- Header com Logo -->
      <div class="header-gradient p-8">
     <div class="logo-circle">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrjsCC-OybtCtIa8jMBbm2RKVsmkUkdm5GLg&s" alt="Logo">
+        <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Logo">
     </div>
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-6">
@@ -517,7 +518,7 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
                 <i class="fas fa-chart-pie text-white text-2xl"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-bold text-white">Dashboard de Vendas Rede Dom Pedro</h1>
+                <h1 class="text-3xl font-bold text-white">Dashboard de Vendas</h1>
                 <p class="text-white/80 mt-2">Análise de Formas de Pagamento</p>
             </div>
         </div>
@@ -1945,6 +1946,85 @@ function selectFleetCheckboxes() {
         checkbox.checked = fleetTypes.includes(checkbox.value);
     });
     updateDisplay();
+}
+// Adicione esta função para calcular o índice dos selecionados
+function calculateSelectedIndex() {
+    const selectedTypes = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+    const totalSelected = filteredData.reduce((sum, data) => {
+        return sum + selectedTypes.reduce((typeSum, type) => typeSum + (data[type] || 0), 0);
+    }, 0);
+    
+    const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
+    const percentage = grandTotal ? (totalSelected / grandTotal * 100) : 0;
+    
+    return {
+        totalSelected,
+        percentage
+    };
+}
+
+// Atualize a função updateStats para incluir o índice
+function updateStats() {
+    statsCards.innerHTML = '';
+    const selectedTypes = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+    const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
+    
+    // Calcular o índice dos selecionados
+    const selectedIndex = calculateSelectedIndex();
+
+    // Card de Total de Vendas
+    const totalCard = document.createElement('div');
+    totalCard.className = 'stat-card';
+    totalCard.innerHTML = `
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total de Vendas</p>
+                <p class="text-2xl font-bold text-gray-900">${formatarValor(grandTotal)}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-dollar-sign text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    `;
+    statsCards.appendChild(totalCard);
+
+    // Card de Índice dos Selecionados (novo card)
+    if (selectedTypes.length > 0) {
+        const indexCard = document.createElement('div');
+        indexCard.className = 'stat-card';
+        indexCard.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Índice dos Selecionados</p>
+                    <p class="text-2xl font-bold text-gray-900">${selectedIndex.percentage.toFixed(2)}%</p>
+                    <p class="text-xs text-gray-500">${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-percentage text-green-600 text-xl"></i>
+                </div>
+            </div>
+        `;
+        statsCards.appendChild(indexCard);
+    }
+
+    // Cards individuais para cada tipo de pagamento selecionado
+    selectedTypes.forEach(type => {
+        const total = filteredData.reduce((sum, data) => sum + data[type], 0);
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">${paymentTypes[type].label}</p>
+                    <p class="text-2xl font-bold text-gray-900">${formatarValor(total)}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas ${paymentTypes[type].icon} text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        `;
+        statsCards.appendChild(card);
+    });
 }
     </script>
 </body>
