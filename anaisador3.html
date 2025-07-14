@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -499,7 +500,39 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 .action-button.fleet:hover {
     box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
 }
+/* Estilo para o popup */
+#salesPopup {
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
 
+#salesPopup .bg-white {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#salesPopup input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#salesPopup ul {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#salesPopup ul li {
+    margin-bottom: 8px;
+}
+/* Estilo para o ícone de litros */
+.popup-selected-volume {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
     </style>
 </head>
 <body>
@@ -522,22 +555,58 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
             </div>
         </div>
                 </div>
-                <div class="flex items-center gap-4 no-print">
-                    <button id="printButton" class="action-button" onclick="window.print()">
-                        <i class="fas fa-print"></i>
-                        Imprimir
-                    </button>
-                    <button id="exportCSV" class="action-button secondary">
-                        <i class="fas fa-download"></i>
-                        Exportar CSV
-                    </button>
-                    <button id="clearData" class="action-button danger">
-                        <i class="fas fa-trash"></i>
-                        Limpar
-                    </button>
-                </div>
-            </div>
+<!-- Botões de ação -->
+<div class="flex items-center gap-4 no-print">
+    <button id="printButton" class="action-button" onclick="window.print()">
+        <i class="fas fa-print"></i>
+        Imprimir
+    </button>
+    <button id="showPopupButton" class="action-button secondary">
+        <i class="fas fa-info-circle"></i>
+        Detalhes de Vendas
+    </button>
+    <button id="exportCSV" class="action-button secondary">
+        <i class="fas fa-download"></i>
+        Exportar CSV
+    </button>
+    <button id="clearData" class="action-button danger">
+        <i class="fas fa-trash"></i>
+        Limpar
+    </button>
+</div>
+
+<!-- Popup -->
+<div id="salesPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden no-print">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Detalhes de Vendas</h2>
+            <button id="closePopupButton" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+        <div class="mb-4">
+            <p class="text-sm font-medium text-gray-600">Total de Vendas</p>
+            <p class="text-2xl font-bold text-gray-900" id="popupTotalSales">R$ 0,00</p>
+        </div>
+        <div class="mb-4">
+            <label for="volumeInput" class="text-sm font-medium text-gray-600 block">Total de Volume de Vendas</label>
+            <input type="number" id="volumeInput" class="search-input w-full" placeholder="Digite o valor" step="0.01">
+        </div>
+        <div class="mb-4">
+            <p class="text-sm font-medium text-gray-600">Porcentagem de Vendas</p>
+            <p class="text-2xl font-bold text-gray-900" id="popupSalesPercentage">0.00%</p>
+        </div>
+        <div class="mb-4">
+            <p class="text-sm font-medium text-gray-600">Índice dos Selecionados</p>
+            <p class="text-2xl font-bold text-gray-900" id="popupSelectedIndex">0.00%</p>
+            <p class="text-xs text-gray-500" id="popupSelectedTotal">R$ 0,00 de R$ 0,00</p>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-600 mb-2">Métodos Selecionados</p>
+            <ul id="popupSelectedMethods" class="list-disc pl-5 text-sm text-gray-700"></ul>
+        </div>
+    </div>
+</div>
 
 <!-- Botões de navegação -->
 <div class="fixed right-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 no-print">
@@ -1020,12 +1089,20 @@ box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
         });
 
         // Função para formatar valores monetários
-        function formatarValor(valor) {
-            if (isNaN(valor)) return ' 0,00';
-            return ' ' + valor.toFixed(2)
-                .replace('.', ',')
-                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
+      // Função para formatar valores monetários
+function formatarValor(valor) {
+    if (isNaN(valor) || valor === null || valor === undefined) return ' 0,00';
+    const partes = valor.toFixed(2).split('.');
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return ' ' + partes.join(',');
+}
+
+// Função para converter números no formato brasileiro
+function parseBrazilianNumber(str) {
+    if (!str) return 0;
+    const cleaned = str.replace(/\./g, '').replace(',', '.');
+    return parseFloat(cleaned) || 0;
+}
 
         // Carregar dados salvos ao inicializar
         window.addEventListener('load', loadSavedData);
@@ -2076,6 +2153,80 @@ function updateStats() {
         statsCards.appendChild(card);
     });
 }
+//// Elementos DOM do popup
+const showPopupButton = document.getElementById('showPopupButton');
+const closePopupButton = document.getElementById('closePopupButton');
+const salesPopup = document.getElementById('salesPopup');
+const volumeInput = document.getElementById('volumeInput');
+const popupTotalSales = document.getElementById('popupTotalSales');
+const popupSalesPercentage = document.getElementById('popupSalesPercentage');
+const popupSelectedIndex = document.getElementById('popupSelectedIndex');
+const popupSelectedTotal = document.getElementById('popupSelectedTotal');
+const popupSelectedMethods = document.getElementById('popupSelectedMethods');
+
+// Função para abrir o popup
+showPopupButton.addEventListener('click', () => {
+    salesPopup.classList.remove('hidden');
+    updatePopupContent();
+});
+
+// Função para fechar o popup
+closePopupButton.addEventListener('click', () => {
+    salesPopup.classList.add('hidden');
+});
+
+// Fechar o popup ao clicar fora dele
+salesPopup.addEventListener('click', (e) => {
+    if (e.target === salesPopup) {
+        salesPopup.classList.add('hidden');
+    }
+});
+
+
+// Função para atualizar o conteúdo do popup
+function updatePopupContent() {
+    const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
+    const selectedIndex = calculateSelectedIndex(); // Retorna { totalSelected, percentage }
+    const selectedTypes = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+    // Atualizar Total de Vendas
+    popupTotalSales.textContent = formatarValor(grandTotal);
+
+    // Atualizar Porcentagem de Vendas (sempre 100%)
+    popupSalesPercentage.textContent = '100.00%';
+
+    // Atualizar Índice dos Selecionados
+    popupSelectedIndex.textContent = selectedIndex.percentage.toFixed(2) + '%';
+    popupSelectedTotal.textContent = `${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}`;
+
+    // Atualizar Métodos Selecionados
+    popupSelectedMethods.innerHTML = selectedTypes.map(type => {
+        const total = filteredData.reduce((sum, data) => sum + (data[type] || 0), 0);
+        const percentage = grandTotal ? ((total / grandTotal) * 100).toFixed(2) : 0;
+        return `<li>${paymentTypes[type].label}: <strong>${formatarValor(total)}</strong> (${percentage}%)</li>`;
+    }).join('');
+
+    // Atualizar Volume dos Selecionados
+    const selectedVolumeElement = document.getElementById('popupSelectedVolume') || document.createElement('p');
+    selectedVolumeElement.id = 'popupSelectedVolume';
+    selectedVolumeElement.className = 'text-sm text-gray-700 mt-2 popup-selected-volume';
+    selectedVolumeElement.innerHTML = `<i class="fas fa-tint text-blue-600"></i> Volume dos Selecionados: ${formatarValor(0)} litros`;
+    if (!document.getElementById('popupSelectedVolume')) {
+        popupSelectedTotal.parentNode.appendChild(selectedVolumeElement);
+    }
+
+    // Remover qualquer listener anterior
+    volumeInput.removeEventListener('input', volumeInput._inputHandler);
+    // Atualizar Volume dos Selecionados ao digitar o volume
+    volumeInput.value = '';
+    volumeInput._inputHandler = () => {
+        const volume = parseBrazilianNumber(volumeInput.value);
+        const selectedVolume = grandTotal ? (selectedIndex.totalSelected / grandTotal) * volume : 0;
+        selectedVolumeElement.innerHTML = `<i class="fas fa-tint text-blue-600"></i> Volume dos Selecionados: ${formatarValor(selectedVolume)} litros`;
+    };
+    volumeInput.addEventListener('input', volumeInput._inputHandler);
+}
+
     </script>
 </body>
 </html>
