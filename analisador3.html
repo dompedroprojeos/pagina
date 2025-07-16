@@ -2491,63 +2491,195 @@ function updatePopupContent() {
 
     // Função para imprimir apenas os Detalhes de Vendas com o valor atual do input
   function printSalesDetails() {
-    const currentNegotiatedValue = parseFloat(negotiatedInput.value) || 0; // Use current input value
-    const negotiatedTotal = currentNegotiatedValue * valorMedia;
-    const percentage = selectedVolume > 0 ? (currentNegotiatedValue / selectedVolume * 100).toFixed(2) : 0;
-
     const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
-    const selectedIndex = calculateSelectedIndex(); // Returns { totalSelected, percentage }
+    const selectedIndex = calculateSelectedIndex();
+    const selectedTypes = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+    const totalVolumeVendas = parseFloat(localStorage.getItem('totalVolumeVendas')) || 0;
+    const valorMedia = totalVolumeVendas > 0 ? (grandTotal / totalVolumeVendas).toFixed(2) : 0;
+    const selectedVolume = grandTotal ? (selectedIndex.totalSelected / grandTotal) * totalVolumeVendas : 0;
+    const negotiatedValue = parseFloat(localStorage.getItem('negotiatedValue')) || 0;
+    const negotiatedTotal = negotiatedValue * valorMedia;
+    const negotiatedPercentage = selectedVolume > 0 ? (negotiatedValue / selectedVolume * 100).toFixed(2) : 0;
 
+    // Criar o conteúdo para impressão
     const printContent = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://api.platform-production.ensun.io/file/external-company-logo/67aa3fb5fe46411a0b728dd1" alt="Logo" style="width: 100px; height: auto; margin-bottom: 10px;">
-                <h2 style="color: #1a73e8;">Detalhes de Vendas</h2>
-                <hr style="border: 1px solid #e0e0e0; margin: 10px 0;">
-            </div>
-            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p><strong>Total de Vendas:</strong> ${formatarValor(grandTotal)}</p>
-            </div>
-            <div style="background: #e0f7fa; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p><strong>Média:</strong> ${valorMediaText}</p>
-            </div>
-            <div style="background: #ffe0b2; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p><strong>Índice dos Selecionados:</strong> ${selectedIndex.percentage.toFixed(2)}%</p>
-            </div>
-            <div style="background: #d1c4e9; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p><strong>Total Selecionado:</strong> ${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}</p>
-            </div>
-            <div style="background: #c8e6c9; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p><strong>Volume dos Selecionados:</strong> ${formatarValor(selectedVolume)} litros</p>
-            </div>
-            <div style="background: #fff3e0; border-radius: 8px; padding: 15px;">
-                <p><strong>Valor do Negociado:</strong> ${formatarValor(negotiatedTotal)} | <strong style="color: #2e7d32;">${percentage}%</strong></p>
-            </div>
-        </div>
-        <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10pt; color: #666; border-top: 1px solid #ccc; padding: 10px;">
-            Gerado em: ${new Date().toLocaleString('pt-BR')}
-        </div>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
         <html>
             <head>
-                <title>Detalhes de Vendas</title>
+                <title>Detalhes de Vendas - Rede Dom Pedro</title>
+                <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
                 <style>
-                    body { margin: 0; }
+                    body {
+                        font-family: 'Inter', Arial, sans-serif;
+                        margin: 0;
+                        padding: 20mm;
+                        background: #f8fafc;
+                        color: #374151;
+                    }
+                    @page {
+                        size: A4;
+                        margin: 15mm;
+                    }
+                    .print-container {
+                        max-width: 100%;
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                        padding: 30px;
+                        border: 1px solid rgba(255, 255, 255, 0.8);
+                    }
+                    .header {
+                        text-align: center;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid #e2e8f0;
+                        position: relative;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border-radius: 12px 12px 0 0;
+                        padding: 20px;
+                        margin: -30px -30px 30px -30px;
+                    }
+                    .header h1 {
+                        font-size: 28px;
+                        font-weight: 700;
+                        margin: 0;
+                    }
+                    .header p {
+                        font-size: 14px;
+                        opacity: 0.8;
+                        margin: 5px 0 0;
+                    }
+                    .section {
+                        margin-bottom: 25px;
+                        padding: 20px;
+                        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                        border-radius: 8px;
+                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+                        border: 1px solid #e2e8f0;
+                    }
+                    .section-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #374151;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .section-value {
+                        font-size: 22px;
+                        font-weight: 700;
+                        color: #1f2937;
+                    }
+                    .section-subvalue {
+                        font-size: 12px;
+                        color: #6b7280;
+                        margin-top: 5px;
+                    }
+                    .methods-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .methods-list li {
+                        font-size: 14px;
+                        color: #374151;
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .methods-list li i {
+                        color: #667eea;
+                    }
+                    .footer {
+                        text-align: center;
+                        font-size: 12px;
+                        color: #6b7280;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                    .highlight {
+                        color: #10b981;
+                        font-weight: 600;
+                    }
+                    .icon {
+                        color: #667eea;
+                    }
                     @media print {
-                        body { margin: 0; }
-                        .no-print { display: none; }
+                        body {
+                            background: white;
+                            padding: 0;
+                        }
+                        .print-container {
+                            box-shadow: none;
+                            border: none;
+                        }
+                        .header {
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                        .section {
+                            page-break-inside: avoid;
+                        }
                     }
                 </style>
             </head>
-            <body onload="window.print(); window.close();">
-                ${printContent}
+            <body>
+                <div class="print-container">
+                    <div class="header">
+                        <h1>Detalhes de Vendas - Rede Dom Pedro</h1>
+                        <p>Análise de Formas de Pagamento</p>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-dollar-sign icon"></i>Total de Vendas</div>
+                        <div class="section-value">${formatarValor(grandTotal)}</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-tint icon"></i>Total de Volume de Vendas</div>
+                        <div class="section-value">${formatarValor(totalVolumeVendas)} litros</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-calculator icon"></i>Média</div>
+                        <div class="section-value">${valorMedia} R$/L</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-percentage icon"></i>Índice dos Selecionados</div>
+                        <div class="section-value">${selectedIndex.percentage.toFixed(2)}%</div>
+                        <div class="section-subvalue">${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-tint icon"></i>Volume dos Selecionados</div>
+                        <div class="section-value">${formatarValor(selectedVolume)} litros</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-handshake icon"></i>Valor Negociado</div>
+                        <div class="section-value">${formatarValor(negotiatedTotal)}</div>
+                        <div class="section-subvalue">${formatarValor(negotiatedValue)} litros <span class="highlight">(${negotiatedPercentage}%)</span></div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><i class="fas fa-list-ul icon"></i>Métodos Selecionados</div>
+                        <ul class="methods-list">
+                            ${selectedTypes.map(type => {
+                                const total = filteredData.reduce((sum, data) => sum + (data[type] || 0), 0);
+                                const percentage = grandTotal ? ((total / grandTotal) * 100).toFixed(2) : 0;
+                                return `<li><i class="fas ${paymentTypes[type].icon}"></i>${paymentTypes[type].label}: <strong>${formatarValor(total)}</strong> <span class="highlight">(${percentage}%)</span></li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
+                    <div class="footer">
+                        Gerado em: ${new Date().toLocaleString('pt-BR')}
+                    </div>
+                </div>
             </body>
         </html>
-    `);
+    `;
+
+    // Criar uma nova janela para impressão
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
     printWindow.document.close();
+    printWindow.print();
 }
 }   
     </script>
