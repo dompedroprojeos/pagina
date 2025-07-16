@@ -2490,24 +2490,42 @@ function updatePopupContent() {
     volumeInput.addEventListener('input', volumeInput._inputHandler);
 
     // Função para imprimir apenas os Detalhes de Vendas com o valor atual do input
-   function printSalesDetails() {
-    const currentNegotiatedValue = parseFloat(negotiatedInput.value) || 0; // Usar valor atual do input
+  function printSalesDetails() {
+    const currentNegotiatedValue = parseFloat(negotiatedInput.value) || 0; // Use current input value
     const negotiatedTotal = currentNegotiatedValue * valorMedia;
     const percentage = selectedVolume > 0 ? (currentNegotiatedValue / selectedVolume * 100).toFixed(2) : 0;
 
     const grandTotal = filteredData.reduce((sum, data) => sum + data.total, 0);
-    const selectedIndex = calculateSelectedIndex();
+    const selectedIndex = calculateSelectedIndex(); // Returns { totalSelected, percentage }
 
     const printContent = `
-        <div class="print-content" style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-            <h2 style="text-align: center; color: #1a73e8;">Detalhes de Vendas</h2>
-            <hr style="border: 1px solid #e0e0e0; margin: 10px 0;">
-            <p><strong>Total de Vendas:</strong> ${formatarValor(grandTotal)}</p>
-            <p><strong>Média:</strong> ${valorMediaText}</p>
-            <p><strong>Índice dos Selecionados:</strong> ${selectedIndex.percentage.toFixed(2)}%</p>
-            <p><strong>Total Selecionado:</strong> ${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}</p>
-            <p style="margin-top: 15px;"><strong>Volume dos Selecionados:</strong> ${formatarValor(selectedVolume)} litros</p>
-            <p><strong>Valor do Negociado:</strong> ${formatarValor(negotiatedTotal)} | <strong style="color: #2e7d32;">${percentage}%</strong></p>
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://api.platform-production.ensun.io/file/external-company-logo/67aa3fb5fe46411a0b728dd1" alt="Logo" style="width: 100px; height: auto; margin-bottom: 10px;">
+                <h2 style="color: #1a73e8;">Detalhes de Vendas</h2>
+                <hr style="border: 1px solid #e0e0e0; margin: 10px 0;">
+            </div>
+            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p><strong>Total de Vendas:</strong> ${formatarValor(grandTotal)}</p>
+            </div>
+            <div style="background: #e0f7fa; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p><strong>Média:</strong> ${valorMediaText}</p>
+            </div>
+            <div style="background: #ffe0b2; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p><strong>Índice dos Selecionados:</strong> ${selectedIndex.percentage.toFixed(2)}%</p>
+            </div>
+            <div style="background: #d1c4e9; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p><strong>Total Selecionado:</strong> ${formatarValor(selectedIndex.totalSelected)} de ${formatarValor(grandTotal)}</p>
+            </div>
+            <div style="background: #c8e6c9; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p><strong>Volume dos Selecionados:</strong> ${formatarValor(selectedVolume)} litros</p>
+            </div>
+            <div style="background: #fff3e0; border-radius: 8px; padding: 15px;">
+                <p><strong>Valor do Negociado:</strong> ${formatarValor(negotiatedTotal)} | <strong style="color: #2e7d32;">${percentage}%</strong></p>
+            </div>
+        </div>
+        <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10pt; color: #666; border-top: 1px solid #ccc; padding: 10px;">
+            Gerado em: ${new Date().toLocaleString('pt-BR')}
         </div>
     `;
 
@@ -2517,6 +2535,7 @@ function updatePopupContent() {
             <head>
                 <title>Detalhes de Vendas</title>
                 <style>
+                    body { margin: 0; }
                     @media print {
                         body { margin: 0; }
                         .no-print { display: none; }
