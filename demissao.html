@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrevista de Desligamento</title>
+    <title>Entrevista de Demissão</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -241,6 +241,8 @@
             font-weight: 600;
         }
 
+        /* Estilos para as carinhas coloridas */
+        /* Notas 1-2 - Vermelho */
         .rating-item input[type="radio"][value="1"] + label i,
         .rating-item input[type="radio"][value="2"] + label i {
             color: var(--danger-color);
@@ -252,6 +254,7 @@
             background: var(--danger-color);
         }
 
+        /* Nota 3 - Amarelo */
         .rating-item input[type="radio"][value="3"] + label i {
             color: var(--warning-color);
         }
@@ -261,6 +264,7 @@
             background: var(--warning-color);
         }
 
+        /* Notas 4-5 - Verde */
         .rating-item input[type="radio"][value="4"] + label i,
         .rating-item input[type="radio"][value="5"] + label i {
             color: var(--success-color);
@@ -272,46 +276,70 @@
             background: var(--success-color);
         }
 
+        /* Texto branco quando selecionado */
         .rating-item input[type="radio"]:checked + label,
         .rating-item input[type="radio"]:checked + label .rating-number {
             color: var(--white);
         }
 
-        .checkbox-group {
+        .desligamento-options {
             display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
+            margin: 1rem 0;
         }
 
-        .checkbox-item {
+        .desligamento-option {
+            flex: 1;
+        }
+
+        .desligamento-option input[type="radio"] {
+            display: none;
+        }
+
+        .desligamento-option label {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
+            padding: 1rem 0.5rem;
             border: 2px solid var(--gray-200);
             border-radius: var(--radius-md);
             cursor: pointer;
             transition: all 0.3s ease;
             background: var(--white);
+            text-align: center;
+            min-height: 80px;
+            justify-content: center;
         }
 
-        .checkbox-item:hover {
+        .desligamento-option label:hover {
             border-color: var(--primary-color);
-            background: var(--gray-50);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        .checkbox-item input[type="checkbox"] {
-            width: 1.25rem;
-            height: 1.25rem;
-            accent-color: var(--primary-color);
-            cursor: pointer;
+        .desligamento-option label i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
         }
 
-        .checkbox-item label {
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: var(--gray-700);
-            margin: 0;
+        /* Estilo para opção "Sim" */
+        .desligamento-option input[type="radio"][value="sim"]:checked + label {
+            border-color: var(--success-color);
+            background: var(--success-color);
+            color: var(--white);
+        }
+
+        /* Estilo para opção "Não" */
+        .desligamento-option input[type="radio"][value="nao"]:checked + label {
+            border-color: var(--danger-color);
+            background: var(--danger-color);
+            color: var(--white);
+        }
+
+        .comentario-desligamento {
+            display: none;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
         }
 
         .summary {
@@ -463,7 +491,7 @@
             font-weight: 500;
             z-index: 1000;
             transform: translateX(100%);
-            transition: transform 0.3ms ease;
+            transition: transform 0.3s ease;
             box-shadow: var(--shadow-lg);
         }
 
@@ -483,10 +511,7 @@
             background: var(--primary-color);
         }
 
-        #canvas {
-            display: none;
-        }
-
+        /* Responsividade */
         @media (max-width: 768px) {
             .container {
                 margin: 0;
@@ -516,6 +541,10 @@
             .rating-item:nth-child(4),
             .rating-item:nth-child(5) {
                 grid-column: span 1;
+            }
+
+            .desligamento-options {
+                flex-direction: column;
             }
 
             .buttons {
@@ -550,14 +579,14 @@
     <div class="container">
         <div class="header">
             <div class="logo-section">
-                <img src="logo_01.png" alt="Logo Pedrinho" class="logo-placeholder">
+                <img src="logo_01.png" alt="Logo da Empresa" class="logo-placeholder">
             </div>
-            <h1 class="title">Entrevista de Desligamento</h1>
-            <p class="subtitle">Sua avaliação é fundamental para nosso crescimento</p>
+            <h1 class="title">Avaliação de Demissão</h1>
+            <p class="subtitle">Sua opinião é muito importante para nós</p>
         </div>
 
         <div class="form-container">
-            <form id="entrevistaForm">
+            <form id="avaliacaoForm">
                 <div class="section">
                     <div class="section-title">
                         <i class="fas fa-user-tie"></i>
@@ -745,34 +774,32 @@
 
                 <div class="section">
                     <div class="section-title">
-                        <i class="fas fa-comments"></i>
-                        Motivos do Desligamento
+                        <i class="fas fa-comment-alt"></i>
+                        Foi claro o seu desligamento?
                     </div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="motivoPessoal" name="motivo" value="Pessoal">
-                            <label for="motivoPessoal">Pessoal</label>
+                    <div class="desligamento-options">
+                        <div class="desligamento-option">
+                            <input type="radio" id="desligamentoSim" name="desligamento" value="sim" required>
+                            <label for="desligamentoSim">
+                                <i class="fas fa-check"></i>
+                                <span>Sim</span>
+                            </label>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="motivoInsatisfacao" name="motivo" value="Insatisfação">
-                            <label for="motivoInsatisfacao">Insatisfação</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="motivoOutroEmprego" name="motivo" value="Outro Emprego">
-                            <label for="motivoOutroEmprego">Outro Emprego</label>
+                        <div class="desligamento-option">
+                            <input type="radio" id="desligamentoNao" name="desligamento" value="nao">
+                            <label for="desligamentoNao">
+                                <i class="fas fa-times"></i>
+                                <span>Não</span>
+                            </label>
                         </div>
                     </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-edit"></i>
-                        Observações Adicionais
-                    </div>
-                    <div class="form-group">
-                        <div class="input-wrapper">
-                            <i class="fas fa-pencil-alt"></i>
-                            <textarea id="observacoes" name="observacoes" placeholder="Compartilhe suas observações sobre sua experiência na empresa..."></textarea>
+                    <div class="comentario-desligamento" id="comentarioDesligamento">
+                        <div class="form-group">
+                            <label for="comentarios">Explique por que não foi claro:</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-pencil-alt"></i>
+                                <textarea id="comentarios" name="comentarios" placeholder="Por favor, explique por que não foi claro o seu desligamento..."></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -786,7 +813,7 @@
                 <div class="buttons">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-paper-plane"></i>
-                        Enviar Entrevista
+                        Enviar Avaliação
                     </button>
                 </div>
             </form>
@@ -807,34 +834,37 @@
     <canvas id="canvas"></canvas>
 
     <script>
-    class EntrevistaDesligamento {
-        constructor() {
-            this.form = document.getElementById('entrevistaForm');
-            this.summary = document.getElementById('summary');
-            this.summaryScore = document.getElementById('summaryScore');
-            this.summaryItems = document.getElementById('summaryItems');
-            this.statusToast = document.getElementById('statusToast');
-            this.canvas = document.getElementById('canvas');
-            this.ctx = this.canvas.getContext('2d');
-            
-            this.init();
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('avaliacaoForm');
+        const statusToast = document.getElementById('statusToast');
+        const summary = document.getElementById('summary');
+        const summaryScore = document.getElementById('summaryScore');
+        const summaryItems = document.getElementById('summaryItems');
+        const comentarioDesligamento = document.getElementById('comentarioDesligamento');
+
+        // Função para mostrar toast
+        function showToast(message, type) {
+            statusToast.textContent = message;
+            statusToast.className = `status-toast ${type} show`;
+            setTimeout(() => {
+                statusToast.classList.remove('show');
+            }, 3000);
         }
 
-        init() {
-            this.bindEvents();
-            this.updateSummary();
-        }
-
-        bindEvents() {
-            const ratingInputs = document.querySelectorAll('input[type="radio"]');
-            ratingInputs.forEach(input => {
-                input.addEventListener('change', () => this.updateSummary());
+        // Mostrar/ocultar campo de comentário baseado na seleção de desligamento
+        document.querySelectorAll('input[name="desligamento"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'nao') {
+                    comentarioDesligamento.style.display = 'block';
+                } else {
+                    comentarioDesligamento.style.display = 'none';
+                    document.getElementById('comentarios').value = '';
+                }
             });
+        });
 
-            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
-
-        updateSummary() {
+        // Atualizar resumo quando as avaliações mudam
+        function updateSummary() {
             const ratings = {
                 gerente: document.querySelector('input[name="notaGerente"]:checked')?.value || 0,
                 equipe: document.querySelector('input[name="notaEquipe"]:checked')?.value || 0,
@@ -842,75 +872,97 @@
                 beneficios: document.querySelector('input[name="beneficios"]:checked')?.value || 0
             };
 
-            // Calcular pontuação total, garantindo que apenas valores numéricos sejam somados
-            const total = Object.values(ratings).reduce((sum, value) => {
-                return sum + (parseInt(value) || 0);
-            }, 0);
-            
+            // Calcular pontuação total
+            const total = Object.values(ratings).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
+
             // Atualizar o resumo
-            this.summaryScore.textContent = `${total}/20`;
-            
+            summaryScore.textContent = `${total}/20`;
+
             // Criar itens do resumo
-            this.summaryItems.innerHTML = '';
-            
+            summaryItems.innerHTML = '';
+
             for (const [key, value] of Object.entries(ratings)) {
-                const item = document.createElement('div');
-                item.className = 'summary-item';
-                
-                const label = document.createElement('span');
-                label.textContent = this.getLabelForRating(key);
-                
-                const stars = document.createElement('span');
-                stars.textContent = `${value}/5`;
-                
-                item.appendChild(label);
-                item.appendChild(stars);
-                this.summaryItems.appendChild(item);
+                if (value > 0) {
+                    const item = document.createElement('div');
+                    item.className = 'summary-item';
+
+                    const label = document.createElement('span');
+                    label.textContent = getLabelForRating(key);
+
+                    const stars = document.createElement('span');
+                    stars.textContent = `${value}/5`;
+
+                    item.appendChild(label);
+                    item.appendChild(stars);
+                    summaryItems.appendChild(item);
+                }
             }
-            
+
             // Mostrar o resumo se pelo menos uma avaliação foi feita
             if (total > 0) {
-                this.summary.classList.add('show');
+                summary.classList.add('show');
             } else {
-                this.summary.classList.remove('show');
+                summary.classList.remove('show');
             }
         }
 
-        getLabelForRating(key) {
+        function getLabelForRating(key) {
             const labels = {
-                gerente: 'Avaliação do Gerente',
-                equipe: 'Avaliação da Equipe',
-                estrutura: 'Estrutura do Posto',
+                gerente: 'Gerente',
+                equipe: 'Equipe',
+                estrutura: 'Estrutura',
                 beneficios: 'Benefícios'
             };
             return labels[key] || key;
         }
 
-        showToast(message, type) {
-            this.statusToast.textContent = message;
-            this.statusToast.className = `status-toast ${type} show`;
-            setTimeout(() => {
-                this.statusToast.className = 'status-toast';
-            }, 3000);
-        }
+        // Event listeners para atualizar o resumo
+        const ratingInputs = document.querySelectorAll('input[type="radio"]');
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', updateSummary);
+        });
 
-        resetForm() {
-            this.form.reset();
-            this.summary.classList.remove('show');
-            this.summaryScore.textContent = '0/20';
-            this.summaryItems.innerHTML = '';
-        }
+        // Envio do formulário
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-        capturarEEnviarWhatsApp(total, motivos) {
+            // Validar se o nome do gerente foi preenchido
             const gerente = document.getElementById('gerente').value.trim();
-            const observacoes = document.getElementById('observacoes').value.trim();
-            const notaGerente = document.querySelector('input[name="notaGerente"]:checked')?.value || '0';
-            const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked')?.value || '0';
-            const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked')?.value || '0';
-            const notaBeneficios = document.querySelector('input[name="beneficios"]:checked')?.value || '0';
-            
-            // Calcular média em escala de 0 a 10
-            const media = (total / 2).toFixed(1); // Divide por 2 para converter de 0-20 para 0-10
+            if (!gerente) {
+                showToast('Por favor, insira o nome do gerente', 'error');
+                return;
+            }
+
+            // Validar se todas as avaliações foram feitas
+            const ratings = document.querySelectorAll('input[type="radio"][name="notaGerente"]:checked, input[type="radio"][name="notaEquipe"]:checked, input[type="radio"][name="notaEstrutura"]:checked, input[type="radio"][name="beneficios"]:checked');
+            if (ratings.length < 4) {
+                showToast('Por favor, avalie todos os itens antes de enviar', 'error');
+                return;
+            }
+
+            // Validar se o desligamento foi respondido
+            const desligamento = document.querySelector('input[name="desligamento"]:checked');
+            if (!desligamento) {
+                showToast('Por favor, informe se o desligamento foi claro', 'error');
+                return;
+            }
+
+            // Validar comentário se necessário
+            const comentarios = document.getElementById('comentarios').value.trim();
+            if (desligamento.value === 'nao' && comentarios === '') {
+                showToast('Por favor, explique por que não foi claro o desligamento', 'error');
+                return;
+            }
+
+            // Coletar todos os dados do formulário
+            const notaGerente = document.querySelector('input[name="notaGerente"]:checked').value;
+            const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked').value;
+            const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked').value;
+            const notaBeneficios = document.querySelector('input[name="beneficios"]:checked').value;
+            const total = parseInt(notaGerente) + parseInt(notaEquipe) + parseInt(notaEstrutura) + parseInt(notaBeneficios);
+
+            // Calcular média e classificação
+            const media = (total / 2).toFixed(1);
             let classificacao;
             if (total < 10) {
                 classificacao = 'Péssimo';
@@ -923,103 +975,54 @@
             } else {
                 classificacao = 'Excelente';
             }
-            
-            const motivosSelecionados = Array.from(motivos).map(motivo => motivo.value).join(', ');
-            const mensagem = `
-*Entrevista de Demissão*
-- *Gerente*: ${gerente}
-- *Nota Gerente*: ${notaGerente} pontos
-- *Nota Equipe*: ${notaEquipe} pontos
-- *Nota Estrutura*: ${notaEstrutura} pontos
-- *Nota Benefícios*: ${notaBeneficios} pontos
-- *Avaliação Total*: Avaliado ${total} para um total de 20 pontos
-- *Média*: ${media}/10 (${classificacao})
-- *Motivos do Desligamento*: ${motivosSelecionados}
-- *Observações*: ${observacoes || 'Nenhuma observação fornecida'}
-            `.trim();
 
-              const mensagemCodificada = encodeURIComponent(mensagem);
-            const numeroWhatsApp = '5535984016706'; // Substitua pelo número real (formato internacional, sem +)
-            const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemCodificada}`;
-            
-            
-            window.open(urlWhatsApp, '_blank');
-        }
+            // Formatar a mensagem para o WhatsApp
+            const mensagem = encodeURIComponent(
+                `📋 *Avaliação de Demissão*\n` +
+                `👤 *Gerente*: ${gerente}\n` +
+                `⭐ *Nota do Gerente*: ${notaGerente}/5\n` +
+                `🤝 *Nota da Equipe*: ${notaEquipe}/5\n` +
+                `🏢 *Nota da Estrutura*: ${notaEstrutura}/5\n` +
+                `🎁 *Nota dos Benefícios*: ${notaBeneficios}/5\n` +
+                `📊 *Total*: ${total}/20\n` +
+                `📈 *Média*: ${media}/10 (${classificacao})\n` +
+                `❓ *Desligamento Claro*: ${desligamento.value === 'sim' ? 'Sim' : 'Não'}\n` +
+                `💬 *Comentários*: ${comentarios || 'Nenhum comentário fornecido'}`
+            );
 
-        handleSubmit(e) {
-            e.preventDefault();
-            
-            const gerente = document.getElementById('gerente').value.trim();
-            if (!gerente) {
-                console.log('Validação falhou: Nome do gerente não preenchido');
-                this.showToast('Por favor, insira o nome do gerente', 'error');
-                return;
-            }
+            const numeroWhatsApp = '5535984016706'; // Número sem o '+'
+            const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
 
-            const motivos = document.querySelectorAll('input[name="motivo"]:checked');
-            if (motivos.length === 0) {
-                console.log('Validação falhou: Nenhum motivo selecionado');
-                this.showToast('Por favor, selecione pelo menos um motivo para o desligamento', 'error');
-                return;
-            }
-            
-            const ratings = document.querySelectorAll('input[type="radio"]:checked');
-            if (ratings.length < 4) {
-                console.log('Validação falhou: Nem todas as avaliações foram preenchidas');
-                this.showToast('Por favor, avalie todos os itens antes de enviar', 'error');
-                return;
-            }
+            // Limpar formulário
+            form.reset();
+            summary.classList.remove('show');
+            comentarioDesligamento.style.display = 'none';
 
-            const total = Array.from(ratings).reduce((sum, input) => sum + parseInt(input.value), 0);
-            
+            // Tentar abrir o WhatsApp
             try {
-                this.capturarEEnviarWhatsApp(total, motivos);
-                this.showToast('WhatsApp aberto! Envie a mensagem manualmente.', 'success');
-                this.resetForm();
-                setTimeout(() => {
-                    window.location.href = 'about:blank';
-                }, 3000);
-            } catch (error) {
-                console.error('Erro ao abrir WhatsApp:', error);
-                this.showToast('Erro ao abrir o WhatsApp. Tente novamente.', 'error');
+                const win = window.open(url, '_blank');
+
+                if (win) {
+                    showToast('Avaliação enviada com sucesso! Fechando a página...', 'success');
+
+                    // Fechar a página após 3 segundos
+                    setTimeout(() => {
+                        try {
+                            window.close();
+                        } catch (e) {
+                            // Se não puder fechar, exibir mensagem de agradecimento
+                            document.body.innerHTML = '<h1 style="text-align:center;padding:2rem;">Obrigado por sua avaliação!</h1>';
+                        }
+                    }, 3000);
+                } else {
+                    showToast('Não foi possível abrir o WhatsApp. Verifique se pop-ups estão bloqueados.', 'error');
+                }
+            } catch (e) {
+                showToast('Erro ao tentar enviar a avaliação. Por favor, tente novamente.', 'error');
+                console.error(e);
             }
-        }
-
-        generateFormImage() {
-            const container = document.querySelector('.container');
-            this.canvas.width = container.offsetWidth;
-            this.canvas.height = container.offsetHeight;
-            
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(container).then(canvas => {
-                    const image = canvas.toDataURL('image/png');
-                    console.log('Imagem gerada:', image);
-                }).catch(error => {
-                    console.error('Erro ao gerar imagem:', error);
-                    this.showToast('Erro ao gerar imagem do formulário', 'error');
-                });
-            } else {
-                console.error('html2canvas não está carregado');
-                this.showToast('Biblioteca html2canvas não carregada', 'error');
-            }
-        }
-
-        downloadImage(dataUrl, filename) {
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        new EntrevistaDesligamento();
+        });
     });
     </script>
-    
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
-
