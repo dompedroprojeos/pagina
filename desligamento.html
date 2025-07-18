@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -901,31 +902,33 @@
             this.summaryItems.innerHTML = '';
         }
 
-        capturarEEnviarWhatsApp(total, motivos) {
-            const gerente = document.getElementById('gerente').value.trim();
-            const observacoes = document.getElementById('observacoes').value.trim();
-            const notaGerente = document.querySelector('input[name="notaGerente"]:checked')?.value || '0';
-            const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked')?.value || '0';
-            const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked')?.value || '0';
-            const notaBeneficios = document.querySelector('input[name="beneficios"]:checked')?.value || '0';
-            
-            // Calcular média em escala de 0 a 10
-            const media = (total / 2).toFixed(1); // Divide por 2 para converter de 0-20 para 0-10
-            let classificacao;
-            if (total < 10) {
-                classificacao = 'Péssimo';
-            } else if (total === 10) {
-                classificacao = 'Fraco';
-            } else if (total >= 11 && total <= 15) {
-                classificacao = 'Bom';
-            } else if (total >= 16 && total <= 18) {
-                classificacao = 'Muito bom';
-            } else {
-                classificacao = 'Excelente';
-            }
-            
-            const motivosSelecionados = Array.from(motivos).map(motivo => motivo.value).join(', ');
-            const mensagem = `
+     capturarEEnviarWhatsApp(total, motivos) {
+    const gerente = document.getElementById('gerente').value.trim();
+    const observacoes = document.getElementById('observacoes').value.trim();
+    const notaGerente = document.querySelector('input[name="notaGerente"]:checked')?.value || '0';
+    const notaEquipe = document.querySelector('input[name="notaEquipe"]:checked')?.value || '0';
+    const notaEstrutura = document.querySelector('input[name="notaEstrutura"]:checked')?.value || '0';
+    const notaBeneficios = document.querySelector('input[name="beneficios"]:checked')?.value || '0';
+    
+    // Cálculo corrigido: média de 0 a 5 (total/4)
+    const media = (total / 4).toFixed(1);
+    let classificacao;
+    
+    // Classificação baseada na média de 0 a 5
+    if (media < 2.5) {
+        classificacao = 'Péssimo';
+    } else if (media >= 2.5 && media < 3.5) {
+        classificacao = 'Fraco';
+    } else if (media >= 3.5 && media < 4.5) {
+        classificacao = 'Bom';
+    } else if (media >= 4.5 && media < 4.8) {
+        classificacao = 'Muito bom';
+    } else {
+        classificacao = 'Excelente';
+    }
+    
+    const motivosSelecionados = Array.from(motivos).map(motivo => motivo.value).join(', ');
+    const mensagem = `
 📋 *Entrevista de Desligamento*
 👤 *Gerente*: ${gerente}
 ⭐ *Nota do Gerente*: ${notaGerente}/5
@@ -933,18 +936,17 @@
 🏢 *Nota da Estrutura*: ${notaEstrutura}/5
 🎁 *Nota dos Benefícios*: ${notaBeneficios}/5
 📊 *Total*: ${total}/20
-📈 *Média*: ${media}/10 (${classificacao})
+📈 *Média*: ${media}/5 (${classificacao})
 ❓ *Motivos*: ${motivosSelecionados}
 💬 *Observações*: ${observacoes || 'Nenhuma observação fornecida'}
-            `.trim();
+    `.trim();
 
-            const mensagemCodificada = encodeURIComponent(mensagem);
-            const numeroWhatsApp = '5535999616947'; // Número fornecido
-            const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemCodificada}`;
-            
-            window.open(urlWhatsApp, '_blank');
-        }
-
+    const mensagemCodificada = encodeURIComponent(mensagem);
+    const numeroWhatsApp = '5535999616947';
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemCodificada}`;
+    
+    window.open(urlWhatsApp, '_blank');
+}
         handleSubmit(e) {
             e.preventDefault();
             
