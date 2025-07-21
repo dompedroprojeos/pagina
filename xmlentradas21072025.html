@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador NFE XML</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #2c3e50;
+            --color-secondary: #3498db;
+            --color-accent: #27ae60;
+            --color-background: #f4f6f9;
+            --color-text-dark: #2c3e50;
+            --color-text-light: #ffffff;
+            --color-border: #e0e4e8;
+            --shadow-subtle: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1700px;
+            background-color: var(--color-text-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: var(--color-text-light);
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .file-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-upload-label {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: var(--color-secondary);
+            color: var(--color-text-light);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-weight: 600;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .file-upload-label:hover {
+            background-color: var(--color-accent);
+            transform: translateY(-2px);
+        }
+
+        .file-count {
+            margin-top: 10px;
+            color: var(--color-text-dark);
+            opacity: 0.7;
+        }
+
+        #processButton {
+            display: block;
+            width: 250px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: var(--color-accent);
+            color: var(--color-text-light);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        #processButton:hover {
+            background-color: #2ecc71;
+            transform: scale(1.02);
+        }
+
+        #output {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        th, td {
+            padding: 15px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f3f5;
+        }
+
+        tr:hover {
+            background-color: #e9ecef;
+            transition: var(--transition-smooth);
+        }
+
+        .total-summary {
+            text-align: right;
+            margin-top: 30px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+
+        .summary-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table th, .summary-table td {
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .highlight {
+            background-color: #ffeb3b;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="search"] {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 16px;
+            box-shadow: var(--shadow-subtle);
+            transition: var(--transition-smooth);
+            margin: 5px;
+        }
+
+        input[type="search"]:focus {
+            outline: none;
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+
+        .total-cell {
+            width: 150px;
+            text-align: right;
+        }
+
+        .nav-button {
+            position: fixed;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: var(--color-secondary);
+            color: var(--color-text-light);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            z-index: 1000;
+            box-shadow: var(--shadow-medium);
+            opacity: 0.9;
+        }
+
+        .nav-button:hover {
+            background-color: var(--color-accent);
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        #topButton {
+            bottom: 20px;
+        }
+
+        #bottomButton {
+            top: 20px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="scrollToBottom()" id="bottomButton" class="nav-button">
+        ? Ir para o fim
+    </button>
+
+    <button onclick="scrollToTop()" id="topButton" class="nav-button">
+        ? Voltar ao topo
+    </button>
+
+    <button onclick="printTotals()" id="printTotalsButton" class="nav-button">
+        ? Imprimir Totais
+    </button>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>Processador NFE XML</h1>
+        </div>
+		
+        <div class="content">
+            <div class="file-upload-container">
+                <label for="fileInput" class="file-upload-label">Selecionar Arquivos XML</label>
+                <input type="file" id="fileInput" multiple accept=".xml">
+                <div class="file-count" id="fileCountDisplay">Nenhum arquivo selecionado</div>
+            </div>
+            
+            <div class="search-container">
+                <input type="search" id="searchInput" placeholder="Buscar por CNPJ..." />
+                <input type="search" id="stateInput" placeholder="Buscar por Estado (UF)..." />
+                <input type="search" id="productCodeInput" placeholder="Buscar por Código do Produto..." />
+            </div>
+            
+            <button id="processButton">Processar Arquivos</button>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <script>
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        window.addEventListener('scroll', function() {
+            const topButton = document.getElementById('topButton');
+            const bottomButton = document.getElementById('bottomButton');
+            
+            if (window.scrollY > 200) {
+                topButton.style.display = 'block';
+            } else {
+                topButton.style.display = 'none';
+            }
+            
+            if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 200) {
+                bottomButton.style.display = 'none';
+            } else {
+                bottomButton.style.display = 'block';
+            }
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const stateInput = document.getElementById('stateInput');
+        const productCodeInput = document.getElementById('productCodeInput');
+        const fileInput = document.getElementById('fileInput');
+        const fileCountDisplay = document.getElementById('fileCountDisplay');
+        const outputDiv = document.getElementById('output');
+
+        fileInput.addEventListener('change', function() {
+            const fileCount = this.files.length;
+            fileCountDisplay.textContent = fileCount > 0 
+                ? `${fileCount} arquivo(s) selecionado(s)` 
+                : 'Nenhum arquivo selecionado';
+        });
+
+        document.getElementById('processButton').addEventListener('click', function() {
+            const files = fileInput.files;
+            outputDiv.innerHTML = '';
+
+            if (files.length === 0) {
+                outputDiv.innerHTML = '<p style="color: red; text-align: center;">Nenhum arquivo selecionado.</p>';
+                return;
+            }
+
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const stateTerm = stateInput.value.trim().toUpperCase();
+            const productCodeTerm = productCodeInput.value.trim();
+
+            let tableHTML = `
+                <h2 style="text-align: center;">Entradas</h2>
+                <table class="nfe-table">
+                    <thead>
+                        <tr>
+                            <th class="align-center">Nome do Posto</th>
+                            <th class="align-center">CNPJ</th>
+                            <th class="align-center">Estado</th>
+                            <th class="align-center">Numero NFE</th>
+                            <th class="align-center">Serie</th>
+                            <th class="align-center">Data Emissao</th>
+                            <th class="align-center">Produto</th>
+                            <th class="align-center">Codigo do Produto</th>
+                            <th class="align-right">Valor Total</th>
+                            <th class="align-right">Aliquota</th>
+                            <th class="align-right">Base de Calculo</th>
+                            <th class="align-right">Valor de Credito</th>
+                            <th class="align-center">Informação Adicional Fiscal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let estornoTableHTML = `
+                <h2 style="text-align: center; margin-top: 30px;">Notas Ignoradas por Estorno</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th class="align-center">Numero NFE</th>
+                            <th class="align-center">Serie</th>
+                            <th class="align-center">CNPJ</th>
+                            <th class="align-center">Informação Adicional Fiscal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let totalBC = 0;
+            let totalCredito = 0;
+            let totalBC_ICMS61 = 0;
+            let totalCredito_ICMS61 = 0;
+            let totalBC_ICMS00 = 0;
+            let totalCredito_ICMS00 = 0;
+            let processedFiles = 0;
+            let estornoCount = 0;
+
+            const produtosPorAliquotaICMS61 = {};
+            const produtosPorAliquotaICMS00 = {};
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
+
+                    const getElementValue = (xmlDoc, tagName) => {
+                        const element = xmlDoc.getElementsByTagName(tagName)[0];
+                        return element ? element.textContent.trim() : '0';
+                    };
+
+                    const infAdFisco = getElementValue(xmlDoc, 'infAdFisco');
+                    const nomePosto = getElementValue(xmlDoc, 'xFant');
+                    const cnpj = getElementValue(xmlDoc, 'CNPJ');
+                    const nNF = getElementValue(xmlDoc, 'nNF');
+                    const serie = getElementValue(xmlDoc, 'serie');
+
+                    if (infAdFisco.toLowerCase().includes('estorno')) {
+                        estornoTableHTML += `
+                            <tr>
+                                <td class="align-center">${nNF}</td>
+                                <td class="align-center">${serie}</td>
+                                <td class="align-center">${cnpj}</td>
+                                <td class="align-center">${infAdFisco}</td>
+                            </tr>
+                        `;
+                        estornoCount++;
+                        processedFiles++;
+                        if (processedFiles === files.length) {
+                            finalizeTable();
+                        }
+                        return;
+                    }
+
+                    const uf = getElementValue(xmlDoc, 'UF');
+                    const dhEmi = new Date(getElementValue(xmlDoc, 'dhEmi')).toLocaleDateString('pt-BR');
+                    const produtos = xmlDoc.getElementsByTagName('det');
+
+                    for (let i = 0; i < produtos.length; i++) {
+                        const produto = produtos[i];
+                        const xProd = getElementValue(produto.getElementsByTagName('prod')[0], 'xProd');
+                        const cProd = getElementValue(produto.getElementsByTagName('prod')[0], 'cProd');
+                        const vProd = getElementValue(produto.getElementsByTagName('prod')[0], 'vProd');
+                        const cfop = getElementValue(produto.getElementsByTagName('prod')[0], 'CFOP');
+
+                        if (cfop === '2949') {
+                            continue;
+                        }
+
+                        if (
+                            cProd === "2" || 
+                            cProd === "12204" || 
+                            cProd === "12565" || 
+                            cProd === "11127" || 
+                            cProd === "3461" || 
+                            cProd === "9493" || 
+                            ((cProd === "11855" || cProd === "9445") && uf !== "BA")
+                        ) {
+                            continue;
+                        }
+
+                        let aliquota61 = 0;
+                        let baseCalculo61 = 0;
+                        let valorCredito61 = 0;
+
+                        const icms61 = produto.getElementsByTagName('ICMS61')[0];
+                        if (icms61) {
+                            aliquota61 = getElementValue(icms61, 'adRemICMSRet');
+                            baseCalculo61 = getElementValue(icms61, 'qBCMonoRet');
+                            valorCredito61 = getElementValue(icms61, 'vICMSMonoRet');
+                        }
+
+                        let aliquota00 = 0;
+                        let baseCalculo00 = 0;
+                        let valorCredito00 = 0;
+
+                        const icms00 = produto.getElementsByTagName('ICMS00')[0];
+                        if (icms00) {
+                            aliquota00 = getElementValue(icms00, 'pICMS');
+                            baseCalculo00 = getElementValue(icms00, 'vBC');
+                            valorCredito00 = getElementValue(icms00, 'vICMS');
+                        }
+
+                        if ((searchTerm === '' || cnpj.toLowerCase().includes(searchTerm)) &&
+                            (stateTerm === '' || uf.includes(stateTerm)) &&
+                            (productCodeTerm === '' || cProd === productCodeTerm)) {
+                            
+                            tableHTML += `
+                                <tr>
+                                    <td class="align-center">${nomePosto}</td>
+                                    <td class="align-center">${cnpj}</td>
+                                    <td class="align-center">${uf}</td>
+                                    <td class="align-center">${nNF}</td>
+                                    <td class="align-center">${serie}</td>
+                                    <td class="align-center">${dhEmi}</td>
+                                    <td class="align-center">${xProd}</td>
+                                    <td class="align-center">${cProd}</td>
+                                    <td class="align-right">${parseFloat(vProd).toFixed(2).replace('.', ',')}</td>
+                                    <td class="align-right">${parseFloat(aliquota61 || aliquota00).toFixed(4)}</td>
+                                    <td class="align-right">${parseFloat(baseCalculo61 || baseCalculo00).toFixed(2).replace('.', ',')}</td>
+                                    <td class="align-right">R$ ${parseFloat(valorCredito61 || valorCredito00).toFixed(2).replace('.', ',')}</td>
+                                    <td class="align-center">${infAdFisco}</td>
+                                </tr>
+                            `;
+
+                            totalBC += parseFloat(baseCalculo61 || baseCalculo00) || 0;
+                            totalCredito += parseFloat(valorCredito61 || valorCredito00) || 0;
+
+                            if (icms61) {
+                                totalBC_ICMS61 += parseFloat(baseCalculo61) || 0;
+                                totalCredito_ICMS61 += parseFloat(valorCredito61) || 0;
+
+                                const key61 = `${xProd}|${aliquota61}`;
+                                if (!produtosPorAliquotaICMS61[key61]) {
+                                    produtosPorAliquotaICMS61[key61] = { produto: xProd, aliquota: aliquota61, totalBC: 0, totalCredito: 0 };
+                                }
+                                produtosPorAliquotaICMS61[key61].totalBC += parseFloat(baseCalculo61) || 0;
+                                produtosPorAliquotaICMS61[key61].totalCredito += parseFloat(valorCredito61) || 0;
+                            }
+
+                            if (icms00) {
+                                totalBC_ICMS00 += parseFloat(baseCalculo00) || 0;
+                                totalCredito_ICMS00 += parseFloat(valorCredito00) || 0;
+
+                                const key00 = `${xProd}|${aliquota00}`;
+                                if (!produtosPorAliquotaICMS00[key00]) {
+                                    produtosPorAliquotaICMS00[key00] = { produto: xProd, aliquota: aliquota00, totalBC: 0, totalCredito: 0 };
+                                }
+                                produtosPorAliquotaICMS00[key00].totalBC += parseFloat(baseCalculo00) || 0;
+                                produtosPorAliquotaICMS00[key00].totalCredito += parseFloat(valorCredito00) || 0;
+                            }
+                        }
+                    }
+
+                    processedFiles++;
+                    if (processedFiles === files.length) {
+                        finalizeTable();
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            function finalizeTable() {
+                tableHTML += `
+                    </tbody>
+                </table>
+
+                <h2 style="text-align: center;">Resumo para Combustiveis</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Aliquota</th>
+                            <th>Total Base de Calculo</th>
+                            <th>Total Valor de Credito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+
+                for (const { produto, aliquota, totalBC, totalCredito } of Object.values(produtosPorAliquotaICMS61)) {
+                    if (totalBC > 0 || totalCredito > 0) {
+                        tableHTML += `
+                            <tr>
+                                <td>${produto}</td>
+                                <td class="total-cell">${aliquota}</td>
+                                <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
+                                <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
+                            </tr>
+                        `;
+                    }
+                }
+
+                tableHTML += `
+                    <tr>
+                        <td colspan="2" class="align-right"><strong>Total Combustiveis:</strong></td>
+                        <td class="total-cell">${totalBC_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="total-cell">R$ ${totalCredito_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                </tbody>
+                </table>
+
+                <h2 style="text-align: center;">Resumo para Arla e Outros Produtos</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Escolher</th>
+                            <th>Produto</th>
+                            <th>Aliquota</th>
+                            <th>Total Base de Calculo</th>
+                            <th>Total Valor de Credito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+
+                const produtosICMS00 = Object.values(produtosPorAliquotaICMS00);
+                produtosICMS00.sort((a, b) => a.produto.localeCompare(b.produto));
+
+                for (const { produto, aliquota, totalBC, totalCredito } of produtosICMS00) {
+                    if (totalBC > 0 || totalCredito > 0) {
+                        tableHTML += `
+                            <tr>
+                                <td><input type="checkbox" class="produto-checkbox" data-produto="${produto}" data-totalBC="${totalBC}" data-totalCredito="${totalCredito}"></td>
+                                <td>${produto}</td>
+                                <td class="total-cell">${aliquota}</td>
+                                <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
+                                <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
+                            </tr>
+                        `;
+                    }
+                }
+
+                const formatNumber = (value) => {
+                    if (!value) return '0,00';
+                    return Number(value).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                };
+
+                tableHTML += `
+                    <tr>
+                        <td colspan="3" class="align-right"><strong>Total Arla e Outros Produtos:</strong></td>
+                        <td class="total-cell">${formatNumber(totalBC_ICMS00)}</td>
+                        <td class="total-cell">R$ ${formatNumber(totalCredito_ICMS00)}</td>
+                    </tr>
+                </tbody>
+                </table>
+                `;
+
+                // Fechar a tabela de estornos, se houver registros
+                estornoTableHTML += `</tbody></table>`;
+
+                // Adicionar resumo de notas processadas e aproveitadas
+                tableHTML += `
+                    ${estornoCount > 0 ? estornoTableHTML : '<p style="text-align: center; margin-top: 30px;">Nenhuma nota ignorada por estorno.</p>'}
+                    <h2 style="text-align: center; margin-top: 30px;">Resumo de Processamento</h2>
+                    <p style="text-align: center;">Total de Arquivos Processados: ${processedFiles}</p>
+                    <p style="text-align: center;">Notas Ignoradas por Estorno: ${estornoCount}</p>
+                    <p style="text-align: center;">Notas Aproveitadas: ${processedFiles - estornoCount}</p>
+                    <button id="calculateButton" style="margin-top: 20px;">Calcular Totais</button>
+                    <div id="result"></div>
+                    <div id="markedTotals"></div>
+                `;
+
+                outputDiv.innerHTML = tableHTML;
+
+                document.getElementById('calculateButton').addEventListener('click', function() {
+                    let totalBCFinal = 0;
+                    let totalCreditoFinal = 0;
+                    let totalBCMarked = 0;
+                    let totalCreditoMarked = 0;
+
+                    const checkboxes = document.querySelectorAll('.produto-checkbox');
+
+                    checkboxes.forEach(checkbox => {
+                        if (!checkbox.checked) {
+                            totalBCFinal += parseFloat(checkbox.getAttribute('data-totalBC'));
+                            totalCreditoFinal += parseFloat(checkbox.getAttribute('data-totalCredito'));
+                        } else {
+                            totalBCMarked += parseFloat(checkbox.getAttribute('data-totalBC'));
+                            totalCreditoMarked += parseFloat(checkbox.getAttribute('data-totalCredito'));
+                        }
+                    });
+
+                    document.getElementById('result').innerHTML = `
+                        <h3>Totais Ignorando Produtos Marcados</h3>
+                        <p>Total Base de Calculo: ${totalBCFinal.toFixed(2).replace('.', ',')}</p>
+                        <p>Total Valor de Credito: R$ ${totalCreditoFinal.toFixed(2).replace('.', ',')}</p>
+                    `;
+
+                    document.getElementById('markedTotals').innerHTML = `
+                        <h3>Totais dos Produtos Marcados</h3>
+                        <p>Total Base de Calculo: ${totalBCMarked.toFixed(2).replace('.', ',')}</p>
+                        <p>Total Valor de Credito: R$ ${totalCreditoMarked.toFixed(2).replace('.', ',')}</p>
+                    `;
+                });
+            }
+        });
+
+        function updateFileCount(files) {
+            const fileCountDisplay = document.getElementById('fileCountDisplay');
+            fileCountDisplay.textContent = `${files.length} arquivo(s) selecionado(s)`;
+        }
+
+        function printTotals() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
