@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Tanques - Rede Dom Pedro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5a6fd8;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #00d4aa;
+            --warning-color: #feca57;
+            --danger-color: #ff6b6b;
+            --background-primary: #ffffff;
+            --background-secondary: #f8fafc;
+            --background-tertiary: #e2e8f0;
+            --background-dark: #1a202c;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #667eea;
+            --primary-dark: #5a6fd8;
+            --background-primary: #1a202c;
+            --background-secondary: #2d3748;
+            --background-tertiary: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --border-color: #4a5568;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-tertiary) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo-container {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .title-section h1 {
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .title-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .main-container {
+            max-width: 2000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .controls-section {
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .input-group label {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .data-input {
+            width: 100%;
+            min-height: 140px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .data-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover:before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #9575cd);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #e55353);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .search-section {
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .product-filter {
+            padding: 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            width: 200px;
+        }
+
+        .product-filter:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 2rem;
+        }
+
+        .main-content {
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .company-group {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            font-weight: 800;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .company-tanks {
+            padding: 0;
+        }
+
+        .tank-row {
+            display: grid;
+            grid-template-columns: 80px 120px 1fr 120px 120px;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .tank-row:hover {
+            background: linear-gradient(135deg, var(--background-secondary), var(--background-tertiary));
+            transform: translateX(5px);
+        }
+
+        .tank-row:last-child {
+            border-bottom: none;
+        }
+
+        .tank-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .tank-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tank-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .stats-card {
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .stats-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .chart-container-3d {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: linear-gradient(135deg, var(--background-secondary), var(--background-tertiary));
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--background-secondary);
+            border-radius: var(--border-radius-sm);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .legend-text {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .legend-value {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .total-stats {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .total-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .total-label {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            font-weight: 700;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            margin-top: 4rem;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .footer-info {
+            text-align: left;
+        }
+
+        .footer-info h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .footer-info p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+
+        .creator-info {
+            text-align: right;
+        }
+
+        .creator-info p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+
+        .creator-info strong {
+            color: white;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            opacity: 0.3;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .floating-stats {
+            position: fixed;
+            top: 50%;
+            right: 2rem;
+            transform: translateY(-50%);
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+            display: none;
+        }
+
+        .floating-stats.show {
+            display: block;
+            animation: slideInRight 0.5s ease;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            right: 2rem;
+            bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 50;
+        }
+
+        .nav-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .help-btn {
+            position: fixed;
+            right: 2rem;
+            top: 2rem;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .help-btn:hover {
+            background: #00b592;
+            transform: scale(1.1);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-xl);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .popup.show {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .popup-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .popup-close {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .popup-close:hover {
+            background: #e55353;
+            transform: scale(1.1);
+        }
+
+        .popup-content {
+            text-align: center;
+        }
+
+        .popup-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius-sm);
+            margin: 1rem 0;
+        }
+
+        .popup-content p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .popup-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .popup-nav button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .popup-nav .btn-next {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .popup-nav .btn-next:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .popup-nav .btn-prev {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .popup-nav .btn-prev:hover {
+            background: #9575cd;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateY(-50%) translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(-50%) translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .tank-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .product-filter {
+                width: 100%;
+            }
+        }
+
+        @media print {
+            body * { display: none !important; }
+            .stats-card { display: flex !important; flex-direction: column !important; }
+            .stats-card * { display: flex !important; }
+            .chart-container-3d, .chart-legend, .total-stats { display: block !important; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-container">
+                    <img src="cabecalho.png" alt="Logo Rede Dom Pedro">
+                </div>
+                <div class="title-section">
+                    <h1>Dashboard Analytics</h1>
+                    <p>Rede Dom Pedro - Sistema Inteligente</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label for="dataInput">
+                        <i class="fas fa-database"></i> Dados dos Tanques
+                    </label>
+                    <textarea 
+                        id="dataInput" 
+                        class="data-input" 
+                        placeholder="Cole os dados da tabela aqui...
+
+Formato esperado:
+| Código | Empresa | Cód. Depósito | Depósito | Produto | Capacidade |
+| 01     | Empresa A | 101 | Depósito X | Etanol | 50000 |
+| 02     | Empresa B | 102 | Depósito Y | Diesel S10 | 30000 |"
+                    ></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button id="processButton" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Processar Dados
+                    </button>
+                    <button id="printButton" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button id="exportButton" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Exportar CSV
+                    </button>
+                    <button id="clearButton" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Limpar Dados
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <input 
+                type="text" 
+                id="companyFilter" 
+                class="search-input" 
+                placeholder="🔍 Buscar por empresa..."
+            >
+            <select id="productFilter" class="product-filter">
+                <option value="">Todos os Produtos</option>
+            </select>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="main-content" id="mainContent">
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Carregue os dados para visualizar o dashboard</h3>
+                    <p>Cole os dados dos tanques na área acima e clique em "Processar Dados"</p>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="stats-card">
+                    <h3 class="stats-title">
+                        <i class="fas fa-chart-column"></i> Análise por Produto
+                    </h3>
+                    <div class="chart-container-3d" id="chart3DContainer">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="chartLegend">
+                        <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                    </div>
+                    <div class="total-stats" id="totalStats">
+                        <div class="total-number pulse">0</div>
+                        <div class="total-label">Total de Tanques</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-stats" id="floatingStats">
+        <div style="text-align: center;">
+            <i class="fas fa-info-circle" style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+            <div id="floatingStatsContent"></div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <button class="nav-btn" id="scrollTop" title="Ir ao topo">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="nav-btn" id="scrollBottom" title="Ir ao final">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <button class="help-btn" id="helpButton" title="Dicas de Uso">
+        <i class="fas fa-question-circle"></i>
+    </button>
+
+    <div class="popup" id="helpPopup">
+        <div class="popup-header">
+            <h3 id="popupTitle">Dicas de Uso</h3>
+            <button class="popup-close" id="popupClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="popup-content" id="popupContent">
+            <p>Carregando...</p>
+        </div>
+        <div class="popup-nav" id="popupNav">
+            <button class="btn-prev" id="popupPrev" style="display: none;">Voltar</button>
+            <button class="btn-next" id="popupNext">Próximo</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Rede Dom Pedro</h3>
+                <p>Rede Dom Pedro Combustíveis LTDA</p>
+                <p>CNPJ: 20.415.295/0001-74</p>
+                <p>ERod. Fernão Dias, Km 880
+Estiva, MG</p>
+            </div>
+            <div class="creator-info">
+                <p>Dev <strong>Waldeci Ramos</strong></p>
+                <p>Contato: waldeci.ramos@dompedro.com</p>
+                <p>Sistema Analytics de Tanques v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allData = [];
+        let groupedData = {};
+        let tankCountByProduct = {};
+        let totalCapacityByProduct = {};
+        let totalTanks = 0;
+        let productCapacityByCompany = {};
+        let productChart = null;
+
+        // Color mapping for products
+        const productColors = {
+            'Etanol': '#008000', // Green
+            'Diesel S10': '#FFA500', // Orange
+            'Diesel Comum': '#0000FF', // Blue
+            'Gasolina Comum': '#FFFF00', // Yellow
+            'Gasolina Aditivada': '#87CEEB', // Light Blue
+            'Etanol Hidratado': '#556B2F', // Olive Green
+            'Diesel S10 Aditivado': '#C8A2C8' // Lilac
+        };
+
+        // Generate random color for other products
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Format number with thousands separator
+        function formatNumber(number) {
+            return Math.floor(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const savedData = localStorage.getItem('tankData');
+            if (savedData) {
+                document.getElementById('dataInput').value = savedData;
+                processData(savedData);
+            }
+        }
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        const themeIcon = themeToggle.querySelector('i');
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            body.setAttribute('data-theme', newTheme);
+            themeIcon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+
+        const excludedCodes = ['12', '16', '23', '38', '39', '40', '52', '62', '71', '72', '73', '74', '84'];
+
+        // Process Data
+        document.getElementById('processButton').addEventListener('click', function() {
+            const inputData = document.getElementById('dataInput').value.trim();
+            if (!inputData) {
+                alert('Por favor, cole os dados na área de texto.');
+                return;
+            }
+            processData(inputData);
+            localStorage.setItem('tankData', inputData);
+        });
+
+        // Clear Data
+        document.getElementById('clearButton').addEventListener('click', function() {
+            localStorage.removeItem('tankData');
+            document.getElementById('dataInput').value = '';
+            document.getElementById('mainContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Carregue os dados para visualizar o dashboard</h3>
+                    <p>Cole os dados dos tanques na área acima e clique em "Processar Dados"</p>
+                </div>
+            `;
+            document.getElementById('chartLegend').innerHTML = `
+                <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+            `;
+            document.getElementById('totalStats').innerHTML = `
+                <div class="total-number pulse">0</div>
+                <div class="total-label">Total de Tanques</div>
+            `;
+            document.getElementById('productFilter').innerHTML = '<option value="">Todos os Produtos</option>';
+            if (productChart) {
+                productChart.destroy();
+                productChart = null;
+            }
+            allData = [];
+            groupedData = {};
+            tankCountByProduct = {};
+            totalCapacityByProduct = {};
+            productCapacityByCompany = {};
+            totalTanks = 0;
+        });
+
+        function processData(inputData) {
+            console.log('Iniciando processData com entrada:', inputData);
+            const lines = inputData.split('\n');
+            const mainContent = document.getElementById('mainContent');
+            const chartLegend = document.getElementById('chartLegend');
+            const productFilter = document.getElementById('productFilter');
+
+            allData = [];
+            groupedData = {};
+            tankCountByProduct = {};
+            totalCapacityByProduct = {};
+            productCapacityByCompany = {};
+            totalTanks = 0;
+
+            // Parse data
+            for (let line of lines) {
+                const match = line.match(/^\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/);
+                if (match) {
+                    const codigo = match[1].trim();
+                    
+                    if (excludedCodes.includes(codigo)) {
+                        console.log(`Ignorando tanque com código ${codigo} (está na lista de exclusão)`);
+                        continue;
+                    }
+
+                    const nomeEmpresa = match[2].trim();
+                    const codigoDeposito = match[3].trim();
+                    const deposito = match[4].trim();
+                    const produto = match[5].trim();
+                    const capacidade = parseFloat(match[6].trim().replace(',', '.'));
+
+                    if (produto === "ARLA A GRANEL") {
+                        console.log(`Ignorando produto ${produto}`);
+                        continue;
+                    }
+
+                    const tankData = { codigo, nomeEmpresa, codigoDeposito, deposito, produto, capacidade };
+                    allData.push(tankData);
+
+                    // Group by company
+                    if (!groupedData[nomeEmpresa]) {
+                        groupedData[nomeEmpresa] = [];
+                    }
+                    groupedData[nomeEmpresa].push(tankData);
+
+                    // Count by product
+                    if (!tankCountByProduct[produto]) {
+                        tankCountByProduct[produto] = 0;
+                    }
+                    tankCountByProduct[produto]++;
+
+                    // Track total capacity by product
+                    if (!totalCapacityByProduct[produto]) {
+                        totalCapacityByProduct[produto] = 0;
+                    }
+                    totalCapacityByProduct[produto] += capacidade;
+
+                    // Track capacity by company and product
+                    if (!productCapacityByCompany[nomeEmpresa]) {
+                        productCapacityByCompany[nomeEmpresa] = {};
+                    }
+                    if (!productCapacityByCompany[nomeEmpresa][produto]) {
+                        productCapacityByCompany[nomeEmpresa][produto] = { count: 0, totalCapacity: 0 };
+                    }
+                    productCapacityByCompany[nomeEmpresa][produto].count++;
+                    productCapacityByCompany[nomeEmpresa][produto].totalCapacity += capacidade;
+
+                    totalTanks++;
+                    console.log(`Tanque processado:`, tankData);
+                }
+            }
+
+            console.log('Dados processados:', { allData, groupedData, tankCountByProduct, totalCapacityByProduct, productCapacityByCompany, totalTanks });
+
+            // Populate product filter
+            productFilter.innerHTML = '<option value="">Todos os Produtos</option>';
+            const sortedProducts = Object.keys(tankCountByProduct).sort();
+            for (const product of sortedProducts) {
+                const option = document.createElement('option');
+                option.value = product;
+                option.textContent = product;
+                productFilter.appendChild(option);
+            }
+
+            // Sort companies and their tanks
+            const sortedCompanies = Object.keys(groupedData).sort();
+            for (const company of sortedCompanies) {
+                groupedData[company].sort((a, b) => a.produto.localeCompare(b.produto));
+            }
+
+            // Render main content
+            renderMainContent(sortedCompanies);
+            renderProductStats();
+            renderBarChart();
+        }
+
+        function renderMainContent(companies) {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '';
+
+            if (companies.length === 0) {
+                mainContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>Nenhum dado válido encontrado</h3>
+                        <p>Verifique o formato dos dados e tente novamente</p>
+                    </div>
+                `;
+                return;
+            }
+
+            for (const company of companies) {
+                const companyGroup = document.createElement('div');
+                companyGroup.className = 'company-group';
+                companyGroup.setAttribute('data-company', company.toLowerCase());
+
+                const companyHeader = document.createElement('div');
+                companyHeader.className = 'company-header';
+                companyHeader.innerHTML = `
+                    <i class="fas fa-building"></i>
+                    ${company}
+                    <span style="margin-left: auto; background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;">
+                        ${groupedData[company].length} tanque${groupedData[company].length !== 1 ? 's' : ''}
+                    </span>
+                `;
+
+                const tanksContainer = document.createElement('div');
+                tanksContainer.className = 'company-tanks';
+
+                for (const tank of groupedData[company]) {
+                    const tankRow = document.createElement('div');
+                    tankRow.className = 'tank-row';
+                    tankRow.setAttribute('data-product', tank.produto);
+                    tankRow.innerHTML = `
+                        <div class="tank-field">
+                            <div class="tank-label">Código</div>
+                            <div class="tank-value">${tank.codigo}</div>
+                        </div>
+                        <div class="tank-field">
+                            <div class="tank-label">Cód. Depósito</div>
+                            <div class="tank-value">${tank.codigoDeposito}</div>
+                        </div>
+                        <div class="tank-field">
+                            <div class="tank-label">Produto</div>
+                            <div class="tank-value">${tank.produto}</div>
+                        </div>
+                        <div class="tank-field">
+                            <div class="tank-label">Depósito</div>
+                            <div class="tank-value">${tank.deposito}</div>
+                        </div>
+                        <div class="tank-field">
+                            <div class="tank-label">Capacidade</div>
+                            <div class="tank-value">${formatNumber(tank.capacidade)} L</div>
+                        </div>
+                    `;
+                    tanksContainer.appendChild(tankRow);
+                }
+
+                companyGroup.appendChild(companyHeader);
+                companyGroup.appendChild(tanksContainer);
+                mainContent.appendChild(companyGroup);
+            }
+        }
+
+        function renderProductStats(filteredProduct = null) {
+            const chartLegend = document.getElementById('chartLegend');
+            chartLegend.innerHTML = '';
+
+            if (Object.keys(productCapacityByCompany).length === 0) {
+                chartLegend.innerHTML = `
+                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                `;
+                return;
+            }
+
+            // General product stats (total tanks and capacity by product)
+            const generalStats = document.createElement('div');
+            generalStats.className = 'company-stats';
+            generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
+            
+            const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(totalCapacityByProduct).sort();
+            for (const product of sortedProducts) {
+                if (totalCapacityByProduct[product]) {
+                    const productItem = document.createElement('div');
+                    productItem.className = 'legend-item';
+                    productItem.innerHTML = `
+                        <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                        <span class="legend-text">${product}</span>
+                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])} L)</span>
+                    `;
+                    generalStats.appendChild(productItem);
+                }
+            }
+            chartLegend.appendChild(generalStats);
+
+            // Stats by company
+            const sortedCompanies = Object.keys(productCapacityByCompany).sort();
+            for (const company of sortedCompanies) {
+                if (!filteredProduct || (productCapacityByCompany[company][filteredProduct] && productCapacityByCompany[company][filteredProduct].count > 0)) {
+                    const companySection = document.createElement('div');
+                    companySection.className = 'company-stats';
+                    companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
+                    
+                    const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(productCapacityByCompany[company]).sort();
+                    for (const product of sortedProducts) {
+                        if (productCapacityByCompany[company][product]) {
+                            const productItem = document.createElement('div');
+                            productItem.className = 'legend-item';
+                            productItem.innerHTML = `
+                                <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                                <span class="legend-text">${product}</span>
+                                <span class="legend-value">${productCapacityByCompany[company][product].count} tanque${productCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(productCapacityByCompany[company][product].totalCapacity)} L)</span>
+                            `;
+                            companySection.appendChild(productItem);
+                        }
+                    }
+                    chartLegend.appendChild(companySection);
+                }
+            }
+
+            const totalStats = document.getElementById('totalStats');
+            totalStats.innerHTML = `
+                <div class="total-number pulse">${totalTanks}</div>
+                <div class="total-label">Total de Tanques</div>
+            `;
+            console.log('Estatísticas de produtos renderizadas:', { totalCapacityByProduct, productCapacityByCompany });
+        }
+
+        function renderBarChart(filteredData = null, filteredCapacity = null) {
+            console.log('Iniciando renderBarChart com dados:', filteredData || tankCountByProduct, filteredCapacity || totalCapacityByProduct);
+            const canvas = document.getElementById('productChart');
+            if (!canvas) {
+                console.error('Canvas productChart não encontrado');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            const dataToUse = filteredData || tankCountByProduct;
+            const capacityToUse = filteredCapacity || totalCapacityByProduct;
+            const products = Object.keys(dataToUse).sort();
+            const counts = products.map(product => dataToUse[product]);
+            const capacities = products.map(product => capacityToUse[product]);
+            const colors = products.map(product => productColors[product] || getRandomColor());
+
+            if (products.length === 0) {
+                console.log('Nenhum dado para renderizar o gráfico');
+                return;
+            }
+
+            if (productChart) {
+                productChart.destroy();
+            }
+
+            productChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: products,
+                    datasets: [{
+                        label: 'Número de Tanques',
+                        data: counts,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Tanques'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Produto'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribuição de Tanques por Produto',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value, ctx) => {
+                                const product = products[ctx.dataIndex];
+                                return `${value} (${formatNumber(capacities[ctx.dataIndex])} L)`;
+                            },
+                            color: '#000000',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+            console.log('Gráfico de barras renderizado:', productChart);
+        }
+
+        // Register ChartDataLabels plugin
+        Chart.register(ChartDataLabels);
+
+        // Combined Company and Product Filter
+        function applyFilters() {
+            const companyFilterValue = document.getElementById('companyFilter').value.toLowerCase().trim();
+            const productFilterValue = document.getElementById('productFilter').value;
+            const companyGroups = document.querySelectorAll('.company-group');
+            
+            let filteredTankCountByProduct = {};
+            let filteredTotalCapacityByProduct = {};
+            let filteredTotalTanks = 0;
+            let filteredProductCapacityByCompany = {};
+
+            companyGroups.forEach(group => {
+                const companyName = group.getAttribute('data-company');
+                const company = Object.keys(groupedData).find(c => c.toLowerCase() === companyName);
+                let shouldShow = true;
+
+                if (company) {
+                    // Check company name filter
+                    if (companyFilterValue && !companyName.includes(companyFilterValue)) {
+                        shouldShow = false;
+                    }
+
+                    // Check product filter
+                    if (productFilterValue) {
+                        const hasProduct = groupedData[company].some(tank => tank.produto === productFilterValue);
+                        if (!hasProduct) {
+                            shouldShow = false;
+                        }
+                    }
+
+                    // Apply visibility
+                    group.style.display = shouldShow ? '' : 'none';
+
+                    // Count tanks for filtered results
+                    if (shouldShow) {
+                        groupedData[company].forEach(tank => {
+                            if (!productFilterValue || tank.produto === productFilterValue) {
+                                if (!filteredTankCountByProduct[tank.produto]) {
+                                    filteredTankCountByProduct[tank.produto] = 0;
+                                }
+                                if (!filteredTotalCapacityByProduct[tank.produto]) {
+                                    filteredTotalCapacityByProduct[tank.produto] = 0;
+                                }
+                                filteredTankCountByProduct[tank.produto]++;
+                                filteredTotalCapacityByProduct[tank.produto] += tank.capacidade;
+                                filteredTotalTanks++;
+
+                                if (!filteredProductCapacityByCompany[company]) {
+                                    filteredProductCapacityByCompany[company] = {};
+                                }
+                                if (!filteredProductCapacityByCompany[company][tank.produto]) {
+                                    filteredProductCapacityByCompany[company][tank.produto] = { count: 0, totalCapacity: 0 };
+                                }
+                                filteredProductCapacityByCompany[company][tank.produto].count++;
+                                filteredProductCapacityByCompany[company][tank.produto].totalCapacity += tank.capacidade;
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Update product stats for filtered results
+            const chartLegend = document.getElementById('chartLegend');
+            chartLegend.innerHTML = '';
+
+            if (companyFilterValue || productFilterValue) {
+                // General stats for filtered results
+                const generalStats = document.createElement('div');
+                generalStats.className = 'company-stats';
+                generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral (Filtrado${productFilterValue ? `: ${productFilterValue}` : ''})</h4>`;
+                
+                const sortedProducts = Object.keys(filteredTankCountByProduct).sort();
+                for (const product of sortedProducts) {
+                    const productItem = document.createElement('div');
+                    productItem.className = 'legend-item';
+                    productItem.innerHTML = `
+                        <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                        <span class="legend-text">${product}</span>
+                        <span class="legend-value">${filteredTankCountByProduct[product]} tanque${filteredTankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(filteredTotalCapacityByProduct[product])} L)</span>
+                    `;
+                    generalStats.appendChild(productItem);
+                }
+                chartLegend.appendChild(generalStats);
+
+                // Stats by company
+                const sortedCompanies = Object.keys(filteredProductCapacityByCompany).sort();
+                for (const company of sortedCompanies) {
+                    const companySection = document.createElement('div');
+                    companySection.className = 'company-stats';
+                    companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
+                    
+                    const sortedProducts = Object.keys(filteredProductCapacityByCompany[company]).sort();
+                    for (const product of sortedProducts) {
+                        const productItem = document.createElement('div');
+                        productItem.className = 'legend-item';
+                        productItem.innerHTML = `
+                            <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                            <span class="legend-text">${product}</span>
+                            <span class="legend-value">${filteredProductCapacityByCompany[company][product].count} tanque${filteredProductCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(filteredProductCapacityByCompany[company][product].totalCapacity)} L)</span>
+                        `;
+                        companySection.appendChild(productItem);
+                    }
+                    chartLegend.appendChild(companySection);
+                }
+
+                const totalStats = document.getElementById('totalStats');
+                totalStats.innerHTML = `
+                    <div class="total-number pulse">${filteredTotalTanks}</div>
+                    <div class="total-label">Total Filtrado</div>
+                `;
+                renderBarChart(filteredTankCountByProduct, filteredTotalCapacityByProduct);
+            } else {
+                renderProductStats();
+                renderBarChart();
+            }
+        }
+
+        // Company and Product Filter Events
+        document.getElementById('companyFilter').addEventListener('input', applyFilters);
+        document.getElementById('productFilter').addEventListener('change', applyFilters);
+
+        // Print functionality
+        document.getElementById('printButton').addEventListener('click', function() {
+            if (totalTanks === 0) {
+                alert('Processe os dados antes de imprimir.');
+                return;
+            }
+            renderProductStats(document.getElementById('productFilter').value);
+            renderBarChart();
+            window.print();
+        });
+
+        // Export CSV
+        document.getElementById('exportButton').addEventListener('click', function() {
+            if (totalTanks === 0) {
+                alert('Processe os dados antes de exportar.');
+                return;
+            }
+
+            let csvContent = 'Empresa,Código,Código Depósito,Depósito,Produto,Capacidade\n';
+            
+            for (const data of allData) {
+                csvContent += `"${data.nomeEmpresa}","${data.codigo}","${data.codigoDeposito}","${data.deposito}","${data.produto}","${formatNumber(data.capacidade)}"\n`;
+            }
+
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+            link.download = 'relatorio_tanques_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+        });
+
+        // Scroll Navigation
+        document.getElementById('scrollTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        document.getElementById('scrollBottom').addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+
+        // Help Popup
+        const helpButton = document.getElementById('helpButton');
+        const helpPopup = document.getElementById('helpPopup');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupContent = document.getElementById('popupContent');
+        const popupNext = document.getElementById('popupNext');
+        const popupPrev = document.getElementById('popupPrev');
+        const popupClose = document.getElementById('popupClose');
+
+        const helpSlides = [
+            {
+                title: 'Relatório',
+                content: 'Visualize relatórios detalhados sobre os tanques por produto e empresa.',
+                image: 'rel.png?text=Relatório'
+            },
+            {
+                title: 'Cadastro de Tanques',
+                content: 'Insira os dados dos tanques no formato de tabela no campo de entrada.',
+                image: 'cad.png?text=Cadastro+Tanques'
+            },
+            {
+                title: 'Clicar em Visualizar',
+                content: 'Após inserir os dados, clique em "Processar Dados" para visualizar o dashboard.',
+                image: 'ver.png?text=Visualizar'
+            },
+            {
+                title: 'CTRL + A',
+                content: 'Use CTRL + A para selecionar todos os dados da tabela que deseja copiar.',
+                image: 'ctrl.png?text=CTRL+A'
+            },
+            {
+                title: 'Colar na Aplicação e Processar',
+                content: 'Cole os dados no campo de entrada e clique em "Processar Dados" para atualizar o dashboard.',
+                image: 'cola.png?text=Colar+e+Processar'
+            }
+        ];
+
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            const slide = helpSlides[index];
+            popupTitle.textContent = slide.title;
+            popupContent.innerHTML = `
+                <img src="${slide.image}" alt="${slide.title}">
+                <p>${slide.content}</p>
+            `;
+            popupPrev.style.display = index === 0 ? 'none' : 'inline-block';
+            popupNext.style.display = index === helpSlides.length - 1 ? 'none' : 'inline-block';
+        }
+
+        helpButton.addEventListener('click', () => {
+            currentSlide = 0;
+            showSlide(currentSlide);
+            helpPopup.classList.add('show');
+        });
+
+        popupNext.addEventListener('click', () => {
+            if (currentSlide < helpSlides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        });
+
+        popupPrev.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        });
+
+        popupClose.addEventListener('click', () => {
+            helpPopup.classList.remove('show');
+        });
+
+        // Load saved data on page load
+        loadSavedData();
+    </script>
+</body>
+</html>
