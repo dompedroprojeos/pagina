@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Tanques - Rede Dom Pedro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
@@ -14,7 +13,7 @@
             --primary-dark: #5a6fd8;
             --secondary-color: #764ba2;
             --accent-color: #f093fb;
-             --success-color: #ff5722; /* Laranja vibrante */
+            --success-color: #ff5722;
             --warning-color: #feca57;
             --danger-color: #ff6b6b;
             --background-primary: #ffffff;
@@ -57,6 +56,9 @@
             min-height: 100vh;
             transition: all 0.3s ease;
         }
+
+        iframe { display: none; }
+        .data-input { display: none; }
 
         .header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
@@ -122,7 +124,7 @@
             gap: 1rem;
         }
 
-        .theme-toggle {
+        .theme-toggle, .help-btn, .print-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
@@ -133,7 +135,7 @@
             backdrop-filter: blur(10px);
         }
 
-        .theme-toggle:hover {
+        .theme-toggle:hover, .help-btn:hover, .print-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1) rotate(10deg);
         }
@@ -174,27 +176,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .data-input {
-            width: 100%;
-            min-height: 140px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            font-size: 0.9rem;
-            resize: vertical;
-            background: var(--background-secondary);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .data-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
         }
 
         .action-buttons {
@@ -412,13 +393,16 @@
         }
 
         .chart-container-3d {
-            width: 100%;
-            height: 400px;
+            width: 120%;
+            height: 700px;
             position: relative;
             background: linear-gradient(135deg, var(--background-secondary), var(--background-tertiary));
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .chart-legend {
@@ -560,26 +544,6 @@
             font-weight: 700;
         }
 
-        .floating-stats {
-            position: fixed;
-            top: 50%;
-            right: 2rem;
-            transform: translateY(-50%);
-            background: var(--background-primary);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            z-index: 50;
-            display: none;
-        }
-
-        .floating-stats.show {
-            display: block;
-            animation: slideInRight 0.5s ease;
-        }
-
         .nav-buttons {
             position: fixed;
             right: 2rem;
@@ -609,31 +573,6 @@
             background: var(--primary-dark);
             transform: scale(1.1);
         }
-
-       .help-btn {
-    position: fixed;
-    right: 2rem;
-    top: 2rem;
-    background: var(--success-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
-    z-index: 100;
-}
-
-.help-btn:hover {
-    background: #ffffff; /* Cor de fundo ao passar o mouse */
-    color: var(--success-color); /* Cor do texto ao passar o mouse */
-    transform: scale(1.1);
-}
 
         .popup {
             display: none;
@@ -747,17 +686,6 @@
             to { opacity: 1; transform: translate(-50%, -50%); }
         }
 
-        @keyframes slideInRight {
-            from {
-                transform: translateY(-50%) translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(-50%) translateX(0);
-                opacity: 1;
-            }
-        }
-
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -808,9 +736,11 @@
 
         @media print {
             body * { display: none !important; }
-            .stats-card { display: flex !important; flex-direction: column !important; }
-            .stats-card * { display: flex !important; }
-            .chart-container-3d, .chart-legend, .total-stats { display: block !important; }
+            .stats-card .product-stats-section,
+            .stats-card .product-stats-section * { display: flex !important; }
+            .chart-container-3d, .chart-legend { display: block !important; }
+            .stats-title { display: flex !important; }
+            .chart-container-3d canvas { width: 100% !important; height: auto !important; }
         }
     </style>
 </head>
@@ -830,6 +760,12 @@
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
                     <i class="fas fa-moon"></i>
                 </button>
+                <button class="help-btn" id="helpButton" title="Dicas de Uso">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <button class="print-btn" id="printButton" title="Imprimir Análise por Produto">
+                    <i class="fas fa-print"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -843,27 +779,658 @@
                     </label>
                     <textarea 
                         id="dataInput" 
-                        class="data-input" 
-                        placeholder="Cole os dados da tabela aqui...
+                        class="data-input" >
+MG - REDE DOM PEDRO DE POSTO21/07/2025 14:54
+--------------------------------------------------------------------------------------------------------------------
 
-Formato esperado:
-| Código | Empresa | Cód. Depósito | Depósito | Produto | Capacidade |
-| 01     | Empresa A | 101 | Depósito X | Etanol | 50000 |
-| 02     | Empresa B | 102 | Depósito Y | Diesel S10 | 30000 |"
-                    ></textarea>
+                                       C A D A S T R O   D E   T A N Q U E S
+
++-------+------------------------------+-----------------+-------------------------------------------------------+-------------------+----------------+
+| codig | empresa                      | codigo_deposito | deposito                                              | produto           | capacidade     |
++-------+------------------------------+-----------------+-------------------------------------------------------+-------------------+----------------+
+|     2 | DP 1                         |            393  | DP 1 // TNQ 09 // 15000 // ETANOL                     | ETANOL            | 15000 LITROS   |
+|     2 | DP 1                         |            387  | DP 1 // TNQ 07 // 30000 // DIESEL COMUM               | DIESEL COMUM      | 30000 LITROS   |
+|     2 | DP 1                         |            388  | DP 1 // TNQ 08 // 30000 // DIESEL COMUM               | DIESEL COMUM      | 30000 LITROS   |
+|     2 | DP 1                         |            398  | DP 1 // TNQ 06 // 30000 // DIESEL S-10                | DIESEL S 10       | 30000 LITROS   |
+|     2 | DP 1                         |            397  | DP 1 // TNQ 14 / 12000 // ARLA GRANEL                 | ARLA A GRANEL     | 12000 LITROS   |
+|     2 | DP 1                         |            391  | DP 1 // TNQ 11 // 15000 // GASOLINA COMUM             | GASOLINA COMUM    | 15000 LITROS   |
+|     2 | DP 1                         |            394  | DP 1 // TNQ 05 // 30000 // DIESEL S-10                | DIESEL S 10       | 30000 LITROS   |
+|     3 | DP ITATIAIUCU                |             28  | DP ITATIAUCU // TNQ 09 // 15000 // ETANOL             | ETANOL            | 15000 LITROS   |
+|     3 | DP ITATIAIUCU                |             20  | DP ITATIAUCU // TNQ 08 // 30000 // DIESEL S - 10      | DIESEL S 10       | 30000 LITROS   |
+|     3 | DP ITATIAIUCU                |             30  | DP ITATIAUCU // TNQ 06 // 15000 // GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|     3 | DP ITATIAIUCU                |             33  | DP ITATIAIUCU // TNQ 07 / 4000 // ARLA GRANEL         | ARLA A GRANEL     | 4000 LITROS    |
+|     3 | DP ITATIAIUCU                |             29  | DP ITATIAUCU // TNQ 10 // 30000 // DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|     4 | DP LEME                      |             54  | DP LEMENSE // TNQ 02 // 30000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|     4 | DP LEME                      |             49  | DP LEMENSE // TNQ 04 // 15000 // ETANOL               | ETANOL            | 15000 LITROS   |
+|     4 | DP LEME                      |             38  | DP LEMENSE // TNQ 01 // 15000 // DIESEL S 10          | DIESEL S 10       | 15000 LITROS   |
+|     4 | DP LEME                      |             52  | DP LEMENSE // TNQ 03 // 15000 // DIESEL COMUM         | DIESEL COMUM      | 15000 LITROS   |
+|     4 | DP LEME                      |             53  | DP LEMENSE // TNQ 06 // 10000 // DIESEL COMUM         | DIESEL COMUM      | 10000 LITROS   |
+|     4 | DP LEME                      |           1610  | DP LEMENSE // TNQ 07 // 12000 // ARLA                 | ARLA A GRANEL     | 12000 LITROS   |
+|     4 | DP LEME                      |             50  | DP LEMENSE // TNQ 05 // 20000 // GASOLINA C           | GASOLINA COMUM    | 20000 LITROS   |
+|     5 | DP PINDA                     |             62  | DP PINDA // TQ 02 //15000// GASOLINA COMUM            | GASOLINA COMUM    | 15000 LITROS   |
+|     5 | DP PINDA                     |           2157  | DP DE PINDA // TQ 05 // 30000//DIESEL COMUM           | DIESEL COMUM      | 30000 LITROS   |
+|     5 | DP PINDA                     |           2155  | DP DE PINDA // TQ 03 // 30000//DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|     5 | DP PINDA                     |             66  | DP DE PINDA // TQ 06 // 12.000 // ARLA GRANEL         | ARLA A GRANEL     | 12000 LITROS   |
+|     5 | DP PINDA                     |             61  | DP PINDA // TQ 01 //15000// ETANOL                    | ETANOL            | 15000 LITROS   |
+|     5 | DP PINDA                     |           2156  | DP DE PINDA // TQ 04 // 30000//DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|     6 | DP 2                         |             89  | DP 2 // TNQ 08 //15000// DIESEL S10                   | DIESEL S 10       | 15000 LITROS   |
+|     6 | DP 2                         |            168  | DP 2 // TNQ 13 // 30000//DIESEL S10                   | DIESEL S 10       | 30000 LITROS   |
+|     6 | DP 2                         |             88  | DP 2 // TNQ 10 //10000// GASOLINA COMUM               | GASOLINA COMUM    | 10000 LITROS   |
+|     6 | DP 2                         |            169  | DP 2 // TNQ 07 //15000// DIESEL COMUM                 | DIESEL COMUM      | 15000 LITROS   |
+|     6 | DP 2                         |             82  | DP 2 // TNQ 14 / 12.000 // ARLA GRANEL                | ARLA A GRANEL     | 12000 LITROS   |
+|     6 | DP 2                         |             87  | DP 2 // TNQ 11 // 10000//ETANOL                       | ETANOL            | 10000 LITROS   |
+|     6 | DP 2                         |             98  | DP 2 // TNQ 12 // 10000//DIESEL S-10                  | DIESEL S 10       | 10000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            124  | DP POUSO ALEGRE // TQ 04 //30000// DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            128  | DP POUSO ALEGRE // TQ 01 //10000// DIESEL S-10        | DIESEL S 10       | 10000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            122  | DP POUSO ALEGRE // TQ 02 //20000// DIESEL S-10        | DIESEL S 10       | 20000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            126  | DP POUSO ALEGRE // TQ 06 // 15000//ETANOL COMUM       | ETANOL            | 15000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            130  | DP POUSO ALEGRE // TQ 09 // 12000 // ARLA GRANEL      | ARLA A GRANEL     | 12000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            125  | DP POUSO ALEGRE // TQ 05 //30000// GASOLINA COMUM     | GASOLINA COMUM    | 30000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            120  | DP POUSO ALEGRE // TQ 07 // 15000// DIESEL S-10       | DIESEL S 10       | 15000 LITROS   |
+|     7 | DP POUSO ALEGRE              |            129  | DP POUSO ALEGRE // TQ 03 //30000// DIESEL S -10       | DIESEL S 10       | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            111  | DP ATIBAIA // TNQ 08 //30000// DIESEL S-10            | DIESEL S 10       | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            119  | DP ATIBAIA // TNQ 12 //12000// ARLA GRANEL            | ARLA A GRANEL     | 12000 LITROS   |
+|     8 | DP ATIBAIA                   |            102  | DP ATIBAIA // TNQ 02 // 10000//GASOLINA COMUM         | GASOLINA COMUM    | 10000 LITROS   |
+|     8 | DP ATIBAIA                   |            103  | DP ATIBAIA // TNQ 03 // 20000//ETANOL COMUM           | ETANOL            | 20000 LITROS   |
+|     8 | DP ATIBAIA                   |            115  | DP ATIBAIA // TNQ 05 // 30000//DIESEL S10 ADITIVAD    | DIESEL S 10 ADITI | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            104  | DP ATIBAIA // TNQ 04 // 30000//DIESEL COMUM           | DIESEL COMUM      | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            101  | DP ATIBAIA // TNQ 01 //15000// GASOLINA COMUM         | GASOLINA COMUM    | 15000 LITROS   |
+|     8 | DP ATIBAIA                   |            114  | DP ATIBAIA // TNQ 06 //30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            117  | DP ATIBAIA // TNQ 07 //30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            105  | DP ATIBAIA // TNQ 05 // 30000//DIESEL COMUM           | DIESEL COMUM      | 30000 LITROS   |
+|     8 | DP ATIBAIA                   |            118  | DP ATIBAIA // TNQ 11 // 12000//ARLA GRANEL            | ARLA A GRANEL     | 12000 LITROS   |
+|     9 | DP ITAPEVA                   |            399  | DP PAULINHO // TNQ 15 // 4000 // ARLA GRANEL          | ARLA A GRANEL     | 4000 LITROS    |
+|     9 | DP ITAPEVA                   |            384  | DP PAULINHO // TNQ 12 // 10000 // DIESEL S10          | DIESEL S 10       | 10000 LITROS   |
+|     9 | DP ITAPEVA                   |            383  | DP PAULINHO // TNQ 11 // 10000 // DIESEL S10          | DIESEL S 10       | 10000 LITROS   |
+|     9 | DP ITAPEVA                   |            433  | DP PAULINHO // TNQ 13 // 20000 // DIESEL S10          | DIESEL S 10       | 20000 LITROS   |
+|     9 | DP ITAPEVA                   |            381  | DP PAULINHO // TNQ 09 // 10000 // ETANOL              | ETANOL            | 10000 LITROS   |
+|     9 | DP ITAPEVA                   |            382  | DP PAULINHO // TNQ 10 // 10000 // GASOLINA COMUM      | GASOLINA COMUM    | 10000 LITROS   |
+|     9 | DP ITAPEVA                   |            386  | DP PAULINHO // TNQ 14 // 30000 // DIESEL COMUM        | DIESEL COMUM      | 30000 LITROS   |
+|    10 | DP CAETANOPOLIS              |            175  | DP 99 // TQ 04 //30000// DIESEL S10                   | DIESEL S 10       | 30000 LITROS   |
+|    10 | DP CAETANOPOLIS              |            181  | DP 99 // TQ 03 //15000// DIESEL COMUM                 | DIESEL COMUM      | 15000 LITROS   |
+|    10 | DP CAETANOPOLIS              |             17  | DP 99 // TQ 07 // 10000//ETANOL COMUM                 | ETANOL            | 10000 LITROS   |
+|    10 | DP CAETANOPOLIS              |            184  | DP 99 // TQ 10 / 12.000 // ARLA GRANEL                | ARLA A GRANEL     | 12000 LITROS   |
+|    10 | DP CAETANOPOLIS              |            177  | DP 99 // TQ 06 // 20000//GASOLINA COMUM               | GASOLINA COMUM    | 20000 LITROS   |
+|    10 | DP CAETANOPOLIS              |            182  | DP 99 // TQ 05 //30000// DIESEL S10                   | DIESEL S 10       | 30000 LITROS   |
+|    11 | DP BETIM                     |            220  | DP BETIM // TQ 09 //10000// GASOLINA COMUM            | GASOLINA COMUM    | 10000 LITROS   |
+|    11 | DP BETIM                     |            224  | DP BETIM // TQ 11 // 12000 // ARLA GRANEL             | ARLA A GRANEL     | 12000 LITROS   |
+|    11 | DP BETIM                     |            214  | DP BETIM // TQ 03 //30000// DIESEL COMUM              | DIESEL COMUM      | 30000 LITROS   |
+|    11 | DP BETIM                     |            216  | DP BETIM // TQ 05 // 30000//DIESEL S 10               | DIESEL S 10       | 30000 LITROS   |
+|    11 | DP BETIM                     |            223  | DP BETIM // TQ 04 //30000// DIESEL S 10               | DIESEL S 10       | 30000 LITROS   |
+|    11 | DP BETIM                     |            226  | DP BETIM // TQ 04 //30000// DIESEL S 10 ADITIVADO     | DIESEL S 10 ADITI | 30000 LITROS   |
+|    11 | DP BETIM                     |            218  | DP BETIM // TQ 07 // 10000//ETANOL                    | ETANOL            | 10000 LITROS   |
+|    11 | DP BETIM                     |            213  | DP BETIM // TQ 02 //10000// ETANOL                    | ETANOL            | 10000 LITROS   |
+|    11 | DP BETIM                     |            212  | DP BETIM // TQ 01 // 10000//GASOLINA COMUM            | GASOLINA COMUM    | 10000 LITROS   |
+|    11 | DP BETIM                     |            221  | DP BETIM // TQ 08 //10000// GASOLINA COMUM            | GASOLINA COMUM    | 10000 LITROS   |
+|    11 | DP BETIM                     |            217  | DP BETIM // TQ 06 // 10000//GASOLINA COMUM            | GASOLINA COMUM    | 10000 LITROS   |
+|    12 | BEL POSTO                    |            238  | DP BEL POSTO  // TNQ 04 // 10000 // GASOLINA ADT      | GASOLINA ADITIVAD | 10000 LITROS   |
+|    12 | BEL POSTO                    |            239  | DP BEL POSTO  // TNQ 02 // 30000 // DIESEL S 10       | DIESEL S 10       | 30000 LITROS   |
+|    12 | BEL POSTO                    |            240  | DP BEL POSTO  // TNQ 05 // 10000 // DIESEL COMUM      | DIESEL COMUM      | 10000 LITROS   |
+|    12 | BEL POSTO                    |            231  | DP BEL POSTO  // TNQ 01 // 30000 // DIESEL COMUM      | DIESEL COMUM      | 30000 LITROS   |
+|    12 | BEL POSTO                    |            233  | DP BEL POSTO  // TNQ 03 // 10000 // ETANOL COMUM      | ETANOL            | 10000 LITROS   |
+|    12 | BEL POSTO                    |            236  | DP BEL POSTO  // TNQ 06 // 30000 // GASOLINA COMUM    | GASOLINA COMUM    | 30000 LITROS   |
+|    13 | DP TURIM                     |            940  | DP TURIM // TNQ 15 // 10000 // ETANOL                 | ETANOL            | 10000 LITROS   |
+|    13 | DP TURIM                     |            953  | DP TURIM // TNQ 17 // 10000 // DIESEL S10             | DIESEL S 10       | 10000 LITROS   |
+|    13 | DP TURIM                     |            941  | DP TURIM // TNQ 16 // 20000 // GAS COMUM              | GASOLINA COMUM    | 20000 LITROS   |
+|    13 | DP TURIM                     |            928  | DP TURIM // TNQ 19 // 20000 // DIESEL COMUM           | DIESEL COMUM      | 20000 LITROS   |
+|    13 | DP TURIM                     |            929  | DP TURIM // TNQ 20 // 30000 // DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    13 | DP TURIM                     |            952  | DP TURIM // TNQ 18 // ARLA GRANEL                     | ARLA A GRANEL     | 4000 LITROS    |
+|    14 | DP SANTA LUZIA               |            274  | DP FUMACA // TQ 10 / 12000 // ARLA GRANEL             | ARLA A GRANEL     | 12000 LITROS   |
+|    14 | DP SANTA LUZIA               |            264  | DP FUMACA // TQ 05 //15000// DIESEL COMUM             | DIESEL COMUM      | 15000 LITROS   |
+|    14 | DP SANTA LUZIA               |            272  | DP FUMACA // TQ 06 // 30000//DIESEL S 10              | DIESEL S 10       | 30000 LITROS   |
+|    14 | DP SANTA LUZIA               |            260  | DP FUMACA // TQ 03 //10000// ETANOL                   | ETANOL            | 10000 LITROS   |
+|    14 | DP SANTA LUZIA               |            265  | DP FUMACA // TQ 04 //15000// DIESEL S10               | DIESEL S 10       | 15000 LITROS   |
+|    14 | DP SANTA LUZIA               |            273  | DP FUMACA // TQ 02 // 20000//GASOLINA COMUM           | GASOLINA COMUM    | 20000 LITROS   |
+|    15 | DP SALINAS                   |            320  | DP TAMBURIL // TQ 07 //15000// DIESEL COMUM           | DIESEL COMUM      | 15000 LITROS   |
+|    15 | DP SALINAS                   |            312  | DP TAMBURIL // TQ 02 //15000// ETANOL                 | ETANOL            | 15000 LITROS   |
+|    15 | DP SALINAS                   |            333  | DP TAMBURIL // TNQ 11 // 12000// ARLA GRANEL          | ARLA A GRANEL     | 12000 LITROS   |
+|    15 | DP SALINAS                   |            311  | DP TAMBURIL // TQ 01 // 15000//GASOLINA COMUM         | GASOLINA COMUM    | 15000 LITROS   |
+|    15 | DP SALINAS                   |            319  | DP TAMBURIL // TQ 03 //30000// DIESEL S-10            | DIESEL S 10       | 30000 LITROS   |
+|    15 | DP SALINAS                   |            321  | DP TAMBURIL // TQ 08 // 15000//DIESEL COMUM           | DIESEL COMUM      | 15000 LITROS   |
+|    15 | DP SALINAS                   |            316  | DP TAMBURIL // TQ 06 //15000// GASOLINA COMUM         | GASOLINA COMUM    | 15000 LITROS   |
+|    15 | DP SALINAS                   |           1346  | DP TAMBURIL // TQ 04 //30000//DIESEL S-10             | DIESEL S 10       | 30000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            298  | DP MIRACATU SUL // TQ 08 // 30.000 // DIESEL COMUM    | DIESEL COMUM      | 30000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            293  | DP MIRACATU SUL // TQ 03 // 10.000 // ETANOL          | ETANOL            | 10000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            291  | DP MIRACATU SUL // TQ 01 // 10.000 // GASOL. COMUM    | GASOLINA COMUM    | 10000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            292  | DP MIRACATU SUL // TQ 02 // 10.000 // GASOL. COMUM    | GASOLINA COMUM    | 10000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            295  | DP MIRACATU SUL // TQ 05 // 30.000 // DIESEL COMUM    | DIESEL COMUM      | 30000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            300  | DP MIRACATU SUL // TQ 09 // 6000 // ARLA A GRANEL     | ARLA A GRANEL     | 6000 LITROS    |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            294  | DP MIRACATU SUL // TQ 04 // 30.000 // DIESEL COMUM    | DIESEL COMUM      | 30000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            299  | DP MIRACATU SUL // TQ 06 // 30.000 // DIESEL S-10     | DIESEL S 10       | 30000 LITROS   |
+|    16 | COMERCIO D PRODUTOS PARA VEI |            297  | DP MIRACATU SUL // TQ 07 // 30.000 // DIESEL S-10     | DIESEL S 10       | 30000 LITROS   |
+|    17 | DP APARECIDA                 |            343  | DP APARECIDA // TQ 03 //15000//ETANOL                 | ETANOL            | 15000 LITROS   |
+|    17 | DP APARECIDA                 |            351  | DP APARECIDA // TQ 09 //12.000 // ARLA GRANEL         | ARLA A GRANEL     | 12000 LITROS   |
+|    17 | DP APARECIDA                 |            346  | DP APARECIDA // TQ 06 //30000// DIESEL COMUM          | DIESEL COMUM      | 30000 LITROS   |
+|    17 | DP APARECIDA                 |            341  | DP APARECIDA // TQ 01 //15000//DIESEL S 10            | DIESEL S 10       | 15000 LITROS   |
+|    17 | DP APARECIDA                 |            345  | DP APARECIDA // TQ 05 //30000// DIESEL COMUM          | DIESEL COMUM      | 30000 LITROS   |
+|    17 | DP APARECIDA                 |            350  | DP APARECIDA // TQ 07 //30000// DIESEL S10            | DIESEL S 10       | 30000 LITROS   |
+|    17 | DP APARECIDA                 |            344  | DP APARECIDA // TQ 04 //15000// GASOLINA COMUM        | GASOLINA COMUM    | 15000 LITROS   |
+|    17 | DP APARECIDA                 |            348  | DP APARECIDA // TQ 02 //15000//DIESEL S 10            | DIESEL S 10       | 15000 LITROS   |
+|    18 | DP MURIAE                    |            364  | DP MURIAE // TNQ 07 // ARLA A GRANEL                  | ARLA A GRANEL     | 9000 LITROS    |
+|    18 | DP MURIAE                    |            369  | DP MURIAE // TNQ 02 // 15000 // GASOLINA COMUM        | GASOLINA COMUM    | 15000 LITROS   |
+|    18 | DP MURIAE                    |            367  | DP MURIAE // TNQ 04 // 30000 // DIESEL S 10           | DIESEL S 10       | 30000 LITROS   |
+|    18 | DP MURIAE                    |            361  | DP MURIAE // TNQ 01 // 15000 // ETANOL                | ETANOL            | 15000 LITROS   |
+|    18 | DP MURIAE                    |            368  | DP MURIAE // TNQ 05 // 30000 // DIESEL COMUM          | DIESEL COMUM      | 30000 LITROS   |
+|    19 | DP PARAOPEBA                 |            357  | DP PARAOPEBA // TNQ 01 / 30000 // DIESEL COMUM        | DIESEL COMUM      | 30000 LITROS   |
+|    19 | DP PARAOPEBA                 |            376  | DP PARAOPEBA // TNQ 06 / 20000 // GASOLINA COMUM.     | GASOLINA COMUM    | 20000 LITROS   |
+|    19 | DP PARAOPEBA                 |            379  | DP PARAOPEBA // TNQ 05 / 10000 // ETANOL              | ETANOL            | 10000 LITROS   |
+|    19 | DP PARAOPEBA                 |            356  | DP PARAOPEBA // TNQ 02 / 30000 // DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    19 | DP PARAOPEBA                 |            355  | DP PARAOPEBA // TNQ 09 / 12000 // ARLA GRANEL         | ARLA A GRANEL     | 12000 LITROS   |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            415  | DP NORTE SUL 1  // TNQ 14// 20000 // DIESEL COMUM     | DIESEL COMUM      | 20000 LITROS   |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            409  | DP NORTE SUL 1  // TNQ 09 // 4000 // ARLA GRANEL      | ARLA A GRANEL     | 4000 LITROS    |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            416  | DP NORTE SUL 1  // TNQ16 // 3000 // ARLA GRANEL       | ARLA A GRANEL     | 3000 LITROS    |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            411  | DP NORTE SUL 1  // TNQ 11 // 15000 // GAS COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            413  | DP NORTE SUL 1  // TNQ 15// 30000 // DIESEL S 10      | DIESEL S 10       | 30000 LITROS   |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            412  | DP NORTE SUL 1  // TNQ 12 // 15000 // ETANOL          | ETANOL            | 15000 LITROS   |
+|    20 | DP CONTAGEM NORTE- MATRIZ    |            414  | DP NORTE SUL 1  // TNQ 13// 10000 // DIESEL S 10      | DIESEL S 10       | 10000 LITROS   |
+|    21 | DP CONTAGEM SUL              |           1744  | DP NORTE SUL 2 // TNQ 09 / 15000// GAS.COMUM          | GASOLINA COMUM    | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            421  | DP NORTE SUL 2 // TNQ 01 // 15000 // GAS. COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |           1745  | DP NORTE SUL 2 // TNQ 10 / 15000// ETANOL             | ETANOL            | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            423  | DP NORTE SUL 2 // TNQ 03 // 15000 // ETANOL           | ETANOL            | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            424  | DP NORTE SUL 2 // TNQ 04 // 30000 // DIESEL COMUM     | DIESEL COMUM      | 30000 LITROS   |
+|    21 | DP CONTAGEM SUL              |           1742  | DP NORTE SUL 2 // TNQ 08 / 4000 // ARLA GRANEL        | ARLA A GRANEL     | 4000 LITROS    |
+|    21 | DP CONTAGEM SUL              |            432  | DP NORTE SUL 2 // TNQ 06 // 15000 // DIESEL S10       | DIESEL S 10       | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            431  | DP NORTE SUL 2 // TNQ 05 // 15000 // DIESEL COMUM     | DIESEL COMUM      | 15000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            427  | DP NORTE SUL 2 // TNQ 07 // 30000 // DIESEL S 10      | DIESEL S 10       | 30000 LITROS   |
+|    21 | DP CONTAGEM SUL              |            430  | DP NORTE SUL 2 // TNQ 02 // 15000 // GAS. COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    22 | DP CAMBUI                    |            446  | DP CAMBUI // TNQ 01 // 30000 // DIESEL S 10           | DIESEL S 10       | 30000 LITROS   |
+|    22 | DP CAMBUI                    |            445  | DP CAMBUI // TNQ 05 // 10000 // GASOLINA COMUM        | GASOLINA COMUM    | 10000 LITROS   |
+|    22 | DP CAMBUI                    |            444  | DP CAMBUI // TNQ 04 // 10000 // GASOLINA ADITIVADA    | GASOLINA ADITIVAD | 10000 LITROS   |
+|    22 | DP CAMBUI                    |            447  | DP CAMBUI // TNQ 02 // 30000 // DIESEL COMUM          | DIESEL COMUM      | 30000 LITROS   |
+|    22 | DP CAMBUI                    |            443  | DP CAMBUI // TNQ 03 // 10000 // ETANOL                | ETANOL            | 10000 LITROS   |
+|    22 | DP CAMBUI                    |            448  | DP CAMBUI // TNQ 06 // 4000 // ARLA                   | ARLA A GRANEL     | 4000 LITROS    |
+|    23 | DOM PEDRO CAREACU NORTE      |            472  | DP CAREACU NORTE // TNQ 02 // 7500 // GASOLINA COMUM  | GASOLINA COMUM    | 7500 LITROS    |
+|    23 | DOM PEDRO CAREACU NORTE      |            471  | DP CAREACU NORTE // TNQ 01 // 30000 // DIESEL COMUM   | DIESEL COMUM      | 30000 LITROS   |
+|    23 | DOM PEDRO CAREACU NORTE      |            473  | DP CAREACU NORTE // TNQ 03 // 7500 // ETANOL          | ETANOL            | 7500 LITROS    |
+|    24 | DP GUARATINGUETA             |            481  | DP GUARA // TNQ 01 // 20000 // GASOLINA COMUM         | GASOLINA COMUM    | 20000 LITROS   |
+|    24 | DP GUARATINGUETA             |            492  | DP GUARA // TNQ 06 // 15000 // DIESEL COMUM           | DIESEL COMUM      | 15000 LITROS   |
+|    24 | DP GUARATINGUETA             |            485  | DP GUARA // TNQ 05 // 15000 // ETANOL COMUM           | ETANOL            | 15000 LITROS   |
+|    24 | DP GUARATINGUETA             |            494  | DP GUARA // TNQ 04 // 30000 // DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    24 | DP GUARATINGUETA             |            493  | DP GUARA // TNQ 02 // 10000 // DIESEL S10             | DIESEL S 10       | 10000 LITROS   |
+|    24 | DP GUARATINGUETA             |            495  | DP GUARA // TNQ 08 //3300 // ARLA GRANEL              | ARLA A GRANEL     | 3300 LITROS    |
+|    24 | DP GUARATINGUETA             |            487  | DP GUARA // TNQ 03 // 30000 // DIESEL S 10            | DIESEL S 10       | 30000 LITROS   |
+|    24 | DP GUARATINGUETA             |            490  | DP GUARA // TNQ 07 / 4000 // ARLA GRANEL              | ARLA A GRANEL     | 4000 LITROS    |
+|    25 | DP JOIA                      |            511  | DP JOIA // TNQ 05 // 12.000// ARLA GRANEL             | ARLA A GRANEL     | 12000 LITROS   |
+|    25 | DP JOIA                      |            503  | DP JOIA // TNQ 03 // 30000 // DIESEL COMUM            | DIESEL COMUM      | 30000 LITROS   |
+|    25 | DP JOIA                      |            502  | DP JOIA // TNQ 02 // 15000 // ETANOL COMUM            | ETANOL            | 15000 LITROS   |
+|    25 | DP JOIA                      |            501  | DP JOIA // TNQ 01 // 15000 // GASOLINA COMUM          | GASOLINA COMUM    | 15000 LITROS   |
+|    25 | DP JOIA                      |            510  | DP JOIA // TNQ 04 // 30000 // DIESEL S - 10           | DIESEL S 10       | 30000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |            524  | DP MIRACATU NORTE //TNQ 04//15000// ETANOL            | ETANOL            | 15000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |            525  | DP MIRACATU NORTE //TNQ 05//15000// GASOLINA COM      | GASOLINA COMUM    | 15000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |           1741  | DP MIRACATU NORTE //TNQ 06//12000// ARLA GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |            529  | DP MIRACATU NORTE //TNQ 02//30000// DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |            519  | DP MIRACATU NORTE //TNQ 03//30000// DIESEL COMUM      | DIESEL COMUM      | 30000 LITROS   |
+|    26 | DP MIRACATU ROTA NORTE       |            528  | DP MIRACATU NORTE //TNQ 01//15000// DIESEL S10        | DIESEL S 10       | 15000 LITROS   |
+|    27 | DP JK ESTIVA ROTA SUL        |            946  | DP JK // TNQ 06 / 4000 // ARLA GRANEL                 | ARLA A GRANEL     | 4000 LITROS    |
+|    27 | DP JK ESTIVA ROTA SUL        |            509  | DP JK // TNQ 05 //30000//DIESEL S 10                  | DIESEL S 10       | 30000 LITROS   |
+|    27 | DP JK ESTIVA ROTA SUL        |            507  | DP JK // TNQ 03 //10000// ETANOL                      | ETANOL            | 10000 LITROS   |
+|    27 | DP JK ESTIVA ROTA SUL        |            505  | DP JK // TNQ 02 //10000// GASOLINA COMUM              | GASOLINA COMUM    | 10000 LITROS   |
+|    27 | DP JK ESTIVA ROTA SUL        |            945  | DP JK // TNQ 01 //10000//DIESEL COMUM                 | DIESEL COMUM      | 10000 LITROS   |
+|    27 | DP JK ESTIVA ROTA SUL        |            508  | DP JK // TNQ 04 //30000// DIESEL COMUM                | DIESEL COMUM      | 30000 LITROS   |
+|    28 | DP ALIANCA                   |            545  | DP ALIANCA // TNQ 09 // 12000 // ARLA GRANEL          | ARLA A GRANEL     | 12000 LITROS   |
+|    28 | DP ALIANCA                   |            540  | DP ALIANCA // TNQ 04 // 7500//ETANOL                  | ETANOL            | 7500 LITROS    |
+|    28 | DP ALIANCA                   |            539  | DP ALIANCA // TNQ 05 // 7500//GASOLINA COMUM          | GASOLINA COMUM    | 7500 LITROS    |
+|    28 | DP ALIANCA                   |            537  | DP ALIANCA // TNQ 07 //7500// DIESEL S 10             | DIESEL S 10       | 7500 LITROS    |
+|    28 | DP ALIANCA                   |            536  | DP ALIANCA // TNQ 06 // 7500//DIESEL S 10             | DIESEL S 10       | 7500 LITROS    |
+|    28 | DP ALIANCA                   |            544  | DP ALIANCA // TNQ 03 //15000// DIESEL S 500           | DIESEL COMUM      | 15000 LITROS   |
+|    28 | DP ALIANCA                   |            546  | DP ALIANCA // TNQ 02 //15000// DIESEL S10             | DIESEL S 10       | 15000 LITROS   |
+|    28 | DP ALIANCA                   |            543  | DP ALIANCA // TNQ 01 // 30000//DIESEL S 10            | DIESEL S 10       | 30000 LITROS   |
+|    29 | DP OLIVEIRA                  |            559  | DP OLIVEIRA // TQ 03 //15000// DIESEL COMUM           | DIESEL COMUM      | 15000 LITROS   |
+|    29 | DP OLIVEIRA                  |            558  | DP OLIVEIRA // TQ 04 //20000// DIESEL S10             | DIESEL S 10       | 20000 LITROS   |
+|    29 | DP OLIVEIRA                  |            560  | DP OLIVEIRA // TQ 06 //15000// DIESE COMUM            | DIESEL COMUM      | 15000 LITROS   |
+|    29 | DP OLIVEIRA                  |            561  | DP OLIVEIRA // TQ 05 //15000// DIESEL S10             | DIESEL S 10       | 15000 LITROS   |
+|    29 | DP OLIVEIRA                  |            551  | DP OLIVEIRA // TQ 01 //15000// GASOLINA COMUM         | GASOLINA COMUM    | 15000 LITROS   |
+|    29 | DP OLIVEIRA                  |            552  | DP OLIVEIRA // TQ 02 //10000// ETANOL COMUM           | ETANOL            | 10000 LITROS   |
+|    29 | DP OLIVEIRA                  |            562  | DP OLIVEIRA // TQ 07 //4000// ARLA GRANEL             | ARLA A GRANEL     | 4000 LITROS    |
+|    30 | DP CAMBUI - URBANO           |            705  | DP CAMBUI URBANO // TQ 01 //15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    30 | DP CAMBUI - URBANO           |            706  | DP CAMBUI URBANO // TQ 03 //7500// DIESEL COMUM       | DIESEL COMUM      | 7500 LITROS    |
+|    30 | DP CAMBUI - URBANO           |            704  | DP CAMBUI URBANO // TQ 04 //7500//DIESEL S10          | DIESEL S 10       | 7500 LITROS    |
+|    30 | DP CAMBUI - URBANO           |            702  | DP CAMBUI URBANO // TQ 02 //15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    31 | DP JAGUAQUARA                |            720  | DP JAGUAQUARA // TNQ 03 // 30000 // DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    31 | DP JAGUAQUARA                |            715  | DP JAGUAQUARA // TNQ 05 // 10000 // ETANOL COMUM      | ETANOL            | 10000 LITROS   |
+|    31 | DP JAGUAQUARA                |            718  | DISPENSER GNV                                         | GNV               | 10000 LITROS   |
+|    31 | DP JAGUAQUARA                |            716  | DP JAGUAQUARA // TNQ 06 // 20000 // GASOLINA COMUM    | GASOLINA COMUM    | 20000 LITROS   |
+|    31 | DP JAGUAQUARA                |            714  | DP JAGUAQUARA // TNQ 04 // 30000 // DIESEL S-10       | DIESEL S 10       | 30000 LITROS   |
+|    31 | DP JAGUAQUARA                |            719  | DP JAGUAQUARA // TNQ 07 // 12000 // ARLA A GRANEL     | ARLA A GRANEL     | 12000 LITROS   |
+|    31 | DP JAGUAQUARA                |            717  | DP JAGUAQUARA // TNQ 02 // 30000 // DIESEL S-10       | DIESEL S 10       | 30000 LITROS   |
+|    31 | DP JAGUAQUARA                |            711  | DP JAGUAQUARA // TNQ 01 // 30000 // DIESEL COMUM      | DIESEL COMUM      | 30000 LITROS   |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            728  | DP SAO GONCALO // TNQ 06 // 4000 // ARLA A GRANEL     | ARLA A GRANEL     | 4000 LITROS    |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            729  | DP SAO GONCALO // TNQ 01 // 10000 // DIESEL S-10      | DIESEL S 10       | 10000 LITROS   |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            734  | DP SAO GONCALO // TNQ 04 // 30000 // DIESEL COMUM     | DIESEL COMUM      | 30000 LITROS   |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            736  | DP SAO GONCALO // TNQ 03 // 10000 // GAS. COMUM       | GASOLINA COMUM    | 10000 LITROS   |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            732  | DP SAO GONCALO // TNQ 02 // 10000 // ETANOL COMUM     | ETANOL            | 10000 LITROS   |
+|    32 | DP SAO GONCALO DO SAPUCAI    |            737  | DP SAO GONCALO // TNQ 05 // 30000 // DIESEL S-10      | DIESEL S 10       | 30000 LITROS   |
+|    33 | DP NOVA SERRANA              |            743  | DP NOVA SERRANA // TNQ 03 // 15000 // GAS. COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    33 | DP NOVA SERRANA              |            758  | DP NOVA SERRANA // TNQ 07 // 4000// ARLA              | ARLA A GRANEL     | 4000 LITROS    |
+|    33 | DP NOVA SERRANA              |            749  | DP NOVA SERRANA // TNQ 04 // 15000 // DIESEL S-10     | DIESEL S 10       | 15000 LITROS   |
+|    33 | DP NOVA SERRANA              |            748  | DP NOVA SERRANA // TNQ 02 // 15000 // ETANOL          | ETANOL            | 15000 LITROS   |
+|    33 | DP NOVA SERRANA              |           1612  | DP NOVA SERRANA // TNQ 05 //15000 //DIESEL S-10       | DIESEL S 10       | 15000 LITROS   |
+|    33 | DP NOVA SERRANA              |           1611  | DP NOVA SERRANA // TNQ 06 //30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|    34 | DP IGARATINGA                |            152  | DP IGARATINGA // TQ 02 //10000// ETANOL               | ETANOL            | 10000 LITROS   |
+|    34 | DP IGARATINGA                |            156  | DP IGARATINGA // TQ 03 //15000// DIESEL S10           | DIESEL S 10       | 15000 LITROS   |
+|    34 | DP IGARATINGA                |            162  | DP IGARATINGA // TQ 04 //15000// DIESEL COMUM         | DIESEL COMUM      | 15000 LITROS   |
+|    34 | DP IGARATINGA                |            151  | DP IGARATINGA // TQ 01 //20000// GASOLINA COMUM       | GASOLINA COMUM    | 20000 LITROS   |
+|    34 | DP IGARATINGA                |            163  | DP IGARATINGA // TQ 06 //12000// ARLA GRANEL          | ARLA A GRANEL     | 12000 LITROS   |
+|    34 | DP IGARATINGA                |            161  | DP IGARATINGA // TQ 05 //30000// DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    35 | DP CARMOPOLIS                |            754  | DP CARMOPOLIS // TNQ 03 // 20.000 // GAS. COMUM       | GASOLINA COMUM    | 20000 LITROS   |
+|    35 | DP CARMOPOLIS                |            759  | DP CARMOPOLIS // TNQ 04 // 15.000 // DIESEL COMUM     | DIESEL COMUM      | 15000 LITROS   |
+|    35 | DP CARMOPOLIS                |            757  | DP CARMOPOLIS // TNQ 02 // 30.000 // DIESEL S10       | DIESEL S 10       | 30000 LITROS   |
+|    35 | DP CARMOPOLIS                |           2128  | DP CARMOPOLIS // TNQ 05 // 4.000 // ARLA              | ARLA A GRANEL     | 4000 LITROS    |
+|    35 | DP CARMOPOLIS                |            756  | DP CARMOPOLIS // TNQ 01 // 10.000 // ETANOL           | ETANOL            | 10000 LITROS   |
+|    36 | DP BETIM - 2                 |            766  | DP BETIM 2 // TNQ 02 // 20.000 // DIESEL S-10         | DIESEL S 10       | 20000 LITROS   |
+|    36 | DP BETIM - 2                 |            763  | DP BETIM 2 // TNQ 03 // 15.000 // DIESEL S-10         | DIESEL S 10       | 15000 LITROS   |
+|    36 | DP BETIM - 2                 |            767  | DP BETIM 2 // TNQ 06 // 12000 // ARLA A GRANEL        | ARLA A GRANEL     | 12000 LITROS   |
+|    36 | DP BETIM - 2                 |            765  | DP BETIM 2 // TNQ 05 // 30.000 // DIESEL COMUM        | DIESEL COMUM      | 30000 LITROS   |
+|    36 | DP BETIM - 2                 |            764  | DP BETIM 2 // TNQ 04 // 30.000 // GASOLINA COMUM      | GASOLINA COMUM    | 30000 LITROS   |
+|    36 | DP BETIM - 2                 |            761  | DP BETIM 2 // TNQ 01 // 10.000 // ETANOL COMUM        | ETANOL            | 10000 LITROS   |
+|    37 | DP PARAGOMINAS               |             78  | DP PARAGOMINAS // TNQ 08 / 10000 // ARLA GRANEL       | ARLA A GRANEL     | 10000 LITROS   |
+|    37 | DP PARAGOMINAS               |             79  | DP PARAGOMINAS // TNQ 04 // 30.000 //DIESEL S-10      | DIESEL S 10       | 30000 LITROS   |
+|    37 | DP PARAGOMINAS               |             68  | DP PARAGOMINAS // TNQ 05 // 20.000 // GASOLINA COM    | GASOLINA COMUM    | 20000 LITROS   |
+|    37 | DP PARAGOMINAS               |             72  | DP PARAGOMINAS // TNQ 02 // 30.000 // DIESEL COMUM    | DIESEL COMUM      | 30000 LITROS   |
+|    37 | DP PARAGOMINAS               |             81  | DP PARAGOMINAS // TNQ 03 // 30.000 // DIESEL S-10     | DIESEL S 10       | 30000 LITROS   |
+|    37 | DP PARAGOMINAS               |             71  | DP PARAGOMINAS // TNQ 01 // 30.000 // DIESEL COMUM    | DIESEL COMUM      | 30000 LITROS   |
+|    37 | DP PARAGOMINAS               |             69  | DP PARAGOMINAS // TNQ 06 // 10.000 // GASOLINA AD.    | GASOLINA ADITIVAD | 10000 LITROS   |
+|    37 | DP PARAGOMINAS               |             77  | DP PARAGOMINAS // TNQ 07 // 30.000 // GASOLINA COM    | GASOLINA COMUM    | 30000 LITROS   |
+|    38 | DP URUACU                    |            797  | DP URUACU // TNQ 05 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            799  | DP URUACU // TNQ 07 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            798  | DP URUACU // TNQ 06 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            796  | DP URUACU // TNQ 04 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            795  | DP URUACU // TNQ 03 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            794  | DP URUACU // TNQ 02 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            793  | DP URUACU // TNQ 01 // 30.000 // DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    38 | DP URUACU                    |            779  | DP URUACU // TNQ 11 // 30.000 // DIESEL S-500         | DIESEL COMUM      | 30000 LITROS   |
+|    38 | DP URUACU                    |            778  | DP URUACU // TNQ 10 // 30.000 // DIESEL S-500         | DIESEL COMUM      | 30000 LITROS   |
+|    38 | DP URUACU                    |            789  | DP URUACU // TNQ 09 // 30.000 // GAS COMUM            | GASOLINA COMUM    | 30000 LITROS   |
+|    38 | DP URUACU                    |            788  | DP URUACU // TNQ 08 // 30.000 // ETANOL               | ETANOL            | 30000 LITROS   |
+|    38 | DP URUACU                    |            792  | DP URUACU // TNQ 12 // 15.000 // ARLA A GRANEL        | ARLA A GRANEL     | 15000 LITROS   |
+|    39 | DP SAO SEBASTIAO DA BELA VIS |            810  | DP BELA VISTA // TQ 10 // DIESEL S 10 // 30.000 L     | DIESEL S 10       | 30000 LITROS   |
+|    39 | DP SAO SEBASTIAO DA BELA VIS |            815  | DP BELA VISTA // TQ 03 // GASOLINA COMUM // 15.000    | GASOLINA COMUM    | 15000 LITROS   |
+|    39 | DP SAO SEBASTIAO DA BELA VIS |            809  | DP BELA VISTA // TQ 09 // DIESEL COMUM // 30.000 L    | DIESEL COMUM      | 30000 LITROS   |
+|    39 | DP SAO SEBASTIAO DA BELA VIS |            804  | DP BELA VISTA // TQ 04 // ETANOL COMUM // 15.000 L    | ETANOL            | 15000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            823  | DP CASCAVEL // TQ 03 // DIESEL S-10 // 15.000         | DIESEL S 10       | 15000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            828  | DP CASCAVEL // TQ 08 // ETANOL COMUM // 30.000        | ETANOL            | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            830  | DP CASCAVEL // TQ 10 // DIESEL S-10 // 30.000         | DIESEL S 10       | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            829  | DP CASCAVEL // TQ 09 // DIESEL COM S-500 // 30.000    | DIESEL COMUM      | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            825  | DP CASCAVEL // TQ 05 // DIESEL COM S-500 // 30.000    | DIESEL COMUM      | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            827  | DP CASCAVEL // TQ 07 // DIESEL COM S-500 // 30.000    | DIESEL COMUM      | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            826  | DP CASCAVEL // TQ 06 // DIESEL S-10 // 30.000         | DIESEL S 10       | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            821  | DP CASCAVEL // TQ 01 // GASOLINA COMUM // 30.000      | GASOLINA COMUM    | 30000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            822  | DP CASCAVEL // TQ 02 // GAS. V-POWER NITRO// 15000    | GASOLINA ADITIVAD | 15000 LITROS   |
+|    40 | DOM PEDRO CASCAVEL           |            824  | DP CASCAVEL // TQ 04 // DIESEL COM S-500 // 30.000    | DIESEL COMUM      | 30000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            961  | DP DIVISA ALEGRE // TQ 04 //30000// DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            897  | DP DIVISA ALEGRE  // TQ 07 //10000//ETANOL            | ETANOL            | 10000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            907  | DP DIVISA ALEGRE // TQ 10 // 12000 // ARLA GRANEL     | ARLA A GRANEL     | 12000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            908  | DP DIVISA ALEGRE // TQ 11 // 12000 // ARLA GRANEL     | ARLA A GRANEL     | 12000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            960  | DP DIVISA ALEGRE // TQ 01 //15000// DIESEL COMUM      | DIESEL COMUM      | 15000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            962  | DP DIVISA ALEGRE // TQ 01 //15000// DIESEL S10 ADV    | DIESEL S 10 ADITI | 15000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            905  | DP DIVISA ALEGRE // TQ 02 //15000// DIESEL COMUM      | DIESEL COMUM      | 15000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            896  | DP DIVISA ALGRE // TQ 06 //20000// GASOLINA COMU      | GASOLINA COMUM    | 20000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            893  | DP DIVISA ALEGRE // TQ 03 //30000// DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    41 | DP DIVISA ALEGRE 1           |            951  | DP DIVISA ALEGRE  // TQ 05 //30000//DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    42 | DP CAMBUI - URBANO 2         |            843  | DP CAMBUI URBANO 2 // TQ 03 //15000//ETANOL COMUM     | ETANOL            | 15000 LITROS   |
+|    42 | DP CAMBUI - URBANO 2         |            842  | DP CAMBUI URBANO 2 // TQ 02 //15000// DIESEL S-10     | DIESEL S 10       | 15000 LITROS   |
+|    42 | DP CAMBUI - URBANO 2         |            841  | DP CAMBUI URBANO 2 // TQ 01 //15000//DIESEL COMUM     | DIESEL COMUM      | 15000 LITROS   |
+|    42 | DP CAMBUI - URBANO 2         |            844  | DP CAMBUI URBANO 2 // TQ 04 //15000// GASOLINA COM    | GASOLINA COMUM    | 15000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            869  | DP FERNAO DIAS // TQ 06 //30000// DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            871  | DP FERNAO DIAS // TQ 01 //15000// ETANOL COMUM        | ETANOL            | 15000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            872  | DP FERNAO DIAS // TQ 02 //15000// GASOLINA V-POWER    | GASOLINA ADITIVAD | 15000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            873  | DP FERNAO DIAS // TQ 03 //15000// GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            877  | DP FERNAO DIAS // TQ 05 //30000// DIESEL COMUM        | DIESEL COMUM      | 30000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            859  | DP FERNAO DIAS // TQ 04 //30000// DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    43 | DP CONTAGEM FERNAO DIAS      |            868  | DP FERNAO DIAS // TQ 07 /4000// ARLA GRANEL           | ARLA A GRANEL     | 4000 LITROS    |
+|    44 | DP CACHOEIRA DE PAJEU        |            851  | DP CACHOEIRA // TQ 01 //20000// GASOLINA COMUM //     | GASOLINA COMUM    | 20000 LITROS   |
+|    44 | DP CACHOEIRA DE PAJEU        |            858  | DP CACHOEIRA // TQ 03 //30000// DIESEL S-10 //        | DIESEL S 10       | 30000 LITROS   |
+|    44 | DP CACHOEIRA DE PAJEU        |            857  | DP CACHOEIRA // TQ 04 //20000// DIESEL COMUM //       | DIESEL COMUM      | 20000 LITROS   |
+|    44 | DP CACHOEIRA DE PAJEU        |            855  | DP CACHOEIRA // TQ 05 //10000// DIESEL S-10 //        | DIESEL S 10       | 10000 LITROS   |
+|    44 | DP CACHOEIRA DE PAJEU        |            852  | DP CACHOEIRA // TQ 02 //10000// ETANOL //             | ETANOL            | 10000 LITROS   |
+|    44 | DP CACHOEIRA DE PAJEU        |            856  | DP CACHOEIRA // TQ 06 //10000// ARLA 32 //            | ARLA A GRANEL     | 10000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            831  | DP PARAISO TO // TQ 04 //30000// DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            863  | DP PARAISO TO // TQ 03 //30000// DIESEL S-10          | DIESEL S 10       | 30000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            862  | DP PARAISO TO // TQ 02 //15000//ETANOL COMUM          | ETANOL            | 15000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            866  | DP PARAISO TO // TQ 06 //15000// ARLA 32              | ARLA A GRANEL     | 15000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            861  | DP PARAISO TO // TQ 01 //15000// GASOLINA COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    45 | DP PARAISO DE TOCANTINS LTDA |            865  | DP PARAISO TO // TQ 05 //30000// DIESEL COMUM         | DIESEL COMUM      | 30000 LITROS   |
+|    46 | DP GUARATINGUETA URBANO      |            465  | DP GUARATINGUETA URBANO // TQ 05 GASOLINA COMUM       | GASOLINA COMUM    | 30000 LITROS   |
+|    46 | DP GUARATINGUETA URBANO      |            464  | DP GUARATINGUETA URBANO // TQ 04 GASOLINA COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    46 | DP GUARATINGUETA URBANO      |            462  | DP GUARATINGUETA URBANO // TQ 02 ETANOL               | ETANOL            | 15000 LITROS   |
+|    46 | DP GUARATINGUETA URBANO      |            461  | DP GUARATINGUETA URBANO // TQ 01 DIESEL S10           | DIESEL S 10       | 15000 LITROS   |
+|    46 | DP GUARATINGUETA URBANO      |            466  | DP GUARATINGUETA URBANO // TQ 03 ETANOL               | ETANOL            | 15000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            879  | DP SANTO ESTEVAO //  TQ 05 //30000// GASOLINA COMU    | GASOLINA COMUM    | 30000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            888  | DP  SANTO ESTEVAO // TQ 04 //30000// DIESEL S10       | DIESEL S 10       | 30000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            881  | DP  SANTO ESTEVAO // TQ 01 //30000//DIESEL S-10       | DIESEL S 10       | 30000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            878  | DP SANTO ESTEVAO // TQ 08 //12000// ARLA GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            906  | DP  SANTO ESTEVAO // TQ 02 //30000// DIESEL S10       | DIESEL S 10       | 30000 LITROS   |
+|    48 | DP SANTO ESTEVAO             |            883  | DP  SANTO ESTEVAO // TQ 03 //30000// DIESEL COMUM     | DIESEL COMUM      | 30000 LITROS   |
+|    49 | DP SAO GONCALO URBANO 1      |            612  | DP SAO GONCALO // TNQ 03 // 15000 // ETANOL           | ETANOL            | 15000 LITROS   |
+|    49 | DP SAO GONCALO URBANO 1      |            611  | DP SAO GONCALO // TNQ 02 // 15000 // GASOLINA COM     | GASOLINA COMUM    | 15000 LITROS   |
+|    49 | DP SAO GONCALO URBANO 1      |            610  | DP SAO GONCALO // TNQ 01 // 15000 // DIESEL S10       | DIESEL S 10       | 15000 LITROS   |
+|    50 | DP ITAGUARA                  |           1722  | DP ITAGUARA // TQ 02 //15000// GASOLINA COMUM         | GASOLINA COMUM    | 15000 LITROS   |
+|    50 | DP ITAGUARA                  |           1724  | DP ITAGUARA  // TQ 04 //30000//DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    50 | DP ITAGUARA                  |           1725  | DP ITAGUARA  // TQ 05 //15000// DIESEL S10            | DIESEL S 10       | 15000 LITROS   |
+|    50 | DP ITAGUARA                  |           1723  | DP ITAGUARA  // TQ 03 //15000//DIESEL COMUM           | DIESEL COMUM      | 15000 LITROS   |
+|    50 | DP ITAGUARA                  |           1726  | DP ITAGUARA  // TQ 06 //12000// ARLA GRANEL           | ARLA A GRANEL     | 12000 LITROS   |
+|    50 | DP ITAGUARA                  |           1721  | DP ITAGUARA // TQ 01 //15000// ETANOL                 | ETANOL            | 15000 LITROS   |
+|    51 | DP SENADOR AMARAL            |            902  | DP SENADOR AMARAL // TQ 03 //15000// DIESEL COMUM     | DIESEL COMUM      | 15000 LITROS   |
+|    51 | DP SENADOR AMARAL            |            901  | DP SENADOR AMARAL // TQ 02 //15000//ETANOL COMUM      | ETANOL            | 15000 LITROS   |
+|    51 | DP SENADOR AMARAL            |            903  | DP SENADOR AMARAL // TQ 04 //15000// DIESEL S10       | DIESEL S 10       | 15000 LITROS   |
+|    51 | DP SENADOR AMARAL            |            900  | DP SENADOR AMARAL // TQ 01 //15000// GASOLINA COMU    | GASOLINA COMUM    | 15000 LITROS   |
+|    52 | DP ESTIVA ROTA NORTE         |            913  | DP  ESTIVA ROTA NORTE //  TQ 03 // DIESEL  COMUM      | DIESEL COMUM      | 30000 LITROS   |
+|    52 | DP ESTIVA ROTA NORTE         |            914  | DP  ESTIVA ROTA NORTE //  TQ 04 // DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    52 | DP ESTIVA ROTA NORTE         |            912  | DP  ESTIVA ROTA NORTE //  TQ 02 // ETANOL             | ETANOL            | 10000 LITROS   |
+|    52 | DP ESTIVA ROTA NORTE         |            911  | DP  ESTIVA ROTA NORTE //  TQ 01 // GASOLINA COMUM     | GASOLINA COMUM    | 20000 LITROS   |
+|    53 | DP SAO GONCALO URBANO 2      |            934  | DP SAO GONC URB 2//TQ 04 //15000// DIESEL S-10 //     | DIESEL S 10       | 15000 LITROS   |
+|    53 | DP SAO GONCALO URBANO 2      |            933  | DP SAO GONC URB 2//TQ 03 //15000// ETANOL COMUM //    | ETANOL            | 15000 LITROS   |
+|    53 | DP SAO GONCALO URBANO 2      |            932  | DP SAO GONC URB 2// TQ 02 //15000// GASOLINA COMUM    | GASOLINA COMUM    | 15000 LITROS   |
+|    53 | DP SAO GONCALO URBANO 2      |            931  | DP SAO GONC URB 2// TQ 01 //15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    54 | DP LORENA                    |           1010  | DP LORENA // TQ 04 //15000// DIESEL COMUM             | DIESEL COMUM      | 15000 LITROS   |
+|    54 | DP LORENA                    |           1011  | DP LORENA // TQ 03 //30000// DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|    54 | DP LORENA                    |           1008  | DP LORENA // TQ 08 //15000// GASOLINA COMUM//         | GASOLINA COMUM    | 15000 LITROS   |
+|    54 | DP LORENA                    |           1007  | DP LORENA // TQ 07 // 15000//GASOLINA ADITIVADA//     | GASOLINA ADITIVAD | 15000 LITROS   |
+|    54 | DP LORENA                    |           1006  | DP LORENA // TQ 06 // 15000//ETANOL//                 | ETANOL            | 15000 LITROS   |
+|    54 | DP LORENA                    |           1005  | DP LORENA // TQ 05 // 10.000//ARLA A GRANEL           | ARLA A GRANEL     | 10000 LITROS   |
+|    54 | DP LORENA                    |           1002  | DP LORENA // TQ 02 //30000// DIESEL S10 //            | DIESEL S 10       | 30000 LITROS   |
+|    54 | DP LORENA                    |           1001  | DP LORENA // TQ 01 //30000//DIESEL COMUM//            | DIESEL COMUM      | 30000 LITROS   |
+|    54 | DP LORENA                    |           1003  | INATIVO - DP LORENA // TQ 03 //30000// DIESEL COMU    | DIESEL COMUM      | 30000 LITROS   |
+|    54 | DP LORENA                    |           1004  | INATIVO - DP LORENA // TQ 04 //15000// DIESEL S10/    | DIESEL S 10       | 15000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1216  | DP DIVISA ALEGRE 2 //TQ 06//10000//ARLA GRANEL        | ARLA A GRANEL     | 10000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1217  | DP DIVISA ALEGRE 2 //TQ 05//10000//DIESEL S 10        | DIESEL S 10       | 10000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1212  | DP DIVISA ALEGRE 2 //TQ 02//10000// ETANOL            | ETANOL            | 10000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1211  | DP DIVISA ALEGRE 2//TQ 01//20000//GASOLINA COMUM      | GASOLINA COMUM    | 20000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1213  | DP DIVISA ALEGRE 2//TQ 03 //30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|    55 | DP DIVISA ALEGRE 2           |           1214  | DP DIVISA ALEGRE 2 //TQ 04//20000//DIESEL S 10        | DIESEL S 10       | 20000 LITROS   |
+|    56 | DP INCONFIDENTES             |            592  | DP INCONFIDENTES \\TQ-02//15000// ETANOL              | ETANOL            | 15000 LITROS   |
+|    56 | DP INCONFIDENTES             |            591  | DP INCONFIDENTES \\TQ-01//15000//GASOLINA COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    56 | DP INCONFIDENTES             |            593  | DP INCONFIDENTES \\TQ-03//15000//DIESEL S 10          | DIESEL S 10       | 15000 LITROS   |
+|    57 | DP JUIZ DE FORA URBANO       |           1041  | DP JUIZ DE FORA // TQ 04 //15000// ETANOL             | ETANOL            | 15000 LITROS   |
+|    57 | DP JUIZ DE FORA URBANO       |           1040  | DP JUIZ DE FORA // TQ 02 //15000//GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    57 | DP JUIZ DE FORA URBANO       |           1051  | DP JUIZ DE FORA //TQ 01//15000// ETANOL               | ETANOL            | 15000 LITROS   |
+|    57 | DP JUIZ DE FORA URBANO       |           1053  | DP JUIZ DE FORA //TQ 03//15000//DIESEL S-10           | DIESEL S 10       | 15000 LITROS   |
+|    58 | DP BUENO BRANDAO             |           1058  | DP  BUENO BRANDAO //TQ 04//10000//DIESEL S-10         | DIESEL S 10       | 10000 LITROS   |
+|    58 | DP BUENO BRANDAO             |           1057  | DP  BUENO BRANDAO //TQ 03//10000// DIESEL COMUM       | DIESEL COMUM      | 10000 LITROS   |
+|    58 | DP BUENO BRANDAO             |           1059  | DP  BUENO BRANDAO //TQ 05//10000//GASOLINA COMUM      | GASOLINA COMUM    | 10000 LITROS   |
+|    58 | DP BUENO BRANDAO             |           1056  | DP BUENO BRANDAO // TQ 02 //7500// ETANOL             | ETANOL            | 7500 LITROS    |
+|    58 | DP BUENO BRANDAO             |           1061  | DP  BUENO BRANDAO // TQ 01//7500//GASOLINA COMUM      | GASOLINA COMUM    | 7500 LITROS    |
+|    59 | DP POUSO ALEGRE URBANO       |           1073  | DP POUSO ALEGRE URB//TQ 03//10000// ETANOL            | ETANOL            | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1078  | DP POUSO ALEGRE URB//TQ 08//10000// ETANOL            | ETANOL            | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1072  | DP POUSO ALEGRE URB//TQ 02//15000//GASOLINA COM       | GASOLINA COMUM    | 15000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1074  | DP POUSO ALEGRE URB//TQ 04//10000//GASOL  ADIT        | GASOLINA ADITIVAD | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1069  | DP POUSO ALEGRE URB//TQ 03//10000// ETANOL ADITIVA    | ETANOL HIDRATADO  | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1079  | DP POUSO ALEGRE URB//TQ 05//10000//GASOL COMUM        | GASOLINA COMUM    | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1076  | DP POUSO ALEGRE URB//TQ 06//10000//DIESEL COMUM       | DIESEL COMUM      | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1068  | DP POUSO ALEGRE URB//TQ 08//10000// ETANOL HIDRATA    | ETANOL HIDRATADO  | 10000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1071  | DP POUSO ALEGRE URB//TQ 01//15000//DIESEL S 10        | DIESEL S 10       | 15000 LITROS   |
+|    59 | DP POUSO ALEGRE URBANO       |           1077  | DP POUSO ALEGRE URB//TQ 07//10000// GASOL COMU        | GASOLINA COMUM    | 10000 LITROS   |
+|    60 | DP CAMANDUCAIA URBANO        |           1086  | DP CAMANDUCAIA//TQ 03//15000// DIESEL S 10//          | DIESEL S 10       | 15000 LITROS   |
+|    60 | DP CAMANDUCAIA URBANO        |           1080  | DP CAMANDUCAIA//TQ 01//20000//GASOLINA COMUM//        | GASOLINA COMUM    | 20000 LITROS   |
+|    60 | DP CAMANDUCAIA URBANO        |           1087  | DP CAMANDUCAIA//TQ 02//10000// ETANOL HIDRATADO AD    | ETANOL HIDRATADO  | 10000 LITROS   |
+|    60 | DP CAMANDUCAIA URBANO        |           1083  | DP CAMANDUCAIA//TQ 04//15000// DIESEL S 10//          | DIESEL S 10       | 15000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1092  | DP OURO FINO URBANO//TQ 02//15000// DIESEL S10//      | DIESEL S 10       | 15000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1096  | DP OURO FINO URBANO//TQ 03//10000//ETANOL ADITIVAD    | ETANOL HIDRATADO  | 10000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1093  | DP OURO FINO URBANO//TQ 03//10000//ETANOL//           | ETANOL            | 10000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1091  | DP OURO FINO URBANO//TQ 01//15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1094  | DP OURO FINO URBANO//TQ 04//10000//GASOLINA ADT       | GASOLINA ADITIVAD | 10000 LITROS   |
+|    61 | DP OURO FINO URBANO          |           1095  | DP OURO FINO URBANO//TQ 05//10000//DIESEL COMUM//     | DIESEL COMUM      | 10000 LITROS   |
+|    62 | DP SABARA                    |           1106  | DP RAVENA // TQ 06 // DIESEL S10                      | DIESEL S 10       | 15000 LITROS   |
+|    62 | DP SABARA                    |           1104  | DP RAVENA // TQ 04 // ETANOL                          | ETANOL            | 15000 LITROS   |
+|    62 | DP SABARA                    |           1099  | DP RAVENA // TQ 07 // DIESEL S10                      | DIESEL S 10       | 15000 LITROS   |
+|    62 | DP SABARA                    |           1108  | DP RAVENA // TQ 03 // GASOLINA COMUM                  | GASOLINA COMUM    | 15000 LITROS   |
+|    62 | DP SABARA                    |           1102  | DP RAVENA // TQ 02 // DIESEL COMUM                    | DIESEL COMUM      | 30000 LITROS   |
+|    63 | DP CAMANDUCAIA URBANO 2      |           1113  | DP CAMANDUCAIA URB 2/TQ 03/10000//ETANOL              | ETANOL            | 10000 LITROS   |
+|    63 | DP CAMANDUCAIA URBANO 2      |           1114  | DP CAMANDUCAIA URB 2/TQ 04/10000//DIESEL S 10//       | DIESEL S 10       | 10000 LITROS   |
+|    63 | DP CAMANDUCAIA URBANO 2      |           1111  | DP CAMANDUCAIA URB 2/TQ 01/15000//GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    63 | DP CAMANDUCAIA URBANO 2      |           1112  | DP CAMANDUCAIA URB 2/TQ 02/15000//DIESEL COMUM//      | DIESEL COMUM      | 15000 LITROS   |
+|    64 | DP GUARATINGUETA URBANO 2    |           1203  | DP GUARA URB 2 // TNQ 03 // 15000 // ETANOL           | ETANOL            | 15000 LITROS   |
+|    64 | DP GUARATINGUETA URBANO 2    |           1201  | DP GUARA URB 2 // TNQ 01 // 15000 // GASOLINA COMU    | GASOLINA COMUM    | 15000 LITROS   |
+|    64 | DP GUARATINGUETA URBANO 2    |           1204  | DP GUARA URB 2 // TNQ 02 // 15000 // GASOLINA C       | GASOLINA COMUM    | 15000 LITROS   |
+|    65 | DP GUARATINGUETA URBANO 3    |           1263  | DP GUARA URB 3 // TNQ 03 // 30000 // ETANOL           | ETANOL            | 30000 LITROS   |
+|    65 | DP GUARATINGUETA URBANO 3    |           1265  | DP GUARA URB 3 // TNQ 05 // 15000 // DIESEL COMU      | DIESEL COMUM      | 15000 LITROS   |
+|    65 | DP GUARATINGUETA URBANO 3    |           1261  | DP GUARA URB 3 // TNQ 01 // 15000 // GASOLINA COMU    | GASOLINA COMUM    | 15000 LITROS   |
+|    65 | DP GUARATINGUETA URBANO 3    |           1262  | DP GUARA URB 3 // TNQ 02 // 15000 // GASOLINA COMU    | GASOLINA COMUM    | 15000 LITROS   |
+|    65 | DP GUARATINGUETA URBANO 3    |           1264  | DP GUARA URB 3 // TNQ 04 // 15000 // DIESEL S-10      | DIESEL S 10       | 15000 LITROS   |
+|    66 | DP BRAGANCA URBANO           |           1221  | DP BRAG PAULISTA //TQ 02//20000// ETANOL//            | ETANOL            | 20000 LITROS   |
+|    66 | DP BRAGANCA URBANO           |           1220  | DP BRAG PAULISTA //TQ 01//20000//GASOLINA COMU        | GASOLINA COMUM    | 20000 LITROS   |
+|    66 | DP BRAGANCA URBANO           |           1223  | DP BRAG PAULISTA //TQ 03//10000//DIESEL COMUM         | DIESEL COMUM      | 10000 LITROS   |
+|    66 | DP BRAGANCA URBANO           |           1224  | DP BRAG PAULISTA //TQ 04//10000//DIESEL S 10//        | DIESEL S 10       | 10000 LITROS   |
+|    67 | DP JACAREI                   |           2081  | DP JACAREI  // TQ 01 //10000// ETANOL                 | ETANOL            | 10000 LITROS   |
+|    67 | DP JACAREI                   |           1232  | DP JACAREI // TQ 04 //20000// DIESEL COMUM            | DIESEL COMUM      | 20000 LITROS   |
+|    67 | DP JACAREI                   |           2082  | DP JACAREI // TQ 02 //20000//DIESEL S10               | DIESEL S 10       | 20000 LITROS   |
+|    67 | DP JACAREI                   |           1231  | DP JACAREI // TQ 03 //10000// GASOLINA COMUM          | GASOLINA COMUM    | 10000 LITROS   |
+|    67 | DP JACAREI                   |           1233  | DP JACAREI // TQ 05 //4000// ARLA GRANEL              | ARLA A GRANEL     | 4000 LITROS    |
+|    68 | DP ATIBAIA URBANO            |           1242  | DP ATIBAIA URBANO//TNQ 02//20000//GASOLINA COMUM      | GASOLINA COMUM    | 20000 LITROS   |
+|    68 | DP ATIBAIA URBANO            |           1246  | DP ATIBAIA URBANO//TNQ 04//15000//GASOLINA ADITIV     | GASOLINA ADITIVAD | 15000 LITROS   |
+|    68 | DP ATIBAIA URBANO            |           1245  | DP ATIBAIA URBANO//TNQ 03//15000// ETANOL             | ETANOL            | 15000 LITROS   |
+|    68 | DP ATIBAIA URBANO            |           1241  | DP ATIBAIA URBANO//TNQ 01//10000//DIESEL S 10         | DIESEL S 10       | 10000 LITROS   |
+|    69 | DP POUSO ALEGRE URBANO 2     |           1554  | DP P ALEGRE URB 2//TQ 04//20000// DIESEL S10          | DIESEL S 10       | 20000 LITROS   |
+|    69 | DP POUSO ALEGRE URBANO 2     |           1551  | DP P ALEGRE URB 2//TQ 01//20000//GASOLINA COM         | GASOLINA COMUM    | 20000 LITROS   |
+|    69 | DP POUSO ALEGRE URBANO 2     |           1552  | DP P ALEGRE URB 2//TQ 02//10000//ETANOL               | ETANOL            | 10000 LITROS   |
+|    69 | DP POUSO ALEGRE URBANO 2     |           1553  | DP P ALEGRE URB 2//TQ 03//10000//DIESEL COMUM         | DIESEL COMUM      | 10000 LITROS   |
+|    70 | DP EXTREMA URBANO            |           1533  | DP EXTREMA URB // TNQ 03 //15000//DIESEL COMUM        | DIESEL COMUM      | 15000 LITROS   |
+|    70 | DP EXTREMA URBANO            |           1534  | DP EXTREMA URB // TNQ 04 //15000//DIESEL S 10         | DIESEL S 10       | 15000 LITROS   |
+|    70 | DP EXTREMA URBANO            |           1532  | DP EXTREMA URB // TNQ 02 //15000//GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    70 | DP EXTREMA URBANO            |           1531  | DP EXTREMA URB // TNQ 01 //15000//ETANOL              | ETANOL            | 15000 LITROS   |
+|    71 | DP ATIBAIA URBANO2           |           1252  | DP ATIBAIA URBANO 2 // TNQ 02 // GAS. ADITIVADA       | GASOLINA ADITIVAD | 10000 LITROS   |
+|    71 | DP ATIBAIA URBANO2           |           1254  | DP ATIBAIA URBANO 2 // TNQ 04 // DIESEL S-10          | DIESEL S 10       | 10000 LITROS   |
+|    71 | DP ATIBAIA URBANO2           |           1253  | DP ATIBAIA URBANO 2 // TNQ 03 // ETANOL               | ETANOL            | 20000 LITROS   |
+|    71 | DP ATIBAIA URBANO2           |           1251  | DP ATIBAIA URBANO 2 // TNQ 01 // GAS. COMUM           | GASOLINA COMUM    | 20000 LITROS   |
+|    72 | DP CASCUDO                   |           1283  | DP CASCUDO //  TQ 03  // DIESEL COMUM                 | DIESEL COMUM      | 30000 LITROS   |
+|    72 | DP CASCUDO                   |           1281  | DP CASCUDO //  TQ 01 // ETANOL COMUM                  | ETANOL            | 15000 LITROS   |
+|    72 | DP CASCUDO                   |           1282  | DP CASCUDO //  TQ 02 // GASOLINA COMUM                | GASOLINA COMUM    | 15000 LITROS   |
+|    72 | DP CASCUDO                   |           1284  | DP CASCUDO // TQ 04 // DIESEL S10                     | DIESEL S 10       | 30000 LITROS   |
+|    73 | DP BAGRE                     |           1271  | DP  BAGRE //  TQ 01 // GASOLINA COMUM                 | GASOLINA COMUM    | 30000 LITROS   |
+|    73 | DP BAGRE                     |           1273  | DP  BAGRE //  TQ 03 // ETANOL COMUM                   | ETANOL            | 15000 LITROS   |
+|    73 | DP BAGRE                     |           1274  | DP  BAGRE //  TQ 04  // DIESEL COMUM                  | DIESEL COMUM      | 30000 LITROS   |
+|    73 | DP BAGRE                     |           1272  | DP  BAGRE //  TQ 02 // DIESEL S10                     | DIESEL S 10       | 15000 LITROS   |
+|    74 | DP FALCAO                    |           1292  | DP FALCAO // TQ 02 // GASOLINA COMUM                  | GASOLINA COMUM    | 15000 LITROS   |
+|    74 | DP FALCAO                    |           1291  | DP FALCAO // TQ 01 // DIESEL COMUM                    | DIESEL COMUM      | 30000 LITROS   |
+|    74 | DP FALCAO                    |           1294  | DP FALCAO // TQ 04 // DIESEL S10                      | DIESEL S 10       | 30000 LITROS   |
+|    74 | DP FALCAO                    |           1293  | DP FALCAO // TQ 03 // ETANOL COMUM                    | ETANOL            | 15000 LITROS   |
+|    75 | DP ITATIBA URBANO 1          |           1311  | DP ITATIBA URB // TNQ 01 // 20000//GASOLINA COMUM     | GASOLINA COMUM    | 20000 LITROS   |
+|    75 | DP ITATIBA URBANO 1          |           1314  | DP ITATIBA URB // TNQ 04 //10000//DIESEL S10          | DIESEL S 10       | 10000 LITROS   |
+|    75 | DP ITATIBA URBANO 1          |           1315  | DP ITATIBA URB // TNQ 02 //10000// GASOLINA COMUM     | GASOLINA COMUM    | 10000 LITROS   |
+|    75 | DP ITATIBA URBANO 1          |           1313  | DP ITATIBA URB // TNQ 03 //20000// ETANOL COMUM       | ETANOL            | 20000 LITROS   |
+|    76 | DP ITATIBA URBANO 2          |           1321  | DP ITATIBA URB 2 //TNQ 01//20000// ETANOL COMUM       | ETANOL            | 20000 LITROS   |
+|    76 | DP ITATIBA URBANO 2          |           1326  | DP ITATIBA URB 2 //TNQ 03//10000// GASOLINA COMU      | GASOLINA COMUM    | 10000 LITROS   |
+|    76 | DP ITATIBA URBANO 2          |           1324  | DP ITATIBA URB 2 //TNQ 04//10000// GASOLINA COMU      | GASOLINA COMUM    | 10000 LITROS   |
+|    76 | DP ITATIBA URBANO 2          |           1322  | DP ITATIBA URB 2 //TNQ 02//10000//DIESEL COMUM        | DIESEL COMUM      | 10000 LITROS   |
+|    76 | DP ITATIBA URBANO 2          |           1325  | DP ITATIBA URB 2 //TNQ 05//10000// DIESEL S10         | DIESEL S 10       | 10000 LITROS   |
+|    77 | DP POUSO ALEGRE URBANO 3     |           1543  | DP P ALEGRE URB 3// TQ 03 //15000// DIESEL COMUM      | DIESEL COMUM      | 15000 LITROS   |
+|    77 | DP POUSO ALEGRE URBANO 3     |           1541  | DP P ALEGRE URB 3// TQ 01 //15000// GASOLINA COMUM    | GASOLINA COMUM    | 15000 LITROS   |
+|    77 | DP POUSO ALEGRE URBANO 3     |           1542  | DP P ALEGRE URB 3// TQ 02 //15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    77 | DP POUSO ALEGRE URBANO 3     |           1544  | DP P ALEGRE URB 3// TQ 04 //15000// DIESEL S10        | DIESEL S 10       | 15000 LITROS   |
+|    78 | DP SALES OLIVEIRA            |           1341  | DP SALES OLIVEIRA //TNQ 01//20000// GASOLINA COMUM    | GASOLINA COMUM    | 20000 LITROS   |
+|    78 | DP SALES OLIVEIRA            |           1344  | DP SALES OLIVEIRA //TNQ 04//30000// DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|    78 | DP SALES OLIVEIRA            |           1342  | DP SALES OLIVEIRA //TNQ 02//30000// ETANOL            | ETANOL            | 30000 LITROS   |
+|    78 | DP SALES OLIVEIRA            |           1343  | DP SALES OLIVEIRA //TNQ 03//30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|    78 | DP SALES OLIVEIRA            |           1348  | DP SALES OLIVEIRA //TNQ 06//4000//ARLA GRANEL         | ARLA A GRANEL     | 4000 LITROS    |
+|    78 | DP SALES OLIVEIRA            |           1347  | DP SALES OLIVEIRA //TNQ 05//10000//GASOLINA COM       | GASOLINA COMUM    | 10000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1363  | DP VIT DA CONQUISTA//TQ 03//30000/DIESEL COM          | DIESEL COMUM      | 30000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1369  | DP VIT DA CONQUISTA//TQ 10//12000/ARLA GRANE          | ARLA A GRANEL     | 12000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1361  | DP VIT DA CONQUISTA//TQ 01//15000/DIESEL S10          | DIESEL S 10       | 15000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1362  | DP VIT DA CONQUISTA//TQ 02//15000/DIESEL S10          | DIESEL S 10       | 15000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1370  | DP VIT DA CONQUISTA//TQ 09//10000/GAS COMUM           | GASOLINA COMUM    | 10000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1366  | DP VIT DA CONQUISTA//TQ 06//30000/GAS  COMUM          | GASOLINA COMUM    | 30000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1365  | DP VIT DA CONQUISTA//TQ 05//15000/ ETANOL             | ETANOL            | 15000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1371  | DP VIT DA CONQUISTA//TQ 04//15000/GAS COMUM           | GASOLINA COMUM    | 15000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1368  | DP VIT DA CONQUISTA//TQ 08//10000/DIESEL COM          | DIESEL COMUM      | 10000 LITROS   |
+|    79 | DP VITORIA DA CONQUISTA      |           1367  | DP VIT DA CONQUISTA//TQ 07//10000/DIESEL S10          | DIESEL S 10       | 10000 LITROS   |
+|    80 | DP JUIZ DE FORA RODOVIA      |           1703  | DP JUIZ DE FORA ROD//TQ 03//30000//DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    80 | DP JUIZ DE FORA RODOVIA      |           1701  | DP JUIZ DE FORA ROD//TQ 01//10000//ETANOL             | ETANOL            | 10000 LITROS   |
+|    80 | DP JUIZ DE FORA RODOVIA      |           1702  | DP JUIZ DE FORA ROD//TQ 02//20000//GASOLINA COM       | GASOLINA COMUM    | 20000 LITROS   |
+|    80 | DP JUIZ DE FORA RODOVIA      |           1704  | DP JUIZ DE FORA ROD//TQ 04//30000//DIESEL S500 CO     | DIESEL COMUM      | 30000 LITROS   |
+|    80 | DP JUIZ DE FORA RODOVIA      |           1705  | DP JUIZ DE FORA ROD//TQ 05//12000//ARLA               | ARLA A GRANEL     | 12000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1405  | DP MONTES CLAROS //TNQ 05//60000//DIESEL S10          | DIESEL S 10       | 60000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1410  | DP MONTES CLAROS //TNQ 10//15000//GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1409  | DP MONTES CLAROS //TNQ 09//15000//GASOLINA COMUM      | GASOLINA COMUM    | 15000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1406  | DP MONTES CLAROS //TNQ 06//60000//DIESEL S10          | DIESEL S 10       | 60000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1401  | DP MONTES CLAROS //TNQ 01//60000//DIESEL COMUM        | DIESEL COMUM      | 60000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1402  | DP MONTES CLAROS //TNQ 02//60000//DIESEL COMUM        | DIESEL COMUM      | 60000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1403  | DP MONTES CLAROS //TNQ 03//30000//DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1404  | DP MONTES CLAROS //TNQ 04//30000//DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1407  | DP MONTES CLAROS //TNQ 07//15000//ETANOL              | ETANOL            | 15000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1408  | DP MONTES CLAROS //TNQ 08//15000//ETANOL              | ETANOL            | 15000 LITROS   |
+|    81 | DP MONTES CLAROS             |           1411  | DP MONTES CLAROS // TNQ 11//20000//ARLA GRANEL        | ARLA A GRANEL     | 20000 LITROS   |
+|    82 | DP VARGEM                    |           1423  | DP VARGEM // TNQ 03 //15000//GASOLINA COMUM           | GASOLINA COMUM    | 15000 LITROS   |
+|    82 | DP VARGEM                    |           1422  | DP VARGEM // TNQ 02 //15000// ETANOL                  | ETANOL            | 15000 LITROS   |
+|    82 | DP VARGEM                    |           1424  | DP VARGEM // TNQ 01 //15000//DIESEL S10               | DIESEL S 10       | 15000 LITROS   |
+|    83 | DP SAO JORGE                 |           1506  | DP SAO JORGE // TQ 05//15000// DIESEL S10             | DIESEL S 10       | 15000 LITROS   |
+|    83 | DP SAO JORGE                 |           1509  | DP SAO JORGE // TQ 08//30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1508  | DP SAO JORGE // TQ 07//30000//DIESEL S10              | DIESEL S 10       | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1510  | DP SAO JORGE // TQ 10//30000//DIESEL S500             | DIESEL COMUM      | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1511  | DP SAO JORGE // TQ 11//15000// DIESEL S500            | DIESEL COMUM      | 15000 LITROS   |
+|    83 | DP SAO JORGE                 |           1512  | DP SAO JORGE // TQ 12//15000// DIESEL S500            | DIESEL COMUM      | 15000 LITROS   |
+|    83 | DP SAO JORGE                 |           1520  | DP SAO JORGE // TQ 15//3000// ARLA GRANEL             | ARLA A GRANEL     | 3000 LITROS    |
+|    83 | DP SAO JORGE                 |           1513  | DP SAO JORGE // TQ 13//30000// DIESEL S500            | DIESEL COMUM      | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1514  | DP SAO JORGE // TQ 14//30000//DIESEL S10              | DIESEL S 10       | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1522  | DP SAO JORGE // TQ 02 //10000//GASOLINA COMUM         | GASOLINA COMUM    | 10000 LITROS   |
+|    83 | DP SAO JORGE                 |           1505  | DP SAO JORGE  // TQ 03//10000// ETANOL                | ETANOL            | 10000 LITROS   |
+|    83 | DP SAO JORGE                 |           1507  | DP SAO JORGE // TQ 06 //30000//DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1501  | DP SAO JORGE // TQ 09//30000//DIESEL S500             | DIESEL COMUM      | 30000 LITROS   |
+|    83 | DP SAO JORGE                 |           1502  | DP SAO JORGE // TQ 04//15000// DIESEL S10             | DIESEL S 10       | 15000 LITROS   |
+|    83 | DP SAO JORGE                 |           1503  | DP SAO JORGE // TQ 01//10000// GASOLINA COMUM         | GASOLINA COMUM    | 10000 LITROS   |
+|    83 | DP SAO JORGE                 |           1523  | DP SAO JORGE // TQ 17//3000// ARLA GRANEL             | ARLA A GRANEL     | 3000 LITROS    |
+|    83 | DP SAO JORGE                 |           1521  | DP SAO JORGE // TQ 16//3000// ARLA GRANEL             | ARLA A GRANEL     | 3000 LITROS    |
+|    84 | DP BRAGANCA PAULISTA URBANO  |           1565  | DP BRAGANCA PAULISTA 2 // TQ 02 // DIESEL S10         | DIESEL S 10       | 15000 LITROS   |
+|    84 | DP BRAGANCA PAULISTA URBANO  |           1563  | DP BRAGANCA PAULISTA 2 // TQ 03 // ETANOL             | ETANOL            | 15000 LITROS   |
+|    84 | DP BRAGANCA PAULISTA URBANO  |           1564  | DP BRAGANCA PAULISTA 2 // TQ 04 // GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    84 | DP BRAGANCA PAULISTA URBANO  |           1561  | DP BRAGANCA PAULISTA 2 // TQ 01 // GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    86 | DP SAO JOSE DOS CAMPOS URBAN |           1571  | DP SAO J DOS CAMPOS//TQ 01//10000/DIESEL              | DIESEL S 10       | 10000 LITROS   |
+|    86 | DP SAO JOSE DOS CAMPOS URBAN |           1574  | DP SAO J DOS CAMPOS //TQ 04/15000/GASOLINA COMU       | GASOLINA COMUM    | 15000 LITROS   |
+|    86 | DP SAO JOSE DOS CAMPOS URBAN |           1572  | DP SAO J DOS CAMPOS /TQ 02//10000/ETANOL              | ETANOL            | 10000 LITROS   |
+|    86 | DP SAO JOSE DOS CAMPOS URBAN |           1573  | DP SAO J DOS CAMPOS //TQ 03/10000/ETANOL              | ETANOL            | 10000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           1592  | DP FREI INOCENCIO//TQ 02//15000//DIESEL S10           | DIESEL S 10       | 15000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           1598  | DP FREI INOCENCIO//TQ 08//12000// ARLA                | ARLA A GRANEL     | 12000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           1591  | DP FREI INOCENCIO//TQ 01//15000//DIESEL S10           | DIESEL S 10       | 15000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           2142  | DP FREI INOCENCIO//TQ 04//15000// DIESEL S-10         | DIESEL S 10       | 15000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           1596  | DP FREI INOCENCIO//TQ 06//15000//GASOLINA COM         | GASOLINA COMUM    | 15000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           2141  | DP FREI INOCENCIO//TQ 07//30000//DIESEL COMUM         | DIESEL COMUM      | 30000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           2140  | DP FREI INOCENCIO//TQ 03//30000//DIESEL S-10          | DIESEL S 10       | 30000 LITROS   |
+|    87 | DP FREI INOCENCIO            |           1595  | DP FREI INOCENCIO//TQ 05//15000//ETANOL               | ETANOL            | 15000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1966  | DP BRAGANCA RODOVIA//TQ 06//12000//ARLA A GRANEL      | ARLA A GRANEL     | 12000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1964  | DP BRAGANCA RODOVIA//TQ 04//30000//DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1963  | DP BRAGANCA RODOVIA//TQ 03//30000//DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1961  | DP BRAGANCA RODOVIA//TQ 01//15000//GASOLINA COM       | GASOLINA COMUM    | 15000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1965  | DP BRAGANCA RODOVIA//TQ 05//30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|    88 | DP BRAGANÇA RODOVIA          |           1962  | DP BRAGANCA RODOVIA//TQ 02//15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            976  | DP BARRA MANSA NORTE//TQ 06//12000//ARLA GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            974  | DP BARRA MANSA NORTE//TQ 04//10000//DIESEL S10        | DIESEL S 10       | 10000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            973  | DP BARRA MANSA NORTE//TQ 03//30000/DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            972  | DP BARRA MANSA NORTE//TQ 02//15000//ETANOL            | ETANOL            | 15000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            971  | DP BARRA MANSA NORTE//TQ 01//15000//GASOLINA COMUM    | GASOLINA COMUM    | 15000 LITROS   |
+|    89 | DP BARRA MANSA 1 NORTE       |            975  | DP BARRA MANSA NORTE//TQ 05//20000//DIESEL COMUM      | DIESEL COMUM      | 20000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2103  | DP BARRA MANSA SUL//TQ 03//20000//DIESEL COMUM        | DIESEL COMUM      | 20000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2102  | DP BARRA MANSA SUL//TQ 02//15000//ETANOL              | ETANOL            | 15000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2101  | DP BARRA MANSA SUL//TQ 01//15000// GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2106  | DP BARRA MANSA SUL//TQ 06//12000//ARLA A GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2105  | DP BARRA MANSA SUL//TQ 05//30000//DIESEL S10          | DIESEL S 10       | 30000 LITROS   |
+|    90 | DP BARRA MANSA 2 SUL         |           2104  | DP BARRA MANSA SUL//TQ 04//10000//DIESEL S10          | DIESEL S 10       | 10000 LITROS   |
+|    91 | DP LAFAIETE                  |            657  | DP LAFAIETE // TQ 07 //10000// DIESEL S10             | DIESEL S 10       | 10000 LITROS   |
+|    91 | DP LAFAIETE                  |            652  | DP LAFAIETE // TQ 02 //7500// DIESEL COMUM            | DIESEL COMUM      | 7500 LITROS    |
+|    91 | DP LAFAIETE                  |            659  | DP LAFAIETE // TQ 08 //10000// ETANOL                 | ETANOL            | 10000 LITROS   |
+|    91 | DP LAFAIETE                  |            655  | DP LAFAIETE // TQ 05 //12000// ARLA                   | ARLA A GRANEL     | 12000 LITROS   |
+|    91 | DP LAFAIETE                  |            656  | DP LAFAIETE // TQ 06 //10000// DIESEL COMUM           | DIESEL COMUM      | 10000 LITROS   |
+|    91 | DP LAFAIETE                  |            660  | DP LAFAIETE // TQ 03 //7500// GASOLINA COMUM          | GASOLINA COMUM    | 7500 LITROS    |
+|    91 | DP LAFAIETE                  |            654  | DP LAFAIETE // TQ 04 //15000//GASOLINA COMUM          | GASOLINA COMUM    | 15000 LITROS   |
+|    91 | DP LAFAIETE                  |            651  | DP LAFAIETE // TQ 01 //30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    92 | DP PLANALTO                  |           1803  | DP PLANALTO  // TQ 03 //60000//DIESEL COMUM           | DIESEL COMUM      | 60000 LITROS   |
+|    92 | DP PLANALTO                  |           1801  | DP PLANALTO  // TQ 01 //60000// DIESEL S10            | DIESEL S 10       | 60000 LITROS   |
+|    92 | DP PLANALTO                  |           1804  | DP PLANALTO  // TQ 04 //15000// GASOLINA COMUM        | GASOLINA COMUM    | 15000 LITROS   |
+|    92 | DP PLANALTO                  |           1802  | DP PLANALTO  // TQ 02 //60000//DIESEL S10             | DIESEL S 10       | 60000 LITROS   |
+|    92 | DP PLANALTO                  |           1807  | DP PLANALTO  // TQ 05 //15000// GASOLINA COMUM        | GASOLINA COMUM    | 15000 LITROS   |
+|    92 | DP PLANALTO                  |           1806  | DP PLANALTO  // TQ 06 //12000//ARLA GRANEL            | ARLA A GRANEL     | 12000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1822  | DP  SANTO ESTEVAO 2//TQ 02//60000//DIESEL S10         | DIESEL S 10       | 60000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1825  | DP  SANTO ESTEVAO 2//TQ 04//15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1823  | DP  SANTO ESTEVAO 2//TQ 01//60000//DIESEL S10         | DIESEL S 10       | 60000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1828  | DP  SANTO ESTEVAO 2//TQ 08//15000//ARLA GRANEL        | ARLA A GRANEL     | 15000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1821  | DP  SANTO ESTEVAO 2//TQ 03//60000//DIESEL COMUM       | DIESEL COMUM      | 60000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1824  | DP  SANTO ESTEVAO 2//TQ 07//15000//GASOLINA ADITI     | GASOLINA ADITIVAD | 15000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1826  | DP  SANTO ESTEVAO 2//TQ 05//15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    93 | DP SANTO ESTEVÃO 2           |           1827  | DP  SANTO ESTEVAO 2//TQ 06//15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1842  | DP  SANTO ESTEVAO 3//TQ 02//60000//DIESEL S10         | DIESEL S 10       | 60000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1848  | DP  SANTO ESTEVAO 3//TQ 08//15000//ARLA GRANEL        | ARLA A GRANEL     | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1847  | DP  SANTO ESTEVAO 3//TQ 06//15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1846  | DP  SANTO ESTEVAO 3//TQ 05//15000//GASOLINA ADITIV    | GASOLINA ADITIVAD | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1845  | DP  SANTO ESTEVAO 3//TQ 04//15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1844  | DP  SANTO ESTEVAO 3//TQ 07//15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1843  | DP  SANTO ESTEVAO 3//TQ 01//60000//DIESEL S10         | DIESEL S 10       | 60000 LITROS   |
+|    94 | DP SANTO ESTEVÃO 3           |           1841  | DP  SANTO ESTEVAO 3//TQ 03//60000//DIESEL COMUM       | DIESEL COMUM      | 60000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1982  | DP SAO CRISTOVAO // TQ 02 //20000//GASOLINA COMUM     | GASOLINA COMUM    | 20000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1990  | DP SAO CRISTOVAO // TQ 08 //30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1981  | DP SAO CRISTOVAO // TQ 04 //15000// ETANOL            | ETANOL            | 15000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1991  | DP SAO CRISTOVAO // TQ 09 //12.000//ARLA GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1989  | DP SAO CRISTOVAO // TQ 07 //15000//DIESEL COMUM       | DIESEL COMUM      | 15000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1984  | DP SAO CRISTOVAO // TQ 01 //10000//GASOLINA COMUM     | GASOLINA COMUM    | 10000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1986  | DP SAO CRISTOVAO // TQ 06 //15000//DIESEL S10         | DIESEL S 10       | 15000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1985  | DP SAO CRISTOVAO // TQ 05 //30000//DIESEL S10         | DIESEL S 10       | 30000 LITROS   |
+|    95 | DP SAO CRISTOVAO             |           1983  | DP SAO CRISTOVAO // TQ 03 //15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|    96 | DP BARREIRAS                 |           2069  | DP BARREIRAS  // TQ 07 //15000//DIESEL S10            | DIESEL S 10       | 15000 LITROS   |
+|    96 | DP BARREIRAS                 |           2067  | DP BARREIRAS  // TQ 04 //30000// DIESEL COMUM         | DIESEL COMUM      | 30000 LITROS   |
+|    96 | DP BARREIRAS                 |           2071  | DP BARREIRAS  // TQ 01 //10000// ETANOL               | ETANOL            | 10000 LITROS   |
+|    96 | DP BARREIRAS                 |           2084  | DP BARREIRAS  // TQ 02 //10000// GASOLINA COMUM       | GASOLINA COMUM    | 10000 LITROS   |
+|    96 | DP BARREIRAS                 |           2068  | DP BARREIRAS  // TQ 05 //30000// DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    96 | DP BARREIRAS                 |           2078  | DP BARREIRAS  // TQ 08 //30000// DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    96 | DP BARREIRAS                 |           2083  | DP BARREIRAS  // TQ 11 //12000//ARLA GRANEL           | ARLA A GRANEL     | 12000 LITROS   |
+|    96 | DP BARREIRAS                 |           2076  | DP BARREIRAS  // TQ 06 //15000// DIESEL S10           | DIESEL S 10       | 15000 LITROS   |
+|    96 | DP BARREIRAS                 |           2073  | DP BARREIRAS  // TQ 03 //15000// GASOLINA COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    97 | DP ITABERABA                 |           2002  | DP ITABERABA // TQ 02 //20000// DIESEL S10            | DIESEL S 10       | 20000 LITROS   |
+|    97 | DP ITABERABA                 |           2009  | DP ITABERABA // TQ 09 //10000//ARLA GRANEL            | ARLA A GRANEL     | 10000 LITROS   |
+|    97 | DP ITABERABA                 |           2008  | DP ITABERABA // TQ 08 //10000// ETANOL                | ETANOL            | 10000 LITROS   |
+|    97 | DP ITABERABA                 |           2007  | DP ITABERABA // TQ 07 //10000// GASOLINA COMUM        | GASOLINA COMUM    | 10000 LITROS   |
+|    97 | DP ITABERABA                 |           2006  | DP ITABERABA // TQ 06 //15000// DIESEL COMUM          | DIESEL COMUM      | 15000 LITROS   |
+|    97 | DP ITABERABA                 |           2005  | DP ITABERABA // TQ 05 //15000// DIESEL S10            | DIESEL S 10       | 15000 LITROS   |
+|    97 | DP ITABERABA                 |           2004  | DP ITABERABA // TQ 04 //7500// DIESEL S10             | DIESEL S 10       | 7500 LITROS    |
+|    97 | DP ITABERABA                 |           2003  | DP ITABERABA // TQ 03 //7500// DIESEL S10             | DIESEL S 10       | 7500 LITROS    |
+|    97 | DP ITABERABA                 |           2001  | DP ITABERABA // TQ 01 //10000//DIESEL S10             | DIESEL S 10       | 10000 LITROS   |
+|    98 | DP VALENCA                   |            674  | DP VALENCA // TQ 07 //15000// ETANOL                  | ETANOL            | 15000 LITROS   |
+|    98 | DP VALENCA                   |            668  | DP VALENCA // TQ 0 1 //30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    98 | DP VALENCA                   |            669  | DP VALENCA // TQ 0 2 //30000// DIESEL S10             | DIESEL S 10       | 30000 LITROS   |
+|    98 | DP VALENCA                   |            676  | DP VALENCA // TQ 06 // 10000//GASOLINA COMUM          | GASOLINA COMUM    | 10000 LITROS   |
+|    98 | DP VALENCA                   |            675  | DP VALENCA // TQ 08 //15000//ARLA GRANEL              | ARLA A GRANEL     | 15000 LITROS   |
+|    98 | DP VALENCA                   |            671  | DP VALENCA // TQ 04 //30000// DIESEL COMUM            | DIESEL COMUM      | 30000 LITROS   |
+|    98 | DP VALENCA                   |            672  | DP VALENCA // TQ 05 // 20000//GASOLINA  COMUM         | GASOLINA COMUM    | 20000 LITROS   |
+|    98 | DP VALENCA                   |            670  | DP VALENCA // TQ 03 //30000//DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2023  | DP SAO GONC ROD 2//TQ 03//30000//DIESEL COMUM         | DIESEL COMUM      | 30000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2022  | DP SAO GONC ROD 2//TQ 02//30000//DIESEL S10           | DIESEL S 10       | 30000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2027  | DP SAO GONC ROD 2//TQ 07//15000//GASOLINA ADTIVAD     | GASOLINA ADITIVAD | 15000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2026  | DP SAO GONC ROD 2//TQ 06//15000//ETANOL               | ETANOL            | 15000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2021  | DP SAO GONC ROD 2//TQ 01//30000// DIESEL COM          | DIESEL COMUM      | 30000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2025  | DP SAO GONC ROD 2//TQ 05//15000//GASOLINA COMUM       | GASOLINA COMUM    | 15000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2024  | DP SAO GONC ROD 2//TQ 04//15000//DIESEL COMUM         | DIESEL COMUM      | 15000 LITROS   |
+|    99 | DP SAO GONCALO RODOVIA 2     |           2028  | DP SAO GONC ROD 2//TQ 08//12000//ARLA GRANEL          | ARLA A GRANEL     | 12000 LITROS   |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2045  | DP SAO GONC ROD 3// TQ 05 //5000// ARLA GRANEL        | ARLA A GRANEL     | 5000 LITROS    |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2042  | DP SAO GONC ROD 3// TQ 02 //30000// DIESEL S10        | DIESEL S 10       | 30000 LITROS   |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2041  | DP SAO GONC ROD 3// TQ 01 //30000//DIESEL COMUM       | DIESEL COMUM      | 30000 LITROS   |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2043  | DP SAO GONC ROD 3// TQ 03 //15000//ETANOL             | ETANOL            | 15000 LITROS   |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2046  | DP SAO GONC ROD 3// TQ 06 //12000// ARLA GRANEL       | ARLA A GRANEL     | 12000 LITROS   |
+|   100 | DP SAO GONCALO RODOVIA 3     |           2044  | DP SAO GONC ROD 3// TQ 04 //15000//GASOLINA COMUM     | GASOLINA COMUM    | 15000 LITROS   |
+|   102 | DP RUSSAS                    |           2150  | DP RUSSAS // TQ 07 //30.000// DIESEL S-10             | DIESEL S 10       | 30000 LITROS   |
+|   102 | DP RUSSAS                    |           2121  | DP RUSSAS // TQ 01 //30.000// GASOLINA COMUM          | GASOLINA COMUM    | 30000 LITROS   |
+|   102 | DP RUSSAS                    |           2126  | DP RUSSAS // TQ 06 //30.000//DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|   102 | DP RUSSAS                    |           2124  | DP RUSSAS // TQ 04 //10.000// ETANOL                  | ETANOL            | 10000 LITROS   |
+|   102 | DP RUSSAS                    |           2123  | DP RUSSAS // TQ 03 //10.000// DIESEL S10              | DIESEL S 10       | 10000 LITROS   |
+|   102 | DP RUSSAS                    |           2122  | DP RUSSAS // TQ 02 //30.000// DIESEL S10              | DIESEL S 10       | 30000 LITROS   |
+|   102 | DP RUSSAS                    |           2119  | DP RUSSAS // TQ 05 //10.000// GASOLINA COMUM          | GASOLINA COMUM    | 10000 LITROS   |
+|   102 | DP RUSSAS                    |           2151  | DP RUSSAS // TQ 08 //12.000// ARLA GRANEL             | ARLA A GRANEL     | 12000 LITROS   |
+|   103 | DP INHAPIM                   |           2208  | DP INHAPIM // TQ 08 //15000//ARLA                     | ARLA A GRANEL     | 15000 LITROS   |
+|   103 | DP INHAPIM                   |           2204  | DP INHAPIM // TQ 04 //30000//DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|   103 | DP INHAPIM                   |           2202  | DP INHAPIM // TQ 02 //30000//DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|   103 | DP INHAPIM                   |           2203  | DP INHAPIM // TQ 03 //30000//DIESEL COMUM             | DIESEL COMUM      | 30000 LITROS   |
+|   103 | DP INHAPIM                   |           2205  | DP INHAPIM // TQ 05 //30000//GASOLINA COMUM           | GASOLINA COMUM    | 30000 LITROS   |
+|   103 | DP INHAPIM                   |           2201  | DP INHAPIM // TQ 01 //30000//DIESEL S10               | DIESEL S 10       | 30000 LITROS   |
+|   103 | DP INHAPIM                   |           2206  | DP INHAPIM // TQ 06 //15000//ETANOL                   | ETANOL            | 15000 LITROS   |
+|   103 | DP INHAPIM                   |           2207  | DP INHAPIM // TQ 07 //15000//ETANOL                   | ETANOL            | 15000 LITROS   |
+|   104 | DP LUZ                       |           2301  | DP LUZ // TQ 01 //10000// ETANOL                      | ETANOL            | 15000 LITROS   |
+|   104 | DP LUZ                       |           2307  | DP LUZ // TQ 07 //12000// ARLA                        | ARLA A GRANEL     | 12000 LITROS   |
+|   104 | DP LUZ                       |           2306  | DP LUZ // TQ 06 //20000// DIESEL COMUM                | DIESEL COMUM      | 20000 LITROS   |
+|   104 | DP LUZ                       |           2303  | DP LUZ // TQ 03 //10000// GASOLINA                    | GASOLINA COMUM    | 10000 LITROS   |
+|   104 | DP LUZ                       |           2302  | DP LUZ // TQ 02 //10000// DIESEL S10                  | DIESEL S 10       | 10000 LITROS   |
+|   104 | DP LUZ                       |           2305  | DP LUZ // TQ 05 //20000// DIESEL S10                  | DIESEL S 10       | 20000 LITROS   |
+|   104 | DP LUZ                       |           2304  | DP LUZ // TQ 04 //20000// DIESEL S10                  | DIESEL S 10       | 20000 LITROS   |
++-------+------------------------------+-----------------+-------------------------------------------------------+-------------------+----------------+
+                    </textarea>
                 </div>
                 <div class="action-buttons">
-                    <button id="processButton" class="btn btn-primary">
-                        <i class="fas fa-magic"></i> Processar Dados
-                    </button>
-                    <button id="printButton" class="btn btn-secondary">
-                        <i class="fas fa-print"></i> Imprimir
-                    </button>
                     <button id="exportButton" class="btn btn-secondary">
                         <i class="fas fa-download"></i> Exportar CSV
-                    </button>
-                    <button id="clearButton" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Limpar Dados
                     </button>
                 </div>
             </div>
@@ -885,20 +1452,39 @@ Formato esperado:
             <div class="main-content" id="mainContent">
                 <div class="empty-state">
                     <i class="fas fa-chart-bar"></i>
-                    <h3>Carregue os dados para visualizar o dashboard</h3>
-                    <p>Cole os dados dos tanques na área acima e clique em "Processar Dados"</p>
+                    <h3>Carregando os dados do dashboard...</h3>
                 </div>
             </div>
 
             <div class="sidebar">
                 <div class="stats-card">
-                    <h3 class="stats-title">
-                        <i class="fas fa-chart-column"></i> Análise por Produto
-                    </h3>
-                    <div class="chart-container-3d" id="chart3DContainer">
-                        <canvas id="productChart"></canvas>
+                    <div class="product-stats-section">
+                        <h3 class="stats-title">
+                            <i class="fas fa-chart-column"></i> Análise por Produto
+                        </h3>
+                        <div class="chart-container-3d" id="productChartContainer">
+                            <canvas id="productChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="productChartLegend">
+                            <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                        </div>
                     </div>
-                    <div class="chart-legend" id="chartLegend">
+                    <h3 class="stats-title">
+                        <i class="fas fa-chart-column"></i> Análise por Empresa
+                    </h3>
+                    <div class="chart-container-3d" id="companyChartContainer">
+                        <canvas id="companyChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="companyChartLegend">
+                        <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                    </div>
+                    <h3 class="stats-title">
+                        <i class="fas fa-chart-column"></i> Análise Geral
+                    </h3>
+                    <div class="chart-container-3d" id="generalChartContainer">
+                        <canvas id="generalChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="generalChartLegend">
                         <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
                     </div>
                     <div class="total-stats" id="totalStats">
@@ -910,13 +1496,6 @@ Formato esperado:
         </div>
     </div>
 
-    <div class="floating-stats" id="floatingStats">
-        <div style="text-align: center;">
-            <i class="fas fa-info-circle" style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
-            <div id="floatingStatsContent"></div>
-        </div>
-    </div>
-
     <div class="nav-buttons">
         <button class="nav-btn" id="scrollTop" title="Ir ao topo">
             <i class="fas fa-arrow-up"></i>
@@ -925,10 +1504,6 @@ Formato esperado:
             <i class="fas fa-arrow-down"></i>
         </button>
     </div>
-
-    <button class="help-btn" id="helpButton" title="Dicas de Uso">
-        <i class="fas fa-question-circle"></i>
-    </button>
 
     <div class="popup" id="helpPopup">
         <div class="popup-header">
@@ -950,8 +1525,7 @@ Formato esperado:
                 <h3>Rede Dom Pedro</h3>
                 <p>Rede Dom Pedro Combustíveis LTDA</p>
                 <p>CNPJ: 20.415.295/0001-74</p>
-                <p>ERod. Fernão Dias, Km 880
-Estiva, MG</p>
+                <p>Rod. Fernão Dias, Km 880, Estiva, MG</p>
             </div>
             <div class="creator-info">
                 <p>Dev <strong>Waldeci Ramos</strong></p>
@@ -961,172 +1535,122 @@ Estiva, MG</p>
         </div>
     </footer>
 
+    <iframe id="dataProcessor" sandbox="allow-scripts"></iframe>
+
     <script>
         let allData = [];
         let groupedData = {};
         let tankCountByProduct = {};
         let totalCapacityByProduct = {};
+        let totalCapacityByCompany = {};
         let totalTanks = 0;
         let productCapacityByCompany = {};
         let productChart = null;
+        let companyChart = null;
+        let generalChart = null;
+        let headerInfo = "";
+        const excludedCodes = ['12', '16', '23', '38', '39', '40', '52', '62', '71', '72', '73', '74', '84'];
 
-        // Color mapping for products
         const productColors = {
-            'Etanol': '#008000', // Green
-            'Diesel S10': '#FFA500', // Orange
-            'Diesel Comum': '#0000FF', // Blue
-            'Gasolina Comum': '#FFFF00', // Yellow
-            'Gasolina Aditivada': '#87CEEB', // Light Blue
-            'Etanol Hidratado': '#556B2F', // Olive Green
-            'Diesel S10 Aditivado': '#C8A2C8' // Lilac
+            'ETANOL': '#008000',
+            'DIESEL S10': '#FFA500',
+            'DIESEL COMUM': '#0000FF',
+            'GASOLINA COMUM': '#FFFF00',
+            'GASOLINA ADITIVADA': '#87CEEB',
+            'ETANOL HIDRATADO': '#90EE90',
+            'DIESEL S10 ADITIVADO': '#800080',
+            'ARLA A GRANEL': '#FFC1CC'
         };
 
-        // Generate random color for other products
+        const companyColors = {
+            'DP 1': '#3498db',
+        };
+
         function getRandomColor() {
+            const usedColors = Object.values(productColors);
             const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
+            let color;
+            do {
+                color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+            } while (usedColors.includes(color));
             return color;
         }
 
-        // Format number with thousands separator
+        function extractHeader(inputData) {
+            const lines = inputData.split('\n');
+            return lines[0].trim();
+        }
+
         function formatNumber(number) {
             return Math.floor(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
-
-        // Load saved data from localStorage
-        function loadSavedData() {
-            const savedData = localStorage.getItem('tankData');
-            if (savedData) {
-                document.getElementById('dataInput').value = savedData;
-                processData(savedData);
-            }
-        }
-
-        // Theme Toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const body = document.body;
-        const themeIcon = themeToggle.querySelector('i');
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            body.setAttribute('data-theme', newTheme);
-            themeIcon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-            
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        body.setAttribute('data-theme', savedTheme);
-        themeIcon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-
-        const excludedCodes = ['12', '16', '23', '38', '39', '40', '52', '62', '71', '72', '73', '74', '84'];
-
-        // Process Data
-        document.getElementById('processButton').addEventListener('click', function() {
-            const inputData = document.getElementById('dataInput').value.trim();
-            if (!inputData) {
-                alert('Por favor, cole os dados na área de texto.');
-                return;
-            }
-            processData(inputData);
-            localStorage.setItem('tankData', inputData);
-        });
-
-        // Clear Data
-        document.getElementById('clearButton').addEventListener('click', function() {
-            localStorage.removeItem('tankData');
-            document.getElementById('dataInput').value = '';
-            document.getElementById('mainContent').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Carregue os dados para visualizar o dashboard</h3>
-                    <p>Cole os dados dos tanques na área acima e clique em "Processar Dados"</p>
-                </div>
-            `;
-            document.getElementById('chartLegend').innerHTML = `
-                <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
-            `;
-            document.getElementById('totalStats').innerHTML = `
-                <div class="total-number pulse">0</div>
-                <div class="total-label">Total de Tanques</div>
-            `;
-            document.getElementById('productFilter').innerHTML = '<option value="">Todos os Produtos</option>';
-            if (productChart) {
-                productChart.destroy();
-                productChart = null;
-            }
-            allData = [];
-            groupedData = {};
-            tankCountByProduct = {};
-            totalCapacityByProduct = {};
-            productCapacityByCompany = {};
-            totalTanks = 0;
-        });
 
         function processData(inputData) {
             console.log('Iniciando processData com entrada:', inputData);
             const lines = inputData.split('\n');
             const mainContent = document.getElementById('mainContent');
-            const chartLegend = document.getElementById('chartLegend');
             const productFilter = document.getElementById('productFilter');
 
             allData = [];
             groupedData = {};
             tankCountByProduct = {};
             totalCapacityByProduct = {};
+            totalCapacityByCompany = {};
             productCapacityByCompany = {};
             totalTanks = 0;
 
-            // Parse data
             for (let line of lines) {
+                if (!line.startsWith('|') || line.includes('codig') || line.includes('+----')) {
+                    continue;
+                }
+
                 const match = line.match(/^\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/);
                 if (match) {
                     const codigo = match[1].trim();
-                    
                     if (excludedCodes.includes(codigo)) {
-                        console.log(`Ignorando tanque com código ${codigo} (está na lista de exclusão)`);
+                        console.log(`Tanque com código ${codigo} excluído.`);
                         continue;
                     }
-
                     const nomeEmpresa = match[2].trim();
                     const codigoDeposito = match[3].trim();
                     const deposito = match[4].trim();
-                    const produto = match[5].trim();
-                    const capacidade = parseFloat(match[6].trim().replace(',', '.'));
+                    const produto = match[5].trim().toUpperCase();
+                    const capacidade = parseFloat(match[6].trim().replace(/\D/g, ''));
 
-                    if (produto === "ARLA A GRANEL") {
-                        console.log(`Ignorando produto ${produto}`);
-                        continue;
-                    }
-
-                    const tankData = { codigo, nomeEmpresa, codigoDeposito, deposito, produto, capacidade };
+                    const tankData = { 
+                        codigo, 
+                        nomeEmpresa, 
+                        codigoDeposito, 
+                        deposito, 
+                        produto, 
+                        capacidade,
+                        headerInfo
+                    };
                     allData.push(tankData);
 
-                    // Group by company
                     if (!groupedData[nomeEmpresa]) {
                         groupedData[nomeEmpresa] = [];
                     }
                     groupedData[nomeEmpresa].push(tankData);
 
-                    // Count by product
                     if (!tankCountByProduct[produto]) {
                         tankCountByProduct[produto] = 0;
                     }
                     tankCountByProduct[produto]++;
 
-                    // Track total capacity by product
                     if (!totalCapacityByProduct[produto]) {
                         totalCapacityByProduct[produto] = 0;
                     }
                     totalCapacityByProduct[produto] += capacidade;
 
-                    // Track capacity by company and product
+                    if (!totalCapacityByCompany[nomeEmpresa]) {
+                        totalCapacityByCompany[nomeEmpresa] = 0;
+                    }
+                    totalCapacityByCompany[nomeEmpresa] += capacidade;
+
                     if (!productCapacityByCompany[nomeEmpresa]) {
                         productCapacityByCompany[nomeEmpresa] = {};
                     }
@@ -1141,9 +1665,6 @@ Estiva, MG</p>
                 }
             }
 
-            console.log('Dados processados:', { allData, groupedData, tankCountByProduct, totalCapacityByProduct, productCapacityByCompany, totalTanks });
-
-            // Populate product filter
             productFilter.innerHTML = '<option value="">Todos os Produtos</option>';
             const sortedProducts = Object.keys(tankCountByProduct).sort();
             for (const product of sortedProducts) {
@@ -1153,16 +1674,13 @@ Estiva, MG</p>
                 productFilter.appendChild(option);
             }
 
-            // Sort companies and their tanks
             const sortedCompanies = Object.keys(groupedData).sort();
             for (const company of sortedCompanies) {
                 groupedData[company].sort((a, b) => a.produto.localeCompare(b.produto));
             }
 
-            // Render main content
             renderMainContent(sortedCompanies);
-            renderProductStats();
-            renderBarChart();
+            applyFilters();
         }
 
         function renderMainContent(companies) {
@@ -1178,6 +1696,17 @@ Estiva, MG</p>
                     </div>
                 `;
                 return;
+            }
+
+            if (headerInfo) {
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'company-header';
+                headerDiv.style.marginBottom = '2rem';
+                headerDiv.style.textAlign = 'center';
+                headerDiv.style.fontSize = '1.2rem';
+                headerDiv.style.fontWeight = 'bold';
+                headerDiv.textContent = headerInfo;
+                mainContent.appendChild(headerDiv);
             }
 
             for (const company of companies) {
@@ -1234,21 +1763,35 @@ Estiva, MG</p>
         }
 
         function renderProductStats(filteredProduct = null) {
-            const chartLegend = document.getElementById('chartLegend');
-            chartLegend.innerHTML = '';
+            const productChartLegend = document.getElementById('productChartLegend');
+            const companyChartLegend = document.getElementById('companyChartLegend');
+            const generalChartLegend = document.getElementById('generalChartLegend');
+            const totalStats = document.getElementById('totalStats');
+
+            productChartLegend.innerHTML = '';
+            companyChartLegend.innerHTML = '';
+            generalChartLegend.innerHTML = '';
 
             if (Object.keys(productCapacityByCompany).length === 0) {
-                chartLegend.innerHTML = `
+                productChartLegend.innerHTML = `
                     <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                `;
+                companyChartLegend.innerHTML = `
+                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                `;
+                generalChartLegend.innerHTML = `
+                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+                `;
+                totalStats.innerHTML = `
+                    <div class="total-number pulse">0</div>
+                    <div class="total-label">Total de Tanques</div>
                 `;
                 return;
             }
 
-            // General product stats (total tanks and capacity by product)
-            const generalStats = document.createElement('div');
-            generalStats.className = 'company-stats';
-            generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
-            
+            const productGeneralStats = document.createElement('div');
+            productGeneralStats.className = 'company-stats';
+            productGeneralStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
             const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(totalCapacityByProduct).sort();
             for (const product of sortedProducts) {
                 if (totalCapacityByProduct[product]) {
@@ -1256,57 +1799,82 @@ Estiva, MG</p>
                     productItem.className = 'legend-item';
                     productItem.innerHTML = `
                         <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                        <span class="legend-text">${product}</span>
-                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])} L)</span>
+                        <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
+                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
                     `;
-                    generalStats.appendChild(productItem);
+                    productGeneralStats.appendChild(productItem);
                 }
             }
-            chartLegend.appendChild(generalStats);
+            productChartLegend.appendChild(productGeneralStats);
 
-            // Stats by company
             const sortedCompanies = Object.keys(productCapacityByCompany).sort();
             for (const company of sortedCompanies) {
                 if (!filteredProduct || (productCapacityByCompany[company][filteredProduct] && productCapacityByCompany[company][filteredProduct].count > 0)) {
                     const companySection = document.createElement('div');
                     companySection.className = 'company-stats';
                     companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
-                    
-                    const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(productCapacityByCompany[company]).sort();
-                    for (const product of sortedProducts) {
+                    const sortedCompanyProducts = filteredProduct ? [filteredProduct] : Object.keys(productCapacityByCompany[company]).sort();
+                    for (const product of sortedCompanyProducts) {
                         if (productCapacityByCompany[company][product]) {
                             const productItem = document.createElement('div');
                             productItem.className = 'legend-item';
                             productItem.innerHTML = `
                                 <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
                                 <span class="legend-text">${product}</span>
-                                <span class="legend-value">${productCapacityByCompany[company][product].count} tanque${productCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(productCapacityByCompany[company][product].totalCapacity)} L)</span>
+                                <span class="legend-value">${productCapacityByCompany[company][product].count} tanque${productCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(productCapacityByCompany[company][product].totalCapacity)})</span>
                             `;
                             companySection.appendChild(productItem);
                         }
                     }
-                    chartLegend.appendChild(companySection);
+                    productChartLegend.appendChild(companySection);
                 }
             }
 
-            const totalStats = document.getElementById('totalStats');
+            const companyStats = document.createElement('div');
+            companyStats.className = 'company-stats';
+            companyStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Capacidade por Empresa</h4>`;
+            for (const company of sortedCompanies) {
+                const companyItem = document.createElement('div');
+                companyItem.className = 'legend-item';
+                companyItem.innerHTML = `
+                    <span class="legend-color" style="background-color: ${companyColors[company] || getRandomColor()}"></span>
+                    <span class="legend-text">${company}</span>
+                    <span class="legend-value">${formatNumber(totalCapacityByCompany[company])}</span>
+                `;
+                companyStats.appendChild(companyItem);
+            }
+            companyChartLegend.appendChild(companyStats);
+
+            const generalStats = document.createElement('div');
+            generalStats.className = 'company-stats';
+            generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
+            for (const product of sortedProducts) {
+                if (totalCapacityByProduct[product]) {
+                    const productItem = document.createElement('div');
+                    productItem.className = 'legend-item';
+                    productItem.innerHTML = `
+                        <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                        <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
+                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
+                    `;
+                    generalStats.appendChild(productItem);
+                }
+            }
+            generalChartLegend.appendChild(generalStats);
+
             totalStats.innerHTML = `
                 <div class="total-number pulse">${totalTanks}</div>
                 <div class="total-label">Total de Tanques</div>
             `;
-            console.log('Estatísticas de produtos renderizadas:', { totalCapacityByProduct, productCapacityByCompany });
         }
 
-        function renderBarChart(filteredData = null, filteredCapacity = null) {
-            console.log('Iniciando renderBarChart com dados:', filteredData || tankCountByProduct, filteredCapacity || totalCapacityByProduct);
-            const canvas = document.getElementById('productChart');
+        function renderBarChart(canvasId, dataToUse, capacityToUse, title) {
+            const canvas = document.getElementById(canvasId);
             if (!canvas) {
-                console.error('Canvas productChart não encontrado');
-                return;
+                console.error(`Canvas ${canvasId} não encontrado`);
+                return null;
             }
             const ctx = canvas.getContext('2d');
-            const dataToUse = filteredData || tankCountByProduct;
-            const capacityToUse = filteredCapacity || totalCapacityByProduct;
             const products = Object.keys(dataToUse).sort();
             const counts = products.map(product => dataToUse[product]);
             const capacities = products.map(product => capacityToUse[product]);
@@ -1314,40 +1882,82 @@ Estiva, MG</p>
 
             if (products.length === 0) {
                 console.log('Nenhum dado para renderizar o gráfico');
-                return;
+                return null;
             }
 
-            if (productChart) {
-                productChart.destroy();
+            let chartInstance = canvasId === 'productChart' ? productChart : canvasId === 'companyChart' ? companyChart : generalChart;
+            if (chartInstance) {
+                chartInstance.destroy();
             }
 
-            productChart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: products,
+                    labels: canvasId === 'companyChart' ? Object.keys(dataToUse).sort() : products,
                     datasets: [{
-                        label: 'Número de Tanques',
-                        data: counts,
-                        backgroundColor: colors,
-                        borderColor: '#ffffff',
-                        borderWidth: 1
+                        label: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
+                        data: canvasId === 'companyChart' ? Object.values(dataToUse) : counts,
+                        backgroundColor: (canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors).map(color => `rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.8)`),
+                        borderColor: canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors,
+                        borderWidth: 2,
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        barThickness: 40
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 50,
+                            bottom: 20,
+                            left: 20,
+                            right: 20
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Número de Tanques'
+                                text: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                },
+                                color: 'var(--text-primary)'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                color: 'var(--text-primary)',
+                                font: {
+                                    size: 14
+                                }
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: 'Produto'
+                                text: canvasId === 'companyChart' ? 'Empresa' : 'Produto',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                },
+                                color: 'var(--text-primary)'
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'var(--text-primary)',
+                                font: {
+                                    size: 14
+                                },
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         }
                     },
@@ -1355,44 +1965,75 @@ Estiva, MG</p>
                         legend: {
                             display: false
                         },
-                        title: {
-                            display: true,
-                            text: 'Distribuição de Tanques por Produto',
-                            font: {
-                                size: 18
-                            }
-                        },
                         datalabels: {
                             anchor: 'end',
                             align: 'top',
+                            offset: 10,
+                            rotation: 90,
                             formatter: (value, ctx) => {
+                                if (canvasId === 'companyChart') {
+                                    return formatNumber(value);
+                                }
                                 const product = products[ctx.dataIndex];
-                                return `${value} (${formatNumber(capacities[ctx.dataIndex])} L)`;
+                                return `${value}\n(${formatNumber(capacities[ctx.dataIndex])})`;
                             },
-                            color: '#000000',
+                            color: '#333333',
                             font: {
-                                size: 12,
+                                size: 10,
                                 weight: 'bold'
+                            },
+                            textAlign: 'center',
+                            backgroundColor: null,
+                            borderWidth: 0,
+                            clip: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    if (canvasId === 'companyChart') {
+                                        const company = context.label;
+                                        return `${company}: ${formatNumber(context.raw)}`;
+                                    }
+                                    const product = context.label;
+                                    const count = context.raw;
+                                    const capacity = formatNumber(capacities[ctx.dataIndex]);
+                                    return `${product}: ${count} tanque(s), ${capacity}`;
+                                }
                             }
                         }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 },
                 plugins: [ChartDataLabels]
             });
-            console.log('Gráfico de barras renderizado:', productChart);
+
+            if (canvasId === 'productChart') productChart = chartInstance;
+            else if (canvasId === 'companyChart') companyChart = chartInstance;
+            else generalChart = chartInstance;
+
+            console.log(`Gráfico ${canvasId} renderizado:`, chartInstance);
+            return chartInstance;
         }
 
-        // Register ChartDataLabels plugin
-        Chart.register(ChartDataLabels);
-
-        // Combined Company and Product Filter
         function applyFilters() {
             const companyFilterValue = document.getElementById('companyFilter').value.toLowerCase().trim();
             const productFilterValue = document.getElementById('productFilter').value;
             const companyGroups = document.querySelectorAll('.company-group');
-            
+
             let filteredTankCountByProduct = {};
             let filteredTotalCapacityByProduct = {};
+            let filteredTotalCapacityByCompany = {};
             let filteredTotalTanks = 0;
             let filteredProductCapacityByCompany = {};
 
@@ -1402,12 +2043,10 @@ Estiva, MG</p>
                 let shouldShow = true;
 
                 if (company) {
-                    // Check company name filter
                     if (companyFilterValue && !companyName.includes(companyFilterValue)) {
                         shouldShow = false;
                     }
 
-                    // Check product filter
                     if (productFilterValue) {
                         const hasProduct = groupedData[company].some(tank => tank.produto === productFilterValue);
                         if (!hasProduct) {
@@ -1415,10 +2054,8 @@ Estiva, MG</p>
                         }
                     }
 
-                    // Apply visibility
                     group.style.display = shouldShow ? '' : 'none';
 
-                    // Count tanks for filtered results
                     if (shouldShow) {
                         groupedData[company].forEach(tank => {
                             if (!productFilterValue || tank.produto === productFilterValue) {
@@ -1440,112 +2077,85 @@ Estiva, MG</p>
                                 }
                                 filteredProductCapacityByCompany[company][tank.produto].count++;
                                 filteredProductCapacityByCompany[company][tank.produto].totalCapacity += tank.capacidade;
+
+                                if (!filteredTotalCapacityByCompany[company]) {
+                                    filteredTotalCapacityByCompany[company] = 0;
+                                }
+                                filteredTotalCapacityByCompany[company] += tank.capacidade;
                             }
                         });
                     }
                 }
             });
 
-            // Update product stats for filtered results
-            const chartLegend = document.getElementById('chartLegend');
-            chartLegend.innerHTML = '';
-
-            if (companyFilterValue || productFilterValue) {
-                // General stats for filtered results
-                const generalStats = document.createElement('div');
-                generalStats.className = 'company-stats';
-                generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral (Filtrado${productFilterValue ? `: ${productFilterValue}` : ''})</h4>`;
-                
-                const sortedProducts = Object.keys(filteredTankCountByProduct).sort();
-                for (const product of sortedProducts) {
-                    const productItem = document.createElement('div');
-                    productItem.className = 'legend-item';
-                    productItem.innerHTML = `
-                        <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                        <span class="legend-text">${product}</span>
-                        <span class="legend-value">${filteredTankCountByProduct[product]} tanque${filteredTankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(filteredTotalCapacityByProduct[product])} L)</span>
-                    `;
-                    generalStats.appendChild(productItem);
-                }
-                chartLegend.appendChild(generalStats);
-
-                // Stats by company
-                const sortedCompanies = Object.keys(filteredProductCapacityByCompany).sort();
-                for (const company of sortedCompanies) {
-                    const companySection = document.createElement('div');
-                    companySection.className = 'company-stats';
-                    companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
-                    
-                    const sortedProducts = Object.keys(filteredProductCapacityByCompany[company]).sort();
-                    for (const product of sortedProducts) {
-                        const productItem = document.createElement('div');
-                        productItem.className = 'legend-item';
-                        productItem.innerHTML = `
-                            <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                            <span class="legend-text">${product}</span>
-                            <span class="legend-value">${filteredProductCapacityByCompany[company][product].count} tanque${filteredProductCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(filteredProductCapacityByCompany[company][product].totalCapacity)} L)</span>
-                        `;
-                        companySection.appendChild(productItem);
-                    }
-                    chartLegend.appendChild(companySection);
-                }
-
-                const totalStats = document.getElementById('totalStats');
-                totalStats.innerHTML = `
-                    <div class="total-number pulse">${filteredTotalTanks}</div>
-                    <div class="total-label">Total Filtrado</div>
-                `;
-                renderBarChart(filteredTankCountByProduct, filteredTotalCapacityByProduct);
-            } else {
-                renderProductStats();
-                renderBarChart();
-            }
+            renderProductStats(productFilterValue);
+            renderBarChart('productChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise por Produto');
+            renderBarChart('companyChart', filteredTotalCapacityByCompany, filteredTotalCapacityByCompany, 'Análise por Empresa');
+            renderBarChart('generalChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise Geral');
         }
 
-        // Company and Product Filter Events
+        window.addEventListener('load', function() {
+            const inputData = document.getElementById('dataInput').value.trim();
+            if (inputData) {
+                headerInfo = extractHeader(inputData);
+                processData(inputData);
+                localStorage.setItem('tankData', inputData);
+            }
+        });
+
+        Chart.register(ChartDataLabels);
+
         document.getElementById('companyFilter').addEventListener('input', applyFilters);
         document.getElementById('productFilter').addEventListener('change', applyFilters);
 
-        // Print functionality
         document.getElementById('printButton').addEventListener('click', function() {
             if (totalTanks === 0) {
                 alert('Processe os dados antes de imprimir.');
                 return;
             }
-            renderProductStats(document.getElementById('productFilter').value);
-            renderBarChart();
-            window.print();
+            applyFilters();
+            setTimeout(() => {
+                window.print();
+            }, 500);
         });
 
-        // Export CSV
         document.getElementById('exportButton').addEventListener('click', function() {
             if (totalTanks === 0) {
                 alert('Processe os dados antes de exportar.');
                 return;
             }
-
             let csvContent = 'Empresa,Código,Código Depósito,Depósito,Produto,Capacidade\n';
-            
             for (const data of allData) {
                 csvContent += `"${data.nomeEmpresa}","${data.codigo}","${data.codigoDeposito}","${data.deposito}","${data.produto}","${formatNumber(data.capacidade)}"\n`;
             }
-
             const link = document.createElement('a');
             link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
             link.download = 'relatorio_tanques_' + new Date().toISOString().split('T')[0] + '.csv';
             link.click();
         });
 
-        // Scroll Navigation
-        document.getElementById('scrollTop').addEventListener('click', () => {
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            this.querySelector('i').className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            localStorage.setItem('theme', newTheme);
+            applyFilters();
+        });
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeToggle').querySelector('i').className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+
+        document.getElementById('scrollTop').addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        document.getElementById('scrollBottom').addEventListener('click', () => {
+        document.getElementById('scrollBottom').addEventListener('click', function() {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
 
-        // Help Popup
         const helpButton = document.getElementById('helpButton');
         const helpPopup = document.getElementById('helpPopup');
         const popupTitle = document.getElementById('popupTitle');
@@ -1562,23 +2172,18 @@ Estiva, MG</p>
             },
             {
                 title: 'Cadastro de Tanques',
-                content: 'Insira os dados dos tanques no formato de tabela no campo de entrada.',
+                content: 'Os dados dos tanques são processados automaticamente ao carregar a página.',
                 image: 'cad.png?text=Cadastro+Tanques'
             },
             {
-                title: 'Clicar em Visualizar',
-                content: 'Após inserir os dados, clique em "Processar Dados" para visualizar o dashboard.',
+                title: 'Filtrar Dados',
+                content: 'Use os filtros de empresa e produto para visualizar dados específicos.',
                 image: 'ver.png?text=Visualizar'
             },
             {
-                title: 'CTRL + A',
-                content: 'Use CTRL + A para selecionar todos os dados da tabela que deseja copiar.',
-                image: 'ctrl.png?text=CTRL+A'
-            },
-            {
-                title: 'Colar na Aplicação e Processar',
-                content: 'Cole os dados no campo de entrada e clique em "Processar Dados" para atualizar o dashboard.',
-                image: 'cola.png?text=Colar+e+Processar'
+                title: 'Exportar e Imprimir',
+                content: 'Exporte os dados em CSV ou imprima o dashboard para relatórios.',
+                image: 'export.png?text=Exportar'
             }
         ];
 
@@ -1618,9 +2223,6 @@ Estiva, MG</p>
         popupClose.addEventListener('click', () => {
             helpPopup.classList.remove('show');
         });
-
-        // Load saved data on page load
-        loadSavedData();
     </script>
 </body>
 </html>
