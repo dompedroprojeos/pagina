@@ -734,14 +734,14 @@
             }
         }
 
-        @media print {
-            body * { display: none !important; }
-            .stats-card .product-stats-section,
-            .stats-card .product-stats-section * { display: flex !important; }
-            .chart-container-3d, .chart-legend { display: block !important; }
-            .stats-title { display: flex !important; }
-            .chart-container-3d canvas { width: 100% !important; height: auto !important; }
-        }
+       @media print {
+    body * { display: none !important; }
+    .stats-card .product-stats-section,
+    .stats-card .product-stats-section * { display: flex !important; }
+    .chart-container-3d, .chart-legend { display: block !important; }
+    .stats-title { display: flex !important; }
+    .chart-container-3d canvas { width: 100% !important; height: auto !important; }
+}
     </style>
 </head>
 <body data-theme="light">
@@ -1538,691 +1538,761 @@ MG - REDE DOM PEDRO DE POSTO21/07/2025 14:54
     <iframe id="dataProcessor" sandbox="allow-scripts"></iframe>
 
     <script>
-        let allData = [];
-        let groupedData = {};
-        let tankCountByProduct = {};
-        let totalCapacityByProduct = {};
-        let totalCapacityByCompany = {};
-        let totalTanks = 0;
-        let productCapacityByCompany = {};
-        let productChart = null;
-        let companyChart = null;
-        let generalChart = null;
-        let headerInfo = "";
-        const excludedCodes = ['12', '16', '23', '38', '39', '40', '52', '62', '71', '72', '73', '74', '84'];
+     let allData = [];
+let groupedData = {};
+let tankCountByProduct = {};
+let totalCapacityByProduct = {};
+let totalCapacityByCompany = {};
+let totalTanks = 0;
+let productCapacityByCompany = {};
+let productChart = null;
+let companyChart = null;
+let generalChart = null;
+let headerInfo = "";
+const excludedCodes = ['12', '16', '23', '38', '39', '40', '52', '62', '71', '72', '73', '74', '84'];
 
-        const productColors = {
-            'ETANOL': '#008000',
-            'DIESEL S10': '#FFA500',
-            'DIESEL COMUM': '#0000FF',
-            'GASOLINA COMUM': '#FFFF00',
-            'GASOLINA ADITIVADA': '#87CEEB',
-            'ETANOL HIDRATADO': '#90EE90',
-            'DIESEL S10 ADITIVADO': '#800080',
-            'ARLA A GRANEL': '#FFC1CC'
-        };
+const productColors = {
+    'ETANOL': '#008000',
+    'DIESEL S10': '#FFA500',
+    'DIESEL COMUM': '#0000FF',
+    'GASOLINA COMUM': '#FFFF00',
+    'GASOLINA ADITIVADA': '#87CEEB',
+    'ETANOL HIDRATADO': '#90EE90',
+    'DIESEL S10 ADITIVADO': '#800080',
+    'ARLA A GRANEL': '#FFC1CC'
+};
 
-        const companyColors = {
-            'DP 1': '#3498db',
-        };
+const companyColors = {
+    'DP 1': '#3498db',
+};
 
-        function getRandomColor() {
-            const usedColors = Object.values(productColors);
-            const letters = '0123456789ABCDEF';
-            let color;
-            do {
-                color = '#';
-                for (let i = 0; i < 6; i++) {
-                    color += letters[Math.floor(Math.random() * 16)];
-                }
-            } while (usedColors.includes(color));
-            return color;
+function getRandomColor() {
+    const usedColors = Object.values(productColors);
+    const letters = '0123456789ABCDEF';
+    let color;
+    do {
+        color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+    } while (usedColors.includes(color));
+    return color;
+}
+
+function extractHeader(inputData) {
+    const lines = inputData.split('\n');
+    return lines[0].trim();
+}
+
+function formatNumber(number) {
+    if (isNaN(number) || number === null || number === undefined) {
+        console.warn(`Valor inválido para formatNumber: ${number}`);
+        return '0';
+    }
+    return Math.floor(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function processData(inputData) {
+    console.log('Iniciando processData com entrada:', inputData);
+    const lines = inputData.split('\n');
+    const mainContent = document.getElementById('mainContent');
+    const productFilter = document.getElementById('productFilter');
+
+    allData = [];
+    groupedData = {};
+    tankCountByProduct = {};
+    totalCapacityByProduct = {};
+    totalCapacityByCompany = {};
+    productCapacityByCompany = {};
+    totalTanks = 0;
+
+    for (let line of lines) {
+        if (!line.startsWith('|') || line.includes('codig') || line.includes('+----')) {
+            continue;
         }
 
-        function extractHeader(inputData) {
-            const lines = inputData.split('\n');
-            return lines[0].trim();
+        const match = line.match(/^\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/);
+        if (match) {
+            const codigo = match[1].trim();
+            if (excludedCodes.includes(codigo)) {
+                console.log(`Tanque com código ${codigo} excluído.`);
+                continue;
+            }
+            const nomeEmpresa = match[2].trim();
+            const codigoDeposito = match[3].trim();
+            const deposito = match[4].trim();
+            const produto = match[5].trim().toUpperCase();
+            let capacidadeStr = match[6].trim();
+            let capacidadeNum = capacidadeStr.replace(/[^0-9.]/g, '');
+            let capacidade = parseFloat(capacidadeNum);
+            if (isNaN(capacidade)) {
+                console.warn(`Capacidade inválida para linha: ${line}, capacidadeStr: ${capacidadeStr}, capacidadeNum: ${capacidadeNum}`);
+                capacidade = 0;
+            }
+
+            const tankData = { 
+                codigo, 
+                nomeEmpresa, 
+                codigoDeposito, 
+                deposito, 
+                produto, 
+                capacidade,
+                headerInfo
+            };
+            allData.push(tankData);
+
+            if (!groupedData[nomeEmpresa]) {
+                groupedData[nomeEmpresa] = [];
+            }
+            groupedData[nomeEmpresa].push(tankData);
+
+            if (!tankCountByProduct[produto]) {
+                tankCountByProduct[produto] = 0;
+            }
+            tankCountByProduct[produto]++;
+
+            if (!totalCapacityByProduct[produto]) {
+                totalCapacityByProduct[produto] = 0;
+            }
+            totalCapacityByProduct[produto] += capacidade;
+
+            if (!totalCapacityByCompany[nomeEmpresa]) {
+                totalCapacityByCompany[nomeEmpresa] = 0;
+            }
+            totalCapacityByCompany[nomeEmpresa] += capacidade;
+
+            if (!productCapacityByCompany[nomeEmpresa]) {
+                productCapacityByCompany[nomeEmpresa] = {};
+            }
+            if (!productCapacityByCompany[nomeEmpresa][produto]) {
+                productCapacityByCompany[nomeEmpresa][produto] = { count: 0, totalCapacity: 0 };
+            }
+            productCapacityByCompany[nomeEmpresa][produto].count++;
+            productCapacityByCompany[nomeEmpresa][produto].totalCapacity += capacidade;
+
+            totalTanks++;
+            console.log(`Tanque processado:`, tankData);
+        }
+    }
+
+    productFilter.innerHTML = '<option value="">Todos os Produtos</option>';
+    const sortedProducts = Object.keys(tankCountByProduct).sort();
+    for (const product of sortedProducts) {
+        const option = document.createElement('option');
+        option.value = product;
+        option.textContent = product;
+        productFilter.appendChild(option);
+    }
+
+    const sortedCompanies = Object.keys(groupedData).sort();
+    for (const company of sortedCompanies) {
+        groupedData[company].sort((a, b) => a.produto.localeCompare(b.produto));
+    }
+
+    renderMainContent(sortedCompanies);
+    applyFilters();
+}
+
+function renderMainContent(companies) {
+    const mainContent = document.getElementById('mainContent');
+    mainContent.innerHTML = '';
+
+    if (companies.length === 0) {
+        mainContent.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Nenhum dado válido encontrado</h3>
+                <p>Verifique o formato dos dados e tente novamente</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (headerInfo) {
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'company-header';
+        headerDiv.style.marginBottom = '2rem';
+        headerDiv.style.textAlign = 'center';
+        headerDiv.style.fontSize = '1.2rem';
+        headerDiv.style.fontWeight = 'bold';
+        headerDiv.textContent = headerInfo;
+        mainContent.appendChild(headerDiv);
+    }
+
+    for (const company of companies) {
+        const companyGroup = document.createElement('div');
+        companyGroup.className = 'company-group';
+        companyGroup.setAttribute('data-company', company.toLowerCase());
+
+        const companyHeader = document.createElement('div');
+        companyHeader.className = 'company-header';
+        companyHeader.innerHTML = `
+            <i class="fas fa-building"></i>
+            ${company}
+            <span style="margin-left: auto; background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;">
+                ${groupedData[company].length} tanque${groupedData[company].length !== 1 ? 's' : ''}
+            </span>
+        `;
+
+        const tanksContainer = document.createElement('div');
+        tanksContainer.className = 'company-tanks';
+
+        for (const tank of groupedData[company]) {
+            const tankRow = document.createElement('div');
+            tankRow.className = 'tank-row';
+            tankRow.setAttribute('data-product', tank.produto);
+            tankRow.innerHTML = `
+                <div class="tank-field">
+                    <div class="tank-label">Código</div>
+                    <div class="tank-value">${tank.codigo}</div>
+                </div>
+                <div class="tank-field">
+                    <div class="tank-label">Cód. Depósito</div>
+                    <div class="tank-value">${tank.codigoDeposito}</div>
+                </div>
+                <div class="tank-field">
+                    <div class="tank-label">Produto</div>
+                    <div class="tank-value">${tank.produto}</div>
+                </div>
+                <div class="tank-field">
+                    <div class="tank-label">Depósito</div>
+                    <div class="tank-value">${tank.deposito}</div>
+                </div>
+                <div class="tank-field">
+                    <div class="tank-label">Capacidade</div>
+                    <div class="tank-value">${formatNumber(tank.capacidade)} L</div>
+                </div>
+            `;
+            tanksContainer.appendChild(tankRow);
         }
 
-        function formatNumber(number) {
-            return Math.floor(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        companyGroup.appendChild(companyHeader);
+        companyGroup.appendChild(tanksContainer);
+        mainContent.appendChild(companyGroup);
+    }
+}
+
+function renderProductStats(filteredProduct = null) {
+    const productChartLegend = document.getElementById('productChartLegend');
+    const companyChartLegend = document.getElementById('companyChartLegend');
+    const generalChartLegend = document.getElementById('generalChartLegend');
+    const totalStats = document.getElementById('totalStats');
+
+    productChartLegend.innerHTML = '';
+    companyChartLegend.innerHTML = '';
+    generalChartLegend.innerHTML = '';
+
+    if (Object.keys(productCapacityByCompany).length === 0) {
+        productChartLegend.innerHTML = `
+            <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+        `;
+        companyChartLegend.innerHTML = `
+            <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+        `;
+        generalChartLegend.innerHTML = `
+            <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
+        `;
+        totalStats.innerHTML = `
+            <div class="total-number pulse">0</div>
+            <div class="total-label">Total de Tanques</div>
+        `;
+        return;
+    }
+
+    const productGeneralStats = document.createElement('div');
+    productGeneralStats.className = 'company-stats';
+    productGeneralStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
+    const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(totalCapacityByProduct).sort();
+    for (const product of sortedProducts) {
+        if (totalCapacityByProduct[product]) {
+            const productItem = document.createElement('div');
+            productItem.className = 'legend-item';
+            productItem.innerHTML = `
+                <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
+                <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
+            `;
+            productGeneralStats.appendChild(productItem);
         }
+    }
+    productChartLegend.appendChild(productGeneralStats);
 
-        function processData(inputData) {
-            console.log('Iniciando processData com entrada:', inputData);
-            const lines = inputData.split('\n');
-            const mainContent = document.getElementById('mainContent');
-            const productFilter = document.getElementById('productFilter');
-
-            allData = [];
-            groupedData = {};
-            tankCountByProduct = {};
-            totalCapacityByProduct = {};
-            totalCapacityByCompany = {};
-            productCapacityByCompany = {};
-            totalTanks = 0;
-
-            for (let line of lines) {
-                if (!line.startsWith('|') || line.includes('codig') || line.includes('+----')) {
-                    continue;
-                }
-
-                const match = line.match(/^\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*(\d+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/);
-                if (match) {
-                    const codigo = match[1].trim();
-                    if (excludedCodes.includes(codigo)) {
-                        console.log(`Tanque com código ${codigo} excluído.`);
-                        continue;
-                    }
-                    const nomeEmpresa = match[2].trim();
-                    const codigoDeposito = match[3].trim();
-                    const deposito = match[4].trim();
-                    const produto = match[5].trim().toUpperCase();
-                    const capacidade = parseFloat(match[6].trim().replace(/\D/g, ''));
-
-                    const tankData = { 
-                        codigo, 
-                        nomeEmpresa, 
-                        codigoDeposito, 
-                        deposito, 
-                        produto, 
-                        capacidade,
-                        headerInfo
-                    };
-                    allData.push(tankData);
-
-                    if (!groupedData[nomeEmpresa]) {
-                        groupedData[nomeEmpresa] = [];
-                    }
-                    groupedData[nomeEmpresa].push(tankData);
-
-                    if (!tankCountByProduct[produto]) {
-                        tankCountByProduct[produto] = 0;
-                    }
-                    tankCountByProduct[produto]++;
-
-                    if (!totalCapacityByProduct[produto]) {
-                        totalCapacityByProduct[produto] = 0;
-                    }
-                    totalCapacityByProduct[produto] += capacidade;
-
-                    if (!totalCapacityByCompany[nomeEmpresa]) {
-                        totalCapacityByCompany[nomeEmpresa] = 0;
-                    }
-                    totalCapacityByCompany[nomeEmpresa] += capacidade;
-
-                    if (!productCapacityByCompany[nomeEmpresa]) {
-                        productCapacityByCompany[nomeEmpresa] = {};
-                    }
-                    if (!productCapacityByCompany[nomeEmpresa][produto]) {
-                        productCapacityByCompany[nomeEmpresa][produto] = { count: 0, totalCapacity: 0 };
-                    }
-                    productCapacityByCompany[nomeEmpresa][produto].count++;
-                    productCapacityByCompany[nomeEmpresa][produto].totalCapacity += capacidade;
-
-                    totalTanks++;
-                    console.log(`Tanque processado:`, tankData);
-                }
-            }
-
-            productFilter.innerHTML = '<option value="">Todos os Produtos</option>';
-            const sortedProducts = Object.keys(tankCountByProduct).sort();
-            for (const product of sortedProducts) {
-                const option = document.createElement('option');
-                option.value = product;
-                option.textContent = product;
-                productFilter.appendChild(option);
-            }
-
-            const sortedCompanies = Object.keys(groupedData).sort();
-            for (const company of sortedCompanies) {
-                groupedData[company].sort((a, b) => a.produto.localeCompare(b.produto));
-            }
-
-            renderMainContent(sortedCompanies);
-            applyFilters();
-        }
-
-        function renderMainContent(companies) {
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '';
-
-            if (companies.length === 0) {
-                mainContent.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-chart-bar"></i>
-                        <h3>Nenhum dado válido encontrado</h3>
-                        <p>Verifique o formato dos dados e tente novamente</p>
-                    </div>
-                `;
-                return;
-            }
-
-            if (headerInfo) {
-                const headerDiv = document.createElement('div');
-                headerDiv.className = 'company-header';
-                headerDiv.style.marginBottom = '2rem';
-                headerDiv.style.textAlign = 'center';
-                headerDiv.style.fontSize = '1.2rem';
-                headerDiv.style.fontWeight = 'bold';
-                headerDiv.textContent = headerInfo;
-                mainContent.appendChild(headerDiv);
-            }
-
-            for (const company of companies) {
-                const companyGroup = document.createElement('div');
-                companyGroup.className = 'company-group';
-                companyGroup.setAttribute('data-company', company.toLowerCase());
-
-                const companyHeader = document.createElement('div');
-                companyHeader.className = 'company-header';
-                companyHeader.innerHTML = `
-                    <i class="fas fa-building"></i>
-                    ${company}
-                    <span style="margin-left: auto; background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;">
-                        ${groupedData[company].length} tanque${groupedData[company].length !== 1 ? 's' : ''}
-                    </span>
-                `;
-
-                const tanksContainer = document.createElement('div');
-                tanksContainer.className = 'company-tanks';
-
-                for (const tank of groupedData[company]) {
-                    const tankRow = document.createElement('div');
-                    tankRow.className = 'tank-row';
-                    tankRow.setAttribute('data-product', tank.produto);
-                    tankRow.innerHTML = `
-                        <div class="tank-field">
-                            <div class="tank-label">Código</div>
-                            <div class="tank-value">${tank.codigo}</div>
-                        </div>
-                        <div class="tank-field">
-                            <div class="tank-label">Cód. Depósito</div>
-                            <div class="tank-value">${tank.codigoDeposito}</div>
-                        </div>
-                        <div class="tank-field">
-                            <div class="tank-label">Produto</div>
-                            <div class="tank-value">${tank.produto}</div>
-                        </div>
-                        <div class="tank-field">
-                            <div class="tank-label">Depósito</div>
-                            <div class="tank-value">${tank.deposito}</div>
-                        </div>
-                        <div class="tank-field">
-                            <div class="tank-label">Capacidade</div>
-                            <div class="tank-value">${formatNumber(tank.capacidade)} L</div>
-                        </div>
-                    `;
-                    tanksContainer.appendChild(tankRow);
-                }
-
-                companyGroup.appendChild(companyHeader);
-                companyGroup.appendChild(tanksContainer);
-                mainContent.appendChild(companyGroup);
-            }
-        }
-
-        function renderProductStats(filteredProduct = null) {
-            const productChartLegend = document.getElementById('productChartLegend');
-            const companyChartLegend = document.getElementById('companyChartLegend');
-            const generalChartLegend = document.getElementById('generalChartLegend');
-            const totalStats = document.getElementById('totalStats');
-
-            productChartLegend.innerHTML = '';
-            companyChartLegend.innerHTML = '';
-            generalChartLegend.innerHTML = '';
-
-            if (Object.keys(productCapacityByCompany).length === 0) {
-                productChartLegend.innerHTML = `
-                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
-                `;
-                companyChartLegend.innerHTML = `
-                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
-                `;
-                generalChartLegend.innerHTML = `
-                    <p style="color: var(--text-secondary); text-align: center;">Nenhum dado processado</p>
-                `;
-                totalStats.innerHTML = `
-                    <div class="total-number pulse">0</div>
-                    <div class="total-label">Total de Tanques</div>
-                `;
-                return;
-            }
-
-            const productGeneralStats = document.createElement('div');
-            productGeneralStats.className = 'company-stats';
-            productGeneralStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
-            const sortedProducts = filteredProduct ? [filteredProduct] : Object.keys(totalCapacityByProduct).sort();
-            for (const product of sortedProducts) {
-                if (totalCapacityByProduct[product]) {
+    const sortedCompanies = Object.keys(productCapacityByCompany).sort();
+    for (const company of sortedCompanies) {
+        if (!filteredProduct || (productCapacityByCompany[company][filteredProduct] && productCapacityByCompany[company][filteredProduct].count > 0)) {
+            const companySection = document.createElement('div');
+            companySection.className = 'company-stats';
+            companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
+            const sortedCompanyProducts = filteredProduct ? [filteredProduct] : Object.keys(productCapacityByCompany[company]).sort();
+            for (const product of sortedCompanyProducts) {
+                if (productCapacityByCompany[company][product]) {
                     const productItem = document.createElement('div');
                     productItem.className = 'legend-item';
                     productItem.innerHTML = `
                         <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                        <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
-                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
+                        <span class="legend-text">${product}</span>
+                        <span class="legend-value">${productCapacityByCompany[company][product].count} tanque${productCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(productCapacityByCompany[company][product].totalCapacity)})</span>
                     `;
-                    productGeneralStats.appendChild(productItem);
+                    companySection.appendChild(productItem);
                 }
             }
-            productChartLegend.appendChild(productGeneralStats);
-
-            const sortedCompanies = Object.keys(productCapacityByCompany).sort();
-            for (const company of sortedCompanies) {
-                if (!filteredProduct || (productCapacityByCompany[company][filteredProduct] && productCapacityByCompany[company][filteredProduct].count > 0)) {
-                    const companySection = document.createElement('div');
-                    companySection.className = 'company-stats';
-                    companySection.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">${company}</h4>`;
-                    const sortedCompanyProducts = filteredProduct ? [filteredProduct] : Object.keys(productCapacityByCompany[company]).sort();
-                    for (const product of sortedCompanyProducts) {
-                        if (productCapacityByCompany[company][product]) {
-                            const productItem = document.createElement('div');
-                            productItem.className = 'legend-item';
-                            productItem.innerHTML = `
-                                <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                                <span class="legend-text">${product}</span>
-                                <span class="legend-value">${productCapacityByCompany[company][product].count} tanque${productCapacityByCompany[company][product].count !== 1 ? 's' : ''} (${formatNumber(productCapacityByCompany[company][product].totalCapacity)})</span>
-                            `;
-                            companySection.appendChild(productItem);
-                        }
-                    }
-                    productChartLegend.appendChild(companySection);
-                }
-            }
-
-            const companyStats = document.createElement('div');
-            companyStats.className = 'company-stats';
-            companyStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Capacidade por Empresa</h4>`;
-            for (const company of sortedCompanies) {
-                const companyItem = document.createElement('div');
-                companyItem.className = 'legend-item';
-                companyItem.innerHTML = `
-                    <span class="legend-color" style="background-color: ${companyColors[company] || getRandomColor()}"></span>
-                    <span class="legend-text">${company}</span>
-                    <span class="legend-value">${formatNumber(totalCapacityByCompany[company])}</span>
-                `;
-                companyStats.appendChild(companyItem);
-            }
-            companyChartLegend.appendChild(companyStats);
-
-            const generalStats = document.createElement('div');
-            generalStats.className = 'company-stats';
-            generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
-            for (const product of sortedProducts) {
-                if (totalCapacityByProduct[product]) {
-                    const productItem = document.createElement('div');
-                    productItem.className = 'legend-item';
-                    productItem.innerHTML = `
-                        <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
-                        <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
-                        <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
-                    `;
-                    generalStats.appendChild(productItem);
-                }
-            }
-            generalChartLegend.appendChild(generalStats);
-
-            totalStats.innerHTML = `
-                <div class="total-number pulse">${totalTanks}</div>
-                <div class="total-label">Total de Tanques</div>
-            `;
+            productChartLegend.appendChild(companySection);
         }
+    }
 
-        function renderBarChart(canvasId, dataToUse, capacityToUse, title) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error(`Canvas ${canvasId} não encontrado`);
-                return null;
-            }
-            const ctx = canvas.getContext('2d');
-            const products = Object.keys(dataToUse).sort();
-            const counts = products.map(product => dataToUse[product]);
-            const capacities = products.map(product => capacityToUse[product]);
-            const colors = products.map(product => productColors[product] || getRandomColor());
+    const companyStats = document.createElement('div');
+    companyStats.className = 'company-stats';
+    companyStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Capacidade por Empresa</h4>`;
+    for (const company of sortedCompanies) {
+        const companyItem = document.createElement('div');
+        companyItem.className = 'legend-item';
+        companyItem.innerHTML = `
+            <span class="legend-color" style="background-color: ${companyColors[company] || getRandomColor()}"></span>
+            <span class="legend-text">${company}</span>
+            <span class="legend-value">${formatNumber(totalCapacityByCompany[company])}</span>
+        `;
+        companyStats.appendChild(companyItem);
+    }
+    companyChartLegend.appendChild(companyStats);
 
-            if (products.length === 0) {
-                console.log('Nenhum dado para renderizar o gráfico');
-                return null;
-            }
+    const generalStats = document.createElement('div');
+    generalStats.className = 'company-stats';
+    generalStats.innerHTML = `<h4 style="margin: 1rem 0 0.5rem; color: var(--text-primary); font-size: 1.3rem;">Geral${filteredProduct ? ` (Filtrado: ${filteredProduct})` : ''}</h4>`;
+    for (const product of sortedProducts) {
+        if (totalCapacityByProduct[product]) {
+            const productItem = document.createElement('div');
+            productItem.className = 'legend-item';
+            productItem.innerHTML = `
+                <span class="legend-color" style="background-color: ${productColors[product] || getRandomColor()}"></span>
+                <span class="legend-text"><i class="fas fa-arrow-right" style="color: ${productColors[product] || getRandomColor()}; margin-right: 0.5rem;"></i>${product}</span>
+                <span class="legend-value">${tankCountByProduct[product]} tanque${tankCountByProduct[product] !== 1 ? 's' : ''} (${formatNumber(totalCapacityByProduct[product])})</span>
+            `;
+            generalStats.appendChild(productItem);
+        }
+    }
+    generalChartLegend.appendChild(generalStats);
 
-            let chartInstance = canvasId === 'productChart' ? productChart : canvasId === 'companyChart' ? companyChart : generalChart;
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+    totalStats.innerHTML = `
+        <div class="total-number pulse">${totalTanks}</div>
+        <div class="total-label">Total de Tanques</div>
+    `;
+}
 
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: canvasId === 'companyChart' ? Object.keys(dataToUse).sort() : products,
-                    datasets: [{
-                        label: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
-                        data: canvasId === 'companyChart' ? Object.values(dataToUse) : counts,
-                        backgroundColor: (canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors).map(color => `rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.8)`),
-                        borderColor: canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors,
-                        borderWidth: 2,
-                        borderRadius: 10,
-                        borderSkipped: false,
-                        barThickness: 40
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 50,
-                            bottom: 20,
-                            left: 20,
-                            right: 20
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
-                                font: {
-                                    size: 16,
-                                    weight: 'bold'
-                                },
-                                color: 'var(--text-primary)'
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            ticks: {
-                                color: 'var(--text-primary)',
-                                font: {
-                                    size: 14
-                                }
-                            }
+function renderBarChart(canvasId, dataToUse, capacityToUse, title) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas ${canvasId} não encontrado`);
+        return null;
+    }
+    const ctx = canvas.getContext('2d');
+    const products = Object.keys(dataToUse).sort();
+    const counts = products.map(product => dataToUse[product]);
+    const capacities = products.map(product => {
+        const cap = capacityToUse[product];
+        if (isNaN(cap) || cap === undefined) {
+            console.warn(`Capacidade inválida para produto ${product}: ${cap}`);
+            return 0;
+        }
+        return cap;
+    });
+    const colors = products.map(product => productColors[product] || getRandomColor());
+
+    if (products.length === 0) {
+        console.log('Nenhum dado para renderizar o gráfico');
+        return null;
+    }
+
+    let chartInstance = canvasId === 'productChart' ? productChart : canvasId === 'companyChart' ? companyChart : generalChart;
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: canvasId === 'companyChart' ? Object.keys(dataToUse).sort() : products,
+            datasets: [{
+                label: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
+                data: canvasId === 'companyChart' ? Object.values(dataToUse) : counts,
+                backgroundColor: (canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors).map(color => `rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.8)`),
+                borderColor: canvasId === 'companyChart' ? Object.keys(dataToUse).map(company => companyColors[company] || getRandomColor()) : colors,
+                borderWidth: 2,
+                borderRadius: 10,
+                borderSkipped: false,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 50,
+                    bottom: 20,
+                    left: 20,
+                    right: 20
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: canvasId === 'companyChart' ? 'Capacidade Total (Litros)' : 'Número de Tanques',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: canvasId === 'companyChart' ? 'Empresa' : 'Produto',
-                                font: {
-                                    size: 16,
-                                    weight: 'bold'
-                                },
-                                color: 'var(--text-primary)'
-                            },
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: 'var(--text-primary)',
-                                font: {
-                                    size: 14
-                                },
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
+                        color: 'var(--text-primary)'
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            offset: 10,
-                            rotation: 90,
-                            formatter: (value, ctx) => {
-                                if (canvasId === 'companyChart') {
-                                    return formatNumber(value);
-                                }
-                                const product = products[ctx.dataIndex];
-                                return `${value}\n(${formatNumber(capacities[ctx.dataIndex])})`;
-                            },
-                            color: '#333333',
-                            font: {
-                                size: 10,
-                                weight: 'bold'
-                            },
-                            textAlign: 'center',
-                            backgroundColor: null,
-                            borderWidth: 0,
-                            clip: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleFont: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 12
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    if (canvasId === 'companyChart') {
-                                        const company = context.label;
-                                        return `${company}: ${formatNumber(context.raw)}`;
-                                    }
-                                    const product = context.label;
-                                    const count = context.raw;
-                                    const capacity = formatNumber(capacities[ctx.dataIndex]);
-                                    return `${product}: ${count} tanque(s), ${capacity}`;
-                                }
-                            }
-                        }
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
                     },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
+                    ticks: {
+                        color: 'var(--text-primary)',
+                        font: {
+                            size: 14
+                        }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-
-            if (canvasId === 'productChart') productChart = chartInstance;
-            else if (canvasId === 'companyChart') companyChart = chartInstance;
-            else generalChart = chartInstance;
-
-            console.log(`Gráfico ${canvasId} renderizado:`, chartInstance);
-            return chartInstance;
-        }
-
-        function applyFilters() {
-            const companyFilterValue = document.getElementById('companyFilter').value.toLowerCase().trim();
-            const productFilterValue = document.getElementById('productFilter').value;
-            const companyGroups = document.querySelectorAll('.company-group');
-
-            let filteredTankCountByProduct = {};
-            let filteredTotalCapacityByProduct = {};
-            let filteredTotalCapacityByCompany = {};
-            let filteredTotalTanks = 0;
-            let filteredProductCapacityByCompany = {};
-
-            companyGroups.forEach(group => {
-                const companyName = group.getAttribute('data-company');
-                const company = Object.keys(groupedData).find(c => c.toLowerCase() === companyName);
-                let shouldShow = true;
-
-                if (company) {
-                    if (companyFilterValue && !companyName.includes(companyFilterValue)) {
-                        shouldShow = false;
-                    }
-
-                    if (productFilterValue) {
-                        const hasProduct = groupedData[company].some(tank => tank.produto === productFilterValue);
-                        if (!hasProduct) {
-                            shouldShow = false;
-                        }
-                    }
-
-                    group.style.display = shouldShow ? '' : 'none';
-
-                    if (shouldShow) {
-                        groupedData[company].forEach(tank => {
-                            if (!productFilterValue || tank.produto === productFilterValue) {
-                                if (!filteredTankCountByProduct[tank.produto]) {
-                                    filteredTankCountByProduct[tank.produto] = 0;
-                                }
-                                if (!filteredTotalCapacityByProduct[tank.produto]) {
-                                    filteredTotalCapacityByProduct[tank.produto] = 0;
-                                }
-                                filteredTankCountByProduct[tank.produto]++;
-                                filteredTotalCapacityByProduct[tank.produto] += tank.capacidade;
-                                filteredTotalTanks++;
-
-                                if (!filteredProductCapacityByCompany[company]) {
-                                    filteredProductCapacityByCompany[company] = {};
-                                }
-                                if (!filteredProductCapacityByCompany[company][tank.produto]) {
-                                    filteredProductCapacityByCompany[company][tank.produto] = { count: 0, totalCapacity: 0 };
-                                }
-                                filteredProductCapacityByCompany[company][tank.produto].count++;
-                                filteredProductCapacityByCompany[company][tank.produto].totalCapacity += tank.capacidade;
-
-                                if (!filteredTotalCapacityByCompany[company]) {
-                                    filteredTotalCapacityByCompany[company] = 0;
-                                }
-                                filteredTotalCapacityByCompany[company] += tank.capacidade;
-                            }
-                        });
+                x: {
+                    title: {
+                        display: true,
+                        text: canvasId === 'companyChart' ? 'Empresa' : 'Produto',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        color: 'var(--text-primary)'
+                    },
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'var(--text-primary)',
+                        font: {
+                            size: 14
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
-            });
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 10,
+                    rotation: 90,
+                    formatter: (value, ctx) => {
+                        if (canvasId === 'companyChart') {
+                            return formatNumber(value);
+                        }
+                        const product = products[ctx.dataIndex];
+                        const capacity = capacities[ctx.dataIndex];
+                        return `${value}\n(${formatNumber(capacity)})`;
+                    },
+                    color: '#333333',
+                    font: {
+                        size: 10,
+                        weight: 'bold'
+                    },
+                    textAlign: 'center',
+                    backgroundColor: null,
+                    borderWidth: 0,
+                    clip: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            if (canvasId === 'companyChart') {
+                                const company = context.label;
+                                return `${company}: ${formatNumber(context.raw)}`;
+                            }
+                            const product = context.label;
+                            const count = context.raw;
+                            const capacity = formatNumber(capacities[context.dataIndex]);
+                            return `${product}: ${count} tanque(s), ${capacity}`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
 
-            renderProductStats(productFilterValue);
-            renderBarChart('productChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise por Produto');
-            renderBarChart('companyChart', filteredTotalCapacityByCompany, filteredTotalCapacityByCompany, 'Análise por Empresa');
-            renderBarChart('generalChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise Geral');
+    if (canvasId === 'productChart') productChart = chartInstance;
+    else if (canvasId === 'companyChart') companyChart = chartInstance;
+    else generalChart = chartInstance;
+
+    console.log(`Gráfico ${canvasId} renderizado:`, chartInstance);
+    return chartInstance;
+}
+
+function applyFilters() {
+    const companyFilterValue = document.getElementById('companyFilter').value.toLowerCase().trim();
+    const productFilterValue = document.getElementById('productFilter').value;
+    const companyGroups = document.querySelectorAll('.company-group');
+
+    let filteredTankCountByProduct = {};
+    let filteredTotalCapacityByProduct = {};
+    let filteredTotalCapacityByCompany = {};
+    let filteredTotalTanks = 0;
+    let filteredProductCapacityByCompany = {};
+
+    companyGroups.forEach(group => {
+        const companyName = group.getAttribute('data-company');
+        const company = Object.keys(groupedData).find(c => c.toLowerCase() === companyName);
+        let shouldShow = true;
+
+        if (company) {
+            if (companyFilterValue && !companyName.includes(companyFilterValue)) {
+                shouldShow = false;
+            }
+
+            if (productFilterValue) {
+                const hasProduct = groupedData[company].some(tank => tank.produto === productFilterValue);
+                if (!hasProduct) {
+                    shouldShow = false;
+                }
+            }
+
+            group.style.display = shouldShow ? '' : 'none';
+
+            if (shouldShow) {
+                groupedData[company].forEach(tank => {
+                    if (!productFilterValue || tank.produto === productFilterValue) {
+                        if (!filteredTankCountByProduct[tank.produto]) {
+                            filteredTankCountByProduct[tank.produto] = 0;
+                        }
+                        if (!filteredTotalCapacityByProduct[tank.produto]) {
+                            filteredTotalCapacityByProduct[tank.produto] = 0;
+                        }
+                        filteredTankCountByProduct[tank.produto]++;
+                        const capacidade = isNaN(tank.capacidade) ? 0 : tank.capacidade;
+                        filteredTotalCapacityByProduct[tank.produto] += capacidade;
+                        filteredTotalTanks++;
+
+                        if (!filteredProductCapacityByCompany[company]) {
+                            filteredProductCapacityByCompany[company] = {};
+                        }
+                        if (!filteredProductCapacityByCompany[company][tank.produto]) {
+                            filteredProductCapacityByCompany[company][tank.produto] = { count: 0, totalCapacity: 0 };
+                        }
+                        filteredProductCapacityByCompany[company][tank.produto].count++;
+                        filteredProductCapacityByCompany[company][tank.produto].totalCapacity += capacidade;
+
+                        if (!filteredTotalCapacityByCompany[company]) {
+                            filteredTotalCapacityByCompany[company] = 0;
+                        }
+                        filteredTotalCapacityByCompany[company] += capacidade;
+                    }
+                });
+            }
+        }
+    });
+
+    renderProductStats(productFilterValue);
+    renderBarChart('productChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise por Produto');
+    renderBarChart('companyChart', filteredTotalCapacityByCompany, filteredTotalCapacityByCompany, 'Análise por Empresa');
+    renderBarChart('generalChart', filteredTankCountByProduct, filteredTotalCapacityByProduct, 'Análise Geral');
+}
+
+function prepareChartForPrint() {
+    return new Promise((resolve) => {
+        const canvas = document.getElementById('productChart');
+        const chartContainer = document.getElementById('productChartContainer');
+        
+        if (!canvas || !chartContainer || !productChart) {
+            console.warn('Canvas ou chartContainer não encontrado, ou gráfico não inicializado');
+            // Inserir mensagem de fallback se o gráfico não estiver disponível
+            chartContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Gráfico não disponível para impressão</p>';
+            setTimeout(resolve, 100);
+            return;
         }
 
-        window.addEventListener('load', function() {
-            const inputData = document.getElementById('dataInput').value.trim();
-            if (inputData) {
-                headerInfo = extractHeader(inputData);
-                processData(inputData);
-                localStorage.setItem('tankData', inputData);
-            }
-        });
+        // Forçar atualização do gráfico
+        productChart.update();
 
-        Chart.register(ChartDataLabels);
+        // Criar imagem a partir do canvas
+        const img = new Image();
+        img.src = canvas.toDataURL('image/png');
+        img.style.width = '100%';
+        img.style.height = 'auto';
 
-        document.getElementById('companyFilter').addEventListener('input', applyFilters);
-        document.getElementById('productFilter').addEventListener('change', applyFilters);
+        // Aguardar o carregamento da imagem antes de prosseguir
+        img.onload = () => {
+            chartContainer.innerHTML = '';
+            chartContainer.appendChild(img);
+            console.log('Imagem do gráfico inserida no DOM para impressão');
+            setTimeout(resolve, 200); // Aumentado para garantir renderização
+        };
+        img.onerror = () => {
+            console.error('Erro ao carregar a imagem do gráfico');
+            chartContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Erro ao carregar gráfico</p>';
+            setTimeout(resolve, 200);
+        };
+    });
+}
 
-        document.getElementById('printButton').addEventListener('click', function() {
-            if (totalTanks === 0) {
-                alert('Processe os dados antes de imprimir.');
-                return;
-            }
+window.addEventListener('load', function() {
+    const inputData = document.getElementById('dataInput').value.trim();
+    if (inputData) {
+        headerInfo = extractHeader(inputData);
+        processData(inputData);
+        localStorage.setItem('tankData', inputData);
+    } else {
+        console.warn('Nenhum dado encontrado no textarea de entrada');
+    }
+});
+
+Chart.register(ChartDataLabels);
+
+document.getElementById('companyFilter').addEventListener('input', applyFilters);
+document.getElementById('productFilter').addEventListener('change', applyFilters);
+
+document.getElementById('printButton').addEventListener('click', async function() {
+    if (totalTanks === 0) {
+        alert('Processe os dados antes de imprimir.');
+        return;
+    }
+
+    console.log('Iniciando processo de impressão');
+    // Garantir que os filtros e gráficos estejam atualizados
+    applyFilters();
+    await prepareChartForPrint();
+
+    // Aumentar o tempo de espera para garantir que a imagem esteja no DOM
+    setTimeout(() => {
+        console.log('Chamando window.print()');
+        window.print();
+        // Restaurar o canvas após a impressão
+        setTimeout(() => {
             applyFilters();
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        });
+            console.log('Gráfico restaurado após impressão');
+        }, 500);
+    }, 1500); // Aumentado para 1500ms
+});
 
-        document.getElementById('exportButton').addEventListener('click', function() {
-            if (totalTanks === 0) {
-                alert('Processe os dados antes de exportar.');
-                return;
-            }
-            let csvContent = 'Empresa,Código,Código Depósito,Depósito,Produto,Capacidade\n';
-            for (const data of allData) {
-                csvContent += `"${data.nomeEmpresa}","${data.codigo}","${data.codigoDeposito}","${data.deposito}","${data.produto}","${formatNumber(data.capacidade)}"\n`;
-            }
-            const link = document.createElement('a');
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-            link.download = 'relatorio_tanques_' + new Date().toISOString().split('T')[0] + '.csv';
-            link.click();
-        });
+document.getElementById('exportButton').addEventListener('click', function() {
+    if (totalTanks === 0) {
+        alert('Processe os dados antes de exportar.');
+        return;
+    }
+    let csvContent = 'Empresa,Código,Código Depósito,Depósito,Produto,Capacidade\n';
+    for (const data of allData) {
+        csvContent += `"${data.nomeEmpresa}","${data.codigo}","${data.codigoDeposito}","${data.deposito}","${data.produto}","${formatNumber(data.capacidade)}"\n`;
+    }
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    link.download = 'relatorio_tanques_' + new Date().toISOString().split('T')[0] + '.csv';
+    link.click();
+});
 
-        document.getElementById('themeToggle').addEventListener('click', function() {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            body.setAttribute('data-theme', newTheme);
-            this.querySelector('i').className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-            localStorage.setItem('theme', newTheme);
-            applyFilters();
-        });
+document.getElementById('themeToggle').addEventListener('click', function() {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    body.setAttribute('data-theme', newTheme);
+    this.querySelector('i').className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    localStorage.setItem('theme', newTheme);
+    applyFilters();
+});
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        document.getElementById('themeToggle').querySelector('i').className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.body.setAttribute('data-theme', savedTheme);
+document.getElementById('themeToggle').querySelector('i').className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
 
-        document.getElementById('scrollTop').addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+document.getElementById('scrollTop').addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-        document.getElementById('scrollBottom').addEventListener('click', function() {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        });
+document.getElementById('scrollBottom').addEventListener('click', function() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+});
 
-        const helpButton = document.getElementById('helpButton');
-        const helpPopup = document.getElementById('helpPopup');
-        const popupTitle = document.getElementById('popupTitle');
-        const popupContent = document.getElementById('popupContent');
-        const popupNext = document.getElementById('popupNext');
-        const popupPrev = document.getElementById('popupPrev');
-        const popupClose = document.getElementById('popupClose');
+const helpButton = document.getElementById('helpButton');
+const helpPopup = document.getElementById('helpPopup');
+const popupTitle = document.getElementById('popupTitle');
+const popupContent = document.getElementById('popupContent');
+const popupNext = document.getElementById('popupNext');
+const popupPrev = document.getElementById('popupPrev');
+const popupClose = document.getElementById('popupClose');
 
-        const helpSlides = [
-            {
-                title: 'Relatório',
-                content: 'Visualize relatórios detalhados sobre os tanques por produto e empresa.',
-                image: 'rel.png?text=Relatório'
-            },
-            {
-                title: 'Cadastro de Tanques',
-                content: 'Os dados dos tanques são processados automaticamente ao carregar a página.',
-                image: 'cad.png?text=Cadastro+Tanques'
-            },
-            {
-                title: 'Filtrar Dados',
-                content: 'Use os filtros de empresa e produto para visualizar dados específicos.',
-                image: 'ver.png?text=Visualizar'
-            },
-            {
-                title: 'Exportar e Imprimir',
-                content: 'Exporte os dados em CSV ou imprima o dashboard para relatórios.',
-                image: 'export.png?text=Exportar'
-            }
-        ];
+const helpSlides = [
+    {
+        title: 'Relatório',
+        content: 'Visualize relatórios detalhados sobre os tanques por produto e empresa.',
+        image: 'rel.png?text=Relatório'
+    },
+    {
+        title: 'Cadastro de Tanques',
+        content: 'Os dados dos tanques são processados automaticamente ao carregar a página.',
+        image: 'cad.png?text=Cadastro+Tanques'
+    },
+    {
+        title: 'Filtrar Dados',
+        content: 'Use os filtros de empresa e produto para visualizar dados específicos.',
+        image: 'ver.png?text=Visualizar'
+    },
+    {
+        title: 'Exportar e Imprimir',
+        content: 'Exporte os dados em CSV ou imprima o dashboard para relatórios.',
+        image: 'export.png?text=Exportar'
+    }
+];
 
-        let currentSlide = 0;
+let currentSlide = 0;
 
-        function showSlide(index) {
-            const slide = helpSlides[index];
-            popupTitle.textContent = slide.title;
-            popupContent.innerHTML = `
-                <img src="${slide.image}" alt="${slide.title}">
-                <p>${slide.content}</p>
-            `;
-            popupPrev.style.display = index === 0 ? 'none' : 'inline-block';
-            popupNext.style.display = index === helpSlides.length - 1 ? 'none' : 'inline-block';
-        }
+function showSlide(index) {
+    const slide = helpSlides[index];
+    popupTitle.textContent = slide.title;
+    popupContent.innerHTML = `
+        <img src="${slide.image}" alt="${slide.title}">
+        <p>${slide.content}</p>
+    `;
+    popupPrev.style.display = index === 0 ? 'none' : 'inline-block';
+    popupNext.style.display = index === helpSlides.length - 1 ? 'none' : 'inline-block';
+}
 
-        helpButton.addEventListener('click', () => {
-            currentSlide = 0;
-            showSlide(currentSlide);
-            helpPopup.classList.add('show');
-        });
+helpButton.addEventListener('click', () => {
+    currentSlide = 0;
+    showSlide(currentSlide);
+    helpPopup.classList.add('show');
+});
 
-        popupNext.addEventListener('click', () => {
-            if (currentSlide < helpSlides.length - 1) {
-                currentSlide++;
-                showSlide(currentSlide);
-            }
-        });
+popupNext.addEventListener('click', () => {
+    if (currentSlide < helpSlides.length - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
+    }
+});
 
-        popupPrev.addEventListener('click', () => {
-            if (currentSlide > 0) {
-                currentSlide--;
-                showSlide(currentSlide);
-            }
-        });
+popupPrev.addEventListener('click', () => {
+    if (currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
+    }
+});
 
-        popupClose.addEventListener('click', () => {
-            helpPopup.classList.remove('show');
-        });
+popupClose.addEventListener('click', () => {
+    helpPopup.classList.remove('show');
+});
     </script>
 </body>
 </html>
