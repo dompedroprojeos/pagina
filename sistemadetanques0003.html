@@ -1,194 +1,194 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Envio de Mensagens - Fisio Clínica</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="utf-8">
+<title>Importador EFD-Contribuições</title>
+<!-- GovBR-like palette -->
 <style>
-body { font-family: 'Segoe UI', sans-serif; margin:0; padding:0; background:#f0f2f5; color:#333; }
-header, footer { background:#2c3e50; color:#fff; text-align:center; padding:15px; }
-header h1 { margin:0; font-size:24px; }
-footer { font-size:13px; }
-main { max-width:900px; margin:20px auto; padding:0 15px; }
-.card { background:#fff; border-radius:10px; padding:20px; box-shadow:0 3px 6px rgba(0,0,0,.1); margin-bottom:20px; }
-.card h2 { margin:0 0 15px; font-size:18px; color:#2c3e50; }
-label { display:block; margin:10px 0 5px; font-weight:500; }
-input { width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px; }
-.btn { background:#2c3e50; color:#fff; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; font-size:14px; margin-top:10px; }
-.btn:hover { background:#34495e; }
-.btn i { margin-right:6px; }
-table { width:100%; border-collapse:collapse; margin-top:15px; }
-th, td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
-th { background:#2c3e50; color:#fff; }
-.sent { color:green; font-weight:bold; }
-.report { margin-top:20px; }
-.actions button { margin:2px 0; }
+:root{
+--gov-azul:#0070b8;
+--gov-azul-escuro:#005288;
+--gov-cinza:#f1f1f1;
+--gov-cinza-escuro:#6c757d;
+--gov-branco:#fff;
+--gov-verde:#2e8540;
+}
+body{
+font-family:'Roboto','Helvetica Neue',Arial,sans-serif;
+background:var(--gov-cinza);
+margin:0;
+}
+header{
+background:var(--gov-azul);
+color:var(--gov-branco);
+padding:1rem 2rem;
+}
+h1{margin:0;font-size:1.4rem;}
+main{padding:2rem;}
+button, input[type="file"]{
+background:var(--gov-azul);
+color:var(--gov-branco);
+border:none;
+padding:.6rem 1.2rem;
+margin-right:.5rem;
+cursor:pointer;
+border-radius:4px;
+font-size:.9rem;
+}
+button:hover{background:var(--gov-azul-escuro);}
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:1rem;
+background:var(--gov-branco);
+}
+th,td{
+padding:.55rem .7rem;
+border:1px solid var(--gov-cinza-escuro);
+text-align:left;
+font-size:.88rem;
+}
+th{background:var(--gov-azul);color:#fff;}
+tfoot td{
+font-weight:700;
+background:var(--gov-cinza);
+}
+.search-box{
+margin-top:1rem;
+}
+.search-box input{
+padding:.5rem .6rem;
+width:200px;
+}
+fieldset{
+border:1px solid var(--gov-azul-escuro);
+padding:1rem;
+margin-bottom:1rem;
+}
+legend{font-weight:600;color:var(--gov-azul-escuro);}
 </style>
 </head>
 <body>
-
-<header>
-<h1><i class="fa-solid fa-hospital-user"></i> Fisio Clínica</h1>
-<p>Sistema de envio automático de mensagens para pacientes</p>
-</header>
+<header><h1>Importador EFD-Contribuições (PIS/COFINS)</h1></header>
 
 <main>
-<div class="card">
-<h2><i class="fa-solid fa-user-plus"></i> Cadastrar Paciente</h2>
-<form id="patientForm">
-<label>Nome:</label>
-<input type="text" id="name" required>
-<label>Telefone (com DDD):</label>
-<input type="tel" id="phone" placeholder="(11) 91234-5678" required>
-<label>Data da Marcação:</label>
-<input type="date" id="date" required>
-<label>Horário da Marcação:</label>
-<input type="time" id="time" required>
-<button type="submit" class="btn"><i class="fa-solid fa-plus"></i> Adicionar</button>
-</form>
-</div>
+<fieldset>
+<legend>1. Selecionar arquivo TXT</legend>
+<input type="file" id="fileInput" accept=".txt">
+</fieldset>
 
-<div class="card">
-<h2><i class="fa-solid fa-list"></i> Pacientes</h2>
-<table id="patientsTable">
-<thead>
-<tr>
-<th>Nome</th>
-<th>Telefone</th>
-<th>Data</th>
-<th>Hora</th>
-<th>Status</th>
-<th>Ações</th>
-</tr>
-</thead>
+<fieldset>
+<legend>2. Filtrar por CNPJ (prefixo 29.415.295/)</legend>
+<div class="search-box">
+<input type="text" id="cnpjSearch" placeholder="Digite CNPJ completo">
+<button id="filterBtn">Filtrar</button>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>3. Resultados por CST</legend>
+<button id="exportBtn">Exportar CSV</button>
+<table id="resultTable">
+<thead><tr>
+<th>CNPJ</th><th>CST</th><th>Qtde Registros</th><th>Total R$</th>
+</tr></thead>
 <tbody></tbody>
+<tfoot><tr><td colspan="3">Total Geral</td><td id="grandTotal">0,00</td></tr></tfoot>
 </table>
-</div>
-
-<div class="card report">
-<h2><i class="fa-solid fa-file-alt"></i> Relatório</h2>
-<button class="btn" onclick="generateReport()"><i class="fa-solid fa-file-export"></i> Gerar Relatório</button>
-<button class="btn" onclick="clearAll()"><i class="fa-solid fa-trash"></i> Limpar Tudo</button>
-<div id="reportContent"></div>
-</div>
+</fieldset>
 </main>
 
-<footer>
-&copy; 2025 Fisio Clínica - Dra Thais Xavier
-</footer>
-
 <script>
-function uid(){ return '_' + Math.random().toString(36).substr(2,9); }
-function onlyDigits(str){ return str.replace(/\D/g,''); }
-function loadPatients(){ return JSON.parse(localStorage.getItem('patients')||'[]'); }
-function savePatients(list){ localStorage.setItem('patients', JSON.stringify(list)); }
-function loadSent(){ return JSON.parse(localStorage.getItem('sent')||'[]'); }
-function saveSent(list){ localStorage.setItem('sent', JSON.stringify(list)); }
+let parsed=[],display=[];
 
-function renderList(){
-const patients = loadPatients();
-const tbody = document.querySelector("#patientsTable tbody");
-tbody.innerHTML = "";
-patients.forEach(p=>{
-const tr = document.createElement("tr");
-tr.innerHTML = `
-<td>${p.name}</td>
-<td>${p.phone}</td>
-<td>${p.date}</td>
-<td>${p.time}</td>
-<td>${p.sent?'<span class="sent">Enviado</span>':'Pendente'}</td>
-<td class="actions">
-<button class="btn" onclick="sendPatientMessage('${p.id}')"><i class="fa-brands fa-whatsapp"></i> Enviar</button>
-</td>`;
+document.getElementById('fileInput').addEventListener('change',e=>{
+const file=e.target.files[0];
+if(!file)return;
+const reader=new FileReader();
+reader.onload=function(){
+parsed=parseSped(this.result);
+alert('Arquivo importado com sucesso!');
+};
+reader.readAsText(file);
+});
+
+document.getElementById('filterBtn').addEventListener('click',()=>{
+const cnpj=document.getElementById('cnpjSearch').value.trim();
+display=aggregate(parsed,cnpj);
+renderTable(display);
+});
+
+document.getElementById('exportBtn').addEventListener('click',()=>{
+const csv=toCSV(display);
+const blob=new Blob([csv],{type:'text/csv'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;a.download='efd_totais.csv';a.click();
+URL.revokeObjectURL(url);
+});
+
+// ---- Funções principais ----
+function parseSped(text){
+const lines=text.split(/\r?\n/);
+const data=[];
+let cnpjAtual='';
+for(const l of lines){
+const campos=l.split('|');
+const reg=campos[1]; // posição 1 = código do registro
+if(reg==='0150'){ // |0150|cod_part|nome|cod_país|CNPJ|...
+const cnpj=campos[5]||'';
+cnpjAtual=cnpj.startsWith('29.415.295/')?cnpjAtual=cnpj:'';
+}
+if(cnpjAtual){
+if(reg==='C170'||reg==='A170'||reg==='C175'){
+const cst=campos[10]||''; // campo CST_PIS
+const valor=parseFloat(campos[13]||'0');// campo VL_ITEM
+data.push({cnpj:cnpjAtual,reg,cst,valor});
+}
+}
+}
+return data;
+}
+
+function aggregate(arr,cnpjFilter){
+const map=new Map();
+let grand=0;
+arr.filter(r=>!cnpjFilter||r.cnpj===cnpjFilter)
+.forEach(r=>{
+if(!map.has(r.cnpj))map.set(r.cnpj,{});
+const cmp=map.get(r.cnpj);
+if(!cmp[r.cst])cmp[r.cst]={qt:0,vl:0};
+cmp[r.cst].qt+=1;
+cmp[r.cst].vl+=r.valor;
+grand+=r.valor;
+});
+document.getElementById('grandTotal').textContent=grand.toLocaleString('pt-BR',{minimumFractionDigits:2});
+// converte para array tabular
+const out=[];
+map.forEach((csts,cnpj)=>{
+Object.entries(csts).forEach(([cst,obj])=>{
+out.push({cnpj,cst,qtde:obj.qt,total:obj.vl});
+});
+});
+return out;
+}
+
+function renderTable(rows){
+const tbody=document.querySelector('#resultTable tbody');
+tbody.innerHTML='';
+rows.forEach(r=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${r.cnpj}</td><td>${r.cst}</td><td>${r.qtde}</td>
+<td>${r.total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>`;
 tbody.appendChild(tr);
 });
 }
 
-document.getElementById("patientForm").addEventListener("submit", e=>{
-e.preventDefault();
-const name=document.getElementById("name").value.trim();
-const phone=document.getElementById("phone").value.trim();
-const date=document.getElementById("date").value;
-const time=document.getElementById("time").value;
-if(!name||!phone||!date||!time){ alert("Preencha todos os campos"); return; }
-const patients=loadPatients();
-patients.push({id:uid(), name, phone, date, time, sent:false});
-savePatients(patients);
-renderList();
-e.target.reset();
-});
-
-function getPhoneForWhatsApp(phone){
-let digits=onlyDigits(phone);
-if(digits.length===11) return "55"+digits;
-else if(digits.length===13 && digits.startsWith("55")) return digits;
-else return digits;
+function toCSV(rows){
+let csv='CNPJ,CST,Qtde Registros,Total\n';
+rows.forEach(r=>csv+=`${r.cnpj},${r.cst},${r.qtde},${r.total.toFixed(2)}\n`);
+return csv;
 }
-
-function buildMessage(patient){
-const now=new Date();
-const h=now.getHours();
-const saudacao=(h<12?"Bom dia":(h<18?"Boa tarde":"Boa noite"));
-return `${saudacao} ${patient.name},\n\nSua sessão de fisioterapia está marcada para ${patient.date} às ${patient.time}.\nComparecer no horário e dia da marcação.\n\n📍 Fisio clínica\nRua Vereador Ernesto Ramalho Gomes, 36\n(Em frente ao estacionamento do hospital)\n\nFisioterapeuta: Dra Thais Xavier\n\nObrigada.`;
-}
-
-function openWhatsappWindow(url){
-if(window.whatsappWindow && !window.whatsappWindow.closed){ window.whatsappWindow.close(); }
-window.whatsappWindow=window.open(url,"_blank");
-}
-
-function sendPatientMessage(patientId){
-const patients=loadPatients();
-const patient=patients.find(p=>p.id===patientId);
-if(!patient){ alert("Paciente não encontrado"); return; }
-const phoneForWA=getPhoneForWhatsApp(patient.phone);
-const msg=buildMessage(patient);
-
-let url;
-if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-// Abre no app do WhatsApp
-url="whatsapp://send?phone="+encodeURIComponent(phoneForWA)+"&text="+encodeURIComponent(msg);
-} else {
-// Abre no WhatsApp Web
-url="https://web.whatsapp.com/send?phone="+encodeURIComponent(phoneForWA)+"&text="+encodeURIComponent(msg);
-}
-
-openWhatsappWindow(url);
-
-const now=new Date();
-const sentList=loadSent();
-sentList.unshift({id:uid(), patientId:patient.id, sentAt:now.toISOString(), msg, phone:phoneForWA});
-saveSent(sentList);
-
-const newPatients=patients.map(p=>(p.id===patient.id)?{...p,sent:true,lastSentAt:now.toISOString()}:p);
-savePatients(newPatients);
-renderList();
-}
-
-function generateReport(){
-const sentList=loadSent();
-if(sentList.length===0){ alert("Nenhum envio registrado."); return; }
-let html="<h3>Relatório de Mensagens Enviadas</h3><ul>";
-sentList.forEach(s=>{
-const dt=new Date(s.sentAt);
-html+=`<li><b>${s.phone}</b> - ${dt.toLocaleString()}<br><pre>${s.msg}</pre></li>`;
-});
-html+="</ul>";
-document.getElementById("reportContent").innerHTML=html;
-}
-
-function clearAll(){
-if(confirm("Tem certeza que deseja apagar todos os dados?")){
-localStorage.removeItem("patients");
-localStorage.removeItem("sent");
-renderList();
-document.getElementById("reportContent").innerHTML="";
-}
-}
-
-renderList();
 </script>
-
 </body>
 </html>
