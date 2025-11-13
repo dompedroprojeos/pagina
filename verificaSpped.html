@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Importação TXT</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #007BFF;
+            --success-color: #28a745;
+            --light-color: #f5f7fa;
+            --dark-color: #333;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(to right, #0056b3, #007BFF, #0056b3);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.8rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .button {
+            padding: 12px 20px;
+            background: linear-gradient(to bottom, #007BFF, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .button:hover {
+            background: linear-gradient(to bottom, #0069d9, #004494);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button i {
+            font-size: 1.2rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            padding: 12px 20px;
+            background: linear-gradient(to bottom, #28a745, #1e7e34);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-input-label:hover {
+            background: linear-gradient(to bottom, #2dbc4e, #25963e);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"], select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 1rem;
+            width: 250px;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0 25px;
+            padding: 15px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background: linear-gradient(to bottom, #007BFF, #0056b3);
+            color: white;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8faff;
+        }
+
+        .cnpj-format {
+            font-family: 'Consolas', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .empresa-name {
+            font-weight: 500;
+            color: #0056b3;
+        }
+
+        footer {
+            background: linear-gradient(to right, #0056b3, #007BFF, #0056b3);
+            color: white;
+            text-align: center;
+            padding: 1.2rem;
+            margin-top: auto;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer p {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        footer i {
+            font-size: 1.2rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .pagination button:hover:not(.active) {
+            background-color: #f0f4ff;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            header, footer, .controls, .status-bar, .pagination {
+                display: none !important;
+            }
+
+            main {
+                padding: 0;
+            }
+
+            .card {
+                box-shadow: none;
+                padding: 0;
+            }
+
+            table {
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content, .footer-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            input[type="text"], select {
+                width: 100%;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #searchInput, #codeFilter {
+            padding-left: 35px;
+        }
+
+        /* Estilos para os filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Estilos para destacar linhas com códigos diferentes de 05 e 06 */
+        .codigo-destacado {
+            background-color: #fff8e6 !important;
+        }
+
+        .codigo-destacado:hover {
+            background-color: #ffe9b3 !important;
+        }
+
+        /* Estilos específicos para cada código */
+        .codigo-01 {
+            background-color: #e6f7ff;
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        .codigo-02 {
+            background-color: #e6fff2;
+            font-weight: bold;
+            color: #00994d;
+        }
+
+        .codigo-03 {
+            background-color: #f2e6ff;
+            font-weight: bold;
+            color: #6600cc;
+        }
+
+        .codigo-04 {
+            background-color: #fff2e6;
+            font-weight: bold;
+            color: #cc5200;
+        }
+
+        /* Códigos 05 e 06 mantêm o estilo padrão */
+
+        .codigo-07 {
+            background-color: #ffe6e6;
+            font-weight: bold;
+            color: #cc0000;
+        }
+
+        .codigo-08 {
+            background-color: #f9ffe6;
+            font-weight: bold;
+            color: #667700;
+        }
+
+        .codigo-09 {
+            background-color: #ffe6f7;
+            font-weight: bold;
+            color: #cc0066;
+        }
+
+        .codigo-10 {
+            background-color: #e6f9ff;
+            font-weight: bold;
+            color: #0077cc;
+        }
+
+        .codigo-11 {
+            background-color: #fff0e6;
+            font-weight: bold;
+            color: #cc6600;
+        }
+
+        .codigo-12 {
+            background-color: #e6f0ff;
+            font-weight: bold;
+            color: #0044cc;
+        }
+
+        .codigo-13 {
+            background-color: #e6fffa;
+            font-weight: bold;
+            color: #008080;
+        }
+
+        .codigo-14 {
+            background-color: #ffe6f2;
+            font-weight: bold;
+            color: #cc0077;
+        }
+
+        .codigo-15 {
+            background-color: #f0e6ff;
+            font-weight: bold;
+            color: #5500cc;
+        }
+
+        .codigo-16 {
+            background-color: #e6ffe6;
+            font-weight: bold;
+            color: #00cc00;
+        }
+
+        .codigo-17 {
+            background-color: #fffae6;
+            font-weight: bold;
+            color: #ccaa00;
+        }
+
+        /* Indicador visual para os códigos */
+        td.codigo-01, td.codigo-02, td.codigo-03, td.codigo-04, td.codigo-07, 
+        td.codigo-08, td.codigo-09, td.codigo-10, td.codigo-11, td.codigo-12,
+        td.codigo-13, td.codigo-14, td.codigo-15, td.codigo-16, td.codigo-17 {
+            position: relative;
+        }
+
+        td.codigo-01::before { background-color: #0066cc; }
+        td.codigo-02::before { background-color: #00994d; }
+        td.codigo-03::before { background-color: #6600cc; }
+        td.codigo-04::before { background-color: #cc5200; }
+        td.codigo-07::before { background-color: #cc0000; }
+        td.codigo-08::before { background-color: #667700; }
+        td.codigo-09::before { background-color: #cc0066; }
+        td.codigo-10::before { background-color: #0077cc; }
+        td.codigo-11::before { background-color: #cc6600; }
+        td.codigo-12::before { background-color: #0044cc; }
+        td.codigo-13::before { background-color: #008080; }
+        td.codigo-14::before { background-color: #cc0077; }
+        td.codigo-15::before { background-color: #5500cc; }
+        td.codigo-16::before { background-color: #00cc00; }
+        td.codigo-17::before { background-color: #ccaa00; }
+
+        td.codigo-01::before, td.codigo-02::before, td.codigo-03::before, td.codigo-04::before, 
+        td.codigo-07::before, td.codigo-08::before, td.codigo-09::before, td.codigo-10::before,
+        td.codigo-11::before, td.codigo-12::before, td.codigo-13::before, td.codigo-14::before,
+        td.codigo-15::before, td.codigo-16::before, td.codigo-17::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+
+        /* Adicione um resumo de cores na parte superior da tabela */
+        .codigo-legenda {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .codigo-legenda-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .codigo-legenda-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .codigo-legenda-item.ativo {
+            background-color: #e3f2fd;
+            border: 1px solid #007BFF;
+        }
+
+        .codigo-legenda-cor {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        /* Novos estilos para o modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-title {
+            color: #0056b3;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .linha-completa {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007BFF;
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .linha-info {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clickable-row:hover {
+            background-color: #e3f2fd !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .linha-origem {
+            font-weight: bold;
+            color: #0056b3;
+            margin-bottom: 5px;
+        }
+
+        .detalhes-campos {
+            margin-top: 15px;
+        }
+
+        .campo-item {
+            display: flex;
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .campo-indice {
+            font-weight: bold;
+            color: #007BFF;
+            min-width: 30px;
+        }
+
+        .campo-valor {
+            flex: 1;
+            font-family: 'Consolas', monospace;
+        }
+
+        .campo-destacado {
+            background-color: #fff8e6;
+            font-weight: bold;
+        }
+
+        .registro-info {
+            background: linear-gradient(to right, #007BFF, #0056b3);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            margin-bottom: 5px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            min-width: 100px;
+        }
+
+        /* Estilos para os filtros de código selecionados */
+        .filtros-codigos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .filtro-codigo {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filtro-codigo:hover {
+            background-color: #f0f4ff;
+        }
+
+        .filtro-codigo.ativo {
+            background-color: #e3f2fd;
+            border-color: #007BFF;
+            font-weight: bold;
+        }
+
+        .filtro-codigo .codigo-indicador {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .contador-codigo {
+            margin-left: 5px;
+            font-size: 0.8rem;
+            color: #666;
+            background-color: #e9ecef;
+            padding: 1px 5px;
+            border-radius: 10px;
+        }
+
+        .botoes-filtros {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .botao-filtro {
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .botao-filtro:hover {
+            background-color: #e9ecef;
+        }
+
+        .botao-filtro.ativo {
+            background-color: #007BFF;
+            color: white;
+            border-color: #007BFF;
+        }
+
+        /* Estilos para destacar os códigos selecionados na legenda */
+        .codigo-legenda-item.destaque {
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 2px solid #007BFF;
+            font-weight: bold;
+        }
+
+        /* Estilos para a notificação de códigos selecionados */
+        .notificacao-codigos {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background-color: #e7f3ff;
+            border-radius: 6px;
+            border-left: 4px solid #007BFF;
+        }
+
+        .notificacao-codigos .icone {
+            font-size: 1.2rem;
+            color: #007BFF;
+        }
+
+        .notificacao-codigos .texto {
+            flex: 1;
+        }
+
+        .notificacao-codigos .contadores {
+            display: flex;
+            gap: 15px;
+        }
+
+        .contador-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contador-item .indicador {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .contador-item .valor {
+            font-weight: bold;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <div class="app-title">
+            <h1>Sistema de Importação TXT</h1>
+            <div class="app-subtitle">Processamento Automático de Arquivos SPED</div>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar">U</div>
+            <div>
+                <div>Usuário</div>
+                <small>Rede DP</small>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="card">
+        <h2 class="card-title"><i class="fas fa-file-import"></i> Importação de Arquivo</h2>
+        
+        <!-- Notificação de códigos selecionados -->
+        <div class="notificacao-codigos no-print" id="notificacaoCodigos" style="display: none;">
+            <div class="icone">
+                <i class="fas fa-filter"></i>
+            </div>
+            <div class="texto">
+                <strong>Códigos selecionados:</strong> 
+                <span id="textoCodigosSelecionados"></span>
+            </div>
+            <div class="contadores" id="contadoresCodigos">
+                <!-- Os contadores serão preenchidos dinamicamente -->
+            </div>
+        </div>
+        
+        <!-- Filtros de códigos selecionados -->
+        <div class="filtros-codigos no-print" id="filtrosCodigos">
+            <div class="filtro-codigo" data-codigo="02">
+                <div class="codigo-indicador" style="background-color: #00994d;"></div>
+                <span>Código 02</span>
+                <span class="contador-codigo" id="contador-02">0</span>
+            </div>
+            <div class="filtro-codigo" data-codigo="13">
+                <div class="codigo-indicador" style="background-color: #008080;"></div>
+                <span>Código 13</span>
+                <span class="contador-codigo" id="contador-13">0</span>
+            </div>
+            <div class="filtro-codigo" data-codigo="14">
+                <div class="codigo-indicador" style="background-color: #cc0077;"></div>
+                <span>Código 14</span>
+                <span class="contador-codigo" id="contador-14">0</span>
+            </div>
+            
+            <div class="botoes-filtros">
+                <div class="botao-filtro" id="btnSelecionarTodos">Selecionar Todos</div>
+                <div class="botao-filtro" id="btnLimparSelecao">Limpar Seleção</div>
+                <div class="botao-filtro" id="btnAplicarFiltros">Aplicar Filtros</div>
+            </div>
+        </div>
+
+        <!-- Legenda de Códigos -->
+        <div class="codigo-legenda no-print">
+            <div class="codigo-legenda-item" data-codigo="01">
+                <div class="codigo-legenda-cor" style="background-color: #0066cc;"></div>
+                <span>Código 01</span>
+            </div>
+            <div class="codigo-legenda-item" data-codigo="02">
+                <div class="codigo-legenda-cor" style="background-color: #00994d;"></div>
+                <span>Código 02</span>
+            </div>
+            <div class="codigo-legenda-item" data-codigo="03">
+                <div class="codigo-legenda-cor" style="background-color: #6600cc;"></div>
+                <span>Código 03</span>
+            </div>
+            <div class="codigo-legenda-item" data-codigo="04">
+                <div class="codigo-legenda-cor" style="background-color: #cc5200;"></div>
+                <span>Código 04</span>
+            </div>
+            <div class="codigo-legenda-item" data-codigo="13">
+                <div class="codigo-legenda-cor" style="background-color: #008080;"></div>
+                <span>Código 13</span>
+            </div>
+            <div class="codigo-legenda-item" data-codigo="14">
+                <div class="codigo-legenda-cor" style="background-color: #cc0077;"></div>
+                <span>Código 14</span>
+            </div>
+        </div>
+
+        <div class="controls no-print">
+            <div class="file-input-wrapper">
+                <label class="file-input-label">
+                    <i class="fas fa-upload"></i> Selecionar Arquivo TXT
+                    <input type="file" id="fileInput" accept=".txt">
+                </label>
+            </div>
+           <div class="search-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#666" class="search-icon" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Buscar CNPJ ou Empresa...">
+            </div>
+            <div class="search-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#666" class="search-icon" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                <input type="text" id="codeFilter" placeholder="Filtrar por Código...">
+            </div>
+            <button class="button" id="exportCSV">
+                <i class="fas fa-file-csv"></i> Exportar CSV
+            </button>
+            <button class="button" id="printButton">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button class="button" id="clearFilters">
+                <i class="fas fa-times"></i> Limpar Filtros
+            </button>
+        </div>
+
+        <div class="status-bar no-print">
+            <div class="status-info">
+                <i class="fas fa-info-circle"></i>
+                <span id="resultCount">Nenhum dado importado</span>
+            </div>
+            <div class="status-badge" id="statusBadge">Aguardando</div>
+        </div>
+
+        <div class="table-container">
+            <table id="outputTable">
+              <thead>
+                <tr>
+                    <th width="5%">#</th>
+                    <th width="20%">CNPJ</th>
+                    <th width="20%">Empresa</th>
+                    <th width="15%">Item</th>
+                    <th width="5%">Código</th>
+                    <th width="35%">Descrição</th>
+                </tr>
+              </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination no-print" id="pagination">
+            <!-- Pagination buttons will be added here -->
+        </div>
+    </div>
+</main>
+
+<footer class="no-print">
+    <p>
+        <i class="fas fa-code"></i>
+        &copy; 2025 - Importador de Dados SPED | Versão 1.0 Waldeci Ramos
+        <i class="fas fa-database"></i>
+    </p>
+</footer>
+
+<!-- Modal para mostrar a linha completa -->
+<div id="linhaModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3 class="modal-title"><i class="fas fa-search"></i> Detalhes da Linha Original</h3>
+        
+        <div class="registro-info">
+            <div class="info-item">
+                <div class="info-label">Empresa:</div>
+                <div id="modalEmpresa"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">CNPJ:</div>
+                <div id="modalCNPJ"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Registro:</div>
+                <div id="modalOrigem"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Código:</div>
+                <div id="modalCodigo"></div>
+            </div>
+        </div>
+
+        <div class="linha-info">
+            <div class="linha-origem">Linha Completa do Arquivo:</div>
+            <div class="linha-completa" id="modalLinhaCompleta"></div>
+        </div>
+
+        <div class="detalhes-campos" id="modalCamposDetalhados"></div>
+    </div>
+</div>
+
+<script>
+    let allRows = [];
+    let filteredRows = [];
+    let currentPage = 1;
+    const rowsPerPage = 500;
+    
+    // Códigos selecionados para filtro
+    let codigosSelecionados = ['02', '13', '14'];
+
+    const empresas = {
+        "20415295000174": "DP 1",
+        "20415295000921": "DP ITATIAIUCU",
+        "20415295001146": "DP 2",
+        "20415295001308": "DP POUSO ALEGRE",
+        "20415295002975": "DP ATIBAIA",
+        "20415295001731": "DP ITAPEVA",
+        "20415295002118": "DP CAETANOPOLIS",
+        "20415295001570": "DP BETIM",
+        "20415295001499": "DP TURIM",
+        "20415295000840": "DP SANTA LUZIA",
+        "20415295000760": "DP SALINAS",
+        "20415295003009": "DP APARECIDA",
+        "20415295001812": "DP MURIAE",
+        "20415295002037": "DP PARAOPEBA",
+        "20415295002541": "DP CONTAGEM NORTE MATRIZ",
+        "20415295002380": "DP CONTAGEM SUL",
+        "20415295001650": "DP CAMBUI",
+        "20415295000417": "DP CAMBUI URBANO1",
+        "20415295003432": "DP CAMBUI URBANO2",
+        "20415295003190": "DP GUARATINGUETA",
+        "20415295003270": "DP MIRACATU ROTA NORTE",
+        "20415295001065": "DP JK ESTIVA ROTA SUL",
+        "20415295001227": "DP ALIANCA",
+        "20415295001901": "DP OLIVEIRA",
+        "20415295003351": "DP JAGUAQUARA",
+        "20415295003513": "DP SAO GONCALO DO SAPUCAI",
+        "20415295002622": "DP NOVA SERRANA",
+        "20415295002460": "DP IGARATINGA",
+        "20415295002207": "DP CARMOPOLIS",
+        "20415295004323": "DP BETIM  2",
+        "20415295003947": "DP PARAGOMINAS",
+        "20415295000506": "DP DIVISA ALEGRE 1",
+        "20415295003432": "DP CAMBUI  URBANO 2",
+        "20415295003602": "DP CONTAGEM FERNAO DIAS",
+        "20415295003866": "DP CACHOEIRA DE PAJEU",
+        "20415295004161": "DP SANTO ESTEVAO",
+        "20415295000689": "DP ITAGUARA",
+        "20415295004595": "DP SENADOR AMARAL",
+        "20415295004404": "DP SAO GONCALO URBANO 2",
+        "20415295004242": "DP LORENA",
+        "20415295004080": "DP DIVISA ALEGRE 2",
+        "20415295005567": "DP INCONFIDENTES",
+        "20415295006881": "DP JUIZ DE FORA URBANO",
+        "20415295005486": "DP BUENO BRANDAO",
+        "20415295004838": "DP POUSO ALEGRE URBANO",
+        "20415295005303": "DP CAMANDUCAIA URBANO",
+        "20415295004919": "DP OURO FINO URBANO",
+        "20415295005214": "DP CAMANDUCAIA URBANO 2",
+        "20415295004676": "DP GUARATINGUETA URBANO 2",
+        "20415295004757": "DP GUARATINGUETA URBANO 3",
+        "20415295007004": "DP BRAGANCA URBANO",
+        "20415295007772": "DP ATIBAIA URBANO",
+        "20415295005648": "DP POUSO ALEGRE URBANO 2",
+        "20415295005052": "DP EXTREMA URBANO",
+        "20415295009392": "DP ITATIBA URBANO 1",
+        "20415295006296": "DP POUSO ALEGRE URBANO 3",
+        "20415295005800": "DP VITORIA DA CONQUISTA",
+        "20415295006610": "DP JUIZ DE FORA RODOVIA",
+        "20415295006962": "DP MONTES CLAROS",
+        "20415295006024": "DP SAO JORGE",
+        "20415295006539": "DP SAO JOSE DOS CAMPOS URBAN",
+        "20415295005990": "DP FREI INOCENCIO",
+        "20415295006458": "DP BRAGANçA RODOVIA",
+        "20415295007268": "DP BARRA MANSA 1 NORTE",
+        "20415295006709": "DP BARRA MANSA 2 SUL",
+        "20415295007187": "DP LAFAIETE",
+        "20415295007420": "DP PLANALTO",
+        "20415295008078": "DP SANTO ESTEVAO 2",
+        "20415295008159": "DP SANTO ESTEVAO 3",
+        "20415295009040": "DP SAO CRISTOVAO",
+        "20415295008744": "DP BARREIRAS",
+        "20415295008663": "DP ITABERABA",
+        "20415295008582": "DP VALENCA",
+        "20415295008825": "DP SAO GONCALO RODOVIA 2",
+        "20415295008906": "DP SAO GONCALO RODOVIA 3",
+        "20415295009120": "DP RUSSAS",
+        "20415295009201": "DP INHAPIM",
+        "20415295009473": "DP LUZ",
+        "20415295002894": "DP URUAÇU",
+        "20415295003785": "DP CENTRAL ADM",
+        "20415295009554": "POSTO DOM PEDRO MIRACATU 3"
+    };
+
+    // Dicionário de códigos e descrições
+    const codigosDescricoes = {
+        "01": "Aquisição de bens para venda",
+        "02": "Aquisição de bens utilizados como insumo",
+        "03": "Aquisição de serviços utilizados como insumo",
+        "04": "Energia elétrica e térmica, inclusive sob forma de vapor",
+        "05": "Aluguéis de prédios",
+        "06": "Aluguéis de máquinas e equipamentos",
+        "07": "Armazenagem de mercadorias e frete na operação de venda",
+        "08": "Contraprestações de locação mercantil",
+        "09": "Máquinas, equipamentos e outros bens incorporados ao ativo imobilizado (crédito sobre encargos de depreciação)",
+        "10": "Máquinas, equipamentos e outros bens incorporados ao ativo imobilizado (crédito com base no valor de aquisição)",
+        "11": "Outras aquisições de bens e serviços",
+        "12": "Aquisições de serviços de comunicação",
+        "13": "Serviços de transporte - Outros serviços não especificados",
+        "14": "Transporte de Cargas-Contrat.Prest Pessoa Fisica ou Pj Trtansp.optante simples N",
+        "15": "Aquisições de serviços advocatícios",
+        "16": "Aquisições de serviços de auditoria",
+        "17": "Aquisições de outros serviços profissionais"
+    };
+
+    // Função para formatar CNPJ
+    function formatCNPJ(cnpj) {
+        if (!cnpj) return '';
+        if (cnpj.includes('.') || cnpj.includes('/')) return cnpj;
+        const numbers = cnpj.replace(/[^\d]/g, '');
+        return numbers.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+    }
+
+    // Função para extrair CNPJ da linha F010
+    function extractCNPJFromF010(line) {
+        const match = line.match(/\|F010\|(\d+)\|/);
+        if (match && match[1]) {
+            return match[1];
+        }
+        return null;
+    }
+
+    // Função para atualizar os contadores de códigos
+    function atualizarContadoresCodigos() {
+        const contadores = {};
+        
+        // Inicializar contadores
+        codigosSelecionados.forEach(codigo => {
+            contadores[codigo] = 0;
+        });
+        
+        // Contar ocorrências
+        allRows.forEach(row => {
+            if (codigosSelecionados.includes(row.codigo)) {
+                contadores[row.codigo]++;
+            }
+        });
+        
+        // Atualizar elementos HTML
+        codigosSelecionados.forEach(codigo => {
+            const elemento = document.getElementById(`contador-${codigo}`);
+            if (elemento) {
+                elemento.textContent = contadores[codigo];
+            }
+        });
+        
+        // Atualizar notificação
+        atualizarNotificacaoCodigos(contadores);
+    }
+
+    // Função para atualizar a notificação de códigos selecionados
+    function atualizarNotificacaoCodigos(contadores) {
+        const notificacao = document.getElementById('notificacaoCodigos');
+        const texto = document.getElementById('textoCodigosSelecionados');
+        const contadoresElemento = document.getElementById('contadoresCodigos');
+        
+        if (codigosSelecionados.length === 0) {
+            notificacao.style.display = 'none';
+            return;
+        }
+        
+        // Mostrar notificação
+        notificacao.style.display = 'flex';
+        
+        // Atualizar texto
+        texto.textContent = codigosSelecionados.map(codigo => {
+            return `Código ${codigo} (${contadores[codigo] || 0})`;
+        }).join(', ');
+        
+        // Atualizar contadores visuais
+        contadoresElemento.innerHTML = '';
+        
+        codigosSelecionados.forEach(codigo => {
+            const contadorItem = document.createElement('div');
+            contadorItem.className = 'contador-item';
+            
+            const indicador = document.createElement('div');
+            indicador.className = 'indicador';
+            indicador.style.backgroundColor = getCorCodigo(codigo);
+            
+            const valor = document.createElement('div');
+            valor.className = 'valor';
+            valor.textContent = contadores[codigo] || 0;
+            
+            contadorItem.appendChild(indicador);
+            contadorItem.appendChild(valor);
+            contadoresElemento.appendChild(contadorItem);
+        });
+    }
+
+    // Função para obter a cor de um código
+    function getCorCodigo(codigo) {
+        const cores = {
+            '01': '#0066cc',
+            '02': '#00994d',
+            '03': '#6600cc',
+            '04': '#cc5200',
+            '13': '#008080',
+            '14': '#cc0077'
+        };
+        
+        return cores[codigo] || '#666';
+    }
+
+    // Função para destacar os códigos selecionados na legenda
+    function destacarCodigosLegenda() {
+        const itensLegenda = document.querySelectorAll('.codigo-legenda-item');
+        
+        itensLegenda.forEach(item => {
+            const codigo = item.getAttribute('data-codigo');
+            
+            if (codigosSelecionados.includes(codigo)) {
+                item.classList.add('destaque');
+            } else {
+                item.classList.remove('destaque');
+            }
+        });
+    }
+
+    // Função para aplicar filtros de códigos selecionados
+    function aplicarFiltrosCodigos() {
+        if (codigosSelecionados.length === 0) {
+            filteredRows = [...allRows];
+        } else {
+            filteredRows = allRows.filter(row => codigosSelecionados.includes(row.codigo));
+        }
+        
+        currentPage = 1;
+        updateTable(filteredRows);
+        setupPagination(filteredRows);
+        
+        // Atualizar estado dos botões de filtro
+        document.querySelectorAll('.filtro-codigo').forEach(botao => {
+            const codigo = botao.getAttribute('data-codigo');
+            
+            if (codigosSelecionados.includes(codigo)) {
+                botao.classList.add('ativo');
+            } else {
+                botao.classList.remove('ativo');
+            }
+        });
+        
+        // Atualizar estado do botão "Aplicar Filtros"
+        const btnAplicar = document.getElementById('btnAplicarFiltros');
+        if (codigosSelecionados.length > 0) {
+            btnAplicar.classList.add('ativo');
+        } else {
+            btnAplicar.classList.remove('ativo');
+        }
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusBadge = document.getElementById('statusBadge');
+        statusBadge.textContent = 'Processando...';
+        statusBadge.style.backgroundColor = '#ffc107';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            allRows = [];
+            
+            // Array para armazenar os CNPJs encontrados
+            let cnpjStack = [];
+            let currentCNPJ = '';
+            let currentEmpresa = '';
+            let itemFromD100 = '';
+
+            // Percorre todas as linhas do arquivo
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const columns = line.split('|');
+
+                // Captura CNPJ da linha D010 e empilha
+                if (line.startsWith('|D010|')) {
+                    currentCNPJ = columns[2].trim();
+                    currentEmpresa = empresas[currentCNPJ] || 'Empresa não cadastrada';
+                    cnpjStack.push({
+                        cnpj: currentCNPJ,
+                        empresa: currentEmpresa
+                    });
+                }
+                // Captura CNPJ da linha F010 (tem prioridade sobre D010)
+                else if (line.startsWith('|F010|')) {
+                    const f010CNPJ = extractCNPJFromF010(line);
+                    if (f010CNPJ) {
+                        currentCNPJ = f010CNPJ;
+                        currentEmpresa = empresas[currentCNPJ] || 'Empresa não cadastrada';
+                        // Atualiza o topo da pilha com o CNPJ do F010
+                        if (cnpjStack.length > 0) {
+                            cnpjStack[cnpjStack.length - 1] = {
+                                cnpj: currentCNPJ,
+                                empresa: currentEmpresa
+                            };
+                        } else {
+                            cnpjStack.push({
+                                cnpj: currentCNPJ,
+                                empresa: currentEmpresa
+                            });
+                        }
+                    }
+                }
+                // Captura o valor de D100
+                else if (line.startsWith('|D100|')) {
+                    itemFromD100 = columns[9] ? columns[9].trim() : '';
+                }
+                // Processa todas as linhas F100 usando o CNPJ correto (F010 tem prioridade)
+                else if (line.startsWith('|F100|') && cnpjStack.length > 0) {
+                    // Verifica se a posição 2 é igual a 0
+                    if (columns[2] && columns[2].trim() === "0") {
+                        const item = columns[4] ? columns[4].trim() : '';
+                        const codigo = columns[15] ? columns[15].trim() : '';
+                        
+                        if (codigo && codigosDescricoes[codigo]) {
+                            const descricao = codigosDescricoes[codigo];
+
+                            // Usa o CNPJ mais recente (D010 ou F010)
+                            const currentCNPJData = cnpjStack[cnpjStack.length - 1];
+
+                            // Armazena a linha com a informação completa
+                            const rowData = {
+                                cnpj: formatCNPJ(currentCNPJData.cnpj),
+                                empresa: currentCNPJData.empresa,
+                                item: item,
+                                codigo: codigo,
+                                descricao: descricao,
+                                linhaCompleta: line,
+                                tipoLinha: 'F100',
+                                numeroLinha: i + 1,
+                                campos: columns
+                            };
+
+                            allRows.push(rowData);
+                        }
+                    }
+                }
+                // Processa linhas D101 para código 13
+                else if (line.startsWith('|D101|') && cnpjStack.length > 0) {
+                    const d101Value = columns[5] ? columns[5].trim() : '';
+                    if (d101Value === "13") {
+                        const currentCNPJData = cnpjStack[cnpjStack.length - 1];
+                        const rowData = {
+                            cnpj: formatCNPJ(currentCNPJData.cnpj),
+                            empresa: currentCNPJData.empresa,
+                            item: itemFromD100,
+                            codigo: '13',
+                            descricao: codigosDescricoes['13'],
+                            linhaCompleta: line,
+                            tipoLinha: 'D101',
+                            numeroLinha: i + 1,
+                            campos: columns
+                        };
+                        allRows.push(rowData);
+                    }
+                }
+                // Processa linhas D105 para código 13
+                else if (line.startsWith('|D105|') && cnpjStack.length > 0) {
+                    const d105Value = columns[5] ? columns[5].trim() : '';
+                    if (d105Value === "13") {
+                        const currentCNPJData = cnpjStack[cnpjStack.length - 1];
+                        const rowData = {
+                            cnpj: formatCNPJ(currentCNPJData.cnpj),
+                            empresa: currentCNPJData.empresa,
+                            item: itemFromD100,
+                            codigo: '13',
+                            descricao: codigosDescricoes['13'],
+                            linhaCompleta: line,
+                            tipoLinha: 'D105',
+                            numeroLinha: i + 1,
+                            campos: columns
+                        };
+                        allRows.push(rowData);
+                    }
+                }
+                // Processa linhas D101 para código 14
+                else if (line.startsWith('|D101|') && cnpjStack.length > 0) {
+                    const d101Value = columns[5] ? columns[5].trim() : '';
+                    if (d101Value === "14") {
+                        const currentCNPJData = cnpjStack[cnpjStack.length - 1];
+                        const rowData = {
+                            cnpj: formatCNPJ(currentCNPJData.cnpj),
+                            empresa: currentCNPJData.empresa,
+                            item: itemFromD100,
+                            codigo: '14',
+                            descricao: codigosDescricoes['14'],
+                            linhaCompleta: line,
+                            tipoLinha: 'D101',
+                            numeroLinha: i + 1,
+                            campos: columns
+                        };
+                        allRows.push(rowData);
+                    }
+                }
+                // Processa linhas D105 para código 14
+                else if (line.startsWith('|D105|') && cnpjStack.length > 0) {
+                    const d105Value = columns[5] ? columns[5].trim() : '';
+                    if (d105Value === "14") {
+                        const currentCNPJData = cnpjStack[cnpjStack.length - 1];
+                        const rowData = {
+                            cnpj: formatCNPJ(currentCNPJData.cnpj),
+                            empresa: currentCNPJData.empresa,
+                            item: itemFromD100,
+                            codigo: '14',
+                            descricao: codigosDescricoes['14'],
+                            linhaCompleta: line,
+                            tipoLinha: 'D105',
+                            numeroLinha: i + 1,
+                            campos: columns
+                        };
+                        allRows.push(rowData);
+                    }
+                }
+                // Remove o CNPJ da pilha quando encontrar um D990 (fim do bloco)
+                else if (line.startsWith('|D990|') && cnpjStack.length > 0) {
+                    cnpjStack.pop();
+                }
+                // Remove o CNPJ da pilha quando encontrar um F990 (fim do bloco F)
+                else if (line.startsWith('|F990|') && cnpjStack.length > 0) {
+                    cnpjStack.pop();
+                }
+            }
+
+            // Ordena por nome da empresa
+            allRows.sort((a, b) => a.empresa.localeCompare(b.empresa));
+            
+            filteredRows = [...allRows];
+            updateTable(filteredRows);
+            setupPagination(filteredRows);
+            
+            // Atualizar contadores e notificações
+            atualizarContadoresCodigos();
+            destacarCodigosLegenda();
+            aplicarFiltrosCodigos();
+            
+            statusBadge.textContent = 'Concluído';
+            statusBadge.style.backgroundColor = '#28a745';
+        };
+
+        reader.onerror = function(error) {
+            handleImportError(error);
+        };
+
+        reader.readAsText(file);
+    });
+
+    // Função para atualizar a tabela
+    function updateTable(rows) {
+        const tbody = document.querySelector('#outputTable tbody');
+        tbody.innerHTML = '';
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedRows = rows.slice(start, end);
+
+        paginatedRows.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            tr.classList.add('clickable-row');
+            
+            // Adiciona classe baseada no código
+            if (row.codigo !== '05' && row.codigo !== '06') {
+                tr.classList.add('codigo-destacado');
+            }
+            
+            // Armazena o índice completo da linha nos dados
+            tr.dataset.rowIndex = start + index;
+
+            const tdIndex = document.createElement('td');
+            tdIndex.textContent = start + index + 1;
+            
+            const tdCNPJ = document.createElement('td');
+            tdCNPJ.className = 'cnpj-format';
+            tdCNPJ.textContent = row.cnpj;
+            
+            const tdEmpresa = document.createElement('td');
+            tdEmpresa.className = 'empresa-name';
+            tdEmpresa.textContent = row.empresa;
+            
+            const tdItem = document.createElement('td');
+            tdItem.textContent = row.item;
+
+            const tdCodigo = document.createElement('td');
+            tdCodigo.textContent = row.codigo;
+            tdCodigo.className = 'codigo-' + row.codigo;
+
+            const tdDescricao = document.createElement('td');
+            tdDescricao.textContent = row.descricao;
+            
+            tr.appendChild(tdIndex);
+            tr.appendChild(tdCNPJ);
+            tr.appendChild(tdEmpresa);
+            tr.appendChild(tdItem);
+            tr.appendChild(tdCodigo);
+            tr.appendChild(tdDescricao);
+            
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('resultCount').textContent = `Total de registros encontrados: ${rows.length}`;
+        
+        // Adiciona event listeners para as linhas clicáveis
+        addRowClickListeners();
+    }
+
+    // Função para adicionar listeners de clique nas linhas
+    function addRowClickListeners() {
+        const rows = document.querySelectorAll('#outputTable tbody tr.clickable-row');
+        rows.forEach(row => {
+            row.addEventListener('click', function() {
+                const rowIndex = parseInt(this.dataset.rowIndex);
+                const rowData = filteredRows[rowIndex];
+                showLineDetails(rowData);
+            });
+        });
+    }
+
+    // Função para mostrar os detalhes da linha no modal
+    function showLineDetails(rowData) {
+        const modal = document.getElementById('linhaModal');
+        const modalOrigem = document.getElementById('modalOrigem');
+        const modalEmpresa = document.getElementById('modalEmpresa');
+        const modalCNPJ = document.getElementById('modalCNPJ');
+        const modalCodigo = document.getElementById('modalCodigo');
+        const modalLinhaCompleta = document.getElementById('modalLinhaCompleta');
+        const modalCamposDetalhados = document.getElementById('modalCamposDetalhados');
+
+        // Preenche as informações básicas
+        modalOrigem.textContent = `${rowData.tipoLinha} - Linha ${rowData.numeroLinha}`;
+        modalEmpresa.textContent = rowData.empresa;
+        modalCNPJ.textContent = rowData.cnpj;
+        modalCodigo.textContent = `${rowData.codigo} - ${rowData.descricao}`;
+
+        // Mostra a linha completa
+        modalLinhaCompleta.textContent = rowData.linhaCompleta;
+
+        // Mostra os campos detalhados
+        let camposHTML = '<h4><i class="fas fa-list-ol"></i> Campos Detalhados:</h4>';
+        
+        if (rowData.campos) {
+            rowData.campos.forEach((campo, index) => {
+                if (campo !== '') {
+                    let campoClass = '';
+                    let campoDescricao = '';
+                    
+                    // Adiciona descrições específicas para cada tipo de registro
+                    if (rowData.tipoLinha === 'F100') {
+                        if (index === 2) campoDescricao = ' - IND_OPER';
+                        if (index === 4) campoDescricao = ' - COD_ITEM';
+                        if (index === 15) campoDescricao = ' - COD_CTA';
+                    } else if (rowData.tipoLinha === 'D101' || rowData.tipoLinha === 'D105') {
+                        if (index === 5) campoDescricao = ' - COD_CTA';
+                    }
+                    
+                    // Destaca campos importantes
+                    if ((rowData.tipoLinha === 'F100' && (index === 2 || index === 4 || index === 15)) ||
+                        ((rowData.tipoLinha === 'D101' || rowData.tipoLinha === 'D105') && index === 5)) {
+                        campoClass = 'campo-destacado';
+                    }
+                    
+                    camposHTML += `
+                        <div class="campo-item ${campoClass}">
+                            <div class="campo-indice">[${index}]:</div>
+                            <div class="campo-valor">${campo}${campoDescricao}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        modalCamposDetalhados.innerHTML = camposHTML;
+
+        // Mostra o modal
+        modal.style.display = 'block';
+    }
+
+    // Função para configurar a paginação
+    function setupPagination(rows) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        const pageCount = Math.ceil(rows.length / rowsPerPage);
+        
+        if (pageCount <= 1) return;
+        
+        // Botão anterior
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updateTable(rows);
+                updatePaginationButtons();
+            }
+        });
+        pagination.appendChild(prevButton);
+        
+        // Botões de páginas
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(pageCount, startPage + maxButtons - 1);
+        
+        if (endPage - startPage + 1 < maxButtons) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.classList.toggle('active', i === currentPage);
+            button.addEventListener('click', () => {
+                currentPage = i;
+                updateTable(rows);
+                updatePaginationButtons();
+            });
+            pagination.appendChild(button);
+        }
+        
+        // Botão próximo
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextButton.addEventListener('click', () => {
+            if (currentPage < pageCount) {
+                currentPage++;
+                updateTable(rows);
+                updatePaginationButtons();
+            }
+        });
+        pagination.appendChild(nextButton);
+        
+        function updatePaginationButtons() {
+            const buttons = pagination.querySelectorAll('button');
+            buttons.forEach((button, index) => {
+                if (index === 0) return;
+                if (index === buttons.length - 1) return;
+                
+                const pageNum = startPage + index - 1;
+                button.textContent = pageNum;
+                button.classList.toggle('active', pageNum === currentPage);
+            });
+        }
+    }
+
+    // Função para aplicar os filtros
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const codeFilter = document.getElementById('codeFilter').value.toLowerCase();
+        
+        filteredRows = allRows.filter(row => {
+            const matchSearch = row.cnpj.toLowerCase().includes(searchTerm) || 
+                            row.empresa.toLowerCase().includes(searchTerm) ||
+                            row.item.toLowerCase().includes(searchTerm);
+            
+            const matchCode = codeFilter === '' || row.codigo.toLowerCase().includes(codeFilter);
+            
+            return matchSearch && matchCode;
+        });
+        
+        currentPage = 1;
+        updateTable(filteredRows);
+        setupPagination(filteredRows);
+    }
+
+    // Adicionar listeners para os campos de filtro
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('codeFilter').addEventListener('input', applyFilters);
+
+    // Exportar para CSV
+    document.getElementById('exportCSV').addEventListener('click', function() {
+        if (filteredRows.length === 0) {
+            alert('Não há dados para exportar. Importe um arquivo primeiro.');
+            return;
+        }
+
+        let csvContent = 'data:text/csv;charset=utf-8,';
+        
+        // Cabeçalho
+        csvContent += 'Núm.,CNPJ,Empresa,Item,Código,Descrição\r\n';
+        
+        // Linhas de dados
+        filteredRows.forEach((row, index) => {
+            csvContent += `${index + 1},${row.cnpj},"${row.empresa}",${row.item},${row.codigo},"${row.descricao}"\r\n`;
+        });
+        
+        // Codificar para URL e criar link de download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `exportacao_dados_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Botão de impressão
+    document.getElementById('printButton').addEventListener('click', function() {
+        if (filteredRows.length === 0) {
+            alert('Não há dados para imprimir. Importe um arquivo primeiro.');
+            return;
+        }
+        window.print();
+    });
+
+    // Botão limpar filtros
+    document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+    // Função para limpar filtros
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('codeFilter').value = '';
+        filteredRows = [...allRows];
+        currentPage = 1;
+        updateTable(filteredRows);
+        setupPagination(filteredRows);
+    }
+
+    // Fechar modal quando clicar no X
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('linhaModal').style.display = 'none';
+    });
+
+    // Fechar modal quando clicar fora dele
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('linhaModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Função para validar o formato do arquivo
+    function validateFile(file) {
+        if (!file) return false;
+        
+        // Verifica se é um arquivo .txt
+        const extension = file.name.split('.').pop().toLowerCase();
+        if (extension !== 'txt') {
+            alert('Por favor, selecione um arquivo TXT válido.');
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Função para tratar erros de importação
+    function handleImportError(error) {
+        console.error('Erro na importação do arquivo:', error);
+        
+        const statusBadge = document.getElementById('statusBadge');
+        statusBadge.textContent = 'Erro';
+        statusBadge.style.backgroundColor = '#dc3545';
+        
+        document.getElementById('resultCount').textContent = 'Ocorreu um erro ao processar o arquivo.';
+    }
+
+    // Inicialização da aplicação
+    function initApp() {
+        // Inicializa a tabela vazia
+        updateTable([]);
+        
+        // Define o status inicial
+        const statusBadge = document.getElementById('statusBadge');
+        statusBadge.textContent = 'Aguardando';
+        statusBadge.style.backgroundColor = '#6c757d';
+        
+        // Configurar eventos para os filtros de código
+        document.querySelectorAll('.filtro-codigo').forEach(botao => {
+            botao.addEventListener('click', function() {
+                const codigo = this.getAttribute('data-codigo');
+                
+                if (codigosSelecionados.includes(codigo)) {
+                    // Remover da seleção
+                    codigosSelecionados = codigosSelecionados.filter(c => c !== codigo);
+                } else {
+                    // Adicionar à seleção
+                    codigosSelecionados.push(codigo);
+                }
+                
+                // Atualizar contadores e notificações
+                atualizarContadoresCodigos();
+                destacarCodigosLegenda();
+            });
+        });
+        
+        // Configurar botão "Selecionar Todos"
+        document.getElementById('btnSelecionarTodos').addEventListener('click', function() {
+            codigosSelecionados = ['02', '13', '14'];
+            atualizarContadoresCodigos();
+            destacarCodigosLegenda();
+            aplicarFiltrosCodigos();
+        });
+        
+        // Configurar botão "Limpar Seleção"
+        document.getElementById('btnLimparSelecao').addEventListener('click', function() {
+            codigosSelecionados = [];
+            atualizarContadoresCodigos();
+            destacarCodigosLegenda();
+            aplicarFiltrosCodigos();
+        });
+        
+        // Configurar botão "Aplicar Filtros"
+        document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
+            aplicarFiltrosCodigos();
+        });
+        
+        console.log('Sistema de Importação TXT inicializado com sucesso.');
+    }
+
+    // Inicializa a aplicação quando a página for carregada
+    window.addEventListener('load', initApp);
+
+    // Função para detectar se o navegador suporta os recursos necessários
+    function checkBrowserSupport() {
+        if (!window.FileReader) {
+            alert('Seu navegador não suporta a API de FileReader. Por favor, atualize para um navegador mais recente.');
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Verifica suporte do navegador ao iniciar
+    if (!checkBrowserSupport()) {
+        document.querySelectorAll('button, input').forEach(el => el.disabled = true);
+    }
+</script>
+</body>
+</html>
