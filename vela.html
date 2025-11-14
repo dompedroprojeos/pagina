@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Custos - Fabricação de Velas</title>
+    <style>
+        :root {
+            --primary: #8B4513;
+            --primary-light: #a05a2c;
+            --secondary: #FFD700;
+            --light: #f8f4e9;
+            --dark: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .summary h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .summary-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid var(--primary);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-card.selected {
+            border-color: var(--primary);
+        }
+        
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .product-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .product-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculadora de Custos - Fabricação de Velas</h1>
+            <p class="subtitle">Controle seus gastos com matérias-primas e calcule o custo de produção</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="materials">Cadastro de Materiais</div>
+            <div class="tab" data-tab="production">Cálculo de Produção</div>
+            <div class="tab" data-tab="history">Histórico de Produção</div>
+        </div>
+        
+        <div id="materials" class="tab-content active">
+            <h2>Cadastro de Materiais</h2>
+            <p>Adicione os materiais que você compra para fabricação de velas</p>
+            
+            <div class="alert alert-success hidden" id="materialAlert"></div>
+            
+            <form id="materialForm">
+                <div class="form-group">
+                    <label for="materialName">Nome do Material</label>
+                    <input type="text" id="materialName" placeholder="Ex: Parafina, Essência de Lavanda, Pavio" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialType">Tipo de Material</label>
+                    <select id="materialType" required>
+                        <option value="">Selecione...</option>
+                        <option value="parafina">Parafina</option>
+                        <option value="essencia">Essência</option>
+                        <option value="pavio">Pavio</option>
+                        <option value="corante">Corante</option>
+                        <option value="embalagem">Embalagem</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialQuantity">Quantidade Comprada</label>
+                    <input type="number" id="materialQuantity" min="0" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialUnit">Unidade de Medida</label>
+                    <select id="materialUnit" required>
+                        <option value="">Selecione...</option>
+                        <option value="kg">Quilograma (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="l">Litro (l)</option>
+                        <option value="ml">Mililitro (ml)</option>
+                        <option value="un">Unidade</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialPrice">Preço Pago (R$)</label>
+                    <input type="number" id="materialPrice" min="0" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialFreight">Frete (R$)</label>
+                    <input type="number" id="materialFreight" min="0" step="0.01" value="0">
+                </div>
+                
+                <button type="submit" class="btn">Adicionar Material</button>
+            </form>
+            
+            <div class="table-container">
+                <h3>Materiais Cadastrados</h3>
+                <table id="materialsTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Quantidade</th>
+                            <th>Preço Unit.</th>
+                            <th>Frete</th>
+                            <th>Preço Total</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialsList">
+                        <!-- Os materiais serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="production" class="tab-content">
+            <h2>Cálculo de Produção</h2>
+            <p>Selecione os materiais utilizados e calcule o custo da sua produção</p>
+            
+            <div class="product-list" id="availableMaterials">
+                <!-- Os materiais disponíveis serão inseridos aqui via JavaScript -->
+            </div>
+            
+            <div class="alert alert-success hidden" id="productionAlert"></div>
+            
+            <form id="productionForm">
+                <div class="form-group">
+                    <label for="productionName">Nome da Produção</label>
+                    <input type="text" id="productionName" placeholder="Ex: Vela de Lavanda 200g" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productionQuantity">Quantidade de Velas Produzidas</label>
+                    <input type="number" id="productionQuantity" min="1" value="1" required>
+                </div>
+                
+                <div class="table-container">
+                    <h3>Materiais Utilizados</h3>
+                    <table id="usedMaterialsTable">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Quantidade Utilizada</th>
+                                <th>Custo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usedMaterialsList">
+                            <!-- Os materiais utilizados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="submit" class="btn btn-success">Calcular Custo de Produção</button>
+            </form>
+            
+            <div class="summary" id="productionSummary">
+                <h3>Resumo do Custo de Produção</h3>
+                <div id="summaryContent">
+                    <!-- O resumo será inserido aqui via JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="history" class="tab-content">
+            <h2>Histórico de Produção</h2>
+            <p>Visualize o histórico de cálculos de produção realizados</p>
+            
+            <div class="table-container">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Nome da Produção</th>
+                            <th>Quantidade</th>
+                            <th>Custo Total</th>
+                            <th>Custo Unitário</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList">
+                        <!-- O histórico será inserido aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <button class="btn btn-danger" id="clearHistory">Limpar Histórico</button>
+        </div>
+    </div>
+
+    <script>
+        // Dados iniciais
+        let materials = JSON.parse(localStorage.getItem('candleMaterials')) || [];
+        let productionHistory = JSON.parse(localStorage.getItem('candleProductionHistory')) || [];
+        
+        // Elementos DOM
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const materialForm = document.getElementById('materialForm');
+        const materialsList = document.getElementById('materialsList');
+        const availableMaterials = document.getElementById('availableMaterials');
+        const productionForm = document.getElementById('productionForm');
+        const usedMaterialsList = document.getElementById('usedMaterialsList');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+        const materialAlert = document.getElementById('materialAlert');
+        const productionAlert = document.getElementById('productionAlert');
+        
+        // Materiais selecionados para produção
+        let selectedMaterials = [];
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMaterialsTable();
+            updateAvailableMaterials();
+            updateHistoryTable();
+            
+            // Configurar tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Formulário de materiais
+            materialForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const material = {
+                    id: Date.now(),
+                    name: document.getElementById('materialName').value,
+                    type: document.getElementById('materialType').value,
+                    quantity: parseFloat(document.getElementById('materialQuantity').value),
+                    unit: document.getElementById('materialUnit').value,
+                    price: parseFloat(document.getElementById('materialPrice').value),
+                    freight: parseFloat(document.getElementById('materialFreight').value) || 0
+                };
+                
+                materials.push(material);
+                saveMaterials();
+                updateMaterialsTable();
+                updateAvailableMaterials();
+                
+                // Mostrar alerta
+                showAlert(materialAlert, `Material "${material.name}" adicionado com sucesso!`, 'success');
+                
+                // Limpar formulário
+                materialForm.reset();
+            });
+            
+            // Formulário de produção
+            productionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (selectedMaterials.length === 0) {
+                    showAlert(productionAlert, 'Selecione pelo menos um material para a produção!', 'danger');
+                    return;
+                }
+                
+                const productionName = document.getElementById('productionName').value;
+                const productionQuantity = parseInt(document.getElementById('productionQuantity').value);
+                
+                // Calcular custos
+                let totalCost = 0;
+                let materialsUsed = [];
+                
+                selectedMaterials.forEach(item => {
+                    const material = materials.find(m => m.id === item.id);
+                    if (material) {
+                        const unitCost = (material.price + material.freight) / material.quantity;
+                        const cost = unitCost * item.usedQuantity;
+                        totalCost += cost;
+                        
+                        materialsUsed.push({
+                            id: material.id,
+                            name: material.name,
+                            usedQuantity: item.usedQuantity,
+                            unit: material.unit,
+                            cost: cost
+                        });
+                    }
+                });
+                
+                const unitCost = totalCost / productionQuantity;
+                
+                // Adicionar ao histórico
+                const productionRecord = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString('pt-BR'),
+                    name: productionName,
+                    quantity: productionQuantity,
+                    totalCost: totalCost,
+                    unitCost: unitCost,
+                    materialsUsed: materialsUsed
+                };
+                
+                productionHistory.push(productionRecord);
+                saveProductionHistory();
+                updateHistoryTable();
+                
+                // Mostrar resumo
+                updateProductionSummary(productionRecord);
+                
+                // Mostrar alerta
+                showAlert(productionAlert, `Cálculo de produção "${productionName}" realizado com sucesso!`, 'success');
+                
+                // Limpar seleção
+                selectedMaterials = [];
+                updateUsedMaterialsTable();
+                updateAvailableMaterials();
+                
+                // Limpar formulário
+                document.getElementById('productionName').value = '';
+                document.getElementById('productionQuantity').value = 1;
+            });
+            
+            // Limpar histórico
+            clearHistoryBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar todo o histórico de produção?')) {
+                    productionHistory = [];
+                    saveProductionHistory();
+                    updateHistoryTable();
+                }
+            });
+        });
+        
+        // Funções de atualização de UI
+        function updateMaterialsTable() {
+            materialsList.innerHTML = '';
+            
+            if (materials.length === 0) {
+                materialsList.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum material cadastrado</td></tr>';
+                return;
+            }
+            
+            materials.forEach(material => {
+                const unitPrice = (material.price + material.freight) / material.quantity;
+                const totalPrice = material.price + material.freight;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${material.name}</td>
+                    <td>${getTypeName(material.type)}</td>
+                    <td>${material.quantity} ${material.unit}</td>
+                    <td>R$ ${unitPrice.toFixed(2)}/${material.unit}</td>
+                    <td>R$ ${material.freight.toFixed(2)}</td>
+                    <td>R$ ${totalPrice.toFixed(2)}</td>
+                    <td class="actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteMaterial(${material.id})">Excluir</button>
+                    </td>
+                `;
+                
+                materialsList.appendChild(row);
+            });
+        }
+        
+        function updateAvailableMaterials() {
+            availableMaterials.innerHTML = '';
+            
+            if (materials.length === 0) {
+                availableMaterials.innerHTML = '<p>Nenhum material cadastrado. Adicione materiais na aba "Cadastro de Materiais".</p>';
+                return;
+            }
+            
+            materials.forEach(material => {
+                const isSelected = selectedMaterials.some(item => item.id === material.id);
+                const unitPrice = (material.price + material.freight) / material.quantity;
+                
+                const card = document.createElement('div');
+                card.className = `product-card ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="product-name">${material.name}</div>
+                    <div class="product-details">
+                        <div>${material.quantity} ${material.unit}</div>
+                        <div>R$ ${unitPrice.toFixed(2)}/${material.unit}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (isSelected) {
+                        // Remover da seleção
+                        selectedMaterials = selectedMaterials.filter(item => item.id !== material.id);
+                    } else {
+                        // Adicionar à seleção
+                        selectedMaterials.push({
+                            id: material.id,
+                            usedQuantity: 0
+                        });
+                    }
+                    
+                    updateAvailableMaterials();
+                    updateUsedMaterialsTable();
+                });
+                
+                availableMaterials.appendChild(card);
+            });
+        }
+        
+        function updateUsedMaterialsTable() {
+            usedMaterialsList.innerHTML = '';
+            
+            if (selectedMaterials.length === 0) {
+                usedMaterialsList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum material selecionado</td></tr>';
+                return;
+            }
+            
+            selectedMaterials.forEach(item => {
+                const material = materials.find(m => m.id === item.id);
+                if (material) {
+                    const unitPrice = (material.price + material.freight) / material.quantity;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${material.name}</td>
+                        <td>
+                            <input type="number" min="0" step="0.01" value="${item.usedQuantity}" 
+                                   onchange="updateUsedQuantity(${material.id}, this.value)" 
+                                   style="width: 100px; padding: 5px;">
+                            ${material.unit}
+                        </td>
+                        <td>R$ ${(unitPrice * item.usedQuantity).toFixed(2)}</td>
+                        <td class="actions">
+                            <button class="btn btn-danger btn-sm" onclick="removeUsedMaterial(${material.id})">Remover</button>
+                        </td>
+                    `;
+                    
+                    usedMaterialsList.appendChild(row);
+                }
+            });
+        }
+        
+        function updateProductionSummary(productionRecord) {
+            const summaryContent = document.getElementById('summaryContent');
+            
+            let html = `
+                <div class="summary-item">
+                    <span>Nome da Produção:</span>
+                    <span>${productionRecord.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Quantidade Produzida:</span>
+                    <span>${productionRecord.quantity} unidades</span>
+                </div>
+                <div class="summary-item">
+                    <span>Data do Cálculo:</span>
+                    <span>${productionRecord.date}</span>
+                </div>
+                <h4 style="margin-top: 15px;">Materiais Utilizados:</h4>
+            `;
+            
+            productionRecord.materialsUsed.forEach(material => {
+                html += `
+                    <div class="summary-item">
+                        <span>${material.name}:</span>
+                        <span>${material.usedQuantity} ${material.unit} - R$ ${material.cost.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="summary-total">
+                    <span>Custo Total:</span>
+                    <span>R$ ${productionRecord.totalCost.toFixed(2)}</span>
+                </div>
+                <div class="summary-total">
+                    <span>Custo por Unidade:</span>
+                    <span>R$ ${productionRecord.unitCost.toFixed(2)}</span>
+                </div>
+            `;
+            
+            summaryContent.innerHTML = html;
+        }
+        
+        function updateHistoryTable() {
+            historyList.innerHTML = '';
+            
+            if (productionHistory.length === 0) {
+                historyList.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro de produção</td></tr>';
+                return;
+            }
+            
+            // Ordenar por data (mais recente primeiro)
+            const sortedHistory = [...productionHistory].sort((a, b) => b.id - a.id);
+            
+            sortedHistory.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.name}</td>
+                    <td>${record.quantity}</td>
+                    <td>R$ ${record.totalCost.toFixed(2)}</td>
+                    <td>R$ ${record.unitCost.toFixed(2)}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="viewProductionDetails(${record.id})">Detalhes</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProductionRecord(${record.id})">Excluir</button>
+                    </td>
+                `;
+                
+                historyList.appendChild(row);
+            });
+        }
+        
+        // Funções de manipulação de dados
+        function updateUsedQuantity(materialId, quantity) {
+            const item = selectedMaterials.find(item => item.id === materialId);
+            if (item) {
+                item.usedQuantity = parseFloat(quantity) || 0;
+                updateUsedMaterialsTable();
+            }
+        }
+        
+        function removeUsedMaterial(materialId) {
+            selectedMaterials = selectedMaterials.filter(item => item.id !== materialId);
+            updateAvailableMaterials();
+            updateUsedMaterialsTable();
+        }
+        
+        function deleteMaterial(materialId) {
+            if (confirm('Tem certeza que deseja excluir este material?')) {
+                materials = materials.filter(m => m.id !== materialId);
+                saveMaterials();
+                updateMaterialsTable();
+                updateAvailableMaterials();
+                
+                // Remover também da seleção atual, se estiver selecionado
+                selectedMaterials = selectedMaterials.filter(item => item.id !== materialId);
+                updateUsedMaterialsTable();
+            }
+        }
+        
+        function viewProductionDetails(recordId) {
+            const record = productionHistory.find(r => r.id === recordId);
+            if (record) {
+                // Mudar para a aba de produção
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                document.querySelector('.tab[data-tab="production"]').classList.add('active');
+                document.getElementById('production').classList.add('active');
+                
+                // Preencher o formulário
+                document.getElementById('productionName').value = record.name;
+                document.getElementById('productionQuantity').value = record.quantity;
+                
+                // Selecionar os materiais
+                selectedMaterials = record.materialsUsed.map(material => ({
+                    id: material.id,
+                    usedQuantity: material.usedQuantity
+                }));
+                
+                updateAvailableMaterials();
+                updateUsedMaterialsTable();
+                updateProductionSummary(record);
+            }
+        }
+        
+        function deleteProductionRecord(recordId) {
+            if (confirm('Tem certeza que deseja excluir este registro de produção?')) {
+                productionHistory = productionHistory.filter(r => r.id !== recordId);
+                saveProductionHistory();
+                updateHistoryTable();
+            }
+        }
+        
+        function showAlert(alertElement, message, type) {
+            alertElement.textContent = message;
+            alertElement.className = `alert alert-${type}`;
+            alertElement.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alertElement.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function getTypeName(type) {
+            const typeNames = {
+                'parafina': 'Parafina',
+                'essencia': 'Essência',
+                'pavio': 'Pavio',
+                'corante': 'Corante',
+                'embalagem': 'Embalagem',
+                'outros': 'Outros'
+            };
+            
+            return typeNames[type] || type;
+        }
+        
+        // Funções de armazenamento
+        function saveMaterials() {
+            localStorage.setItem('candleMaterials', JSON.stringify(materials));
+        }
+        
+        function saveProductionHistory() {
+            localStorage.setItem('candleProductionHistory', JSON.stringify(productionHistory));
+        }
+    </script>
+</body>
+</html>
