@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coletor de Dados de Funcionários</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --warning-color: #e74c3c;
+            --success-color: #27ae60;
+            --background-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 15px;
+        }
+
+        .company-logo {
+            max-height: 70px;
+            max-width: 180px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+        }
+
+        .input-section {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 250px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
+        .filters-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: var(--primary-color);
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            background-color: var(--white);
+            transition: border-color 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .month-select {
+            padding: 10px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            background-color: var(--white);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: var(--white);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .missing-data {
+            color: var(--warning-color);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .service-time-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .senior-badge {
+            background-color: var(--warning-color);
+        }
+
+        .mid-senior-badge {
+            background-color: #f39c12;
+        }
+
+        .junior-badge {
+            background-color: var(--success-color);
+        }
+
+        .senior-row {
+            background-color: rgba(231, 76, 60, 0.05) !important;
+        }
+
+        .mid-senior-row {
+            background-color: rgba(243, 156, 18, 0.05) !important;
+        }
+
+        .birthday-header {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        tfoot {
+            font-weight: bold;
+            background-color: #f1f1f1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .filters-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Company Logo" class="company-logo">
+            <h1>
+                <i class="fas fa-file-import"></i>
+                Coletor de Dados de Funcionários
+            </h1>
+        </div>
+        
+        <div class="input-section">
+            <textarea id="dataInput" placeholder="Cole os dados aqui..."></textarea>
+            <div class="controls">
+                <button onclick="processData()" class="btn">
+                    <i class="fas fa-check"></i> Processar
+                </button>
+               
+                <div class="search-container">
+                    <input type="text" id="nameSearch" class="search-input" placeholder="Buscar por nome" oninput="filterByName()" />
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="obsSearch" class="search-input" placeholder="Buscar por cargo" oninput="filterByRole()" />
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros de Tempo de Serviço -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="serviceTimeFilter">Filtrar por Tempo de Serviço:</label>
+                <select id="serviceTimeFilter" class="filter-select" onchange="filterByServiceTime()">
+                    <option value="all">Todos</option>
+                    <option value="over30">Mais de 30 anos</option>
+                    <option value="over25">Mais de 25 anos</option>
+                    <option value="over20">Mais de 20 anos</option>
+                    <option value="over15">Mais de 15 anos</option>
+                    <option value="over10">Mais de 10 anos</option>
+                    <option value="over5">Mais de 5 anos</option>
+                    <option value="under5">Menos de 5 anos</option>
+                    <option value="custom">Personalizado</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" id="customYearsFilter" style="display: none;">
+                <label for="customYears">Anos específicos (>=):</label>
+                <input type="number" id="customYears" class="filter-select" min="0" max="50" placeholder="Ex: 15" onchange="filterByCustomYears()">
+            </div>
+            
+            <div class="filter-group">
+                <button onclick="showSeniorEmployees()" class="btn btn-warning">
+                    <i class="fas fa-crown"></i> Mais de 20 anos
+                </button>
+            </div>
+            
+            <div class="filter-group">
+                <button onclick="showMidSeniorEmployees()" class="btn" style="background-color: #f39c12;">
+                    <i class="fas fa-star"></i> 10-20 anos
+                </button>
+            </div>
+            
+            <div class="filter-group">
+                <button onclick="showJuniorEmployees()" class="btn btn-success">
+                    <i class="fas fa-seedling"></i> Menos de 10 anos
+                </button>
+            </div>
+            
+            <div class="filter-group">
+                <button onclick="exportServiceTime()" class="btn" style="background-color: #9b59b6;">
+                    <i class="fas fa-file-export"></i> Exportar Tempo de Serviço
+                </button>
+            </div>
+        </div>
+
+        <label for="monthSelect">Escolha o mês:</label>
+        <select id="monthSelect" class="month-select" onchange="showBirthdayEmployees()">
+            <option value="1">Janeiro</option>
+            <option value="2">Fevereiro</option>
+            <option value="3">Março</option>
+            <option value="4">Abril</option>
+            <option value="5">Maio</option>
+            <option value="6">Junho</option>
+            <option value="7">Julho</option>
+            <option value="8">Agosto</option>
+            <option value="9">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+        </select>
+
+        <h2 id="companyName"></h2>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Data Admissão</th>
+                    <th>Nascimento</th>
+                    <th>Cargo</th>
+                    <th>Tempo de Serviço</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5">Qt Funcionários</td>
+                    <td id="totalCount">0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="footer">
+        Desenvolvido por Waldeci Ramos | © 2024 Todos os direitos reservados
+    </div>
+
+    <script>
+        const empresasNomes = {  
+            "2": "DOM PEDRO 1",
+            "3": "DOM PEDRO ITATIAIUÇU",
+            "4": "DOM PEDRO LEME",
+            "5": "DOM PEDRO PINDA ROTA NORTE",
+            "6": "DOM PEDRO 2",
+            "7": "DOM PEDRO POUSO ALEGRE",
+            "8": "DOM PEDRO ATIBAIA",
+            "9": "DOM PEDRO ITAPEVA",
+            "10": "DOM PEDRO CAETANÓPOLIS",
+            "11": "DOM PEDRO BETIM 1 ROTA SUL",
+            "13": "DOM PEDRO TURIM",
+            "14": "DOM PEDRO SANTA LUZIA",
+            "15": "DOM PEDRO SALINAS",
+            "17": "DOM PEDRO APARECIDA",
+            "18": "DOM PEDRO MURIAÉ",
+            "19": "DOM PEDRO PARAOPEBA",
+            "20": "DOM PEDRO CONTAGEM NORTE",
+            "21": "DOM PEDRO CONTAGEM SUL",
+            "22": "DOM PEDRO CAMBUÍ",
+            "24": "DOM PEDRO GUARA RODOV.",
+            "25": "DOM PEDRO PINDA ROTA SUL",
+            "26": "DOM PEDRO MIRACATU ROTA NORTE",
+            "27": "DOM PEDRO JK ESTIVA SUL",
+            "28": "DOM PEDRO ALIANÇA",
+            "29": "DOM PEDRO OLIVEIRA",
+            "30": "DOM PEDRO CAMBUÍ URBANO 1",
+            "31": "DOM PEDRO JAGUAQUARA",
+            "32": "DOM PEDRO SÃO GONÇALO",
+            "33": "DOM PEDRO NOVA SERRANA",
+            "34": "DOM PEDRO IGARATINGA",
+            "35": "DOM PEDRO CARMÓPOLIS",
+            "36": "DOM PEDRO BETIM 2 ROTA SUL",
+            "37": "DOM PEDRO PARAGOMINAS",
+            "38": "DOM PEDRO URUAÇU",
+            "41": "DOM PEDRO DIVISA ALEGRE",
+            "42": "DOM PEDRO CAMBUÍ URBANO 2",
+            "43": "DOM PEDRO CONTAGEM FERNÃO DIAS",
+            "44": "DOM PEDRO CACHOEIRA DE PAJEÚ",
+            "45": "DOM PEDRO TOCANTINS",
+            "47": "CENTRAL ADMINISTRATIVA",
+            "48": "DOM PEDRO SANTO ESTEVÃO",
+            "49": "DOM PEDRO SÃO GONÇALO URB.",
+            "50": "DOM PEDRO ITAGUARA",
+            "51": "DOM PEDRO SENADOR AMARAL",
+            "53": "DOM PEDRO SÃO GONÇALO URB. 2",
+            "54": "DOM PEDRO LORENA",
+            "55": "DOM PEDRO DIVISA ALEGRE 2",
+            "56": "DOM PEDRO INCONFIDENTES",
+            "57": "DOM PEDRO JUIZ DE FORA URBANO",
+            "58": "DOM PEDRO BUENO BRANDÃO",
+            "59": "DOM PEDRO POUSO A LEGRE URBANO",
+            "60": "DOM PEDRO CAMANDUCAIA URBANO 1",
+            "61": "DOM PEDRO OURO FINO",
+            "63": "DOM PEDRO CAMANDUCAIA URBANO 2",
+            "64": "DOM PEDRO GUARÁ URBANO 2",
+            "65": "DOM PEDRO GUARÁ URBANO 3",
+            "66": "DOM PEDRO BRAGANÇA URBANO",
+            "67": "DOM PEDRO JACAREÍ URBANO",
+            "68": "DOM PEDRO ATIBAIA URBANO",
+            "69": "DOM PEDRO POUSO ALEGRE URB 2",
+            "70": "DOM PEDRO EXTREMA URBANO",
+            "75": "DOM PEDRO ITATIBA URBANO 1",
+            "76": "DOM PEDRO ITATIBA URBANO 2",
+            "77": "DOM PEDRO POUSO ALEGRE URB 3",
+            "78": "DOM PEDRO SALES OLIVEIRA",
+            "79": "DOM PEDRO VITÓRIA DA CONQUISTA",
+            "80": "DOM PEDRO JUIZ DE FORA RODOVIA",
+            "81": "DOM PEDRO MONTES CLAROS",
+            "82": "DOM PEDRO VARGEM",
+            "83": "DOM PEDRO SÃO JORGE",
+            "86": "DOM PEDRO S. JOSÉ DOS CAMPOS URB",
+            "87": "DOM PEDRO FREI INOCÊNCIO",
+            "88": "DOM PEDRO BRAGANÇA RODOVIA",
+            "89": "DOM PEDRO BARRA MANSA NORTE",
+            "90": "DOM PEDRO BARRA MANSA SUL",
+            "91": "DOM PEDRO CONSELHEIRA LAFAIETE",
+            "92": "DOM PEDRO PLANALTO",
+            "93": "DOM PEDRO SANTO ESTEVÃO 2",
+            "94": "DOM PEDRO SANTO ESTEVÃO 3",
+            "95": "DOM PEDRO SÃO CRISTOVÃO",
+            "96": "DOM PEDRO BARREIRAS",
+            "97": "DOM PEDRO DE POSTOS LTDA DP ITABERABA",
+            "98": "DOM PEDRO DE POSTOS LTDA DP VALENCA",
+            "99": "DOM PEDRO SAO GONCALO RODOVIA 2",
+            "100": "DOM PEDRO SAO GONCALO RODOVIA 3",
+            "102": "DOM PEDRO RUSSAS",
+            "103": "DOM PEDRO INHAPIM",
+            "104": "DOM PEDRO LUZ"
+        };
+
+        let employeesData = [];  
+        let companyName = 'Empresa não encontrada';  
+
+        // Função para calcular o tempo de serviço
+        function calculateServiceTime(admissionDate) {
+            if (!admissionDate || admissionDate.trim() === '') {
+                return { years: 0, months: 0, error: true };
+            }
+            
+            const today = new Date();
+            const [day, month, year] = admissionDate.split('/').map(Number);
+            
+            // Verifica se a data é válida
+            if (!day || !month || !year || year < 1900 || year > today.getFullYear()) {
+                return { years: 0, months: 0, error: true };
+            }
+            
+            const admission = new Date(year, month - 1, day);
+            
+            let years = today.getFullYear() - admission.getFullYear();
+            let months = today.getMonth() - admission.getMonth();
+            
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            // Ajuste para dias
+            if (today.getDate() < admission.getDate()) {
+                months--;
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+            }
+            
+            return { years, months, error: false };
+        }
+
+        // Função para formatar o tempo de serviço
+        function formatServiceTime(years, months, error) {
+            if (error) {
+                return '<span class="missing-data">Data inválida</span>';
+            }
+            
+            if (years === 0 && months === 0) {
+                return "Recém-admitido";
+            } else if (years === 0) {
+                return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+            } else if (months === 0) {
+                return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+            } else {
+                return `${years} ${years === 1 ? 'ano' : 'anos'} e ${months} ${months === 1 ? 'mês' : 'meses'}`;
+            }
+        }
+
+        // Função para obter a classe CSS baseada no tempo de serviço
+        function getServiceTimeClass(years, error) {
+            if (error) {
+                return '';
+            }
+            
+            if (years >= 20) {
+                return 'senior-badge';
+            } else if (years >= 10) {
+                return 'mid-senior-badge';
+            } else {
+                return 'junior-badge';
+            }
+        }
+
+        // Função para obter a classe da linha baseada no tempo de serviço
+        function getServiceTimeRowClass(years, error) {
+            if (error) {
+                return '';
+            }
+            
+            if (years >= 20) {
+                return 'senior-row';
+            } else if (years >= 10) {
+                return 'mid-senior-row';
+            } else {
+                return '';
+            }
+        }
+
+        function processData() {  
+            const input = document.getElementById('dataInput').value;  
+            const lines = input.trim().split('\n');  
+
+            const tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];  
+            tableBody.innerHTML = '';  
+            employeesData = [];  
+
+            let currentCompanyCode = null;
+
+            lines.forEach(line => {  
+                const companyLineMatch = line.match(/Empresa:\s*(\d+)\s*-\s*(.+)/);  
+                if (companyLineMatch) {
+                    currentCompanyCode = companyLineMatch[1].trim();
+                    companyName = empresasNomes[currentCompanyCode] || companyLineMatch[2].trim(); 
+                    const companyHeaderRow = tableBody.insertRow();
+                    companyHeaderRow.innerHTML = `<td colspan="6" style="font-weight: bold; text-align: center; background-color: #f1f1f1;">${companyName}</td>`;
+                    return;  // Pula para a próxima linha
+                }
+
+                const match = line.match(/\|\s*(\d+)\s*\|\s*(.+?)\s*\|\s*([^\|]+)\s*\|\s*([^\|]*)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*/);  
+                
+                if (match && match[1] !== 'Código') {  
+                    const [, code, name, cpf, obs, admissionDate, birthDate, role] = match;  
+                    
+                    // Verificar se os dados estão completos
+                    const hasAdmissionDate = admissionDate && admissionDate.trim() !== '';
+                    const hasBirthDate = birthDate && birthDate.trim() !== '';
+                    
+                    // Calcular tempo de serviço
+                    const serviceTime = calculateServiceTime(admissionDate);
+                    const formattedServiceTime = formatServiceTime(serviceTime.years, serviceTime.months, serviceTime.error);
+                    const serviceTimeClass = getServiceTimeClass(serviceTime.years, serviceTime.error);
+                    const rowClass = getServiceTimeRowClass(serviceTime.years, serviceTime.error);
+                    
+                    const row = tableBody.insertRow();  
+                    if (rowClass) row.className = rowClass;
+                    
+                    row.innerHTML = `  
+                        <td>${code}</td>  
+                        <td>${name}</td>  
+                        <td>${hasAdmissionDate ? admissionDate : '<span class="missing-data">Falta preencher</span>'}</td>  
+                        <td>${hasBirthDate ? birthDate : '<span class="missing-data">Falta preencher</span>'}</td>  
+                        <td>${role || '<span class="missing-data">Falta preencher</span>'}</td>  
+                        <td><span class="service-time-badge ${serviceTimeClass}">${formattedServiceTime}</span></td>  
+                    `;  
+
+                    employeesData.push({  
+                        code,  
+                        name,  
+                        admissionDate: hasAdmissionDate ? admissionDate : '',  
+                        birthDate: hasBirthDate ? birthDate : '',  
+                        role: role || '',
+                        serviceYears: serviceTime.years,
+                        serviceMonths: serviceTime.months,
+                        formattedServiceTime: formattedServiceTime,
+                        serviceTimeClass: serviceTimeClass,
+                        rowClass: rowClass,
+                        hasServiceTimeError: serviceTime.error
+                    });  
+                }  
+            });  
+
+            // Atualiza o total de funcionários  
+            document.getElementById('totalCount').textContent = employeesData.length;  
+        }  
+
+        function showBirthdayEmployees() {  
+            const currentMonth = parseInt(document.getElementById('monthSelect').value, 10);
+            const monthNames = [
+                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
+                "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
+                "Novembro", "Dezembro"
+            ];
+            const birthdayEmployees = employeesData.filter(emp => {  
+                if (!emp.birthDate) return false;
+                const birthParts = emp.birthDate.split('/');  
+                const birthMonth = parseInt(birthParts[1], 10);  
+                return birthMonth === currentMonth;  
+            });  
+
+            // Limpa a tabela
+            const birthdayTableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            birthdayTableBody.innerHTML = ''; 
+
+            // Adiciona cabeçalho personalizado
+            const headerRow = birthdayTableBody.insertRow();
+            headerRow.innerHTML = `<td colspan="6" class="birthday-header">
+                <i class="fas fa-birthday-cake birthday-icon"></i>
+                Aniversariantes do Mês de ${monthNames[currentMonth - 1]}
+            </td>`;
+            
+            // Exibir aniversariantes
+            birthdayEmployees.forEach(emp => {
+                const birthParts = emp.birthDate.split('/');
+                const day = birthParts[0];
+
+                const row = birthdayTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${emp.code}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.admissionDate || '<span class="missing-data">Falta preencher</span>'}</td>
+                    <td>${day}</td>
+                    <td>${emp.role || '<span class="missing-data">Falta preencher</span>'}</td>
+                    <td><span class="service-time-badge ${emp.serviceTimeClass}">${emp.formattedServiceTime}</span></td>
+                `;
+            });
+
+            // Atualiza o total de funcionários na interface
+            document.getElementById('totalCount').textContent = birthdayEmployees.length;
+            document.getElementById('companyName').textContent = `Aniversariantes do Mês de ${monthNames[currentMonth - 1]}`;  
+        }
+
+        function filterByName() {  
+            const query = document.getElementById('nameSearch').value.toLowerCase().trim();  
+            const filteredData = employeesData.filter(emp =>  
+                emp.name.toLowerCase().includes(query)  
+            );  
+
+            updateTable(filteredData);  
+        }
+
+        function filterByRole() {  
+            const query = document.getElementById('obsSearch').value.toLowerCase().trim();  
+            const filteredData = employeesData.filter(emp =>  
+                emp.role.toLowerCase().includes(query)  
+            );  
+
+            updateTable(filteredData);  
+        }
+
+        // Função para filtrar por tempo de serviço
+        function filterByServiceTime() {
+            const filterValue = document.getElementById('serviceTimeFilter').value;
+            const customYearsFilter = document.getElementById('customYearsFilter');
+            
+            // Mostrar/ocultar filtro personalizado
+            if (filterValue === 'custom') {
+                customYearsFilter.style.display = 'flex';
+                return;
+            } else {
+                customYearsFilter.style.display = 'none';
+            }
+            
+            let filteredData = [];
+            
+            switch(filterValue) {
+                case 'over30':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 30 && !emp.hasServiceTimeError);
+                    break;
+                case 'over25':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 25 && !emp.hasServiceTimeError);
+                    break;
+                case 'over20':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 20 && !emp.hasServiceTimeError);
+                    break;
+                case 'over15':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 15 && !emp.hasServiceTimeError);
+                    break;
+                case 'over10':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 10 && !emp.hasServiceTimeError);
+                    break;
+                case 'over5':
+                    filteredData = employeesData.filter(emp => emp.serviceYears >= 5 && !emp.hasServiceTimeError);
+                    break;
+                case 'under5':
+                    filteredData = employeesData.filter(emp => emp.serviceYears < 5 && !emp.hasServiceTimeError);
+                    break;
+                case 'all':
+                default:
+                    filteredData = employeesData;
+                    break;
+            }
+            
+            updateTable(filteredData);
+        }
+
+        // Função para filtrar por anos personalizados
+        function filterByCustomYears() {
+            const years = parseInt(document.getElementById('customYears').value) || 0;
+            const filteredData = employeesData.filter(emp => emp.serviceYears >= years && !emp.hasServiceTimeError);
+            updateTable(filteredData);
+        }
+
+        // Funções para mostrar funcionários por faixa de tempo
+        function showSeniorEmployees() {
+            const filteredData = employeesData.filter(emp => emp.serviceYears >= 20 && !emp.hasServiceTimeError);
+            updateTable(filteredData);
+        }
+
+        function showMidSeniorEmployees() {
+            const filteredData = employeesData.filter(emp => emp.serviceYears >= 10 && emp.serviceYears < 20 && !emp.hasServiceTimeError);
+            updateTable(filteredData);
+        }
+
+        function showJuniorEmployees() {
+            const filteredData = employeesData.filter(emp => emp.serviceYears < 10 && !emp.hasServiceTimeError);
+            updateTable(filteredData);
+        }
+
+        function updateTable(filteredData) {
+            const tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];  
+            tableBody.innerHTML = '';  
+
+            filteredData.forEach(emp => {  
+                const row = tableBody.insertRow();  
+                if (emp.rowClass) row.className = emp.rowClass;
+                
+                row.innerHTML = `  
+                    <td>${emp.code}</td>  
+                    <td>${emp.name}</td>  
+                    <td>${emp.admissionDate || '<span class="missing-data">Falta preencher</span>'}</td>  
+                    <td>${emp.birthDate || '<span class="missing-data">Falta preencher</span>'}</td>  
+                    <td>${emp.role || '<span class="missing-data">Falta preencher</span>'}</td>  
+                    <td><span class="service-time-badge ${emp.serviceTimeClass}">${emp.formattedServiceTime}</span></td>  
+                `;  
+            });  
+
+            document.getElementById('totalCount').textContent = filteredData.length;  
+        }
+
+        // Função para exportar dados de tempo de serviço
+        function exportServiceTime() {
+            if (employeesData.length === 0) {
+                alert('Não há dados para exportar. Processe os dados primeiro.');
+                return;
+            }
+
+            // Criar cabeçalho do CSV
+            let csvContent = "Código,Nome,Data Admissão,Tempo de Serviço (Anos),Tempo de Serviço (Meses),Tempo de Serviço (Formatado),Cargo\n";
+            
+            // Adicionar dados de cada funcionário
+            employeesData.forEach(emp => {
+                const code = emp.code || '';
+                const name = emp.name || '';
+                const admissionDate = emp.admissionDate || '';
+                const serviceYears = emp.hasServiceTimeError ? 'N/A' : emp.serviceYears;
+                const serviceMonths = emp.hasServiceTimeError ? 'N/A' : emp.serviceMonths;
+                const formattedServiceTime = emp.formattedServiceTime.replace(/<[^>]*>/g, '') || '';
+                const role = emp.role || '';
+                
+                csvContent += `"${code}","${name}","${admissionDate}","${serviceYears}","${serviceMonths}","${formattedServiceTime}","${role}"\n`;
+            });
+
+            // Criar blob e link para download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'tempo_servico_funcionarios.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
