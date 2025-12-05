@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localizador de Postos - Rede Dom Pedro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #2d3748;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            padding: 25px 0;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00, #ff6b00);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 70px;
+            width: auto;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-text h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .header-text p {
+            color: #cbd5e0;
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #cbd5e0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            padding: 40px 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1a237e;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-title i {
+            color: #ff6b00;
+            font-size: 20px;
+        }
+
+        .filter-group {
+            margin-bottom: 25px;
+        }
+
+        .filter-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .filter-group label i {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+            pointer-events: none;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            font-size: 15px;
+            color: #2d3748;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        select:hover {
+            border-color: #a0aec0;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .filter-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #4a5568;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-btn:hover:not(.active) {
+            border-color: #a0aec0;
+            background: #f7fafc;
+        }
+
+        .map-preview {
+            margin-top: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .map-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .map-preview i {
+            font-size: 60px;
+            color: white;
+            opacity: 0.7;
+        }
+
+        /* Content Area */
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .posto-info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .posto-title h2 {
+            color: #1a237e;
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .posto-title .codigo {
+            color: #718096;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tipo-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-label i {
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .coordinates {
+            background: linear-gradient(135deg, #f6f9fc 0%, #edf2f7 100%);
+            border-left-color: #ff6b00;
+        }
+
+        /* QR Code Section */
+        .qrcode-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .qrcode-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .qrcode-container {
+            text-align: center;
+            padding: 25px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .qrcode-container h3 {
+            color: #1a237e;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #qrcode {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            background: white;
+        }
+
+        .qrcode-note {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .btn i {
+            font-size: 18px;
+        }
+
+        /* Modal do Google Maps */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            height: calc(100% - 80px);
+        }
+
+        #map-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a237e;
+            color: #cbd5e0;
+            padding: 25px 0;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-logo {
+            height: 40px;
+            opacity: 0.8;
+        }
+
+        .footer-info p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            color: #cbd5e0;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: white;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #cbd5e0;
+        }
+
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-text h1 {
+                font-size: 24px;
+            }
+            
+            .stats-container {
+                justify-content: center;
+            }
+            
+            .main-content {
+                padding: 20px 0;
+            }
+            
+            .posto-info-card {
+                padding: 25px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png" alt="Rede Dom Pedro" class="logo">
+                    <div class="header-text">
+                        <h1>Localizador de Postos</h1>
+                        <p>Encontre os postos da Rede Dom Pedro em todo o Brasil</p>
+                    </div>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-postos">0</div>
+                        <div class="stat-label">Total de Postos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="postos-rodovia">0</div>
+                        <div class="stat-label">Rodoviários</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="postos-urbano">0</div>
+                        <div class="stat-label">Urbanos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="postos-estado">0</div>
+                        <div class="stat-label">No Estado</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="postos-cidade">0</div>
+                        <div class="stat-label">Na Cidade</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="search-section">
+                    <div class="section-title">
+                        <i class="fas fa-search-location"></i>
+                        <span>Buscar Posto</span>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="estado"><i class="fas fa-map"></i> Estado</label>
+                        <div class="select-wrapper">
+                            <select id="estado">
+                                <option value="">Selecione um estado</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="cidade"><i class="fas fa-city"></i> Cidade</label>
+                        <div class="select-wrapper">
+                            <select id="cidade">
+                                <option value="">Selecione uma cidade</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="tipo"><i class="fas fa-road"></i> Tipo de Posto</label>
+                        <div class="select-wrapper">
+                            <select id="tipo">
+                                <option value="">Todos os tipos</option>
+                                <option value="RO">Rodoviário</option>
+                                <option value="UR">Urbano</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="posto"><i class="fas fa-gas-pump"></i> Posto</label>
+                        <div class="select-wrapper">
+                            <select id="posto">
+                                <option value="">Selecione um posto</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="map-preview">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando informações do posto...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state">
+                    <i class="fas fa-gas-pump"></i>
+                    <h3>Selecione um posto</h3>
+                    <p>Escolha um estado, cidade e posto para ver os detalhes</p>
+                </div>
+
+                <!-- Posto Info Card -->
+                <div class="posto-info-card" id="posto-info-card" style="display: none;">
+                    <div class="info-header">
+                        <div class="posto-title">
+                            <h2 id="posto-nome">-</h2>
+                            <div class="codigo">Código: <span id="posto-codigo">-</span></div>
+                        </div>
+                        <div>
+                            <div class="status-badge">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ATIVO</span>
+                            </div>
+                            <div class="tipo-badge" id="tipo-badge">
+                                <i class="fas fa-road"></i>
+                                <span id="tipo-text">RODOVIÁRIO</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-building"></i>
+                                <span>Razão Social</span>
+                            </div>
+                            <div class="info-value" id="razao-social">-</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-id-card"></i>
+                                <span>CNPJ</span>
+                            </div>
+                            <div class="info-value" id="cnpj">-</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <span>Endereço</span>
+                            </div>
+                            <div class="info-value" id="endereco">-</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-location-dot"></i>
+                                <span>Localização</span>
+                            </div>
+                            <div class="info-value" id="localizacao">-</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-phone"></i>
+                                <span>Telefone</span>
+                            </div>
+                            <div class="info-value" id="telefone">-</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-hashtag"></i>
+                                <span>Inscrição Estadual</span>
+                            </div>
+                            <div class="info-value" id="ie">-</div>
+                        </div>
+                        
+                        <div class="info-item coordinates">
+                            <div class="info-label">
+                                <i class="fas fa-compass"></i>
+                                <span>Coordenadas</span>
+                            </div>
+                            <div class="info-value">
+                                <span id="latitude">-</span>, <span id="longitude">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Email Padrão</span>
+                            </div>
+                            <div class="info-value">nfe.caixas@rededompedro.com</div>
+                        </div>
+                    </div>
+
+                    <div class="qrcode-section">
+                        <div class="qrcode-container">
+                            <h3><i class="fas fa-qrcode"></i> QR Code</h3>
+                            <img id="qrcode" src="" alt="QR Code">
+                            <p class="qrcode-note">Escaneie para abrir no Google Maps</p>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button id="open-map" class="btn btn-primary">
+                                <i class="fas fa-map-marked-alt"></i>
+                                Abrir no Google Maps
+                            </button>
+                            <button id="exportar-csv" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                Exportar CSV Completo
+                            </button>
+                            <button id="copiar-coordenadas" class="btn btn-outline">
+                                <i class="fas fa-copy"></i>
+                                Copiar Coordenadas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal do Google Maps -->
+    <div class="modal-overlay" id="map-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-map-marked-alt"></i> Google Maps</h3>
+                <button class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <iframe id="map-frame" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png" alt="Rede Dom Pedro" class="footer-logo">
+                <div class="footer-info">
+                    <p>© 2024 Rede Dom Pedro - Todos os direitos reservados</p>
+                    <p>Contato: nfe.caixas@rededompedro.com</p>
+                </div>
+                <div class="social-links">
+                    <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Inclui o arquivo de dados -->
+    <script src="postos-data.js"></script>
+    
+    <script>
+        // Variáveis globais
+        let currentPosto = null;
+        let currentEstado = null;
+        let currentCidade = null;
+        let currentTipo = "";
+
+        // Inicializar a aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // Atualizar estatísticas gerais
+            updateStats();
+            
+            // Popular dropdown de estados
+            const estadoSelect = document.getElementById('estado');
+            const estadosPresentes = [...new Set(postosData.map(posto => posto.estado))].sort();
+            
+            estadosPresentes.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado;
+                option.textContent = `${estado} - ${estadosBR[estado] || estado}`;
+                estadoSelect.appendChild(option);
+            });
+            
+            // Configurar eventos
+            estadoSelect.addEventListener('change', handleEstadoChange);
+            document.getElementById('cidade').addEventListener('change', handleCidadeChange);
+            document.getElementById('tipo').addEventListener('change', handleTipoChange);
+            document.getElementById('posto').addEventListener('change', handlePostoChange);
+            document.getElementById('open-map').addEventListener('click', openGoogleMaps);
+            document.getElementById('exportar-csv').addEventListener('click', exportarCSV);
+            document.getElementById('copiar-coordenadas').addEventListener('click', copiarCoordenadas);
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            
+            // Fechar modal ao clicar fora
+            document.getElementById('map-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+            
+            // Desabilitar clique direito
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+        }
+
+        function updateStats(estadoSelecionado = null, cidadeSelecionada = null, tipoSelecionado = "") {
+            const totalPostos = postosData.length;
+            const postosRodovia = postosData.filter(p => p.tipo === "RO").length;
+            const postosUrbano = postosData.filter(p => p.tipo === "UR").length;
+            
+            let postosEstado = 0;
+            let postosCidade = 0;
+            
+            if (estadoSelecionado) {
+                postosEstado = postosData.filter(p => p.estado === estadoSelecionado).length;
+            }
+            
+            if (cidadeSelecionada) {
+                postosCidade = postosData.filter(p => p.cidade === cidadeSelecionada).length;
+            }
+            
+            document.getElementById('total-postos').textContent = totalPostos;
+            document.getElementById('postos-rodovia').textContent = postosRodovia;
+            document.getElementById('postos-urbano').textContent = postosUrbano;
+            document.getElementById('postos-estado').textContent = postosEstado;
+            document.getElementById('postos-cidade').textContent = postosCidade;
+        }
+
+        function handleEstadoChange() {
+            const estado = this.value;
+            currentEstado = estado;
+            const cidadeSelect = document.getElementById('cidade');
+            const postoSelect = document.getElementById('posto');
+            
+            // Limpar selects
+            cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
+            postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
+            
+            if (!estado) {
+                updateStats();
+                hidePostoInfo();
+                return;
+            }
+            
+            // Filtrar cidades do estado selecionado
+            const cidades = [...new Set(postosData
+                .filter(p => p.estado === estado)
+                .map(p => p.cidade)
+                .sort())];
+            
+            cidades.forEach(cidade => {
+                const option = document.createElement('option');
+                option.value = cidade;
+                option.textContent = cidade;
+                cidadeSelect.appendChild(option);
+            });
+            
+            // Atualizar estatísticas
+            updateStats(estado);
+            hidePostoInfo();
+        }
+
+        function handleCidadeChange() {
+            const estado = currentEstado;
+            const cidade = this.value;
+            currentCidade = cidade;
+            const tipo = document.getElementById('tipo').value;
+            const postoSelect = document.getElementById('posto');
+            
+            postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
+            
+            if (!cidade) {
+                updateStats(estado);
+                hidePostoInfo();
+                return;
+            }
+            
+            // Filtrar postos conforme seleções
+            filtrarPostos(estado, cidade, tipo);
+            hidePostoInfo();
+        }
+
+        function handleTipoChange() {
+            const tipo = this.value;
+            currentTipo = tipo;
+            const estado = currentEstado;
+            const cidade = currentCidade;
+            
+            // Filtrar postos conforme seleções
+            filtrarPostos(estado, cidade, tipo);
+            hidePostoInfo();
+        }
+
+        function filtrarPostos(estado, cidade, tipo) {
+            const postoSelect = document.getElementById('posto');
+            postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
+            
+            let postosFiltrados = postosData;
+            
+            // Aplicar filtros
+            if (estado) {
+                postosFiltrados = postosFiltrados.filter(p => p.estado === estado);
+            }
+            
+            if (cidade) {
+                postosFiltrados = postosFiltrados.filter(p => p.cidade === cidade);
+            }
+            
+            if (tipo) {
+                postosFiltrados = postosFiltrados.filter(p => p.tipo === tipo);
+            }
+            
+            // Ordenar e adicionar opções
+            postosFiltrados
+                .sort((a, b) => a.nomeReduzido.localeCompare(b.nomeReduzido))
+                .forEach(posto => {
+                    const option = document.createElement('option');
+                    option.value = posto.codigo;
+                    
+                    // Mostrar tipo na opção
+                    const tipoTexto = posto.tipo === "RO" ? " (Rodoviário)" : " (Urbano)";
+                    option.textContent = posto.nomeReduzido + tipoTexto;
+                    
+                    option.dataset.posto = JSON.stringify(posto);
+                    postoSelect.appendChild(option);
+                });
+            
+            // Atualizar estatísticas
+            updateStats(estado, cidade, tipo);
+        }
+
+        function handlePostoChange() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (!selectedOption.value) {
+                hidePostoInfo();
+                return;
+            }
+            
+            const posto = JSON.parse(selectedOption.dataset.posto);
+            showPostoInfo(posto);
+        }
+
+        function showPostoInfo(posto) {
+            currentPosto = posto;
+            
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('posto-info-card').style.display = 'none';
+            
+            setTimeout(() => {
+                // Atualizar informações do posto
+                document.getElementById('posto-nome').textContent = posto.nomeReduzido;
+                document.getElementById('posto-codigo').textContent = posto.codigo;
+                document.getElementById('razao-social').textContent = posto.razaoSocial;
+                document.getElementById('cnpj').textContent = posto.cnpj;
+                document.getElementById('endereco').textContent = `${posto.endereco}, ${posto.bairro}`;
+                document.getElementById('localizacao').textContent = `${posto.cidade}/${posto.estado} - CEP: ${posto.cep}`;
+                document.getElementById('telefone').textContent = posto.telefone || 'Não informado';
+                document.getElementById('ie').textContent = posto.ie || 'Não informado';
+                document.getElementById('latitude').textContent = posto.latitude.toFixed(6);
+                document.getElementById('longitude').textContent = posto.longitude.toFixed(6);
+                
+                // Atualizar tipo
+                const tipoTexto = posto.tipo === "RO" ? "RODOVIÁRIO" : "URBANO";
+                const tipoIcon = posto.tipo === "RO" ? "fa-road" : "fa-city";
+                const tipoCor = posto.tipo === "RO" ? "linear-gradient(135deg, #667eea, #764ba2)" : "linear-gradient(135deg, #48bb78, #38a169)";
+                
+                document.getElementById('tipo-text').textContent = tipoTexto;
+                document.getElementById('tipo-badge').style.background = tipoCor;
+                document.getElementById('tipo-badge').querySelector('i').className = `fas ${tipoIcon}`;
+                
+                // Gerar QR Code
+                const url = `https://www.google.com/maps/search/?api=1&query=${posto.latitude},${posto.longitude}`;
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
+                document.getElementById('qrcode').src = qrCodeUrl;
+                
+                // Esconder loading e mostrar card
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('posto-info-card').style.display = 'block';
+                document.getElementById('posto-info-card').classList.add('fade-in');
+                
+                // Remover animação após execução
+                setTimeout(() => {
+                    document.getElementById('posto-info-card').classList.remove('fade-in');
+                }, 500);
+            }, 300);
+        }
+
+        function hidePostoInfo() {
+            document.getElementById('empty-state').style.display = 'block';
+            document.getElementById('posto-info-card').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            currentPosto = null;
+        }
+
+        function openGoogleMaps() {
+    if (!currentPosto) {
+        alert('Selecione um posto primeiro!');
+        return;
+    }
+    
+    // URL do Google Maps que pode funcionar em alguns navegadores
+    const url = `https://maps.google.com/maps?q=${currentPosto.latitude},${currentPosto.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    
+    const modal = document.getElementById('map-modal');
+    const mapFrame = document.getElementById('map-frame');
+    
+    mapFrame.src = url;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+        function closeModal() {
+            const modal = document.getElementById('map-modal');
+            const mapFrame = document.getElementById('map-frame');
+            
+            modal.style.display = 'none';
+            mapFrame.src = '';
+            
+            // Restaurar scroll no body
+            document.body.style.overflow = 'auto';
+        }
+
+        function copiarCoordenadas() {
+            if (!currentPosto) {
+                alert('Selecione um posto primeiro!');
+                return;
+            }
+            
+            const coordenadas = `${currentPosto.latitude.toFixed(6)}, ${currentPosto.longitude.toFixed(6)}`;
+            navigator.clipboard.writeText(coordenadas).then(() => {
+                alert('Coordenadas copiadas para a área de transferência!');
+            });
+        }
+
+        function exportarCSV() {
+            const csvContent = "data:text/csv;charset=utf-8," +
+                "Código,Razão Social,Tipo,Nome Reduzido,CNPJ,IE,IM,Endereço,Bairro,Cidade,CEP,Estado,Município,Telefone,Latitude,Longitude\n" +
+                postosData.map(posto => {
+                    const tipo = posto.tipo === "RO" ? "Rodoviário" : "Urbano";
+                    return `"${posto.codigo}","${posto.razaoSocial}","${tipo}","${posto.nomeReduzido}","${posto.cnpj}","${posto.ie}","${posto.im}","${posto.endereco}","${posto.bairro}","${posto.cidade}","${posto.cep}","${posto.estado}","${posto.municipio}","${posto.telefone}",${posto.latitude},${posto.longitude}`;
+                }).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "postos_rede_dom_pedro.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
