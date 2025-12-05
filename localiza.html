@@ -247,6 +247,11 @@
                 padding: 10px 16px;
                 font-size: 13px;
             }
+            
+            .nova-busca-container {
+                top: 100px;
+                left: 15px;
+            }
         }
 
         .search-section {
@@ -676,6 +681,17 @@
             box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
         }
 
+        /* Botão de exportar CSV - visível apenas em desktop */
+        #exportar-csv {
+            display: flex;
+        }
+
+        @media (max-width: 768px) {
+            #exportar-csv {
+                display: none !important;
+            }
+        }
+
         .btn-outline {
             background: white;
             color: #667eea;
@@ -699,12 +715,19 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
             backdrop-filter: blur(5px);
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .modal-overlay.active {
+            display: flex;
         }
 
         .modal-content {
@@ -723,6 +746,7 @@
                 width: 95%;
                 height: 85vh;
                 border-radius: 15px;
+                margin: 10px;
             }
         }
 
@@ -768,6 +792,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 20px;
+            flex-shrink: 0;
+            z-index: 2001;
         }
 
         @media (max-width: 768px) {
@@ -785,6 +811,8 @@
 
         .modal-body {
             height: calc(100% - 80px);
+            width: 100%;
+            position: relative;
         }
 
         @media (max-width: 768px) {
@@ -797,6 +825,18 @@
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
+        }
+
+        /* Overlay para fechar o modal ao clicar fora - mobile friendly */
+        .modal-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
         }
 
         /* Footer */
@@ -941,18 +981,6 @@
 
         .fade-in {
             animation: fadeIn 0.5s ease forwards;
-        }
-
-        /* Fix para mobile */
-        @media (max-width: 768px) {
-            .posto-selecionado .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .nova-busca-container {
-                top: 100px;
-                left: 15px;
-            }
         }
 
         /* Melhorias para tablet */
@@ -1190,6 +1218,18 @@
                                 <i class="fas fa-copy"></i>
                                 Copiar Coordenadas
                             </button>
+                            
+                            <!-- Botão de Exportar CSV (somente desktop) -->
+                            <button id="exportar-csv" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                Exportar CSV Completo
+                            </button>
+                            
+                            <!-- Botão de Nova Busca (mobile) -->
+                            <button id="nova-busca-mobile" class="btn btn-outline" style="display: none;">
+                                <i class="fas fa-search"></i>
+                                Nova Busca
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1269,10 +1309,20 @@
             document.getElementById('copiar-coordenadas').addEventListener('click', copiarCoordenadas);
             document.getElementById('close-modal').addEventListener('click', closeModal);
             document.getElementById('btn-nova-busca').addEventListener('click', novaBusca);
+            document.getElementById('nova-busca-mobile').addEventListener('click', novaBusca);
             
-            // Fechar modal ao clicar fora
-            document.getElementById('map-modal').addEventListener('click', function(e) {
-                if (e.target === this) {
+            // Fechar modal ao clicar fora (mobile friendly)
+            const modalOverlay = document.getElementById('map-modal');
+            modalOverlay.addEventListener('click', function(e) {
+                // Fecha se clicar no overlay (área escura) OU no X
+                if (e.target === this || e.target.closest('.close-modal')) {
+                    closeModal();
+                }
+            });
+            
+            // Também fechar com a tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modalOverlay.style.display === 'flex') {
                     closeModal();
                 }
             });
@@ -1282,16 +1332,39 @@
                 e.preventDefault();
             });
             
-            // Adicionar botão de nova busca no mobile
-            if (window.innerWidth <= 768) {
-                const novaBuscaBtn = document.createElement('button');
-                novaBuscaBtn.className = 'btn btn-outline';
-                novaBuscaBtn.innerHTML = '<i class="fas fa-search"></i> Nova Busca';
-                novaBuscaBtn.style.marginTop = '20px';
-                novaBuscaBtn.style.width = '100%';
-                novaBuscaBtn.onclick = novaBusca;
-                document.querySelector('.action-buttons').appendChild(novaBuscaBtn);
+            // Configurar botões responsivos
+            setupResponsiveButtons();
+        }
+
+        function setupResponsiveButtons() {
+            const exportarCSVBtn = document.getElementById('exportar-csv');
+            const novaBuscaMobileBtn = document.getElementById('nova-busca-mobile');
+            
+            // Verificar se é mobile
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Em mobile: esconder exportar CSV, mostrar botão de nova busca mobile
+                exportarCSVBtn.style.display = 'none';
+                novaBuscaMobileBtn.style.display = 'flex';
+            } else {
+                // Em desktop: mostrar exportar CSV, esconder botão de nova busca mobile
+                exportarCSVBtn.style.display = 'flex';
+                novaBuscaMobileBtn.style.display = 'none';
             }
+            
+            // Atualizar quando a janela for redimensionada
+            window.addEventListener('resize', function() {
+                const isMobileNow = window.innerWidth <= 768;
+                
+                if (isMobileNow) {
+                    exportarCSVBtn.style.display = 'none';
+                    novaBuscaMobileBtn.style.display = 'flex';
+                } else {
+                    exportarCSVBtn.style.display = 'flex';
+                    novaBuscaMobileBtn.style.display = 'none';
+                }
+            });
         }
 
         function updateStats(estadoSelecionado = null, cidadeSelecionada = null, tipoSelecionado = "") {
@@ -1329,6 +1402,9 @@
             
             if (!estado) {
                 updateStats();
+                // Resetar tipo para "Todos"
+                document.getElementById('tipo').value = '';
+                currentTipo = "";
                 return;
             }
             
@@ -1347,6 +1423,16 @@
             
             // Atualizar estatísticas
             updateStats(estado);
+            
+            // Automaticamente carregar postos quando seleciona estado
+            // Mostrar TODOS os tipos (RO e UR) na cidade
+            if (cidades.length > 0) {
+                // Resetar tipo para mostrar todos
+                document.getElementById('tipo').value = '';
+                currentTipo = "";
+                // Filtrar postos para o estado (mostrar todos os tipos)
+                filtrarPostos(estado, '', '');
+            }
         }
 
         function handleCidadeChange() {
@@ -1360,11 +1446,21 @@
             
             if (!cidade) {
                 updateStats(estado);
+                // Resetar tipo para "Todos"
+                document.getElementById('tipo').value = '';
+                currentTipo = "";
+                // Filtrar postos apenas por estado
+                if (estado) {
+                    filtrarPostos(estado, '', '');
+                }
                 return;
             }
             
-            // Filtrar postos conforme seleções
-            filtrarPostos(estado, cidade, tipo);
+            // Filtrar postos conforme seleções (todos os tipos)
+            // Quando seleciona cidade, mostra TODOS os tipos (RO e UR)
+            document.getElementById('tipo').value = '';
+            currentTipo = "";
+            filtrarPostos(estado, cidade, '');
         }
 
         function handleTipoChange() {
@@ -1395,6 +1491,7 @@
             if (tipo) {
                 postosFiltrados = postosFiltrados.filter(p => p.tipo === tipo);
             }
+            // Se tipo for vazio (""), mostra todos (RO e UR)
             
             // Ordenar e adicionar opções
             postosFiltrados
@@ -1494,7 +1591,7 @@
             // Remover classe do body para voltar ao layout original
             document.body.classList.remove('posto-selecionado');
             
-            // Limpar seleções
+            // Limpar todas as seleções
             document.getElementById('estado').value = '';
             document.getElementById('cidade').innerHTML = '<option value="">Selecione uma cidade</option>';
             document.getElementById('posto').innerHTML = '<option value="">Selecione um posto</option>';
@@ -1511,7 +1608,7 @@
             document.getElementById('posto-info-card').style.display = 'none';
             document.getElementById('loading').style.display = 'none';
             
-            // Atualizar estatísticas
+            // Atualizar estatísticas para valores gerais
             updateStats();
             
             // Scroll suave para o topo
@@ -1537,29 +1634,14 @@
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPosto.latitude},${currentPosto.longitude}`;
             
             if (isMobile) {
-                if (isIOS) {
-                    const iosUrl = `maps://maps.google.com/maps?daddr=${currentPosto.latitude},${currentPosto.longitude}`;
-                    window.location.href = iosUrl;
-                    
-                    setTimeout(function() {
-                        window.location.href = mapsUrl;
-                    }, 500);
-                }
-                else if (isAndroid) {
-                    const androidUrl = `geo:${currentPosto.latitude},${currentPosto.longitude}?q=${currentPosto.latitude},${currentPosto.longitude}`;
-                    window.location.href = androidUrl;
-                    
-                    setTimeout(function() {
-                        window.location.href = mapsUrl;
-                    }, 500);
-                }
-                else {
-                    window.open(mapsUrl, '_blank');
-                }
+                // Para dispositivos móveis, abrir diretamente no Google Maps
+                window.open(mapsUrl, '_blank');
             } else {
+                // Para desktop, abrir no modal
                 const modal = document.getElementById('map-modal');
                 const mapFrame = document.getElementById('map-frame');
                 
+                // Usar embed do Google Maps
                 const embedUrl = `https://maps.google.com/maps?q=${currentPosto.latitude},${currentPosto.longitude}&hl=pt-BR&z=15&output=embed`;
                 
                 mapFrame.src = embedUrl;
