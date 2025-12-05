@@ -46,6 +46,13 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #ff6b00, #ff8c00, #ff6b00);
+            animation: gradientBorder 3s ease infinite;
+        }
+
+        @keyframes gradientBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .header-content {
@@ -70,7 +77,7 @@
         }
 
         .logo:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(-2deg);
         }
 
         .header-text h1 {
@@ -122,13 +129,31 @@
             padding: 15px 20px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
         }
 
         .stat-card:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
         }
 
         .stat-value {
@@ -141,6 +166,7 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .stat-label {
@@ -158,7 +184,7 @@
             gap: 30px;
             padding: 40px 0;
             min-height: calc(100vh - 200px);
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         @media (max-width: 1024px) {
@@ -178,8 +204,15 @@
             height: fit-content;
             position: sticky;
             top: 30px;
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        }
+
+        .sidebar:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            transform: translateY(-5px);
         }
 
         @media (max-width: 1024px) {
@@ -191,7 +224,7 @@
 
         /* Estado quando um posto está selecionado */
         .posto-selecionado .sidebar {
-            transform: translateX(-100%);
+            transform: translateX(-100%) scale(0.9);
             opacity: 0;
             position: absolute;
             visibility: hidden;
@@ -217,7 +250,7 @@
 
         .posto-selecionado .nova-busca-container {
             display: block;
-            animation: slideInLeft 0.3s ease;
+            animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .btn-nova-busca {
@@ -229,17 +262,49 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
             gap: 8px;
             box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);
             white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-nova-busca::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn-nova-busca:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(40, 40);
+                opacity: 0;
+            }
         }
 
         .btn-nova-busca:hover {
-            transform: translateX(5px);
-            box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+            transform: translateX(5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(26, 35, 126, 0.4);
+            background: linear-gradient(135deg, #283593 0%, #1a237e 100%);
         }
 
         @media (max-width: 768px) {
@@ -268,6 +333,22 @@
             margin-bottom: 25px;
             padding-bottom: 10px;
             border-bottom: 2px solid #e2e8f0;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00);
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover .section-title::after {
+            width: 100px;
         }
 
         .section-title i {
@@ -287,11 +368,21 @@
             color: #4a5568;
             margin-bottom: 10px;
             font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .filter-group:hover label {
+            color: #1a237e;
         }
 
         .filter-group label i {
             color: #667eea;
             font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .filter-group:hover label i {
+            transform: scale(1.2);
         }
 
         .select-wrapper {
@@ -305,6 +396,7 @@
             transform: translateY(-50%);
             color: #718096;
             pointer-events: none;
+            transition: transform 0.3s ease;
         }
 
         select {
@@ -319,48 +411,24 @@
             font-weight: 500;
             appearance: none;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 5px 15px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
         select:hover {
             border-color: #a0aec0;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
         }
 
-        .filter-options {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .filter-btn {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            color: #4a5568;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .filter-btn:hover:not(.active) {
-            border-color: #a0aec0;
-            background: #f7fafc;
+        .select-wrapper:hover i {
+            transform: translateY(-50%) scale(1.2);
         }
 
         .map-preview {
@@ -373,6 +441,12 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .map-preview:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
         }
 
         .map-preview::before {
@@ -390,6 +464,12 @@
             font-size: 60px;
             color: white;
             opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .map-preview:hover i {
+            transform: scale(1.2);
+            opacity: 1;
         }
 
         /* Content Area */
@@ -412,6 +492,15 @@
             padding: 35px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             width: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .posto-info-card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            transform: translateY(-5px);
         }
 
         @media (max-width: 768px) {
@@ -448,6 +537,19 @@
             font-size: 26px;
             font-weight: 600;
             margin-bottom: 5px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .posto-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00);
+            border-radius: 2px;
         }
 
         @media (max-width: 768px) {
@@ -460,6 +562,11 @@
             color: #718096;
             font-size: 14px;
             font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .posto-info-card:hover .posto-title .codigo {
+            color: #4a5568;
         }
 
         .status-badge {
@@ -472,6 +579,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 4px 10px rgba(72, 187, 120, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .status-badge:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(72, 187, 120, 0.4);
         }
 
         .tipo-badge {
@@ -485,6 +599,13 @@
             align-items: center;
             gap: 6px;
             margin-left: 10px;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tipo-badge:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
         }
 
         @media (max-width: 480px) {
@@ -516,18 +637,36 @@
             background: #f8fafc;
             border-radius: 12px;
             border-left: 4px solid #667eea;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(255, 107, 0, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item:hover::before {
+            opacity: 1;
         }
 
         @media (max-width: 768px) {
             .info-item {
                 padding: 15px;
             }
-        }
-
-        .info-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
         }
 
         .info-label {
@@ -540,11 +679,18 @@
             letter-spacing: 0.5px;
             font-weight: 600;
             margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
         }
 
         .info-label i {
             color: #667eea;
             font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .info-item:hover .info-label i {
+            transform: rotate(15deg) scale(1.2);
         }
 
         .info-value {
@@ -552,6 +698,8 @@
             color: #2d3748;
             font-weight: 500;
             word-break: break-word;
+            position: relative;
+            z-index: 1;
         }
 
         .coordinates {
@@ -585,6 +733,13 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .qrcode-container:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
 
         @media (max-width: 768px) {
@@ -611,6 +766,12 @@
             border-radius: 12px;
             padding: 10px;
             background: white;
+            transition: all 0.3s ease;
+        }
+
+        .qrcode-container:hover #qrcode {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         @media (max-width: 768px) {
@@ -649,9 +810,27 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-family: 'Poppins', sans-serif;
             text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         @media (max-width: 768px) {
@@ -667,8 +846,9 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
 
         .btn-secondary {
@@ -677,8 +857,9 @@
         }
 
         .btn-secondary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 107, 0, 0.3);
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 100%);
         }
 
         /* Botão de exportar CSV - visível apenas em desktop */
@@ -701,11 +882,17 @@
         .btn-outline:hover {
             background: #667eea;
             color: white;
-            transform: translateY(-3px);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
         }
 
         .btn i {
             font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover i {
+            transform: scale(1.2);
         }
 
         /* Modal do Google Maps */
@@ -728,6 +915,7 @@
 
         .modal-overlay.active {
             display: flex;
+            animation: fadeIn 0.3s ease;
         }
 
         .modal-content {
@@ -739,6 +927,12 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalAppear {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         @media (max-width: 768px) {
@@ -806,7 +1000,7 @@
 
         .close-modal:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg);
+            transform: rotate(90deg) scale(1.1);
         }
 
         .modal-body {
@@ -828,29 +1022,29 @@
             display: block;
         }
 
-        /* Overlay para fechar o modal ao clicar fora - mobile friendly */
-        .modal-overlay::before {
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #cbd5e0;
+            padding: 30px 0 15px;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        footer::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            z-index: -1;
-        }
-
-        /* Footer */
-        footer {
-            background: #1a237e;
-            color: #cbd5e0;
-            padding: 25px 0;
-            margin-top: 50px;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00, #ff6b00);
         }
 
         @media (max-width: 768px) {
             footer {
                 margin-top: 30px;
-                padding: 20px 0;
+                padding: 25px 0 10px;
             }
         }
 
@@ -873,11 +1067,60 @@
         .footer-logo {
             height: 40px;
             opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .footer-info {
+            text-align: center;
+            flex-grow: 1;
         }
 
         .footer-info p {
             font-size: 14px;
             margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-info p:hover {
+            color: white;
+        }
+
+        .developer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #a0aec0;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .developer-info i {
+            color: #ff6b00;
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .developer-info:hover i {
+            transform: rotate(360deg);
+        }
+
+        .developer-info span {
+            font-weight: 500;
+            color: #cbd5e0;
+            transition: color 0.3s ease;
+        }
+
+        .developer-info:hover span {
+            color: white;
         }
 
         .social-links {
@@ -888,11 +1131,20 @@
         .social-links a {
             color: #cbd5e0;
             font-size: 18px;
-            transition: color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .social-links a:hover {
             color: white;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px) scale(1.1);
         }
 
         /* Loading */
@@ -928,6 +1180,11 @@
             text-align: center;
             padding: 60px 20px;
             color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .empty-state:hover {
+            transform: translateY(-5px);
         }
 
         @media (max-width: 768px) {
@@ -940,6 +1197,12 @@
             font-size: 60px;
             margin-bottom: 20px;
             color: #cbd5e0;
+            transition: all 0.5s ease;
+        }
+
+        .empty-state:hover i {
+            transform: scale(1.2) rotate(10deg);
+            color: #667eea;
         }
 
         .empty-state h3 {
@@ -993,6 +1256,28 @@
                 top: 110px;
                 left: 20px;
             }
+        }
+
+        /* Efeito de seleção suave para dropdowns */
+        select option {
+            padding: 10px;
+            transition: background 0.3s ease;
+        }
+
+        select option:hover {
+            background: #667eea !important;
+            color: white !important;
+        }
+
+        /* Efeito de pulso para cards quando atualizados */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease;
         }
     </style>
 </head>
@@ -1066,18 +1351,6 @@
                         <div class="select-wrapper">
                             <select id="cidade">
                                 <option value="">Selecione uma cidade</option>
-                            </select>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="tipo"><i class="fas fa-road"></i> Tipo de Posto</label>
-                        <div class="select-wrapper">
-                            <select id="tipo">
-                                <option value="">Todos os tipos</option>
-                                <option value="RO">Rodoviário</option>
-                                <option value="UR">Urbano</option>
                             </select>
                             <i class="fas fa-chevron-down"></i>
                         </div>
@@ -1259,6 +1532,10 @@
                 <div class="footer-info">
                     <p>© 2024 Rede Dom Pedro - Todos os direitos reservados</p>
                     <p>Contato: nfe.caixas@rededompedro.com</p>
+                    <div class="developer-info">
+                        <i class="fas fa-code"></i>
+                        <span>Desenvolvido por war@2025</span>
+                    </div>
                 </div>
                 <div class="social-links">
                     <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
@@ -1270,14 +1547,16 @@
     </footer>
 
     <!-- Inclui o arquivo de dados -->
+    <!-- Inclui o arquivo de dados -->
     <script src="postos-data.js"></script>
+    
+
     
     <script>
         // Variáveis globais
         let currentPosto = null;
         let currentEstado = null;
         let currentCidade = null;
-        let currentTipo = "";
 
         // Inicializar a aplicação
         document.addEventListener('DOMContentLoaded', function() {
@@ -1302,7 +1581,6 @@
             // Configurar eventos
             estadoSelect.addEventListener('change', handleEstadoChange);
             document.getElementById('cidade').addEventListener('change', handleCidadeChange);
-            document.getElementById('tipo').addEventListener('change', handleTipoChange);
             document.getElementById('posto').addEventListener('change', handlePostoChange);
             document.getElementById('open-map').addEventListener('click', openGoogleMaps);
             document.getElementById('exportar-csv').addEventListener('click', exportarCSV);
@@ -1367,7 +1645,7 @@
             });
         }
 
-        function updateStats(estadoSelecionado = null, cidadeSelecionada = null, tipoSelecionado = "") {
+        function updateStats(estadoSelecionado = null, cidadeSelecionada = null) {
             const totalPostos = postosData.length;
             const postosRodovia = postosData.filter(p => p.tipo === "RO").length;
             const postosUrbano = postosData.filter(p => p.tipo === "UR").length;
@@ -1382,6 +1660,24 @@
             if (cidadeSelecionada) {
                 postosCidade = postosData.filter(p => p.cidade === cidadeSelecionada).length;
             }
+            
+            // Adicionar efeito de pulso nas estatísticas atualizadas
+            const stats = [
+                document.getElementById('total-postos'),
+                document.getElementById('postos-rodovia'),
+                document.getElementById('postos-urbano'),
+                document.getElementById('postos-estado'),
+                document.getElementById('postos-cidade')
+            ];
+            
+            stats.forEach(stat => {
+                if (stat.textContent !== '0') {
+                    stat.parentElement.classList.add('pulse');
+                    setTimeout(() => {
+                        stat.parentElement.classList.remove('pulse');
+                    }, 500);
+                }
+            });
             
             document.getElementById('total-postos').textContent = totalPostos;
             document.getElementById('postos-rodovia').textContent = postosRodovia;
@@ -1402,9 +1698,6 @@
             
             if (!estado) {
                 updateStats();
-                // Resetar tipo para "Todos"
-                document.getElementById('tipo').value = '';
-                currentTipo = "";
                 return;
             }
             
@@ -1425,13 +1718,9 @@
             updateStats(estado);
             
             // Automaticamente carregar postos quando seleciona estado
-            // Mostrar TODOS os tipos (RO e UR) na cidade
+            // Mostrar TODOS os tipos (RO e UR) no estado
             if (cidades.length > 0) {
-                // Resetar tipo para mostrar todos
-                document.getElementById('tipo').value = '';
-                currentTipo = "";
-                // Filtrar postos para o estado (mostrar todos os tipos)
-                filtrarPostos(estado, '', '');
+                filtrarPostos(estado, '');
             }
         }
 
@@ -1439,41 +1728,25 @@
             const estado = currentEstado;
             const cidade = this.value;
             currentCidade = cidade;
-            const tipo = document.getElementById('tipo').value;
             const postoSelect = document.getElementById('posto');
             
             postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
             
             if (!cidade) {
                 updateStats(estado);
-                // Resetar tipo para "Todos"
-                document.getElementById('tipo').value = '';
-                currentTipo = "";
                 // Filtrar postos apenas por estado
                 if (estado) {
-                    filtrarPostos(estado, '', '');
+                    filtrarPostos(estado, '');
                 }
                 return;
             }
             
             // Filtrar postos conforme seleções (todos os tipos)
             // Quando seleciona cidade, mostra TODOS os tipos (RO e UR)
-            document.getElementById('tipo').value = '';
-            currentTipo = "";
-            filtrarPostos(estado, cidade, '');
+            filtrarPostos(estado, cidade);
         }
 
-        function handleTipoChange() {
-            const tipo = this.value;
-            currentTipo = tipo;
-            const estado = currentEstado;
-            const cidade = currentCidade;
-            
-            // Filtrar postos conforme seleções
-            filtrarPostos(estado, cidade, tipo);
-        }
-
-        function filtrarPostos(estado, cidade, tipo) {
+        function filtrarPostos(estado, cidade) {
             const postoSelect = document.getElementById('posto');
             postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
             
@@ -1488,10 +1761,7 @@
                 postosFiltrados = postosFiltrados.filter(p => p.cidade === cidade);
             }
             
-            if (tipo) {
-                postosFiltrados = postosFiltrados.filter(p => p.tipo === tipo);
-            }
-            // Se tipo for vazio (""), mostra todos (RO e UR)
+            // Se tipo for vazio (""), mostra todos (RO e UR) - removido filtro de tipo
             
             // Ordenar e adicionar opções
             postosFiltrados
@@ -1509,7 +1779,15 @@
                 });
             
             // Atualizar estatísticas
-            updateStats(estado, cidade, tipo);
+            updateStats(estado, cidade);
+            
+            // Efeito visual no select de postos
+            if (postosFiltrados.length > 0) {
+                postoSelect.classList.add('pulse');
+                setTimeout(() => {
+                    postoSelect.classList.remove('pulse');
+                }, 500);
+            }
         }
 
         function handlePostoChange() {
@@ -1595,13 +1873,11 @@
             document.getElementById('estado').value = '';
             document.getElementById('cidade').innerHTML = '<option value="">Selecione uma cidade</option>';
             document.getElementById('posto').innerHTML = '<option value="">Selecione um posto</option>';
-            document.getElementById('tipo').value = '';
             
             // Resetar variáveis
             currentPosto = null;
             currentEstado = null;
             currentCidade = null;
-            currentTipo = "";
             
             // Mostrar empty state
             document.getElementById('empty-state').style.display = 'block';
@@ -1670,7 +1946,20 @@
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(coordenadas).then(() => {
-                    alert('Coordenadas copiadas para a área de transferência!');
+                    // Efeito visual no botão
+                    const btn = document.getElementById('copiar-coordenadas');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                    btn.style.background = '#48bb78';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = '#48bb78';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.style.borderColor = '';
+                    }, 2000);
                 }).catch(err => {
                     console.error('Erro ao copiar:', err);
                     fallbackCopyText(coordenadas);
@@ -1710,6 +1999,18 @@
             link.setAttribute("href", encodedUri);
             link.setAttribute("download", "postos_rede_dom_pedro.csv");
             document.body.appendChild(link);
+            
+            // Efeito visual no botão
+            const btn = document.getElementById('exportar-csv');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Exportado!';
+            btn.style.background = '#48bb78';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
+            
             link.click();
             document.body.removeChild(link);
         }
