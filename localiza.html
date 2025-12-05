@@ -1220,60 +1220,31 @@
             currentPosto = null;
         }
 
-       function openGoogleMaps() {
-    if (!currentPosto) {
-        alert('Selecione um posto primeiro!');
-        return;
-    }
-    
-    // URL universal do Google Maps
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPosto.latitude},${currentPosto.longitude}`;
-    
-    // Detectar o dispositivo
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-    const isAndroid = /android/i.test(userAgent);
-    const isMobile = isIOS || isAndroid;
-    
-    if (isMobile) {
-        // Para iOS
-        if (isIOS) {
-            const iosUrl = `maps://maps.google.com/maps?daddr=${currentPosto.latitude},${currentPosto.longitude}`;
-            window.location.href = iosUrl;
+        function openGoogleMaps() {
+            if (!currentPosto) {
+                alert('Selecione um posto primeiro!');
+                return;
+            }
             
-            // Fallback após um tempo
-            setTimeout(function() {
-                window.location.href = mapsUrl;
-            }, 500);
-        }
-        // Para Android
-        else if (isAndroid) {
-            const androidUrl = `geo:${currentPosto.latitude},${currentPosto.longitude}?q=${currentPosto.latitude},${currentPosto.longitude}`;
-            window.location.href = androidUrl;
+            // Detectar se é dispositivo móvel
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             
-            // Fallback após um tempo
-            setTimeout(function() {
-                window.location.href = mapsUrl;
-            }, 500);
+            if (isMobile) {
+                // Para dispositivos móveis: abre diretamente no Google Maps app/navegador
+                const url = `https://www.google.com/maps/search/?api=1&query=${currentPosto.latitude},${currentPosto.longitude}`;
+                window.open(url, '_blank');
+            } else {
+                // Para desktop/tablet: abre no modal
+                const url = `https://www.google.com/maps/embed/v1/view?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&center=${currentPosto.latitude},${currentPosto.longitude}&zoom=15&maptype=roadmap`;
+                
+                const modal = document.getElementById('map-modal');
+                const mapFrame = document.getElementById('map-frame');
+                
+                mapFrame.src = url;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         }
-        // Outros dispositivos móveis
-        else {
-            window.open(mapsUrl, '_blank');
-        }
-    } else {
-        // Para desktop - abre no modal
-        const modal = document.getElementById('map-modal');
-        const mapFrame = document.getElementById('map-frame');
-        
-        // URL de embed (se tiver chave API) ou usar iframe com search
-        const embedUrl = `https://maps.google.com/maps?q=${currentPosto.latitude},${currentPosto.longitude}&hl=pt-BR&z=15&output=embed`;
-        
-        mapFrame.src = embedUrl;
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
 
         function closeModal() {
             const modal = document.getElementById('map-modal');
