@@ -717,6 +717,36 @@
         .fade-in {
             animation: fadeIn 0.5s ease forwards;
         }
+        
+        /* Botão Voltar ao Topo (Mobile) */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .back-to-top i {
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
@@ -943,6 +973,11 @@
         </div>
     </div>
 
+    <!-- Botão Voltar ao Topo (Mobile) -->
+    <div class="back-to-top" id="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
     <!-- Modal do Google Maps -->
     <div class="modal-overlay" id="map-modal">
         <div class="modal-content">
@@ -1014,6 +1049,7 @@
             document.getElementById('exportar-csv').addEventListener('click', exportarCSV);
             document.getElementById('copiar-coordenadas').addEventListener('click', copiarCoordenadas);
             document.getElementById('close-modal').addEventListener('click', closeModal);
+            document.getElementById('back-to-top').addEventListener('click', scrollToTop);
             
             // Fechar modal ao clicar fora
             document.getElementById('map-modal').addEventListener('click', function(e) {
@@ -1026,6 +1062,9 @@
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
             });
+            
+            // Monitorar scroll para mostrar/ocultar botão voltar ao topo
+            window.addEventListener('scroll', toggleBackToTopButton);
         }
 
         function updateStats(estadoSelecionado = null, cidadeSelecionada = null, tipoSelecionado = "") {
@@ -1206,6 +1245,16 @@
                 document.getElementById('posto-info-card').style.display = 'block';
                 document.getElementById('posto-info-card').classList.add('fade-in');
                 
+                // Em dispositivos móveis, rolar para mostrar o card
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        document.getElementById('posto-info-card').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }, 100);
+                }
+                
                 // Remover animação após execução
                 setTimeout(() => {
                     document.getElementById('posto-info-card').classList.remove('fade-in');
@@ -1284,6 +1333,22 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+        
+        function toggleBackToTopButton() {
+            const backToTopButton = document.getElementById('back-to-top');
+            if (window.scrollY > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        }
+        
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
     </script>
 </body>
