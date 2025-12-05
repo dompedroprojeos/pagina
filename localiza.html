@@ -19,6 +19,7 @@
             color: #2d3748;
             min-height: 100vh;
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         .container {
@@ -34,6 +35,7 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
+            z-index: 100;
         }
 
         header::before {
@@ -103,6 +105,13 @@
         @media (max-width: 768px) {
             .stats-container {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-container {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -149,16 +158,18 @@
             gap: 30px;
             padding: 40px 0;
             min-height: calc(100vh - 200px);
+            transition: all 0.3s ease;
         }
 
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
                 gap: 20px;
+                padding: 20px 0;
             }
         }
 
-        /* Sidebar - Mobile */
+        /* Sidebar */
         .sidebar {
             background: white;
             border-radius: 20px;
@@ -168,50 +179,78 @@
             position: sticky;
             top: 30px;
             transition: all 0.3s ease;
-            overflow: hidden;
+            z-index: 10;
         }
 
         @media (max-width: 1024px) {
             .sidebar {
                 position: relative;
                 top: 0;
-                margin-bottom: 0;
-                max-height: none;
             }
-            
-            .sidebar.collapsed {
-                max-height: 80px;
-                overflow: hidden;
-                padding: 15px 30px;
-                cursor: pointer;
-            }
-            
-            .sidebar.collapsed .search-section {
-                opacity: 0;
-                height: 0;
-                overflow: hidden;
-                margin: 0;
-                padding: 0;
-            }
-            
-            .sidebar.collapsed .map-preview {
-                display: none;
-            }
-            
-            .sidebar.collapsed .section-title {
-                margin-bottom: 0;
-                border-bottom: none;
-                padding-bottom: 0;
-                justify-content: center;
-            }
-            
-            .sidebar.collapsed .section-title span {
-                margin-right: 10px;
+        }
+
+        /* Estado quando um posto está selecionado */
+        .posto-selecionado .sidebar {
+            transform: translateX(-100%);
+            opacity: 0;
+            position: absolute;
+            visibility: hidden;
+        }
+
+        .posto-selecionado .main-content {
+            grid-template-columns: 1fr;
+        }
+
+        .posto-selecionado .content-area {
+            transform: translateX(0);
+            width: 100%;
+        }
+
+        /* Botão de nova busca */
+        .nova-busca-container {
+            position: fixed;
+            top: 120px;
+            left: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .posto-selecionado .nova-busca-container {
+            display: block;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        .btn-nova-busca {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);
+            white-space: nowrap;
+        }
+
+        .btn-nova-busca:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .btn-nova-busca {
+                padding: 10px 16px;
+                font-size: 13px;
             }
         }
 
         .search-section {
-            transition: all 0.3s ease;
+            margin-bottom: 30px;
         }
 
         .section-title {
@@ -224,7 +263,6 @@
             margin-bottom: 25px;
             padding-bottom: 10px;
             border-bottom: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
         }
 
         .section-title i {
@@ -330,7 +368,6 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: all 0.3s ease;
         }
 
         .map-preview::before {
@@ -355,6 +392,13 @@
             display: flex;
             flex-direction: column;
             gap: 30px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .content-area {
+                width: 100%;
+            }
         }
 
         .posto-info-card {
@@ -362,15 +406,36 @@
             border-radius: 20px;
             padding: 35px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .posto-info-card {
+                padding: 25px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .posto-info-card {
+                padding: 20px;
+            }
         }
 
         .info-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             margin-bottom: 30px;
             flex-wrap: wrap;
             gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .info-header {
+                margin-bottom: 20px;
+                gap: 15px;
+            }
         }
 
         .posto-title h2 {
@@ -378,6 +443,12 @@
             font-size: 26px;
             font-weight: 600;
             margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .posto-title h2 {
+                font-size: 22px;
+            }
         }
 
         .posto-title .codigo {
@@ -411,11 +482,28 @@
             margin-left: 10px;
         }
 
+        @media (max-width: 480px) {
+            .status-badge,
+            .tipo-badge {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin-left: 5px;
+            }
+        }
+
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
         }
 
         .info-item {
@@ -424,6 +512,12 @@
             border-radius: 12px;
             border-left: 4px solid #667eea;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .info-item {
+                padding: 15px;
+            }
         }
 
         .info-item:hover {
@@ -474,6 +568,9 @@
         @media (max-width: 768px) {
             .qrcode-section {
                 grid-template-columns: 1fr;
+                gap: 20px;
+                margin-top: 20px;
+                padding-top: 20px;
             }
         }
 
@@ -483,6 +580,12 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        @media (max-width: 768px) {
+            .qrcode-container {
+                padding: 20px;
+            }
         }
 
         .qrcode-container h3 {
@@ -505,6 +608,13 @@
             background: white;
         }
 
+        @media (max-width: 768px) {
+            #qrcode {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
         .qrcode-note {
             color: #718096;
             font-size: 14px;
@@ -515,6 +625,12 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                gap: 10px;
+            }
         }
 
         .btn {
@@ -531,6 +647,13 @@
             transition: all 0.3s ease;
             font-family: 'Poppins', sans-serif;
             text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
         }
 
         .btn-primary {
@@ -569,36 +692,6 @@
             font-size: 18px;
         }
 
-        /* Botão Nova Busca (Mobile) */
-        .nova-busca-btn {
-            display: none;
-            margin: 20px auto;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (max-width: 1024px) {
-            .nova-busca-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-            }
-        }
-
-        .nova-busca-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-
         /* Modal do Google Maps */
         .modal-overlay {
             position: fixed;
@@ -625,6 +718,14 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
         }
 
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                height: 85vh;
+                border-radius: 15px;
+            }
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -634,12 +735,24 @@
             color: white;
         }
 
+        @media (max-width: 768px) {
+            .modal-header {
+                padding: 15px 20px;
+            }
+        }
+
         .modal-header h3 {
             font-size: 20px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-header h3 {
+                font-size: 18px;
+            }
         }
 
         .close-modal {
@@ -657,6 +770,14 @@
             font-size: 20px;
         }
 
+        @media (max-width: 768px) {
+            .close-modal {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+        }
+
         .close-modal:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: rotate(90deg);
@@ -664,6 +785,12 @@
 
         .modal-body {
             height: calc(100% - 80px);
+        }
+
+        @media (max-width: 768px) {
+            .modal-body {
+                height: calc(100% - 70px);
+            }
         }
 
         #map-frame {
@@ -680,12 +807,27 @@
             margin-top: 50px;
         }
 
+        @media (max-width: 768px) {
+            footer {
+                margin-top: 30px;
+                padding: 20px 0;
+            }
+        }
+
         .footer-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
         }
 
         .footer-logo {
@@ -720,6 +862,12 @@
             padding: 40px;
         }
 
+        @media (max-width: 768px) {
+            .loading {
+                padding: 30px 20px;
+            }
+        }
+
         .spinner {
             width: 50px;
             height: 50px;
@@ -740,6 +888,12 @@
             text-align: center;
             padding: 60px 20px;
             color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .empty-state {
+                padding: 40px 20px;
+            }
         }
 
         .empty-state i {
@@ -772,19 +926,6 @@
             .main-content {
                 padding: 20px 0;
             }
-            
-            .posto-info-card {
-                padding: 25px;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar.collapsed .section-title i {
-                transform: rotate(180deg);
-                transition: transform 0.3s ease;
-            }
         }
 
         /* Animations */
@@ -793,8 +934,37 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         .fade-in {
             animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Fix para mobile */
+        @media (max-width: 768px) {
+            .posto-selecionado .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .nova-busca-container {
+                top: 100px;
+                left: 15px;
+            }
+        }
+
+        /* Melhorias para tablet */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .posto-selecionado .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .nova-busca-container {
+                top: 110px;
+                left: 20px;
+            }
         }
     </style>
 </head>
@@ -835,8 +1005,16 @@
         </div>
     </header>
 
+    <!-- Botão de Nova Busca (fixo) -->
+    <div class="nova-busca-container">
+        <button class="btn-nova-busca" id="btn-nova-busca">
+            <i class="fas fa-arrow-left"></i>
+            <span class="btn-text">Nova Busca</span>
+        </button>
+    </div>
+
     <div class="container">
-        <div class="main-content">
+        <div class="main-content" id="main-content">
             <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <div class="search-section">
@@ -894,7 +1072,7 @@
             </aside>
 
             <!-- Content Area -->
-            <main class="content-area">
+            <main class="content-area" id="content-area">
                 <!-- Loading -->
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
@@ -915,7 +1093,7 @@
                             <h2 id="posto-nome">-</h2>
                             <div class="codigo">Código: <span id="posto-codigo">-</span></div>
                         </div>
-                        <div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                             <div class="status-badge">
                                 <i class="fas fa-check-circle"></i>
                                 <span>ATIVO</span>
@@ -1018,12 +1196,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Botão Nova Busca (Mobile) -->
-                <button id="nova-busca-btn" class="nova-busca-btn" style="display: none;">
-                    <i class="fas fa-search"></i>
-                    Nova Busca
-                </button>
             </main>
         </div>
     </div>
@@ -1069,7 +1241,6 @@
         let currentEstado = null;
         let currentCidade = null;
         let currentTipo = "";
-        let isMobile = window.innerWidth <= 1024;
 
         // Inicializar a aplicação
         document.addEventListener('DOMContentLoaded', function() {
@@ -1100,14 +1271,7 @@
             document.getElementById('exportar-csv').addEventListener('click', exportarCSV);
             document.getElementById('copiar-coordenadas').addEventListener('click', copiarCoordenadas);
             document.getElementById('close-modal').addEventListener('click', closeModal);
-            document.getElementById('nova-busca-btn').addEventListener('click', novaBusca);
-            
-            // Adicionar clique no sidebar collapsed (mobile)
-            document.getElementById('sidebar').addEventListener('click', function(e) {
-                if (isMobile && this.classList.contains('collapsed')) {
-                    expandSidebar();
-                }
-            });
+            document.getElementById('btn-nova-busca').addEventListener('click', novaBusca);
             
             // Fechar modal ao clicar fora
             document.getElementById('map-modal').addEventListener('click', function(e) {
@@ -1121,10 +1285,16 @@
                 e.preventDefault();
             });
             
-            // Verificar se é mobile
-            window.addEventListener('resize', function() {
-                isMobile = window.innerWidth <= 1024;
-            });
+            // Adicionar botão de nova busca no mobile
+            if (window.innerWidth <= 768) {
+                const novaBuscaBtn = document.createElement('button');
+                novaBuscaBtn.className = 'btn btn-outline';
+                novaBuscaBtn.innerHTML = '<i class="fas fa-search"></i> Nova Busca';
+                novaBuscaBtn.style.marginTop = '20px';
+                novaBuscaBtn.style.width = '100%';
+                novaBuscaBtn.onclick = novaBusca;
+                document.querySelector('.action-buttons').appendChild(novaBuscaBtn);
+            }
         }
 
         function updateStats(estadoSelecionado = null, cidadeSelecionada = null, tipoSelecionado = "") {
@@ -1162,7 +1332,6 @@
             
             if (!estado) {
                 updateStats();
-                hidePostoInfo();
                 return;
             }
             
@@ -1181,7 +1350,6 @@
             
             // Atualizar estatísticas
             updateStats(estado);
-            hidePostoInfo();
         }
 
         function handleCidadeChange() {
@@ -1195,13 +1363,11 @@
             
             if (!cidade) {
                 updateStats(estado);
-                hidePostoInfo();
                 return;
             }
             
             // Filtrar postos conforme seleções
             filtrarPostos(estado, cidade, tipo);
-            hidePostoInfo();
         }
 
         function handleTipoChange() {
@@ -1212,7 +1378,6 @@
             
             // Filtrar postos conforme seleções
             filtrarPostos(estado, cidade, tipo);
-            hidePostoInfo();
         }
 
         function filtrarPostos(estado, cidade, tipo) {
@@ -1257,7 +1422,6 @@
             const selectedOption = this.options[this.selectedIndex];
             
             if (!selectedOption.value) {
-                hidePostoInfo();
                 return;
             }
             
@@ -1272,7 +1436,6 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('empty-state').style.display = 'none';
             document.getElementById('posto-info-card').style.display = 'none';
-            document.getElementById('nova-busca-btn').style.display = 'none';
             
             setTimeout(() => {
                 // Atualizar informações do posto
@@ -1306,73 +1469,61 @@
                 document.getElementById('posto-info-card').style.display = 'block';
                 document.getElementById('posto-info-card').classList.add('fade-in');
                 
-                // Em mobile: minimizar sidebar e mostrar botão Nova Busca
-                if (isMobile) {
-                    collapseSidebar();
-                    document.getElementById('nova-busca-btn').style.display = 'flex';
-                    
-                    // Rolar para mostrar o card
-                    setTimeout(() => {
-                        document.getElementById('posto-info-card').scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }, 100);
-                }
-                
                 // Remover animação após execução
                 setTimeout(() => {
                     document.getElementById('posto-info-card').classList.remove('fade-in');
                 }, 500);
+                
+                // Minimizar sidebar e mostrar informações do posto
+                minimizarSidebar();
+                
             }, 300);
         }
 
-        function hidePostoInfo() {
-            document.getElementById('empty-state').style.display = 'block';
-            document.getElementById('posto-info-card').style.display = 'none';
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('nova-busca-btn').style.display = 'none';
-            currentPosto = null;
+        function minimizarSidebar() {
+            // Adicionar classe ao body para mudar o layout
+            document.body.classList.add('posto-selecionado');
             
-            // Em mobile: expandir sidebar se estiver colapsada
-            if (isMobile && document.getElementById('sidebar').classList.contains('collapsed')) {
-                expandSidebar();
-            }
-        }
-
-        function collapseSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.add('collapsed');
-        }
-
-        function expandSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.remove('collapsed');
-            
-            // Rolar para o topo do sidebar
-            sidebar.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            // Scroll suave para o topo
+            setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
 
         function novaBusca() {
+            // Remover classe do body para voltar ao layout original
+            document.body.classList.remove('posto-selecionado');
+            
             // Limpar seleções
             document.getElementById('estado').value = '';
             document.getElementById('cidade').innerHTML = '<option value="">Selecione uma cidade</option>';
-            document.getElementById('tipo').value = '';
             document.getElementById('posto').innerHTML = '<option value="">Selecione um posto</option>';
+            document.getElementById('tipo').value = '';
             
-            // Esconder card e mostrar empty state
-            hidePostoInfo();
+            // Resetar variáveis
+            currentPosto = null;
+            currentEstado = null;
+            currentCidade = null;
+            currentTipo = "";
             
-            // Expandir sidebar em mobile
-            if (isMobile) {
-                expandSidebar();
-            }
+            // Mostrar empty state
+            document.getElementById('empty-state').style.display = 'block';
+            document.getElementById('posto-info-card').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
             
             // Atualizar estatísticas
             updateStats();
+            
+            // Scroll suave para o topo
+            setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
 
         function openGoogleMaps() {
@@ -1381,21 +1532,40 @@
                 return;
             }
             
-            // Detectar se é dispositivo móvel
-            const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            const isAndroid = /android/i.test(userAgent);
+            const isMobile = isIOS || isAndroid;
             
-            if (isMobileDevice) {
-                // Para dispositivos móveis: abre diretamente no Google Maps app/navegador
-                const url = `https://www.google.com/maps/search/?api=1&query=${currentPosto.latitude},${currentPosto.longitude}`;
-                window.open(url, '_blank');
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPosto.latitude},${currentPosto.longitude}`;
+            
+            if (isMobile) {
+                if (isIOS) {
+                    const iosUrl = `maps://maps.google.com/maps?daddr=${currentPosto.latitude},${currentPosto.longitude}`;
+                    window.location.href = iosUrl;
+                    
+                    setTimeout(function() {
+                        window.location.href = mapsUrl;
+                    }, 500);
+                }
+                else if (isAndroid) {
+                    const androidUrl = `geo:${currentPosto.latitude},${currentPosto.longitude}?q=${currentPosto.latitude},${currentPosto.longitude}`;
+                    window.location.href = androidUrl;
+                    
+                    setTimeout(function() {
+                        window.location.href = mapsUrl;
+                    }, 500);
+                }
+                else {
+                    window.open(mapsUrl, '_blank');
+                }
             } else {
-                // Para desktop/tablet: abre no modal
-                const url = `https://www.google.com/maps/embed/v1/view?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&center=${currentPosto.latitude},${currentPosto.longitude}&zoom=15&maptype=roadmap`;
-                
                 const modal = document.getElementById('map-modal');
                 const mapFrame = document.getElementById('map-frame');
                 
-                mapFrame.src = url;
+                const embedUrl = `https://maps.google.com/maps?q=${currentPosto.latitude},${currentPosto.longitude}&hl=pt-BR&z=15&output=embed`;
+                
+                mapFrame.src = embedUrl;
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
             }
@@ -1408,7 +1578,6 @@
             modal.style.display = 'none';
             mapFrame.src = '';
             
-            // Restaurar scroll no body
             document.body.style.overflow = 'auto';
         }
 
@@ -1419,9 +1588,34 @@
             }
             
             const coordenadas = `${currentPosto.latitude.toFixed(6)}, ${currentPosto.longitude.toFixed(6)}`;
-            navigator.clipboard.writeText(coordenadas).then(() => {
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(coordenadas).then(() => {
+                    alert('Coordenadas copiadas para a área de transferência!');
+                }).catch(err => {
+                    console.error('Erro ao copiar:', err);
+                    fallbackCopyText(coordenadas);
+                });
+            } else {
+                fallbackCopyText(coordenadas);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
                 alert('Coordenadas copiadas para a área de transferência!');
-            });
+            } catch (err) {
+                console.error('Erro ao copiar:', err);
+                alert('Erro ao copiar coordenadas. Tente novamente.');
+            }
+            
+            document.body.removeChild(textArea);
         }
 
         function exportarCSV() {
