@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Relatórios - Rede de Postos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h1 i {
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .output-section {
+            flex: 2;
+            min-width: 700px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            height: 100%;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            color: #2a5298;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            font-size: 22px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #2a5298;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1e3c72;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-excel {
+            background-color: #217346;
+            color: white;
+        }
+        
+        .btn-excel:hover {
+            background-color: #1b5e38;
+            transform: translateY(-2px);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 1px solid #eaeaea;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
+        
+        thead {
+            background-color: #2a5298;
+            color: white;
+        }
+        
+        th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 13px;
+        }
+        
+        th:last-child {
+            border-right: none;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        td {
+            padding: 10px;
+            border-right: 1px solid #eaeaea;
+            font-size: 13px;
+        }
+        
+        td:last-child {
+            border-right: none;
+        }
+        
+        /* Alinhamento específico para colunas numéricas */
+        .text-right {
+            text-align: right !important;
+        }
+        
+        .summary-table {
+            margin-top: 30px;
+        }
+        
+        .summary-table th {
+            background-color: #28a745;
+        }
+        
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f5ff, #e6eeff);
+            border-radius: 8px;
+            border: 1px solid #d1d9ff;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2a5298;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            padding: 5px 10px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .totals {
+            display: flex;
+            justify-content: flex-end;
+            gap: 30px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eaeaea;
+        }
+        
+        .total-item {
+            text-align: right;
+            padding: 12px 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            min-width: 200px;
+        }
+        
+        .total-label {
+            font-weight: 600;
+            color: #2a5298;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .total-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .developer {
+            font-weight: 600;
+            color: #ffc107;
+        }
+        
+        .date-time-separated {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .date-cell {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .time-cell {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Linha de total do cliente */
+        .total-client-row {
+            background-color: #e8f4ff !important;
+            font-weight: bold;
+            border-top: 3px solid #2a5298 !important;
+        }
+        
+        .total-client-row td {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            font-weight: bold;
+            color: #2a5298;
+            font-size: 14px;
+        }
+        
+        .summary-totals {
+            background-color: #e8f4ff !important;
+            font-weight: bold;
+            border-top: 3px solid #28a745 !important;
+        }
+        
+        .summary-totals td {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            font-weight: bold;
+            color: #28a745;
+            font-size: 14px;
+        }
+        
+        /* Estilos para impressão em A4 */
+        @media print {
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+            
+            body {
+                background-color: white !important;
+                font-size: 11pt;
+                line-height: 1.3;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            header, footer, .input-section, .button-group, .btn {
+                display: none !important;
+            }
+            
+            .container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            .content-wrapper {
+                flex-direction: column;
+                gap: 0;
+                margin-bottom: 0;
+            }
+            
+            .output-section {
+                min-width: 100% !important;
+                width: 100% !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                page-break-inside: avoid;
+            }
+            
+            .card-title {
+                color: #000 !important;
+                font-size: 16pt !important;
+                border-bottom: 2px solid #000 !important;
+                margin-bottom: 15px !important;
+            }
+            
+            .table-container {
+                overflow: visible !important;
+                border: 1px solid #000 !important;
+                border-radius: 0 !important;
+                margin-top: 10px !important;
+            }
+            
+            table {
+                min-width: 100% !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+                page-break-inside: auto;
+            }
+            
+            th, td {
+                border: 1px solid #000 !important;
+                padding: 6px 4px !important;
+                font-size: 10pt !important;
+            }
+            
+            thead {
+                background-color: #fff !important;
+                color: #000 !important;
+            }
+            
+            th {
+                background-color: #f2f2f2 !important;
+                font-weight: bold !important;
+                border-bottom: 2px solid #000 !important;
+            }
+            
+            .text-right {
+                text-align: right !important;
+            }
+            
+            .client-info {
+                border: 1px solid #000 !important;
+                background: #fff !important;
+                margin-bottom: 15px !important;
+                padding: 10px !important;
+                page-break-inside: avoid;
+            }
+            
+            .info-label {
+                color: #000 !important;
+                font-size: 10pt !important;
+            }
+            
+            .info-value {
+                border: 1px solid #000 !important;
+                font-size: 10pt !important;
+            }
+            
+            .totals {
+                justify-content: space-between;
+                margin-top: 15px !important;
+                padding-top: 15px !important;
+                border-top: 2px solid #000 !important;
+                page-break-inside: avoid;
+            }
+            
+            .total-item {
+                border: 1px solid #000 !important;
+                padding: 6px 10px !important;
+            }
+            
+            .total-label {
+                color: #000 !important;
+                font-size: 11pt !important;
+            }
+            
+            .total-value {
+                color: #000 !important;
+                font-size: 12pt !important;
+            }
+            
+            .summary-table {
+                margin-top: 20px !important;
+                page-break-inside: avoid;
+            }
+            
+            .summary-table th {
+                background-color: #f2f2f2 !important;
+                color: #000 !important;
+            }
+            
+            .total-client-row {
+                background-color: #f2f2f2 !important;
+                border-top: 2px solid #000 !important;
+            }
+            
+            .summary-totals {
+                background-color: #f2f2f2 !important;
+                border-top: 2px solid #000 !important;
+            }
+            
+            /* Evitar quebra de linha dentro de células */
+            td, th {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            /* Garantir que tabelas não quebrem no meio */
+            table {
+                page-break-inside: auto;
+            }
+            
+            /* Adicionar cabeçalho de impressão */
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+            }
+            
+            .print-header h2 {
+                font-size: 18pt;
+                margin-bottom: 5px;
+            }
+            
+            .print-date {
+                font-size: 10pt;
+                color: #666;
+            }
+            
+            /* Adicionar rodapé de impressão */
+            .print-footer {
+                display: block !important;
+                text-align: center;
+                margin-top: 20px;
+                padding-top: 10px;
+                border-top: 1px solid #000;
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        .print-header, .print-footer {
+            display: none;
+        }
+        
+        @media (max-width: 1200px) {
+            .content-wrapper {
+                flex-direction: column;
+            }
+            
+            .input-section, .output-section {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="no-print">
+            <h1><i class="fas fa-chart-line"></i> Sistema de Relatórios - Rede de Postos</h1>
+            <p class="subtitle">Processamento e visualização de dados de consumo por cliente</p>
+        </header>
+        
+        <div class="content-wrapper">
+            <section class="input-section no-print">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-upload"></i> Inserir Dados do Relatório</h2>
+                    <p>Cole os dados do relatório no campo abaixo:</p>
+                    <textarea id="dataInput" placeholder="Cole os dados do relatório aqui..."></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="processBtn">
+                            <i class="fas fa-cogs"></i> Processar Dados
+                        </button>
+                        <button class="btn btn-danger" id="clearBtn">
+                            <i class="fas fa-trash"></i> Limpar
+                        </button>
+                        <button class="btn btn-excel" id="exportFormattedBtn">
+                            <i class="fas fa-file-excel"></i> Exportar Formatado
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="output-section">
+                <div class="card">
+                    <!-- Cabeçalho para impressão -->
+                    <div class="print-header">
+                        <h2>Relatório de Consumo por Cliente</h2>
+                        <div class="print-date" id="printDate"></div>
+                    </div>
+                    
+                    <h2 class="card-title no-print"><i class="fas fa-table"></i> Relatório Processado</h2>
+                    
+                    <div class="client-info" id="clientInfo">
+                        <!-- Informações do cliente serão inseridas aqui -->
+                    </div>
+                    
+                    <div class="button-group no-print">
+                        <button class="btn btn-excel" id="exportFormattedBtn2">
+                            <i class="fas fa-file-excel"></i> Exportar Formatado
+                        </button>
+                        <button class="btn btn-success" id="printBtn">
+                            <i class="fas fa-print"></i> Imprimir Relatório
+                        </button>
+                    </div>
+                    
+                    <h3 style="margin-top: 25px; color: #2a5298;">Detalhamento das Transações</h3>
+                    <div class="table-container">
+                        <table id="transactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Hora</th>
+                                    <th>Placa</th>
+                                    <th>KM</th>
+                                    <th>CP / NF</th>
+                                    <th>Doc pgto</th>
+                                    <th>Descrição</th>
+                                    <th class="text-right">Quantidade</th>
+                                    <th>Un.</th>
+                                    <th class="text-right">Preço unit.</th>
+                                    <th class="text-right">Valor</th>
+                                    <th class="text-right">Desc.</th>
+                                    <th class="text-right">Valor final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsBody">
+                                <!-- Dados das transações serão inseridos aqui -->
+                            </tbody>
+                            <tfoot id="transactionsFooter">
+                                <!-- Total do cliente será inserido aqui -->
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div class="totals">
+                        <div class="total-item">
+                            <div class="total-label">Total Quantidade</div>
+                            <div class="total-value" id="totalQuantity">0,00</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-label">Total Valor</div>
+                            <div class="total-value" id="totalValue">R$ 0,00</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-label">Total Valor Final</div>
+                            <div class="total-value" id="totalFinalValue">R$ 0,00</div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px; color: #28a745;">Resumo por Produto</h3>
+                    <div class="table-container summary-table">
+                        <table id="summaryTable">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th class="text-right">Quantidade</th>
+                                    <th class="text-right">Preço unitário</th>
+                                    <th class="text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryBody">
+                                <!-- Dados do resumo serão inseridos aqui -->
+                            </tbody>
+                            <tfoot id="summaryFooter">
+                                <!-- Totais do resumo serão inseridos aqui -->
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Rodapé para impressão -->
+                    <div class="print-footer">
+                        Sistema desenvolvido por Waldeci Ramos &copy; 2025 | Página <span class="page-number"></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <footer class="no-print">
+            <p>Sistema desenvolvido por <span class="developer">Waldeci Ramos</span> &copy; 2025</p>
+        </footer>
+    </div>
+
+    <!-- Biblioteca para exportação em Excel -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar data atual para impressão
+            const now = new Date();
+            const printDate = document.getElementById('printDate');
+            printDate.textContent = `Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+            
+            // Botão para processar dados
+            document.getElementById('processBtn').addEventListener('click', processData);
+            
+            // Botão para limpar dados
+            document.getElementById('clearBtn').addEventListener('click', function() {
+                document.getElementById('dataInput').value = '';
+                clearOutput();
+            });
+            
+            // Botões para exportar formatado
+            document.getElementById('exportFormattedBtn').addEventListener('click', exportToExcelWithFormatting);
+            document.getElementById('exportFormattedBtn2').addEventListener('click', exportToExcelWithFormatting);
+            
+            // Botão para imprimir
+            document.getElementById('printBtn').addEventListener('click', function() {
+                // Atualizar data da impressão
+                const now = new Date();
+                document.getElementById('printDate').textContent = `Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+                
+                window.print();
+            });
+        });
+        
+        function processData() {
+            const inputData = document.getElementById('dataInput').value;
+            if (!inputData.trim()) {
+                alert('Por favor, cole os dados do relatório no campo de entrada.');
+                return;
+            }
+            
+            // Limpar saída anterior
+            clearOutput();
+            
+            // Dividir os dados em linhas
+            const lines = inputData.split('\n');
+            
+            // Variáveis para armazenar informações
+            let rede = '';
+            let empresa = '';
+            let cliente = '';
+            let periodo = '';
+            let cnpj = '';
+            let uf = '';
+            let municipio = '';
+            
+            // Arrays para armazenar dados das tabelas
+            const transactions = [];
+            const summary = [];
+            
+            // Variáveis para armazenar totais da linha "Total do cliente"
+            let totalClienteQuantidade = '0,00';
+            let totalClienteValor = '0,00';
+            let totalClienteDesc = '0,00';
+            let totalClienteValorFinal = '0,00';
+            
+            // Variáveis para armazenar totais do resumo
+            let totalResumoQuantidade = '0,00';
+            let totalResumoValor = '0,00';
+            
+            // Flags para controle de leitura
+            let readingTransactions = false;
+            let readingSummary = false;
+            let foundClientInfo = false;
+            let firstLine = true;
+            
+            // Processar cada linha
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                
+                if (!line) continue;
+                
+                // Extrair nome da rede (primeira linha)
+                if (firstLine) {
+                    // Remover data/hora/página do final
+                    const padraoData = /\s+\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}\s+Pág\.:\s+\d+\s+\d+$/;
+                    rede = line.replace(padraoData, '').trim();
+                    firstLine = false;
+                }
+                
+                // Extrair informações do cabeçalho
+                if (line.includes('Empresa:')) {
+                    empresa = line.replace('Empresa:', '').trim();
+                } else if (line.includes('Cliente:') && !line.includes('CPF/CNPJ')) {
+                    cliente = line.replace('Cliente:', '').trim();
+                } else if (line.includes('Período:')) {
+                    periodo = line.replace('Período:', '').trim();
+                } else if (line.includes('CPF/CNPJ:')) {
+                    // Esta linha contém várias informações do cliente
+                    const clienteMatch = line.match(/Cliente:\s*(.+?)\s*CPF\/CNPJ:/);
+                    if (clienteMatch && clienteMatch[1]) {
+                        cliente = clienteMatch[1].trim();
+                    }
+                    
+                    const cnpjMatch = line.match(/CPF\/CNPJ:\s*([\d.\/-]+)/);
+                    if (cnpjMatch && cnpjMatch[1]) {
+                        cnpj = cnpjMatch[1].trim();
+                    }
+                    
+                    const ufMatch = line.match(/UF:\s*([A-Z]{2})/);
+                    if (ufMatch && ufMatch[1]) {
+                        uf = ufMatch[1].trim();
+                    }
+                    
+                    const municipioMatch = line.match(/Município:\s*(.+)/);
+                    if (municipioMatch && municipioMatch[1]) {
+                        municipio = municipioMatch[1].trim();
+                    }
+                    
+                    foundClientInfo = true;
+                }
+                
+                // Detectar início da tabela de transações
+                if (line.includes('Data/Hora') && line.includes('Placa') && line.includes('KM')) {
+                    readingTransactions = true;
+                    readingSummary = false;
+                    continue;
+                }
+                
+                // Detectar linha "Total do cliente"
+                if (line.includes('Total do cliente')) {
+                    // Esta linha geralmente tem o formato: | Total do cliente | quantidade | | | valor | desc | valorFinal |
+                    const parts = line.split('|').map(p => p.trim()).filter(p => p);
+                    
+                    if (parts.length >= 7) {
+                        // Partes: [0]="Total do cliente", [1]=quantidade, [4]=valor, [5]=desc, [6]=valorFinal
+                        totalClienteQuantidade = cleanNumber(parts[1] || '0,00');
+                        totalClienteValor = cleanNumber(parts[4] || '0,00');
+                        totalClienteDesc = cleanNumber(parts[5] || '0,00');
+                        totalClienteValorFinal = cleanNumber(parts[6] || '0,00');
+                    } else {
+                        // Tentar extrair números da linha diretamente
+                        const numeros = line.match(/[\d.,]+/g);
+                        if (numeros && numeros.length >= 4) {
+                            totalClienteQuantidade = cleanNumber(numeros[0]);
+                            totalClienteValor = cleanNumber(numeros[1]);
+                            totalClienteDesc = cleanNumber(numeros[2]);
+                            totalClienteValorFinal = cleanNumber(numeros[3]);
+                        }
+                    }
+                    
+                    readingTransactions = false;
+                    continue;
+                }
+                
+                // Detectar início da tabela de resumo
+                if (line.includes('Descrição') && line.includes('Quantidade') && line.includes('Preço unitário')) {
+                    readingSummary = true;
+                    readingTransactions = false;
+                    continue;
+                }
+                
+                // Detectar linha "Total" no resumo
+                if (readingSummary && line.includes('Total') && !line.includes('Descrição')) {
+                    const parts = line.split('|').map(p => p.trim()).filter(p => p);
+                    
+                    if (parts.length >= 4) {
+                        totalResumoQuantidade = cleanNumber(parts[1] || '0,00');
+                        totalResumoValor = cleanNumber(parts[3] || '0,00');
+                    } else {
+                        // Tentar extrair números da linha diretamente
+                        const numeros = line.match(/[\d.,]+/g);
+                        if (numeros && numeros.length >= 2) {
+                            totalResumoQuantidade = cleanNumber(numeros[0]);
+                            totalResumoValor = cleanNumber(numeros[1]);
+                        }
+                    }
+                    continue;
+                }
+                
+                // Processar linhas da tabela de transações
+                if (readingTransactions && line.includes('|')) {
+                    const parts = line.split('|').map(p => p.trim()).filter(p => p);
+                    
+                    // Verificar se tem o número mínimo de colunas e começa com data
+                    if (parts.length >= 11 && parts[0].match(/\d{2}\/\d{2}\/\d{4}/)) {
+                        const dataHora = parts[0].split(' ');
+                        const data = dataHora[0] || '';
+                        const hora = dataHora[1] || '';
+                        
+                        transactions.push({
+                            data: data,
+                            hora: hora,
+                            placa: parts[1] || '',
+                            km: parts[2] || '',
+                            cpNf: parts[3] || '',
+                            docPgto: parts[4] || '',
+                            descricao: parts[5] || '',
+                            quantidade: cleanNumber(parts[6] || '0,00'),
+                            un: parts[7] || '',
+                            precoUnit: cleanNumber(parts[8] || '0,00'),
+                            valor: cleanNumber(parts[9] || '0,00'),
+                            desc: cleanNumber(parts[10] || '0,00'),
+                            valorFinal: cleanNumber(parts[11] || '0,00')
+                        });
+                    }
+                }
+                
+                // Processar linhas da tabela de resumo
+                if (readingSummary && line.includes('|')) {
+                    const parts = line.split('|').map(p => p.trim()).filter(p => p);
+                    
+                    // Verificar se é uma linha de produto (não é cabeçalho nem total)
+                    if (parts.length >= 4 && !parts[0].includes('Total') && !parts[0].includes('Descrição') 
+                        && parts[0] !== 'Resumo' && !parts[0].includes('+') && parts[0] !== '' 
+                        && !parts[0].match(/^-+$/)) {
+                        summary.push({
+                            descricao: parts[0] || '',
+                            quantidade: cleanNumber(parts[1] || '0,00'),
+                            precoUnit: cleanNumber(parts[2] || '0,00'),
+                            valor: cleanNumber(parts[3] || '0,00')
+                        });
+                    }
+                }
+            }
+            
+            // Exibir informações do cliente
+            displayClientInfo(empresa, cliente, periodo, cnpj, uf, municipio, rede);
+            
+            // Exibir transações
+            displayTransactions(transactions, totalClienteQuantidade, totalClienteValor, totalClienteDesc, totalClienteValorFinal);
+            
+            // Exibir resumo
+            displaySummary(summary, totalResumoQuantidade, totalResumoValor);
+            
+            // Calcular e exibir totais das transações
+            calculateTransactionTotals(transactions);
+        }
+        
+        function displayClientInfo(empresa, cliente, periodo, cnpj, uf, municipio, rede) {
+            const clientInfoDiv = document.getElementById('clientInfo');
+            
+            let html = '';
+            if (rede) html += `<div class="info-item"><span class="info-label">Rede:</span><span class="info-value">${rede}</span></div>`;
+            if (empresa) html += `<div class="info-item"><span class="info-label">Empresa:</span><span class="info-value">${empresa}</span></div>`;
+            if (cliente) html += `<div class="info-item"><span class="info-label">Cliente:</span><span class="info-value">${cliente}</span></div>`;
+            if (periodo) html += `<div class="info-item"><span class="info-label">Período:</span><span class="info-value">${periodo}</span></div>`;
+            if (cnpj) html += `<div class="info-item"><span class="info-label">CNPJ:</span><span class="info-value">${cnpj}</span></div>`;
+            if (uf || municipio) {
+                const localizacao = (uf && municipio) ? `${uf} - ${municipio}` : (uf || municipio);
+                html += `<div class="info-item"><span class="info-label">Localização:</span><span class="info-value">${localizacao}</span></div>`;
+            }
+            
+            clientInfoDiv.innerHTML = html;
+        }
+        
+        function displayTransactions(transactions, totalQuantidade, totalValor, totalDesc, totalValorFinal) {
+            const transactionsBody = document.getElementById('transactionsBody');
+            const transactionsFooter = document.getElementById('transactionsFooter');
+            
+            if (transactions.length === 0) {
+                transactionsBody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px;">Nenhuma transação encontrada</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            for (const trans of transactions) {
+                html += `
+                <tr>
+                    <td class="date-cell">${trans.data}</td>
+                    <td class="time-cell">${trans.hora}</td>
+                    <td>${trans.placa}</td>
+                    <td>${trans.km}</td>
+                    <td>${trans.cpNf}</td>
+                    <td>${trans.docPgto}</td>
+                    <td>${trans.descricao}</td>
+                    <td class="text-right">${formatNumber(trans.quantidade)}</td>
+                    <td>${trans.un}</td>
+                    <td class="text-right">${formatCurrency(trans.precoUnit)}</td>
+                    <td class="text-right">${formatCurrency(trans.valor)}</td>
+                    <td class="text-right">${formatCurrency(trans.desc)}</td>
+                    <td class="text-right"><strong>${formatCurrency(trans.valorFinal)}</strong></td>
+                </tr>
+                `;
+            }
+            
+            transactionsBody.innerHTML = html;
+            
+            // Verificar se temos totais válidos
+            if (totalQuantidade !== '0,00' || totalValor !== 'R$ 0,00' || totalValorFinal !== 'R$ 0,00') {
+                let footerHtml = `
+                    <tr class="total-client-row">
+                        <td colspan="7" style="text-align: right; font-weight: bold;">Total do cliente:</td>
+                        <td class="text-right">${formatNumber(totalQuantidade)}</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-right">${formatCurrency(totalValor)}</td>
+                        <td class="text-right">${formatCurrency(totalDesc)}</td>
+                        <td class="text-right"><strong>${formatCurrency(totalValorFinal)}</strong></td>
+                    </tr>
+                `;
+                transactionsFooter.innerHTML = footerHtml;
+            }
+        }
+        
+        function displaySummary(summary, totalQuantidade, totalValor) {
+            const summaryBody = document.getElementById('summaryBody');
+            const summaryFooter = document.getElementById('summaryFooter');
+            
+            if (summary.length === 0) {
+                summaryBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Nenhum item no resumo</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            for (const item of summary) {
+                html += `
+                <tr>
+                    <td>${item.descricao}</td>
+                    <td class="text-right">${formatNumber(item.quantidade)}</td>
+                    <td class="text-right">${formatCurrency(item.precoUnit)}</td>
+                    <td class="text-right"><strong>${formatCurrency(item.valor)}</strong></td>
+                </tr>
+                `;
+            }
+            
+            summaryBody.innerHTML = html;
+            
+            // Verificar se temos totais válidos
+            if (totalQuantidade !== '0,00' || totalValor !== 'R$ 0,00') {
+                let footerHtml = `
+                    <tr class="summary-totals">
+                        <td style="text-align: right; font-weight: bold;">Total Resumo:</td>
+                        <td class="text-right">${formatNumber(totalQuantidade)}</td>
+                        <td></td>
+                        <td class="text-right"><strong>${formatCurrency(totalValor)}</strong></td>
+                    </tr>
+                `;
+                summaryFooter.innerHTML = footerHtml;
+            }
+        }
+        
+        function calculateTransactionTotals(transactions) {
+            let totalQuantity = 0;
+            let totalValue = 0;
+            let totalFinalValue = 0;
+            
+            // Calcular somatórios das transações
+            for (const trans of transactions) {
+                totalQuantity += parseBrazilianNumber(trans.quantidade);
+                totalValue += parseBrazilianNumber(trans.valor);
+                totalFinalValue += parseBrazilianNumber(trans.valorFinal);
+            }
+            
+            // Formatar e exibir os totais
+            document.getElementById('totalQuantity').textContent = formatNumber(totalQuantity);
+            document.getElementById('totalValue').textContent = formatCurrency(totalValue);
+            document.getElementById('totalFinalValue').textContent = formatCurrency(totalFinalValue);
+        }
+        
+        function clearOutput() {
+            document.getElementById('clientInfo').innerHTML = '';
+            document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px;">Os dados processados aparecerão aqui</td></tr>';
+            document.getElementById('transactionsFooter').innerHTML = '';
+            document.getElementById('summaryBody').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">O resumo aparecerá aqui</td></tr>';
+            document.getElementById('summaryFooter').innerHTML = '';
+            document.getElementById('totalQuantity').textContent = '0,00';
+            document.getElementById('totalValue').textContent = 'R$ 0,00';
+            document.getElementById('totalFinalValue').textContent = 'R$ 0,00';
+        }
+        
+        function cleanNumber(numStr) {
+            if (!numStr || numStr.trim() === '') return '0,00';
+            
+            let cleaned = numStr.toString().trim();
+            
+            // Remover espaços
+            cleaned = cleaned.replace(/\s/g, '');
+            
+            // Se já está no formato brasileiro com vírgula decimal
+            if (cleaned.includes(',')) {
+                // Remover pontos de milhar se existirem
+                if (cleaned.includes('.')) {
+                    // Formato: 1.230,18 -> remover pontos
+                    cleaned = cleaned.replace(/\./g, '');
+                }
+                
+                // Garantir duas casas decimais
+                const parts = cleaned.split(',');
+                if (parts.length === 2) {
+                    let intPart = parts[0];
+                    let decPart = parts[1];
+                    
+                    // Se parte decimal tem apenas 1 dígito, adicionar zero
+                    if (decPart.length === 1) {
+                        decPart += '0';
+                    }
+                    
+                    return intPart + ',' + decPart;
+                }
+                
+                return cleaned;
+            }
+            
+            // Se não tem vírgula, assumir que é número inteiro
+            return cleaned + ',00';
+        }
+        
+        function parseBrazilianNumber(numStr) {
+            if (!numStr || numStr.trim() === '') return 0;
+            
+            // Se já for número, retornar
+            if (typeof numStr === 'number') return numStr;
+            
+            let str = numStr.toString().trim();
+            
+            // Remover R$ se existir
+            str = str.replace('R$', '').trim();
+            
+            // Remover pontos de milhar e converter vírgula para ponto
+            str = str.replace(/\./g, '').replace(',', '.');
+            
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
+        
+        function formatNumber(num) {
+            if (typeof num === 'string') {
+                num = parseBrazilianNumber(num);
+            }
+            
+            if (isNaN(num) || num === 0) return '0,00';
+            
+            // Formatar com 2 casas decimais e vírgula
+            return num.toFixed(2).replace('.', ',');
+        }
+        
+        function formatCurrency(value) {
+            if (typeof value === 'string') {
+                value = parseBrazilianNumber(value);
+            }
+            
+            if (isNaN(value) || value === 0) return 'R$ 0,00';
+            
+            // Formatar com separadores de milhar
+            const formatted = value.toFixed(2).replace('.', ',');
+            const parts = formatted.split(',');
+            
+            // Adicionar separadores de milhar à parte inteira
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            
+            return 'R$ ' + parts.join(',');
+        }
+        
+      function exportToExcelWithFormatting() {
+    // Verificar se há dados processados
+    const clientInfoDiv = document.getElementById('clientInfo');
+    const infoItems = clientInfoDiv.querySelectorAll('.info-item');
+    
+    if (infoItems.length === 0) {
+        alert('Por favor, processe os dados primeiro antes de exportar.');
+        return;
+    }
+    
+    // Criar um workbook do Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Dados para a planilha
+    const excelData = [];
+    
+    // 1. Cabeçalho
+    const now = new Date();
+    excelData.push(["RELATÓRIO DE CONSUMO POR CLIENTE"]);
+    excelData.push([`Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`]);
+    excelData.push([]);
+    
+    // 2. Informações do cliente
+    excelData.push(["INFORMAÇÕES DO CLIENTE"]);
+    excelData.push([]);
+    
+    infoItems.forEach(item => {
+        const label = item.querySelector('.info-label').textContent;
+        const value = item.querySelector('.info-value').textContent;
+        excelData.push([label, value]);
+    });
+    
+    excelData.push([]);
+    excelData.push([]);
+    
+    // 3. Tabela de transações - cabeçalho
+    excelData.push(["DETALHAMENTO DAS TRANSAÇÕES"]);
+    excelData.push([]);
+    
+    const transactionHeaders = ['Data', 'Hora', 'Placa', 'KM', 'CP/NF', 'Doc pgto', 'Descrição', 'Quantidade', 'Un.', 'Preço unit.', 'Valor', 'Desc.', 'Valor final'];
+    excelData.push(transactionHeaders);
+    
+    // 4. Dados das transações - converter valores numéricos para números
+    const transactionRows = document.querySelectorAll('#transactionsBody tr');
+    transactionRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+            let rowData = [];
+            cells.forEach((cell, index) => {
+                let cellText = cell.textContent.trim();
+                
+                // Converter colunas numéricas para números (sem aspas)
+                if (index === 7 || index === 9 || index === 10 || index === 11 || index === 12) {
+                    // Remover formatação de moeda e converter para número
+                    if (cellText.includes('R$')) {
+                        cellText = cellText.replace('R$', '').trim();
+                    }
+                    
+                    // Converter formato brasileiro para número
+                    const numValue = parseBrazilianNumber(cellText);
+                    if (!isNaN(numValue)) {
+                        rowData.push(numValue);
+                    } else {
+                        rowData.push(cellText);
+                    }
+                } else {
+                    rowData.push(cellText);
+                }
+            });
+            excelData.push(rowData);
+        }
+    });
+    
+    // 5. Total do cliente - também converter valores numéricos
+    const totalRow = document.querySelector('#transactionsFooter tr');
+    if (totalRow) {
+        let totalData = [];
+        const cells = totalRow.querySelectorAll('td');
+        cells.forEach((cell, index) => {
+            let cellText = cell.textContent.trim();
+            
+            // As colunas 7, 10, 11, 12 são numéricas (ajustado para considerar colspan)
+            // Como temos 13 colunas totais, precisamos mapear corretamente
+            if (index >= 7) {
+                // Converter para números as colunas de valores
+                if (cellText.includes('R$')) {
+                    cellText = cellText.replace('R$', '').trim();
+                }
+                
+                const numValue = parseBrazilianNumber(cellText);
+                if (!isNaN(numValue)) {
+                    totalData.push(numValue);
+                } else {
+                    totalData.push(cellText);
+                }
+            } else {
+                totalData.push(cellText);
+            }
+        });
+        excelData.push(totalData);
+    }
+    
+    excelData.push([]);
+    excelData.push([]);
+    
+    // 6. Totais gerais - converter para números
+    excelData.push(["TOTAIS DAS TRANSAÇÕES"]);
+    excelData.push([]);
+    
+    const totalQuantity = parseBrazilianNumber(document.getElementById('totalQuantity').textContent);
+    const totalValue = parseBrazilianNumber(document.getElementById('totalValue').textContent.replace('R$', '').trim());
+    const totalFinalValue = parseBrazilianNumber(document.getElementById('totalFinalValue').textContent.replace('R$', '').trim());
+    
+    excelData.push(['Total Quantidade:', totalQuantity]);
+    excelData.push(['Total Valor:', totalValue]);
+    excelData.push(['Total Valor Final:', totalFinalValue]);
+    
+    excelData.push([]);
+    excelData.push([]);
+    
+    // 7. Resumo por produto
+    excelData.push(["RESUMO POR PRODUTO"]);
+    excelData.push([]);
+    
+    const summaryHeaders = ['Descrição', 'Quantidade', 'Preço unitário', 'Valor'];
+    excelData.push(summaryHeaders);
+    
+    const summaryRows = document.querySelectorAll('#summaryBody tr');
+    summaryRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+            let rowData = [];
+            cells.forEach((cell, index) => {
+                let cellText = cell.textContent.trim();
+                
+                // Converter colunas numéricas (índices 1, 2, 3)
+                if (index === 1 || index === 2 || index === 3) {
+                    if (cellText.includes('R$')) {
+                        cellText = cellText.replace('R$', '').trim();
+                    }
+                    
+                    const numValue = parseBrazilianNumber(cellText);
+                    if (!isNaN(numValue)) {
+                        rowData.push(numValue);
+                    } else {
+                        rowData.push(cellText);
+                    }
+                } else {
+                    rowData.push(cellText);
+                }
+            });
+            excelData.push(rowData);
+        }
+    });
+    
+    // 8. Total do resumo
+    const summaryTotalRow = document.querySelector('#summaryFooter tr');
+    if (summaryTotalRow) {
+        let totalData = [];
+        const cells = summaryTotalRow.querySelectorAll('td');
+        cells.forEach((cell, index) => {
+            let cellText = cell.textContent.trim();
+            
+            // Converter valores numéricos (colunas 1 e 3)
+            if (index === 1 || index === 3) {
+                if (cellText.includes('R$')) {
+                    cellText = cellText.replace('R$', '').trim();
+                }
+                
+                const numValue = parseBrazilianNumber(cellText);
+                if (!isNaN(numValue)) {
+                    totalData.push(numValue);
+                } else {
+                    totalData.push(cellText);
+                }
+            } else {
+                totalData.push(cellText);
+            }
+        });
+        excelData.push(totalData);
+    }
+    
+    excelData.push([]);
+    excelData.push([]);
+    
+    // 9. Rodapé
+    excelData.push(["Sistema desenvolvido por Waldeci Ramos © 2025"]);
+    
+    // Criar worksheet
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    
+    // Definir larguras de coluna
+    const colWidths = [
+        { wch: 10 },  // Data
+        { wch: 8 },   // Hora
+        { wch: 10 },  // Placa
+        { wch: 10 },  // KM
+        { wch: 10 },  // CP/NF
+        { wch: 10 },  // Doc pgto
+        { wch: 25 },  // Descrição
+        { wch: 12 },  // Quantidade
+        { wch: 6 },   // Un.
+        { wch: 12 },  // Preço unit.
+        { wch: 12 },  // Valor
+        { wch: 10 },  // Desc.
+        { wch: 15 }   // Valor final
+    ];
+    
+    ws['!cols'] = colWidths;
+    
+    // Adicionar merges para formatação
+    const merges = [
+        // Título principal
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } },
+        // Data de geração
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } },
+        // Informações do cliente
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 12 } },
+        // Tabela de transações
+        { s: { r: infoItems.length + 7, c: 0 }, e: { r: infoItems.length + 7, c: 12 } },
+        // Totais das transações
+        { s: { r: infoItems.length + transactionRows.length + 11, c: 0 }, e: { r: infoItems.length + transactionRows.length + 11, c: 12 } },
+        // Tabela de resumo
+        { s: { r: infoItems.length + transactionRows.length + 19, c: 0 }, e: { r: infoItems.length + transactionRows.length + 19, c: 3 } },
+        // Rodapé
+        { s: { r: excelData.length - 1, c: 0 }, e: { r: excelData.length - 1, c: 12 } }
+    ];
+    
+    ws['!merges'] = merges;
+    
+    // Adicionar formatação numérica para as colunas de valores
+    // Para isso, precisamos percorrer as células e definir o tipo correto
+    
+    // Primeiro, vamos definir o intervalo de células
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    
+    // Formatar colunas numéricas da tabela de transações
+    const transactionStartRow = infoItems.length + 9; // Linha onde começam os dados de transação
+    for (let row = transactionStartRow; row <= range.e.r; row++) {
+        // Colunas numéricas: 7 (Quantidade), 9 (Preço unit), 10 (Valor), 11 (Desc), 12 (Valor final)
+        const numericCols = [7, 9, 10, 11, 12];
+        
+        numericCols.forEach(col => {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (ws[cellAddress] && typeof ws[cellAddress].v === 'number') {
+                // Formatar números para exibir com 2 casas decimais
+                ws[cellAddress].z = '#,##0.00';
+            }
+        });
+    }
+    
+    // Formatar totais das transações
+    const totalRowIndex = transactionStartRow + transactionRows.length;
+    if (totalRow) {
+        [7, 10, 11, 12].forEach(col => {
+            const cellAddress = XLSX.utils.encode_cell({ r: totalRowIndex, c: col });
+            if (ws[cellAddress] && typeof ws[cellAddress].v === 'number') {
+                ws[cellAddress].z = '#,##0.00';
+            }
+        });
+    }
+    
+    // Formatar colunas da tabela de resumo
+    const summaryStartRow = infoItems.length + transactionRows.length + 21;
+    for (let row = summaryStartRow; row <= range.e.r; row++) {
+        // Colunas numéricas: 1 (Quantidade), 2 (Preço unit), 3 (Valor)
+        const numericCols = [1, 2, 3];
+        
+        numericCols.forEach(col => {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (ws[cellAddress] && typeof ws[cellAddress].v === 'number') {
+                // Para preços unitários e valores, usar formato de moeda
+                if (col === 2 || col === 3) {
+                    ws[cellAddress].z = '"R$"#,##0.00';
+                } else {
+                    // Para quantidades
+                    ws[cellAddress].z = '#,##0.00';
+                }
+            }
+        });
+    }
+    
+    // Adicionar worksheet ao workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Relatório Completo");
+    
+    // Gerar arquivo Excel
+    XLSX.writeFile(wb, `relatorio_formatado_${new Date().getTime()}.xlsx`);
+}
+
+
+
+        // Função alternativa para exportar com formatação HTML (preserva cores e formatação)
+        function exportToExcelWithHTMLFormatting() {
+            // Verificar se há dados processados
+            const clientInfoDiv = document.getElementById('clientInfo');
+            const infoItems = clientInfoDiv.querySelectorAll('.info-item');
+            
+            if (infoItems.length === 0) {
+                alert('Por favor, processe os dados primeiro antes de exportar.');
+                return;
+            }
+            
+            // Criar um clone do conteúdo para exportação
+            const exportContainer = document.createElement('div');
+            exportContainer.style.width = '210mm';
+            exportContainer.style.padding = '20px';
+            exportContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            // Adicionar cabeçalho
+            const now = new Date();
+            const header = document.createElement('div');
+            header.innerHTML = `
+                <h2 style="text-align: center; color: #2a5298; margin-bottom: 10px;">RELATÓRIO DE CONSUMO POR CLIENTE</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                </p>
+            `;
+            exportContainer.appendChild(header);
+            
+            // Adicionar informações do cliente
+            const clientInfoExport = document.createElement('div');
+            clientInfoExport.innerHTML = `
+                <h3 style="color: #2a5298; margin-bottom: 10px; border-bottom: 2px solid #2a5298; padding-bottom: 5px;">INFORMAÇÕES DO CLIENTE</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+            `;
+            
+            infoItems.forEach(item => {
+                const label = item.querySelector('.info-label').textContent;
+                const value = item.querySelector('.info-value').textContent;
+                clientInfoExport.innerHTML += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-weight: bold; color: #2a5298; font-size: 12px;">${label}</div>
+                        <div style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">${value}</div>
+                    </div>
+                `;
+            });
+            
+            clientInfoExport.innerHTML += '</div>';
+            exportContainer.appendChild(clientInfoExport);
+            
+            // Adicionar tabela de transações
+            const transactionsTable = document.getElementById('transactionsTable').cloneNode(true);
+            transactionsTable.style.width = '100%';
+            transactionsTable.style.borderCollapse = 'collapse';
+            transactionsTable.style.marginTop = '20px';
+            transactionsTable.style.marginBottom = '30px';
+            
+            // Aplicar estilos à tabela clonada
+            const thElements = transactionsTable.querySelectorAll('th');
+            thElements.forEach(th => {
+                th.style.backgroundColor = '#2a5298';
+                th.style.color = 'white';
+                th.style.padding = '8px';
+                th.style.border = '1px solid #ddd';
+                th.style.textAlign = 'left';
+            });
+            
+            const tdElements = transactionsTable.querySelectorAll('td');
+            tdElements.forEach((td, index) => {
+                td.style.padding = '6px';
+                td.style.border = '1px solid #ddd';
+                td.style.fontSize = '12px';
+                
+                // Aplicar cor de fundo alternada
+                const rowIndex = Math.floor(index / 13); // 13 colunas por linha
+                if (rowIndex % 2 === 1) {
+                    td.style.backgroundColor = '#f9f9f9';
+                }
+            });
+            
+            // Estilizar a linha de total
+            const totalRow = transactionsTable.querySelector('.total-client-row');
+            if (totalRow) {
+                const totalCells = totalRow.querySelectorAll('td');
+                totalCells.forEach(td => {
+                    td.style.backgroundColor = '#e8f4ff';
+                    td.style.fontWeight = 'bold';
+                    td.style.color = '#2a5298';
+                    td.style.borderTop = '3px solid #2a5298';
+                });
+            }
+            
+            exportContainer.appendChild(transactionsTable);
+            
+            // Adicionar totais
+            const totalsDiv = document.createElement('div');
+            totalsDiv.innerHTML = `
+                <div style="display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px; padding-top: 20px; border-top: 2px solid #eaeaea;">
+                    <div style="text-align: right; padding: 10px 15px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px;">
+                        <div style="font-weight: bold; color: #2a5298; font-size: 14px; margin-bottom: 5px;">Total Quantidade</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #28a745;">${document.getElementById('totalQuantity').textContent}</div>
+                    </div>
+                    <div style="text-align: right; padding: 10px 15px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px;">
+                        <div style="font-weight: bold; color: #2a5298; font-size: 14px; margin-bottom: 5px;">Total Valor</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #28a745;">${document.getElementById('totalValue').textContent}</div>
+                    </div>
+                    <div style="text-align: right; padding: 10px 15px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px;">
+                        <div style="font-weight: bold; color: #2a5298; font-size: 14px; margin-bottom: 5px;">Total Valor Final</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #28a745;">${document.getElementById('totalFinalValue').textContent}</div>
+                    </div>
+                </div>
+            `;
+            exportContainer.appendChild(totalsDiv);
+            
+            // Adicionar resumo
+            const summaryTable = document.getElementById('summaryTable').cloneNode(true);
+            summaryTable.style.width = '100%';
+            summaryTable.style.borderCollapse = 'collapse';
+            summaryTable.style.marginTop = '40px';
+            
+            // Aplicar estilos à tabela de resumo
+            const summaryThElements = summaryTable.querySelectorAll('th');
+            summaryThElements.forEach(th => {
+                th.style.backgroundColor = '#28a745';
+                th.style.color = 'white';
+                th.style.padding = '8px';
+                th.style.border = '1px solid #ddd';
+                th.style.textAlign = 'left';
+            });
+            
+            const summaryTdElements = summaryTable.querySelectorAll('td');
+            summaryTdElements.forEach((td, index) => {
+                td.style.padding = '6px';
+                td.style.border = '1px solid #ddd';
+                td.style.fontSize = '12px';
+                
+                // Aplicar cor de fundo alternada
+                const rowIndex = Math.floor(index / 4); // 4 colunas por linha
+                if (rowIndex % 2 === 1) {
+                    td.style.backgroundColor = '#f9f9f9';
+                }
+            });
+            
+            // Estilizar a linha de total do resumo
+            const summaryTotalRow = summaryTable.querySelector('.summary-totals');
+            if (summaryTotalRow) {
+                const totalCells = summaryTotalRow.querySelectorAll('td');
+                totalCells.forEach(td => {
+                    td.style.backgroundColor = '#e8f4ff';
+                    td.style.fontWeight = 'bold';
+                    td.style.color = '#28a745';
+                    td.style.borderTop = '3px solid #28a745';
+                });
+            }
+            
+            exportContainer.appendChild(document.createElement('h3').textContent = 'RESUMO POR PRODUTO');
+            exportContainer.appendChild(summaryTable);
+            
+            // Adicionar rodapé
+            const footer = document.createElement('div');
+            footer.innerHTML = `
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+                    Sistema desenvolvido por Waldeci Ramos &copy; 2025
+                </div>
+            `;
+            exportContainer.appendChild(footer);
+            
+            // Converter HTML para Excel
+            const htmlContent = exportContainer.outerHTML;
+            const blob = new Blob([`
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                      xmlns:x="urn:schemas-microsoft-com:office:excel" 
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>Relatório Completo</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayGridlines/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                </head>
+                <body>
+                    ${htmlContent}
+                </body>
+                </html>
+            `], { type: 'application/vnd.ms-excel' });
+            
+            // Criar link de download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio_completo_${new Date().getTime()}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
