@@ -863,9 +863,76 @@ document.getElementById('processButton').addEventListener('click', function() {
     let ignoredNotes = new Set();
     let estornoNotes = [];
     let referencedNotes = [];
+    let devolucaoNotes = [];
 
     const produtosPorAliquotaICMS61 = {};
     const produtosPorAliquotaICMS00 = {};
+
+    // Função para criar tabela de devoluções
+    function createDevolucaoTable(devolucaoNotes) {
+        if (devolucaoNotes.length === 0) {
+            return '<p style="text-align: center; margin-top: 30px;">Nenhuma nota de devolução encontrada.</p>';
+        }
+
+        // Agrupar por NF-e para mostrar cada nota apenas uma vez
+        const notasUnicas = {};
+        devolucaoNotes.forEach(note => {
+            const key = `${note.nNF}-${note.serie}`;
+            if (!notasUnicas[key]) {
+                notasUnicas[key] = note;
+            }
+        });
+
+        let tableHTML = `
+            <h2 style="text-align: center; margin-top: 30px;">Notas de Devolução Ignoradas (CFOP 1662 ou 1202)</h2>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th class="align-center">NF-e</th>
+                        <th class="align-center">Série</th>
+                        <th class="align-center">CNPJ</th>
+                        <th class="align-center">Nome do Posto</th>
+                        <th class="align-center">Data</th>
+                        <th class="align-center">UF</th>
+                        <th class="align-center">CFOP</th>
+                        <th class="align-center">Produto</th>
+                        <th class="align-center">Código</th>
+                        <th class="align-right">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        Object.values(notasUnicas).forEach(note => {
+            tableHTML += `
+                <tr>
+                    <td class="align-center">${note.nNF}</td>
+                    <td class="align-center">${note.serie}</td>
+                    <td class="align-center">${note.cnpj}</td>
+                    <td class="align-center">${note.nomePosto}</td>
+                    <td class="align-center">${note.dataEmissao}</td>
+                    <td class="align-center">${note.uf}</td>
+                    <td class="align-center">${note.cfop}</td>
+                    <td class="align-center">${note.produto}</td>
+                    <td class="align-center">${note.codigoProduto}</td>
+                    <td class="align-right">R$ ${parseFloat(note.valorProduto).toFixed(2).replace('.', ',')}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += `
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="8" class="align-right"><strong>Total de Notas de Devolução:</strong></td>
+                    <td colspan="2" class="align-center"><strong>${Object.keys(notasUnicas).length} nota(s)</strong></td>
+                </tr>
+            </tfoot>
+            </table>
+        `;
+
+        return tableHTML;
+    }
 
     // Primeira passagem: identificar notas com estorno e suas referências
     Array.from(files).forEach(file => {
@@ -910,312 +977,340 @@ document.getElementById('processButton').addEventListener('click', function() {
         reader.readAsText(file);
     });
 
+    function processFiles() {
+        processedFiles = 0;
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
 
-            function processFiles() {
-                processedFiles = 0;
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
-
-                        const getElementValue = (xmlDoc, tagName) => {
-                            const element = xmlDoc.getElementsByTagName(tagName)[0];
-                            return element ? element.textContent.trim() : '0';
-                        };
-
-                        const nNF = getElementValue(xmlDoc, 'nNF');
-                        if (ignoredNotes.has(nNF)) {
-                            processedFiles++;
-                            if (processedFiles === files.length) {
-                                finalizeTable();
-                            }
-                            return;
-                        }
-
-                        const infAdFisco = getElementValue(xmlDoc, 'infAdFisco');
-                        const nomePosto = getElementValue(xmlDoc, 'xFant');
-                        const cnpj = getElementValue(xmlDoc, 'CNPJ');
-                        const uf = getElementValue(xmlDoc, 'UF');
-                        const serie = getElementValue(xmlDoc, 'serie');
-                        const dhEmi = new Date(getElementValue(xmlDoc, 'dhEmi')).toLocaleDateString('pt-BR');
-                        const produtos = xmlDoc.getElementsByTagName('det');
-
-                        for (let i = 0; i < produtos.length; i++) {
-                            const produto = produtos[i];
-                            const xProd = getElementValue(produto.getElementsByTagName('prod')[0], 'xProd');
-                            const cProd = getElementValue(produto.getElementsByTagName('prod')[0], 'cProd');
-                            const vProd = getElementValue(produto.getElementsByTagName('prod')[0], 'vProd');
-                            const cfop = getElementValue(produto.getElementsByTagName('prod')[0], 'CFOP');
-
-                            // Excluir CFOP 1662
-                            if (cfop === '1662') {
-                                continue;
-                            }
-
-                            if (cfop === '2949') {
-                                continue;
-                            }
-
-                            // Excluir produtos com códigos específicos
-                            if (cProd === "2" || 
-                                cProd === "12204" || 
-                                cProd === "12565" || 
-                                cProd === "11127" || 
-                                cProd === "3461" || 
-                                cProd === "9493" ||
-                                cProd === "10934" ||  // Novo código a excluir
-                                cProd === "2662" ||   // Novo código a excluir
-                                cProd === "2202" ||   // Novo código a excluir
-                                ((cProd === "11855" || cProd === "9445") && uf !== "BA")
-                            ) {
-                                continue;
-                            }
-
-                            // Excluir produto "XP ATIBAIA" (considerando diferentes formas de escrita)
-                            const produtoNome = xProd.toUpperCase();
-                            if (produtoNome.includes("XP ATIBAIA") || 
-                                produtoNome.includes("XPATIBAIA") ||
-                                produtoNome.includes("ATIBAIA")) {
-                                continue;
-                            }
-
-                            let aliquota61 = 0;
-                            let baseCalculo61 = 0;
-                            let valorCredito61 = 0;
-
-                            const icms61 = produto.getElementsByTagName('ICMS61')[0];
-                            if (icms61) {
-                                aliquota61 = getElementValue(icms61, 'adRemICMSRet');
-                                baseCalculo61 = getElementValue(icms61, 'qBCMonoRet');
-                                valorCredito61 = getElementValue(icms61, 'vICMSMonoRet');
-                            }
-
-                            let aliquota00 = 0;
-                            let baseCalculo00 = 0;
-                            let valorCredito00 = 0;
-
-                            const icms00 = produto.getElementsByTagName('ICMS00')[0];
-                            if (icms00) {
-                                aliquota00 = getElementValue(icms00, 'pICMS');
-                                baseCalculo00 = getElementValue(icms00, 'vBC');
-                                valorCredito00 = getElementValue(icms00, 'vICMS');
-                            }
-
-                            if ((searchTerm === '' || cnpj.toLowerCase().includes(searchTerm)) &&
-                                (stateTerm === '' || uf.includes(stateTerm)) &&
-                                (productCodeTerm === '' || cProd === productCodeTerm)) {
-                                
-                                tableHTML += `
-                                    <tr>
-                                        <td class="align-center">${nomePosto}</td>
-                                        <td class="align-center">${cnpj}</td>
-                                        <td class="align-center">${uf}</td>
-                                        <td class="align-center">${nNF}</td>
-                                        <td class="align-center">${serie}</td>
-                                        <td class="align-center">${dhEmi}</td>
-                                        <td class="align-center">${xProd}</td>
-                                        <td class="align-center">${cProd}</td>
-                                        <td class="align-right">${parseFloat(vProd).toFixed(2).replace('.', ',')}</td>
-                                        <td class="align-right">${parseFloat(aliquota61 || aliquota00).toFixed(4)}</td>
-                                        <td class="align-right">${parseFloat(baseCalculo61 || baseCalculo00).toFixed(2).replace('.', ',')}</td>
-                                        <td class="align-right">R$ ${parseFloat(valorCredito61 || valorCredito00).toFixed(2).replace('.', ',')}</td>
-                                        <td class="align-center">${infAdFisco}</td>
-                                    </tr>
-                                `;
-
-                                totalBC += parseFloat(baseCalculo61 || baseCalculo00) || 0;
-                                totalCredito += parseFloat(valorCredito61 || valorCredito00) || 0;
-
-                                if (icms61) {
-                                    totalBC_ICMS61 += parseFloat(baseCalculo61) || 0;
-                                    totalCredito_ICMS61 += parseFloat(valorCredito61) || 0;
-
-                                    const key61 = `${xProd}|${aliquota61}`;
-                                    if (!produtosPorAliquotaICMS61[key61]) {
-                                        produtosPorAliquotaICMS61[key61] = { produto: xProd, aliquota: aliquota61, totalBC: 0, totalCredito: 0 };
-                                    }
-                                    produtosPorAliquotaICMS61[key61].totalBC += parseFloat(baseCalculo61) || 0;
-                                    produtosPorAliquotaICMS61[key61].totalCredito += parseFloat(valorCredito61) || 0;
-                                }
-
-                                if (icms00) {
-                                    totalBC_ICMS00 += parseFloat(baseCalculo00) || 0;
-                                    totalCredito_ICMS00 += parseFloat(valorCredito00) || 0;
-
-                                    const key00 = `${xProd}|${aliquota00}`;
-                                    if (!produtosPorAliquotaICMS00[key00]) {
-                                        produtosPorAliquotaICMS00[key00] = { produto: xProd, aliquota: aliquota00, totalBC: 0, totalCredito: 0 };
-                                    }
-                                    produtosPorAliquotaICMS00[key00].totalBC += parseFloat(baseCalculo00) || 0;
-                                    produtosPorAliquotaICMS00[key00].totalCredito += parseFloat(valorCredito00) || 0;
-                                }
-                            }
-                        }
-
-                        processedFiles++;
-                        if (processedFiles === files.length) {
-                            finalizeTable();
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            }
-
-            function finalizeTable() {
-                tableHTML += `
-                    </tbody>
-                </table>
-
-                <h2 style="text-align: center;">Resumo para Combustiveis</h2>
-                <table class="summary-table">
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Aliquota</th>
-                            <th>Total Base de Calculo</th>
-                            <th>Total Valor de Credito</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                `;
-
-                for (const { produto, aliquota, totalBC, totalCredito } of Object.values(produtosPorAliquotaICMS61)) {
-                    if (totalBC > 0 || totalCredito > 0) {
-                        tableHTML += `
-                            <tr>
-                                <td>${produto}</td>
-                                <td class="total-cell">${aliquota}</td>
-                                <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
-                                <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
-                            </tr>
-                        `;
-                    }
-                }
-
-                tableHTML += `
-                    <tr>
-                        <td colspan="2" class="align-right"><strong>Total Combustiveis:</strong></td>
-                        <td class="total-cell">${totalBC_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="total-cell">R$ ${totalCredito_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    </tr>
-                </tbody>
-                </table>
-
-                <h2 style="text-align: center;">Resumo para Arla e Outros Produtos</h2>
-                <table class="summary-table">
-                    <thead>
-                        <tr>
-                            <th>Escolher</th>
-                            <th>Produto</th>
-                            <th>Aliquota</th>
-                            <th>Total Base de Calculo</th>
-                            <th>Total Valor de Credito</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                `;
-
-                const produtosICMS00 = Object.values(produtosPorAliquotaICMS00);
-                produtosICMS00.sort((a, b) => a.produto.localeCompare(b.produto));
-
-                for (const { produto, aliquota, totalBC, totalCredito } of produtosICMS00) {
-                    if (totalBC > 0 || totalCredito > 0) {
-                        tableHTML += `
-                            <tr>
-                                <td><input type="checkbox" class="produto-checkbox" data-produto="${produto}" data-totalBC="${totalBC}" data-totalCredito="${totalCredito}"></td>
-                                <td>${produto}</td>
-                                <td class="total-cell">${aliquota}</td>
-                                <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
-                                <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
-                            </tr>
-                        `;
-                    }
-                }
-
-                const formatNumber = (value) => {
-                    if (!value) return '0,00';
-                    return Number(value).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
+                const getElementValue = (xmlDoc, tagName) => {
+                    const element = xmlDoc.getElementsByTagName(tagName)[0];
+                    return element ? element.textContent.trim() : '0';
                 };
 
-                tableHTML += `
-                    <tr>
-                        <td colspan="3" class="align-right"><strong>Total Arla e Outros Produtos:</strong></td>
-                        <td class="total-cell">${formatNumber(totalBC_ICMS00)}</td>
-                        <td class="total-cell">R$ ${formatNumber(totalCredito_ICMS00)}</td>
-                    </tr>
-                </tbody>
-                </table>
-                `;
-
-                // Adicionar notas ignoradas à tabela
-                const allIgnoredNotes = [...estornoNotes, ...referencedNotes];
-                if (allIgnoredNotes.length > 0) {
-                    allIgnoredNotes.forEach(note => {
-                        estornoTableHTML += `
-                            <tr>
-                                <td class="align-center">${note.nNF}</td>
-                                <td class="align-center">${note.serie}</td>
-                                <td class="align-center">${note.cnpj}</td>
-                                <td class="align-center">${note.infAdFisco}</td>
-                                <td class="align-center">${note.motivo}</td>
-                            </tr>
-                        `;
-                    });
-                    estornoTableHTML += `</tbody></table>`;
-                } else {
-                    estornoTableHTML = '<p style="text-align: center; margin-top: 30px;">Nenhuma nota ignorada por estorno ou referência.</p>';
+                const nNF = getElementValue(xmlDoc, 'nNF');
+                if (ignoredNotes.has(nNF)) {
+                    processedFiles++;
+                    if (processedFiles === files.length) {
+                        finalizeTable();
+                    }
+                    return;
                 }
 
-                // Adicionar resumo de processamento
-                tableHTML += `
-                    ${estornoTableHTML}
-                    <h2 style="text-align: center; margin-top: 30px;">Resumo de Processamento</h2>
-                    <p style="text-align: center;">Total de Arquivos Processados: ${processedFiles}</p>
-                    <p style="text-align: center;">Notas Ignoradas (Estorno ou Referenciadas): ${allIgnoredNotes.length}</p>
-                    <p style="text-align: center;">Notas Aproveitadas: ${processedFiles - allIgnoredNotes.length}</p>
-                    <button id="calculateButton" style="margin-top: 20px;">Calcular Totais</button>
-                    <div id="result"></div>
-                    <div id="markedTotals"></div>
-                `;
+                const infAdFisco = getElementValue(xmlDoc, 'infAdFisco');
+                const nomePosto = getElementValue(xmlDoc, 'xFant');
+                const cnpj = getElementValue(xmlDoc, 'CNPJ');
+                const uf = getElementValue(xmlDoc, 'UF');
+                const serie = getElementValue(xmlDoc, 'serie');
+                const dhEmi = new Date(getElementValue(xmlDoc, 'dhEmi')).toLocaleDateString('pt-BR');
+                const produtos = xmlDoc.getElementsByTagName('det');
 
-                outputDiv.innerHTML = tableHTML;
+                for (let i = 0; i < produtos.length; i++) {
+                    const produto = produtos[i];
+                    const xProd = getElementValue(produto.getElementsByTagName('prod')[0], 'xProd');
+                    const cProd = getElementValue(produto.getElementsByTagName('prod')[0], 'cProd');
+                    const vProd = getElementValue(produto.getElementsByTagName('prod')[0], 'vProd');
+                    const cfop = getElementValue(produto.getElementsByTagName('prod')[0], 'CFOP');
 
-                document.getElementById('calculateButton').addEventListener('click', function() {
-                    let totalBCFinal = 0;
-                    let totalCreditoFinal = 0;
-                    let totalBCMarked = 0;
-                    let totalCreditoMarked = 0;
+                    // Verificar se é nota de devolução (CFOP 1662 ou 1202)
+                    if (cfop === '1662' || cfop === '1202') {
+                        // Adicionar à lista de notas de devolução
+                        devolucaoNotes.push({
+                            nNF: nNF,
+                            serie: serie,
+                            cnpj: cnpj,
+                            nomePosto: nomePosto,
+                            dataEmissao: dhEmi,
+                            uf: uf,
+                            cfop: cfop,
+                            produto: xProd,
+                            codigoProduto: cProd,
+                            valorProduto: vProd
+                        });
+                        continue; // Pular para o próximo produto
+                    }
 
-                    const checkboxes = document.querySelectorAll('.produto-checkbox');
+                    // Excluir CFOP 2949
+                    if (cfop === '2949') {
+                        continue;
+                    }
 
-                    checkboxes.forEach(checkbox => {
-                        if (!checkbox.checked) {
-                            totalBCFinal += parseFloat(checkbox.getAttribute('data-totalBC'));
-                            totalCreditoFinal += parseFloat(checkbox.getAttribute('data-totalCredito'));
-                        } else {
-                            totalBCMarked += parseFloat(checkbox.getAttribute('data-totalBC'));
-                            totalCreditoMarked += parseFloat(checkbox.getAttribute('data-totalCredito'));
+                    // Excluir produtos com códigos específicos
+                    if (cProd === "2" || 
+                        cProd === "12204" || 
+                        cProd === "12565" || 
+                        cProd === "11127" || 
+                        cProd === "3461" || 
+                        cProd === "9493" ||
+                        cProd === "10934" ||  // Novo código a excluir
+                        cProd === "2662" ||   // Novo código a excluir
+                        cProd === "2202" ||   // Novo código a excluir
+                        ((cProd === "11855" || cProd === "9445") && uf !== "BA")
+                    ) {
+                        continue;
+                    }
+
+                    // Excluir produto "XP ATIBAIA" (considerando diferentes formas de escrita)
+                    const produtoNome = xProd.toUpperCase();
+                    if (produtoNome.includes("XP ATIBAIA") || 
+                        produtoNome.includes("XPATIBAIA") ||
+                        produtoNome.includes("ATIBAIA")) {
+                        continue;
+                    }
+
+                    let aliquota61 = 0;
+                    let baseCalculo61 = 0;
+                    let valorCredito61 = 0;
+
+                    const icms61 = produto.getElementsByTagName('ICMS61')[0];
+                    if (icms61) {
+                        aliquota61 = getElementValue(icms61, 'adRemICMSRet');
+                        baseCalculo61 = getElementValue(icms61, 'qBCMonoRet');
+                        valorCredito61 = getElementValue(icms61, 'vICMSMonoRet');
+                    }
+
+                    let aliquota00 = 0;
+                    let baseCalculo00 = 0;
+                    let valorCredito00 = 0;
+
+                    const icms00 = produto.getElementsByTagName('ICMS00')[0];
+                    if (icms00) {
+                        aliquota00 = getElementValue(icms00, 'pICMS');
+                        baseCalculo00 = getElementValue(icms00, 'vBC');
+                        valorCredito00 = getElementValue(icms00, 'vICMS');
+                    }
+
+                    if ((searchTerm === '' || cnpj.toLowerCase().includes(searchTerm)) &&
+                        (stateTerm === '' || uf.includes(stateTerm)) &&
+                        (productCodeTerm === '' || cProd === productCodeTerm)) {
+                        
+                        tableHTML += `
+                            <tr>
+                                <td class="align-center">${nomePosto}</td>
+                                <td class="align-center">${cnpj}</td>
+                                <td class="align-center">${uf}</td>
+                                <td class="align-center">${nNF}</td>
+                                <td class="align-center">${serie}</td>
+                                <td class="align-center">${dhEmi}</td>
+                                <td class="align-center">${xProd}</td>
+                                <td class="align-center">${cProd}</td>
+                                <td class="align-right">${parseFloat(vProd).toFixed(2).replace('.', ',')}</td>
+                                <td class="align-right">${parseFloat(aliquota61 || aliquota00).toFixed(4)}</td>
+                                <td class="align-right">${parseFloat(baseCalculo61 || baseCalculo00).toFixed(2).replace('.', ',')}</td>
+                                <td class="align-right">R$ ${parseFloat(valorCredito61 || valorCredito00).toFixed(2).replace('.', ',')}</td>
+                                <td class="align-center">${infAdFisco}</td>
+                            </tr>
+                        `;
+
+                        totalBC += parseFloat(baseCalculo61 || baseCalculo00) || 0;
+                        totalCredito += parseFloat(valorCredito61 || valorCredito00) || 0;
+
+                        if (icms61) {
+                            totalBC_ICMS61 += parseFloat(baseCalculo61) || 0;
+                            totalCredito_ICMS61 += parseFloat(valorCredito61) || 0;
+
+                            const key61 = `${xProd}|${aliquota61}`;
+                            if (!produtosPorAliquotaICMS61[key61]) {
+                                produtosPorAliquotaICMS61[key61] = { produto: xProd, aliquota: aliquota61, totalBC: 0, totalCredito: 0 };
+                            }
+                            produtosPorAliquotaICMS61[key61].totalBC += parseFloat(baseCalculo61) || 0;
+                            produtosPorAliquotaICMS61[key61].totalCredito += parseFloat(valorCredito61) || 0;
                         }
-                    });
 
-                    document.getElementById('result').innerHTML = `
-                        <h3>Totais Ignorando Produtos Marcados</h3>
-                        <p>Total Base de Calculo: ${totalBCFinal.toFixed(2).replace('.', ',')}</p>
-                        <p>Total Valor de Credito: R$ ${totalCreditoFinal.toFixed(2).replace('.', ',')}</p>
-                    `;
+                        if (icms00) {
+                            totalBC_ICMS00 += parseFloat(baseCalculo00) || 0;
+                            totalCredito_ICMS00 += parseFloat(valorCredito00) || 0;
 
-                    document.getElementById('markedTotals').innerHTML = `
-                        <h3>Totais dos Produtos Marcados</h3>
-                        <p>Total Base de Calculo: ${totalBCMarked.toFixed(2).replace('.', ',')}</p>
-                        <p>Total Valor de Credito: R$ ${totalCreditoMarked.toFixed(2).replace('.', ',')}</p>
-                    `;
-                });
+                            const key00 = `${xProd}|${aliquota00}`;
+                            if (!produtosPorAliquotaICMS00[key00]) {
+                                produtosPorAliquotaICMS00[key00] = { produto: xProd, aliquota: aliquota00, totalBC: 0, totalCredito: 0 };
+                            }
+                            produtosPorAliquotaICMS00[key00].totalBC += parseFloat(baseCalculo00) || 0;
+                            produtosPorAliquotaICMS00[key00].totalCredito += parseFloat(valorCredito00) || 0;
+                        }
+                    }
+                }
+
+                processedFiles++;
+                if (processedFiles === files.length) {
+                    finalizeTable();
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    function finalizeTable() {
+        tableHTML += `
+            </tbody>
+        </table>
+
+        <h2 style="text-align: center;">Resumo para Combustiveis</h2>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Aliquota</th>
+                    <th>Total Base de Calculo</th>
+                    <th>Total Valor de Credito</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const { produto, aliquota, totalBC, totalCredito } of Object.values(produtosPorAliquotaICMS61)) {
+            if (totalBC > 0 || totalCredito > 0) {
+                tableHTML += `
+                    <tr>
+                        <td>${produto}</td>
+                        <td class="total-cell">${aliquota}</td>
+                        <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
+                        <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        tableHTML += `
+            <tr>
+                <td colspan="2" class="align-right"><strong>Total Combustiveis:</strong></td>
+                <td class="total-cell">${totalBC_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="total-cell">R$ ${totalCredito_ICMS61.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+        </tbody>
+        </table>
+
+        <h2 style="text-align: center;">Resumo para Arla e Outros Produtos</h2>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Escolher</th>
+                    <th>Produto</th>
+                    <th>Aliquota</th>
+                    <th>Total Base de Calculo</th>
+                    <th>Total Valor de Credito</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        const produtosICMS00 = Object.values(produtosPorAliquotaICMS00);
+        produtosICMS00.sort((a, b) => a.produto.localeCompare(b.produto));
+
+        for (const { produto, aliquota, totalBC, totalCredito } of produtosICMS00) {
+            if (totalBC > 0 || totalCredito > 0) {
+                tableHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="produto-checkbox" data-produto="${produto}" data-totalBC="${totalBC}" data-totalCredito="${totalCredito}"></td>
+                        <td>${produto}</td>
+                        <td class="total-cell">${aliquota}</td>
+                        <td class="total-cell">${totalBC.toFixed(2).replace('.', ',')}</td>
+                        <td class="total-cell">R$ ${totalCredito.toFixed(2).replace('.', ',')}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        const formatNumber = (value) => {
+            if (!value) return '0,00';
+            return Number(value).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        };
+
+        tableHTML += `
+            <tr>
+                <td colspan="3" class="align-right"><strong>Total Arla e Outros Produtos:</strong></td>
+                <td class="total-cell">${formatNumber(totalBC_ICMS00)}</td>
+                <td class="total-cell">R$ ${formatNumber(totalCredito_ICMS00)}</td>
+            </tr>
+        </tbody>
+        </table>
+        `;
+
+        // Adicionar notas ignoradas à tabela
+        const allIgnoredNotes = [...estornoNotes, ...referencedNotes];
+        if (allIgnoredNotes.length > 0) {
+            allIgnoredNotes.forEach(note => {
+                estornoTableHTML += `
+                    <tr>
+                        <td class="align-center">${note.nNF}</td>
+                        <td class="align-center">${note.serie}</td>
+                        <td class="align-center">${note.cnpj}</td>
+                        <td class="align-center">${note.infAdFisco}</td>
+                        <td class="align-center">${note.motivo}</td>
+                    </tr>
+                `;
+            });
+            estornoTableHTML += `</tbody></table>`;
+        } else {
+            estornoTableHTML = '<p style="text-align: center; margin-top: 30px;">Nenhuma nota ignorada por estorno ou referência.</p>';
+        }
+
+        // Adicionar tabela de devoluções
+        const devolucaoTableHTML = createDevolucaoTable(devolucaoNotes);
+
+        // Contar notas únicas de devolução
+        const notasDevolucaoUnicas = {};
+        devolucaoNotes.forEach(note => {
+            const key = `${note.nNF}-${note.serie}`;
+            if (!notasDevolucaoUnicas[key]) {
+                notasDevolucaoUnicas[key] = note;
             }
         });
+        const totalDevolucaoNotas = Object.keys(notasDevolucaoUnicas).length;
+
+        // Adicionar resumo de processamento
+        tableHTML += `
+            ${estornoTableHTML}
+            ${devolucaoTableHTML}
+            <h2 style="text-align: center; margin-top: 30px;">Resumo de Processamento</h2>
+            <p style="text-align: center;">Total de Arquivos Processados: ${files.length}</p>
+            <p style="text-align: center;">Notas Ignoradas (Estorno): ${allIgnoredNotes.length}</p>
+            <p style="text-align: center;">Notas Ignoradas (Devolução): ${totalDevolucaoNotas}</p>
+            <p style="text-align: center;">Notas Aproveitadas: ${files.length - allIgnoredNotes.length - totalDevolucaoNotas}</p>
+            <button id="calculateButton" style="margin-top: 20px;">Calcular Totais</button>
+            <div id="result"></div>
+            <div id="markedTotals"></div>
+        `;
+
+        outputDiv.innerHTML = tableHTML;
+
+        document.getElementById('calculateButton').addEventListener('click', function() {
+            let totalBCFinal = 0;
+            let totalCreditoFinal = 0;
+            let totalBCMarked = 0;
+            let totalCreditoMarked = 0;
+
+            const checkboxes = document.querySelectorAll('.produto-checkbox');
+
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    totalBCFinal += parseFloat(checkbox.getAttribute('data-totalBC'));
+                    totalCreditoFinal += parseFloat(checkbox.getAttribute('data-totalCredito'));
+                } else {
+                    totalBCMarked += parseFloat(checkbox.getAttribute('data-totalBC'));
+                    totalCreditoMarked += parseFloat(checkbox.getAttribute('data-totalCredito'));
+                }
+            });
+
+            document.getElementById('result').innerHTML = `
+                <h3>Totais Ignorando Produtos Marcados</h3>
+                <p>Total Base de Calculo: ${totalBCFinal.toFixed(2).replace('.', ',')}</p>
+                <p>Total Valor de Credito: R$ ${totalCreditoFinal.toFixed(2).replace('.', ',')}</p>
+            `;
+
+            document.getElementById('markedTotals').innerHTML = `
+                <h3>Totais dos Produtos Marcados</h3>
+                <p>Total Base de Calculo: ${totalBCMarked.toFixed(2).replace('.', ',')}</p>
+                <p>Total Valor de Credito: R$ ${totalCreditoMarked.toFixed(2).replace('.', ',')}</p>
+            `;
+        });
+    }
+});
 
         function updateFileCount(files) {
             const fileCountDisplay = document.getElementById('fileCountDisplay');
@@ -1277,6 +1372,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (index === 1) csvContent += '\nResumo para Combustíveis\n';
                 else if (index === 2) csvContent += '\nResumo para Arla e Outros Produtos\n';
                 else if (index === 3) csvContent += '\nNotas Ignoradas (Estorno ou Referenciadas)\n';
+                else if (index === 4) csvContent += '\nNotas de Devolução Ignoradas\n';
 
                 const rows = table.querySelectorAll('tr');
                 const headers = Array.from(rows[0].querySelectorAll('th')).map(th => `"${th.textContent.trim().replace(/"/g, '""')}"`).join(';');
@@ -1292,8 +1388,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add summary data
             csvContent += '\nResumo de Processamento\n';
             csvContent += '"Total de Arquivos Processados";"' + document.querySelector('#output p:nth-of-type(1)').textContent.split(': ')[1] + '"\n';
-            csvContent += '"Notas Ignoradas (Estorno ou Referenciadas)";"' + document.querySelector('#output p:nth-of-type(2)').textContent.split(': ')[1] + '"\n';
-            csvContent += '"Notas Aproveitadas";"' + document.querySelector('#output p:nth-of-type(3)').textContent.split(': ')[1] + '"\n';
+            csvContent += '"Notas Ignoradas (Estorno)";"' + document.querySelector('#output p:nth-of-type(2)').textContent.split(': ')[1] + '"\n';
+            csvContent += '"Notas Ignoradas (Devolução)";"' + document.querySelector('#output p:nth-of-type(3)').textContent.split(': ')[1] + '"\n';
+            csvContent += '"Notas Aproveitadas";"' + document.querySelector('#output p:nth-of-type(4)').textContent.split(': ')[1] + '"\n';
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
             const url = URL.createObjectURL(blob);
