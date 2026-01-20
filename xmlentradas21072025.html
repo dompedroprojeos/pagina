@@ -62,7 +62,7 @@ body.dark-mode {
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
-    overflow: hidden; /* Ensure image stays within circular bounds */
+    overflow: hidden;
 }
 
 .logo-circle:hover {
@@ -72,12 +72,9 @@ body.dark-mode {
 .logo-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure image fits without distortion */
-    border-radius: 50%; /* Maintain circular shape */
+    object-fit: cover;
+    border-radius: 50%;
 }
-
-
-
 
 .header-title {
     font-size: 1.8rem;
@@ -129,7 +126,7 @@ body.dark-mode #themeToggleButton i {
 }
 
 body.dark-mode #themeToggleButton i::before {
-    content: "\f185"; /* Sun icon for dark mode */
+    content: "\f185";
 }
 
 /* Main Content */
@@ -726,7 +723,7 @@ body.dark-mode .summary-table th {
                 </h3>
                 <p>Sistema desenvolvido para processamento automatizado de arquivos XML de Notas Fiscais Eletrônicas (NFE), com foco em análise de créditos de ICMS e relatórios gerenciais.</p>
                 <p><strong>Versão:</strong> 2.0.0</p>
-                <p><strong>Última Atualização:</strong> 21 de Julho 2025</p>
+                <p><strong>Última Atualização:</strong> 20 de Janeiro de 2026</p>
             </div>
 
             <div class="footer-section">
@@ -951,19 +948,35 @@ document.getElementById('processButton').addEventListener('click', function() {
                             const vProd = getElementValue(produto.getElementsByTagName('prod')[0], 'vProd');
                             const cfop = getElementValue(produto.getElementsByTagName('prod')[0], 'CFOP');
 
+                            // Excluir CFOP 1662
+                            if (cfop === '1662') {
+                                continue;
+                            }
+
                             if (cfop === '2949') {
                                 continue;
                             }
 
-                            if (
-                                cProd === "2" || 
+                            // Excluir produtos com códigos específicos
+                            if (cProd === "2" || 
                                 cProd === "12204" || 
                                 cProd === "12565" || 
                                 cProd === "11127" || 
                                 cProd === "3461" || 
-                                cProd === "9493" || 
+                                cProd === "9493" ||
+                                cProd === "10934" ||  // Novo código a excluir
+                                cProd === "2662" ||   // Novo código a excluir
+                                cProd === "2202" ||   // Novo código a excluir
                                 ((cProd === "11855" || cProd === "9445") && uf !== "BA")
                             ) {
+                                continue;
+                            }
+
+                            // Excluir produto "XP ATIBAIA" (considerando diferentes formas de escrita)
+                            const produtoNome = xProd.toUpperCase();
+                            if (produtoNome.includes("XP ATIBAIA") || 
+                                produtoNome.includes("XPATIBAIA") ||
+                                produtoNome.includes("ATIBAIA")) {
                                 continue;
                             }
 
@@ -1212,6 +1225,7 @@ document.getElementById('processButton').addEventListener('click', function() {
         function printTotals() {
             window.print();
         }
+
 // Add dark mode toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggleButton = document.getElementById('themeToggleButton');
