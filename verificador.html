@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Perdas - Rede Dom Pedro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Reset e estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.375;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* PreLoader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .loader .progress-bar {
+            width: 200px;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .loader .progress-bar::after {
+            content: '';
+            display: block;
+            width: 0%;
+            height: 100%;
+            background: #3498db;
+            animation: progress 2s linear forwards;
+        }
+
+        @keyframes progress {
+            to { width: 100%; }
+        }
+
+        .loader .title {
+            margin-top: 15px;
+            font-size: 20px;
+            color: #3498db;
+        }
+
+        /* Cabeçalho e Rodapé */
+        header, footer {
+            background: linear-gradient(135deg, #ff7f50 0%, #ff4500 100%);
+            color: #f4f4f9;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 30px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-container img {
+            height: 80px;
+            margin-right: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #f4f4f9;
+            text-align: center;
+        }
+
+        footer {
+            padding: 15px 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1680px;
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Campo de busca estilizado */
+        .search-container {
+            margin-bottom: 25px;
+            text-align: center;
+            position: relative;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-container input {
+            padding: 12px 40px 12px 15px;
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 2px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .search-container .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+            font-size: 18px;
+        }
+
+        /* Área de entrada de dados */
+        .input-area {
+            margin-bottom: 25px;
+            background-color: #f7f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Botões */
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-process {
+            background-color: #3498db;
+        }
+
+        .btn-process:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-clear {
+            background-color: #e74c3c;
+        }
+
+        .btn-clear:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-export {
+            background-color: #27ae60;
+        }
+
+        .btn-export:hover {
+            background-color: #219653;
+        }
+
+        .btn-scroll {
+            position: fixed;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .btn-scroll:hover {
+            background-color: #1a252f;
+            transform: translateY(-3px);
+        }
+
+        .btn-scroll-up {
+            bottom: 80px;
+        }
+
+        .btn-scroll-down {
+            top: 80px;
+        }
+
+        /* Tabelas */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(to bottom, #ff7f50, #ff4500);
+            color: #f4f4f9;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f7fa;
+        }
+
+        tr:hover {
+            background-color: #e8f4fc;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #e3f2fd;
+            color: #333;
+        }
+
+        .grand-total-row {
+            font-weight: bold;
+            background-color: #2c3e50;
+            color: white;
+            font-size: 16px;
+        }
+
+        /* Destaque para alertas - CORES CORRETAS AGORA */
+        .verde-forte {
+            background-color: #28a745 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .vermelho-forte {
+            background-color: #dc3545 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .alerta-normal {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+        }
+
+        .alerta-atencao {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            font-weight: bold;
+        }
+
+        .alerta-critico {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+            font-weight: bold;
+            animation: piscar 1s infinite;
+        }
+
+        @keyframes piscar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Cabeçalhos de empresa */
+        #tabela-container h3 {
+            margin: 25px 0 15px;
+            padding: 10px 15px;
+            background-color: #34495e;
+            color: white;
+            border-radius: 8px 8px 0 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .info-combustivel {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* Painel de alertas */
+        .alerta-panel {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .alerta-panel.critico {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .alerta-panel h4 {
+            margin-top: 0;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alerta-panel.critico h4 {
+            color: #721c24;
+        }
+
+        .alerta-list {
+            margin-top: 15px;
+        }
+
+        .alerta-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.8);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Gráfico */
+        .chart-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .chart-container h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        /* Relatório de perdas */
+        .relatorio-perdas {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .relatorio-perdas h4 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .relatorio-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            line-height: 1.8;
+        }
+
+        /* Estatísticas */
+        .estatisticas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .estatistica-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .estatistica-valor {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .estatistica-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .estatistica-critica .estatistica-valor {
+            color: #dc3545;
+        }
+
+        /* Indicadores - CORES CORRETAS AGORA */
+        .indicador-perda {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #dc3545; /* VERMELHO para PERDA */
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .indicador-sobra {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #28a745; /* VERDE para SOBRA */
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .alerta-margem {
+            background-color: #ffc107 !important;
+            color: #856404 !important;
+            font-weight: bold;
+            border: 2px solid #ffc107;
+        }
+
+        @media print {
+            #data-input,
+            #search-input,
+            .search-icon,
+            .btn-scroll,
+            .btn,
+            .alerta-panel,
+            .chart-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PreLoader -->
+    <div id="preloader">
+        <div class="loader">
+            <div class="progress-bar"></div>
+            <span class="title">Carregando...</span>
+        </div>
+    </div>
+    <!-- PreLoader -->
+
+    <header>
+        <div class="logo-container">
+            <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Logo Rede Dom Pedro">
+            <h1><i class="fas fa-gas-pump"></i> Análise de Perdas - Rede Dom Pedro</h1>
+        </div>
+        <button class="btn-scroll btn-scroll-down" onclick="scrollToBottom()">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </header>
+
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar por empresa..." onkeyup="filterResults()">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <div class="input-area">
+            <textarea id="data-input" placeholder="Cole os dados aqui..."></textarea>
+            <div class="button-group">
+                <button class="btn btn-process" onclick="processData()">
+                    <i class="fas fa-cogs"></i> Analisar Perdas
+                </button>
+                <button class="btn btn-clear" onclick="clearData()">
+                    <i class="fas fa-trash-alt"></i> Limpar
+                </button>
+                <button class="btn" onclick="printPage()" style="background-color: #27ae60;">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn btn-export" onclick="exportRelatorio()">
+                    <i class="fas fa-file-export"></i> Exportar Relatório
+                </button>
+            </div>
+        </div>
+
+        <div id="tabela-container" class="table-container"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Rede Dom Pedro - Sistema de Análise de Perdas</p>
+        <button class="btn-scroll btn-scroll-up" onclick="scrollToTop()">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+    </footer>
+
+    <script>
+        // Dicionário de empresas
+        const empresasNomes = {
+            "2": "DOM PEDRO 1",
+            "3": "DOM PEDRO ITATIAIUÇU",
+            "4": "DOM PEDRO LEME",
+            "5": "DOM PEDRO PINDA ROTA NORTE",
+            "6": "DOM PEDRO 2",
+            "7": "DOM PEDRO POUSO ALEGRE",
+            "8": "DOM PEDRO ATIBAIA",
+            "9": "DOM PEDRO ITAPEVA",
+            "10": "DOM PEDRO CAETANÓPOLIS",
+            "11": "DOM PEDRO BETIM 1 ROTA SUL",
+            "13": "DOM PEDRO TURIM",
+            "14": "DOM PEDRO SANTA LUZIA",
+            "15": "DOM PEDRO SALINAS",
+            "17": "DOM PEDRO APARECIDA",
+            "18": "DOM PEDRO MURIAÉ",
+            "19": "DOM PEDRO PARAOPEBA",
+            "20": "DOM PEDRO CONTAGEM NORTE",
+            "21": "DOM PEDRO CONTAGEM SUL",
+            "22": "DOM PEDRO CAMBUÍ",
+            "24": "DOM PEDRO GUARA RODOV.",
+            "25": "DOM PEDRO PINDA ROTA SUL",
+            "26": "DOM PEDRO MIRACATU ROTA NORTE",
+            "27": "DOM PEDRO JK ESTIVA SUL",
+            "28": "DOM PEDRO ALIANÇA",
+            "29": "DOM PEDRO OLIVEIRA",
+            "30": "DOM PEDRO CAMBUÍ URBANO 1",
+            "31": "DOM PEDRO JAGUAQUARA",
+            "32": "DOM PEDRO SÃO GONÇALO",
+            "33": "DOM PEDRO NOVA SERRANA",
+            "34": "DOM PEDRO IGARATINGA",
+            "35": "DOM PEDRO CARMÓPOLIS",
+            "36": "DOM PEDRO BETIM 2 ROTA SUL",
+            "37": "DOM PEDRO PARAGOMINAS",
+            "41": "DOM PEDRO DIVISA ALEGRE",
+            "42": "DOM PEDRO CAMBUÍ URBANO 2",
+            "43": "DOM PEDRO CONTAGEM FERNÃO DIAS",
+            "44": "DOM PEDRO CACHOEIRA DE PAJEÚ",
+            "45": "DOM PEDRO TOCANTINS",
+            "48": "DOM PEDRO SANTO ESTEVÃO",
+            "49": "DOM PEDRO SÃO GONÇALO URB.",
+            "50": "DOM PEDRO ITAGUARA",
+            "51": "DOM PEDRO SENADOR AMARAL",
+            "54": "DOM PEDRO LORENA",
+            "55": "DOM PEDRO DIVISA ALEGRE 2",
+            "56": "DOM PEDRO INCONFIDENTES",
+            "57": "DOM PEDRO JUIZ DE FORA URBANO",
+            "58": "DOM PEDRO BUENO BRANDÃO",
+            "59": "DOM PEDRO POUSO ALEGRE URBANO",
+            "60": "DOM PEDRO CAMANDUCAIA URBANO 1",
+            "61": "DOM PEDRO OURO FINO",
+            "63": "DOM PEDRO CAMANDUCAIA URBANO 2",
+            "64": "DOM PEDRO GUARÁ URBANO 2",
+            "65": "DOM PEDRO GUARÁ URBANO 3",
+            "66": "DOM PEDRO BRAGANÇA URBANO",
+            "67": "DOM PEDRO JACAREÍ URBANO",
+            "68": "DOM PEDRO ATIBAIA URBANO",
+            "69": "DOM PEDRO POUSO ALEGRE URB 2",
+            "70": "DOM PEDRO EXTREMA URBANO",
+            "77": "DOM PEDRO POUSO ALEGRE URB 3",
+            "78": "DOM PEDRO SALES OLIVEIRA",
+            "79": "DOM PEDRO VITÓRIA DA CONQUISTA",
+            "80": "DOM PEDRO JUIZ DE FORA RODOVIA",
+            "81": "DOM PEDRO MONTES CLAROS",
+            "82": "DOM PEDRO VARGEM",
+            "83": "DOM PEDRO SÃO JORGE",
+            "86": "DOM PEDRO S. JOSÉ DOS CAMPOS URB",
+            "87": "DOM PEDRO FREI INOCÊNCIO",
+            "88": "DOM PEDRO BRAGANÇA RODOVIA",
+            "89": "DOM PEDRO BARRA MANSA NORTE",
+            "90": "DOM PEDRO BARRA MANSA SUL",
+            "91": "DOM PEDRO CONSELHEIRA LAFAIETE",
+            "92": "DOM PEDRO PLANALTO",
+            "93": "DOM PEDRO SANTO ESTEVÃO 2",
+            "94": "DOM PEDRO SANTO ESTEVÃO 3",
+            "95": "DOM PEDRO SÃO CRISTÓVÃO",
+            "96": "DOM PEDRO BARREIRAS",
+            "97": "DOM PEDRO DE POSTOS LTDA DP ITABERABA",
+            "98": "DOM PEDRO DE POSTOS LTDA DP VALENCA",
+            "99": "DOM PEDRO SAO GONCALO RODOVIA 2",
+            "100": "DOM PEDRO SAO GONCALO RODOVIA 3",
+            "102": "DOM PEDRO RUSSAS",
+            "103": "DOM PEDRO INHAPIM",
+            "104": "DOM PEDRO LUZ"
+        };
+
+        // Esconde o preloader quando a página é carregada
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+            }, 1000);
+        });
+
+        // Variáveis globais
+        let dailyData = [];
+        let alertasCriticos = [];
+        let alertasPerda = [];
+        let empresaInfo = {};
+
+        function printPage() {
+            window.print();
+        }
+
+        // Função para converter números no formato brasileiro para decimal
+        function parseNumber(value) {
+            if (!value || value === '0,000' || value === '0.000' || value === '0') return 0;
+            // Remove pontos de milhar e converte vírgula decimal para ponto
+            const cleanValue = value.toString()
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/\s/g, '')
+                .trim();
+            return parseFloat(cleanValue) || 0;
+        }
+
+        // Função para formatar número no formato brasileiro
+        function formatNumber(num) {
+            return num.toLocaleString('pt-BR', { 
+                minimumFractionDigits: 3, 
+                maximumFractionDigits: 3 
+            });
+        }
+
+        // Função para determinar a classe de alerta
+        function getAlertaClass(diferenca) {
+            const absDiferenca = Math.abs(diferenca);
+            if (absDiferenca <= 500) return 'alerta-normal';
+            if (absDiferenca <= 2000) return 'alerta-atencao';
+            return 'alerta-critico';
+        }
+
+        // Função para determinar cor da diferença - CORRETO AGORA!
+        function getCorDiferenca(diferenca) {
+            // SE Tanque > Bomba = PERDA = VERMELHO ✓
+            // SE Tanque < Bomba = SOBRA = VERDE ✓
+            // Fórmula: DIFERENÇA = Saída Bomba - Saída Tanque
+            // Se positivo = SOBRA (VERDE), se negativo = PERDA (VERMELHO)
+            return diferenca > 0 ? 'verde-forte' : 'vermelho-forte';
+        }
+
+        // Função para calcular diferença CORRETA
+        function calcularDiferenca(saidaBomba, saidaTanque) {
+            // DIFERENÇA = Saída Bomba - Saída Tanque
+            return saidaBomba - saidaTanque;
+        }
+
+        // Função para exportar relatório
+        function exportRelatorio() {
+            if (!dailyData.length) {
+                alert('Não há dados para exportar!');
+                return;
+            }
+
+            // Calcula totais
+            const totalBomba = dailyData.reduce((sum, d) => sum + d.saidaBomba, 0);
+            const totalTanque = dailyData.reduce((sum, d) => sum + d.saidaTanque, 0);
+            const totalDiferenca = calcularDiferenca(totalBomba, totalTanque);
+            
+            let relatorio = `RELATÓRIO DE ANÁLISE DE PERDAS - REDE DOM PEDRO\n`;
+            relatorio += `==================================================\n\n`;
+            relatorio += `Empresa: ${empresaInfo.nome}\n`;
+            relatorio += `Período: ${empresaInfo.periodo}\n`;
+            relatorio += `Combustível: ${empresaInfo.combustivel}\n`;
+            relatorio += `Data da Análise: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+            
+            relatorio += `📊 ANÁLISE DE PERDAS E SOBRAS 📊\n`;
+            relatorio += `=================================\n`;
+            relatorio += `Fórmula: Diferença = Saída Bomba (Escritural) - Saída Tanque (Medido)\n`;
+            relatorio += `• Diferença POSITIVA (VERDE): Bomba > Tanque = SOBRA\n`;
+            relatorio += `• Diferença NEGATIVA (VERMELHO): Bomba < Tanque = PERDA\n\n`;
+            
+            // Resultados totais
+            relatorio += `📈 RESULTADOS TOTAIS 📈\n`;
+            relatorio += `======================\n`;
+            relatorio += `Total Vendas Bomba: ${formatNumber(totalBomba)} L\n`;
+            relatorio += `Total Vendas Tanque: ${formatNumber(totalTanque)} L\n`;
+            relatorio += `Diferença Total: ${formatNumber(totalDiferenca)} L\n`;
+            relatorio += `Status: ${totalDiferenca > 0 ? 'SOBRA TOTAL (VERDE)' : 'PERDA TOTAL (VERMELHO)'}\n\n`;
+            
+            // Alertas de Perda Crítica (diferença > 2000L negativa)
+            if (alertasCriticos.length > 0) {
+                relatorio += `🚨 PERDAS CRÍTICAS (Diferença > 2.000 L) 🚨\n`;
+                relatorio += `-----------------------------------------\n`;
+                
+                alertasCriticos.forEach((alerta, index) => {
+                    relatorio += `${index + 1}. Data: ${alerta.data}\n`;
+                    relatorio += `   Vendas Bomba: ${formatNumber(alerta.saidaBomba)} L\n`;
+                    relatorio += `   Vendas Tanque: ${formatNumber(alerta.saidaTanque)} L\n`;
+                    relatorio += `   Diferença: ${formatNumber(alerta.diferenca)} L (PERDA)\n`;
+                    relatorio += `   Status: PERDA CRÍTICA - VERMELHO\n`;
+                    relatorio += `   ---------------------------------------\n`;
+                });
+            }
+            
+            // Dias com Perda (vermelho)
+            if (alertasPerda.length > 0) {
+                relatorio += `\n🔴 DIAS COM PERDA DE COMBUSTÍVEL 🔴\n`;
+                relatorio += `------------------------------------\n`;
+                relatorio += `ATENÇÃO: Nestes dias o tanque teve MAIS consumo que o registrado!\n\n`;
+                
+                alertasPerda.forEach((alerta, index) => {
+                    if (index < 15) {
+                        relatorio += `${index + 1}. ${alerta.data}: ${formatNumber(Math.abs(alerta.diferenca))} L de PERDA\n`;
+                    }
+                });
+                
+                if (alertasPerda.length > 15) {
+                    relatorio += `... e mais ${alertasPerda.length - 15} dias com perda\n`;
+                }
+            }
+            
+            relatorio += `\n📅 DETALHAMENTO DIÁRIO 📅\n`;
+            relatorio += `=========================\n`;
+            
+            dailyData.forEach(dia => {
+                const statusSimbolo = dia.status === 'CRÍTICO' ? '🚨' : dia.status === 'ATENÇÃO' ? '⚠️' : '✅';
+                const tipo = dia.diferenca > 0 ? 'SOBRA (VERDE)' : 'PERDA (VERMELHO)';
+                relatorio += `${statusSimbolo} Data: ${dia.data}\n`;
+                relatorio += `   Vendas Bomba: ${formatNumber(dia.saidaBomba)} L\n`;
+                relatorio += `   Vendas Tanque: ${formatNumber(dia.saidaTanque)} L\n`;
+                relatorio += `   Diferença: ${formatNumber(dia.diferenca)} L (${tipo})\n`;
+                relatorio += `   Status: ${dia.status}\n`;
+                relatorio += `   ---------------------------------------\n`;
+            });
+            
+            // Estatísticas
+            const diasPerda = dailyData.filter(d => d.diferenca < 0).length;
+            const diasSobra = dailyData.filter(d => d.diferenca > 0).length;
+            const percentualPerda = totalBomba > 0 ? (Math.abs(totalDiferenca) / totalBomba) * 100 : 0;
+            
+            relatorio += `\n📊 RESUMO FINAL 📊\n`;
+            relatorio += `===================\n`;
+            relatorio += `Total Vendas Bomba: ${formatNumber(totalBomba)} L\n`;
+            relatorio += `Total Vendas Tanque: ${formatNumber(totalTanque)} L\n`;
+            relatorio += `Diferença Total: ${formatNumber(totalDiferenca)} L\n`;
+            relatorio += `Percentual de ${totalDiferenca > 0 ? 'Sobra' : 'Perda'}: ${percentualPerda.toFixed(2)}%\n`;
+            relatorio += `Dias Analisados: ${dailyData.length}\n`;
+            relatorio += `Dias com PERDA (VERMELHO): ${diasPerda}\n`;
+            relatorio += `Dias com SOBRA (VERDE): ${diasSobra}\n`;
+            relatorio += `Dias Críticos (>2000L): ${alertasCriticos.length}\n\n`;
+            
+            relatorio += `🔍 INTERPRETAÇÃO CORRETA 🔍\n`;
+            relatorio += `===========================\n`;
+            relatorio += `1. PERDA (VERMELHO): Tanque > Bomba\n`;
+            relatorio += `   - Tanque consumiu MAIS que o registrado\n`;
+            relatorio += `   - Possível vazamento ou erro de medição\n`;
+            relatorio += `   - Risco de falta de combustível\n\n`;
+            
+            relatorio += `2. SOBRA (VERDE): Tanque < Bomba\n`;
+            relatorio += `   - Tanque consumiu MENOS que o registrado\n`;
+            relatorio += `   - Bomba pode estar registrando a mais\n`;
+            relatorio += `   - Erro no sistema de bombas\n\n`;
+            
+            relatorio += `RECOMENDAÇÕES:\n`;
+            relatorio += `--------------\n`;
+            
+            if (totalDiferenca < 0) {
+                relatorio += `1. ATENÇÃO: PERDA TOTAL de ${formatNumber(Math.abs(totalDiferenca))} L\n`;
+                relatorio += `2. Verificar vazamentos no sistema\n`;
+                relatorio += `3. Calibrar medidores de tanque\n`;
+            }
+            
+            if (alertasPerda.length > 0) {
+                relatorio += `4. Investigar dias com perda (vermelho)\n`;
+            }
+            
+            if (alertasCriticos.length > 0) {
+                relatorio += `5. Verificar urgentemente dias com perda crítica\n`;
+            }
+            
+            relatorio += `6. Manter controle diário\n`;
+            relatorio += `7. Reportar perdas superiores a 500L\n`;
+            
+            relatorio += `\nSistema: Rede Dom Pedro - Controle de Perdas\n`;
+            relatorio += `Responsável: Gestão de Combustíveis\n`;
+            
+            // Criar arquivo para download
+            const blob = new Blob([relatorio], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Relatorio_Perdas_${empresaInfo.nome.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function processData() {
+            const input = document.getElementById('data-input').value;
+            const lines = input.split('\n');
+            const tabelaContainer = document.getElementById('tabela-container');
+            tabelaContainer.innerHTML = ''; // Limpa a tabela antes de adicionar novos dados
+
+            // Reset dados
+            dailyData = [];
+            alertasCriticos = [];
+            alertasPerda = [];
+            empresaInfo = {};
+            
+            let empresaCodigo = null;
+            let empresaNome = null;
+            let combustivelInfo = null;
+            let periodoInfo = null;
+            let primeiroDia = null;
+            let ultimoDia = null;
+
+            // Estatísticas
+            let totalDias = 0;
+            let diasCriticos = 0;
+            let diasAtencao = 0;
+            let diasNormais = 0;
+            let totalVendasBomba = 0;
+            let totalVendasTanque = 0;
+            let totalDiferenca = 0;
+            let diasPerda = 0;
+            let diasSobra = 0;
+            let maiorPerda = 0;
+            let maiorPerdaData = '';
+
+            lines.forEach((line) => {
+                line = line.trim();
+                
+                // Procura por informações da empresa
+                if (line.includes("Empresa:") && line.includes("DP")) {
+                    const match = line.match(/Empresa:\s*(\d+)\s*-\s*(DP\s+[^|]+)/i);
+                    if (match) {
+                        empresaCodigo = match[1].trim();
+                        empresaNome = empresasNomes[empresaCodigo] || match[2].trim();
+                        empresaInfo.nome = empresaNome;
+                    }
+                }
+                // Procura por informação de período
+                else if (line.includes("Período:")) {
+                    periodoInfo = line.replace("Período:", "").trim();
+                    empresaInfo.periodo = periodoInfo;
+                }
+                // Procura por informação de combustível
+                else if (line.includes("Combustível:")) {
+                    const combustivelMatch = line.match(/Combustível:\s*(\d+)\s*-\s*([^|]+)/i);
+                    const tanquesMatch = line.match(/Tanques vinculados:\s*(.+)/i);
+                    if (combustivelMatch && tanquesMatch) {
+                        combustivelInfo = `Combustível: ${combustivelMatch[2].trim()} | Tanques: ${tanquesMatch[1].trim()}`;
+                        empresaInfo.combustivel = combustivelInfo;
+                    }
+                }
+                // Procura por linhas de dados (que começam com | e data)
+                else if (line.startsWith('|') && /\d{2}\/\d{2}\/\d{4}/.test(line)) {
+                    // Remove os caracteres "|" das extremidades
+                    const cleanLine = line.replace(/^\||\|$/g, '').trim();
+                    const parts = cleanLine.split('|').map(part => part.trim());
+                    
+                    if (parts.length >= 11) {
+                        const date = parts[0].trim();
+                        
+                        if (!primeiroDia) primeiroDia = date;
+                        ultimoDia = date;
+                        
+                        // Extrai os valores das colunas específicas
+                        const saidaBomba = parseNumber(parts[7]); // Saída Bombas (Vendas Escritural)
+                        const saidaTanque = parseNumber(parts[8]); // Saída Tanque (Vendas Medidas)
+                        
+                        // Calcula a diferença CORRETA: Saída Bomba - Saída Tanque
+                        const diferenca = calcularDiferenca(saidaBomba, saidaTanque);
+                        
+                        // Determina nível de alerta (baseado apenas na magnitude)
+                        const alertaClass = getAlertaClass(Math.abs(diferenca));
+                        
+                        // Determina cor da diferença - CORRETO AGORA
+                        const corDiferenca = getCorDiferenca(diferenca);
+                        
+                        // Verifica se é perda crítica (> 2000L negativa)
+                        if (diferenca < -2000) {
+                            alertasCriticos.push({
+                                data: date,
+                                saidaBomba: saidaBomba,
+                                saidaTanque: saidaTanque,
+                                diferenca: diferenca,
+                                tipo: 'PERDA CRÍTICA'
+                            });
+                        }
+                        
+                        // Verifica se há PERDA (diferenca negativa)
+                        if (diferenca < 0) {
+                            alertasPerda.push({
+                                data: date,
+                                saidaBomba: saidaBomba,
+                                saidaTanque: saidaTanque,
+                                diferenca: diferenca,
+                                tipo: 'PERDA'
+                            });
+                        }
+                        
+                        // Atualiza estatísticas
+                        totalDias++;
+                        totalVendasBomba += saidaBomba;
+                        totalVendasTanque += saidaTanque;
+                        totalDiferenca += diferenca;
+                        
+                        if (diferenca < 0) {
+                            diasPerda++;
+                            if (Math.abs(diferenca) > Math.abs(maiorPerda)) {
+                                maiorPerda = diferenca;
+                                maiorPerdaData = date;
+                            }
+                        } else {
+                            diasSobra++;
+                        }
+                        
+                        if (Math.abs(diferenca) > 2000) {
+                            diasCriticos++;
+                        } else if (Math.abs(diferenca) > 500) {
+                            diasAtencao++;
+                        } else {
+                            diasNormais++;
+                        }
+                        
+                        // Determina status final
+                        let statusFinal = '';
+                        if (Math.abs(diferenca) > 2000) {
+                            statusFinal = 'CRÍTICO';
+                        } else if (Math.abs(diferenca) > 500) {
+                            statusFinal = 'ATENÇÃO';
+                        } else {
+                            statusFinal = 'NORMAL';
+                        }
+                        
+                        // Armazena os dados do dia
+                        dailyData.push({
+                            data: date,
+                            saidaBomba: saidaBomba,
+                            saidaTanque: saidaTanque,
+                            diferenca: diferenca,
+                            alertaClass: alertaClass,
+                            corDiferenca: corDiferenca,
+                            status: statusFinal,
+                            percentual: saidaBomba > 0 ? (diferenca / saidaBomba) * 100 : 0,
+                            tipo: diferenca > 0 ? 'SOBRA' : 'PERDA'
+                        });
+                    }
+                }
+            });
+
+            // Processa os dados após coletar todas as linhas
+            if (empresaCodigo && empresaNome && dailyData.length > 0) {
+                // Cálculo do TOTAL FINAL
+                const totalDiferencaFinal = calcularDiferenca(totalVendasBomba, totalVendasTanque);
+
+                // Cria cabeçalho da empresa
+                const headerRow = document.createElement('h3');
+                headerRow.innerHTML = `<strong>${empresaNome}</strong>`;
+                tabelaContainer.appendChild(headerRow);
+
+                // Adiciona informação do período
+                if (periodoInfo) {
+                    const periodoDiv = document.createElement('div');
+                    periodoDiv.className = 'info-combustivel';
+                    periodoDiv.textContent = `Período: ${periodoInfo} (${primeiroDia} a ${ultimoDia})`;
+                    tabelaContainer.appendChild(periodoDiv);
+                }
+                
+                // Adiciona informação do combustível
+                if (combustivelInfo) {
+                    const fuelDiv = document.createElement('div');
+                    fuelDiv.className = 'info-combustivel';
+                    fuelDiv.textContent = combustivelInfo;
+                    tabelaContainer.appendChild(fuelDiv);
+                }
+
+                // Painel de estatísticas
+                const estatisticasDiv = document.createElement('div');
+                estatisticasDiv.className = 'estatisticas';
+                
+                const percentualTotal = totalVendasBomba > 0 ? (totalDiferencaFinal / totalVendasBomba) * 100 : 0;
+                
+                estatisticasDiv.innerHTML = `
+                    <div class="estatistica-item ${diasCriticos > 0 ? 'estatistica-critica' : ''}">
+                        <div class="estatistica-valor">${diasCriticos}</div>
+                        <div class="estatistica-label">Dias Críticos (>2000L)</div>
+                    </div>
+                    <div class="estatistica-item">
+                        <div class="estatistica-valor">${diasPerda}</div>
+                        <div class="estatistica-label">Dias com PERDA <span class="indicador-perda">VERMELHO</span></div>
+                    </div>
+                    <div class="estatistica-item">
+                        <div class="estatistica-valor">${diasSobra}</div>
+                        <div class="estatistica-label">Dias com SOBRA <span class="indicador-sobra">VERDE</span></div>
+                    </div>
+                    <div class="estatistica-item ${totalDiferencaFinal < 0 ? 'estatistica-critica' : ''}">
+                        <div class="estatistica-valor ${getCorDiferenca(totalDiferencaFinal)}">
+                            ${formatNumber(totalDiferencaFinal)}
+                        </div>
+                        <div class="estatistica-label">Resultado Total (L)</div>
+                    </div>
+                `;
+                tabelaContainer.appendChild(estatisticasDiv);
+
+                // Painel de alertas críticos (PERDAS > 2000L)
+                if (alertasCriticos.length > 0) {
+                    const alertaPanel = document.createElement('div');
+                    alertaPanel.className = 'alerta-panel critico';
+                    let alertasHTML = `
+                        <h4><i class="fas fa-exclamation-triangle"></i> PERDAS CRÍTICAS - DIFERENÇA > 2000 LITROS</h4>
+                        <p><strong>Fórmula:</strong> Diferença = Vendas Bomba - Vendas Tanque</p>
+                        <p><strong>Interpretação:</strong> Tanque consumiu MAIS que o registrado (PERDA)</p>
+                        <div class="alerta-list">
+                    `;
+                    
+                    alertasCriticos.forEach(alerta => {
+                        alertasHTML += `
+                            <div class="alerta-item">
+                                <div>
+                                    <strong>${alerta.data}</strong><br>
+                                    <small>PERDA CRÍTICA <span class="indicador-perda">VERMELHO</span></small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div>Bomba: <strong>${formatNumber(alerta.saidaBomba)} L</strong></div>
+                                    <div>Tanque: <strong>${formatNumber(alerta.saidaTanque)} L</strong></div>
+                                    <div class="vermelho-forte">Perda: <strong>${formatNumber(Math.abs(alerta.diferenca))} L</strong></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    alertasHTML += `</div>`;
+                    alertaPanel.innerHTML = alertasHTML;
+                    tabelaContainer.appendChild(alertaPanel);
+                }
+
+                // Painel de dias com perda
+                if (alertasPerda.length > 0) {
+                    const perdaPanel = document.createElement('div');
+                    perdaPanel.className = 'alerta-panel critico';
+                    perdaPanel.style.backgroundColor = '#f8d7da';
+                    perdaPanel.style.borderColor = '#dc3545';
+                    
+                    let perdaHTML = `
+                        <h4><i class="fas fa-exclamation-circle"></i> ATENÇÃO: DIAS COM PERDA DE COMBUSTÍVEL</h4>
+                        <p><strong>Situação:</strong> Vendas Tanque > Vendas Bomba (Tanque consumiu MAIS)</p>
+                        <p><strong>Risco:</strong> Possível vazamento ou erro de medição!</p>
+                        <div class="alerta-list">
+                    `;
+                    
+                    alertasPerda.forEach((alerta, index) => {
+                        if (index < 10) {
+                            perdaHTML += `
+                                <div class="alerta-item">
+                                    <div>
+                                        <strong>${alerta.data}</strong><br>
+                                        <small>PERDA <span class="indicador-perda">VERMELHO</span></small>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div>Bomba: <strong>${formatNumber(alerta.saidaBomba)} L</strong></div>
+                                        <div>Tanque: <strong>${formatNumber(alerta.saidaTanque)} L</strong></div>
+                                        <div class="vermelho-forte">Perda: <strong>${formatNumber(Math.abs(alerta.diferenca))} L</strong></div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    if (alertasPerda.length > 10) {
+                        perdaHTML += `<div class="alerta-item"><em>... e mais ${alertasPerda.length - 10} dias com perda</em></div>`;
+                    }
+                    
+                    perdaHTML += `</div>`;
+                    perdaPanel.innerHTML = perdaHTML;
+                    tabelaContainer.appendChild(perdaPanel);
+                }
+
+                // Cria gráfico comparativo
+                createChart(dailyData, tabelaContainer);
+
+                // Cria tabela
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Vendas Bomba<br>(Escritural - L)</th>
+                            <th>Vendas Tanque<br>(Medido - L)</th>
+                            <th>Diferença<br>(Bomba - Tanque)</th>
+                            <th>Status</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-${empresaCodigo}"></tbody>
+                `;
+                tabelaContainer.appendChild(table);
+
+                const tableBody = document.getElementById(`table-body-${empresaCodigo}`);
+                
+                // Processa cada dia individualmente
+                dailyData.forEach(dia => {
+                    const tipoTexto = dia.tipo === 'SOBRA' ? 
+                        '<span class="indicador-sobra">SOBRA</span>' : 
+                        '<span class="indicador-perda">PERDA</span>';
+                    
+                    // Cria linha para cada dia
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dia.data}</td>
+                        <td>${formatNumber(dia.saidaBomba)}</td>
+                        <td>${formatNumber(dia.saidaTanque)}</td>
+                        <td class="${dia.corDiferenca}">${formatNumber(dia.diferenca)}</td>
+                        <td class="${dia.alertaClass}"><strong>${dia.status}</strong></td>
+                        <td>${tipoTexto}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                // Exibe totais da empresa
+                displayCompanyTotals(empresaNome, dailyData, tableBody, totalDiferencaFinal);
+
+                // Cria relatório de perdas
+                createRelatorioPerdas(tabelaContainer, totalDiferencaFinal);
+            }
+        }
+
+        function createChart(dailyData, container) {
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart-container';
+            chartDiv.innerHTML = `<h4>COMPARAÇÃO: VENDAS BOMBA vs VENDAS TANQUE</h4>`;
+            
+            const canvas = document.createElement('canvas');
+            canvas.id = 'vendasChart';
+            canvas.height = 300;
+            chartDiv.appendChild(canvas);
+            container.appendChild(chartDiv);
+            
+            // Prepara dados para o gráfico
+            const labels = dailyData.map(d => d.data);
+            const dadosBomba = dailyData.map(d => d.saidaBomba);
+            const dadosTanque = dailyData.map(d => d.saidaTanque);
+            const dadosDiferenca = dailyData.map(d => d.diferenca);
+            
+            // Cores para a diferença - CORRETAS
+            // VERDE para SOBRA (diferenca > 0 = Bomba > Tanque)
+            // VERMELHO para PERDA (diferenca < 0 = Bomba < Tanque)
+            const backgroundColors = dailyData.map(d => {
+                if (d.diferenca > 0) return 'rgba(40, 167, 69, 0.6)'; // VERDE para SOBRA
+                return 'rgba(220, 53, 69, 0.6)'; // VERMELHO para PERDA
+            });
+            
+            const borderColors = dailyData.map(d => {
+                if (d.diferenca > 0) return 'rgba(40, 167, 69, 1)'; // VERDE para SOBRA
+                return 'rgba(220, 53, 69, 1)'; // VERMELHO para PERDA
+            });
+            
+            // Cria o gráfico
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Vendas Bomba (Escritural)',
+                            data: dadosBomba,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Vendas Tanque (Medidas)',
+                            data: dadosTanque,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Diferença (Bomba - Tanque)',
+                            data: dadosDiferenca,
+                            type: 'bar',
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Análise de Perdas - VERDE=SOBRA, VERMELHO=PERDA'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.datasetIndex === 2) {
+                                        const diferenca = context.raw;
+                                        label += `${formatNumber(diferenca)} L (${diferenca > 0 ? 'SOBRA' : 'PERDA'})`;
+                                    } else {
+                                        label += `${formatNumber(context.raw)} L`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Litros (L)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayCompanyTotals(companyName, dailyData, tableBody, totalDiferencaFinal) {
+            // Calcula totais da empresa
+            let totalSaidaBomba = dailyData.reduce((sum, d) => sum + d.saidaBomba, 0);
+            let totalSaidaTanque = dailyData.reduce((sum, d) => sum + d.saidaTanque, 0);
+            
+            const alertaClass = getAlertaClass(Math.abs(totalDiferencaFinal));
+            const corTotal = getCorDiferenca(totalDiferencaFinal);
+            
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td><strong>TOTAL ${companyName}</strong></td>
+                <td><strong>${formatNumber(totalSaidaBomba)}</strong></td>
+                <td><strong>${formatNumber(totalSaidaTanque)}</strong></td>
+                <td class="${corTotal}"><strong>${formatNumber(totalDiferencaFinal)}</strong></td>
+                <td class="${alertaClass}"><strong>TOTAL</strong></td>
+                <td><strong>${totalDiferencaFinal > 0 ? '<span class="indicador-sobra">SOBRA</span>' : '<span class="indicador-perda">PERDA</span>'}</strong></td>
+            `;
+            tableBody.appendChild(totalRow);
+            
+            // Linha adicional com o cálculo
+            const totalFinalRow = document.createElement('tr');
+            totalFinalRow.className = 'grand-total-row';
+            totalFinalRow.innerHTML = `
+                <td colspan="6"><strong>RESULTADO FINAL:</strong></td>
+                <td colspan="2" class="${corTotal}">
+                    <strong>${formatNumber(totalDiferencaFinal)} L</strong><br>
+                    <small>Fórmula: Bomba(${formatNumber(totalSaidaBomba)}) - Tanque(${formatNumber(totalSaidaTanque)})</small>
+                </td>
+            `;
+            tableBody.appendChild(totalFinalRow);
+        }
+
+        function createRelatorioPerdas(container, totalDiferencaFinal) {
+            const relatorioDiv = document.createElement('div');
+            relatorioDiv.className = 'relatorio-perdas';
+            
+            const totalBomba = dailyData.reduce((sum, d) => sum + d.saidaBomba, 0);
+            const totalTanque = dailyData.reduce((sum, d) => sum + d.saidaTanque, 0);
+            
+            let relatorioHTML = `
+                <h4><i class="fas fa-file-alt"></i> RELATÓRIO DE ANÁLISE DE PERDAS</h4>
+                <div class="relatorio-content">
+                    <p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                    <p><strong>Unidade:</strong> ${empresaInfo.nome}</p>
+                    <p><strong>Período Analisado:</strong> ${empresaInfo.periodo}</p>
+                    <p><strong>Combustível:</strong> ${empresaInfo.combustivel || 'Não informado'}</p>
+                    
+                    <p><strong>RESULTADO FINAL:</strong></p>
+                    <p><strong>Fórmula:</strong> Diferença = Vendas Bomba (Escritural) - Vendas Tanque (Medido)</p>
+                    <p><strong>Resultado:</strong> <span class="${getCorDiferenca(totalDiferencaFinal)}" style="padding: 2px 5px;">${formatNumber(totalDiferencaFinal)} L</span></p>
+                    <p><strong>Status:</strong> ${totalDiferencaFinal > 0 ? 'SOBRA TOTAL (VERDE)' : 'PERDA TOTAL (VERMELHO)'}</p>
+                    
+                    <p><strong>DETALHAMENTO DOS CÁLCULOS:</strong></p>
+                    <ul>
+                        <li>Total Vendas Bomba: ${formatNumber(totalBomba)} L</li>
+                        <li>Total Vendas Tanque: ${formatNumber(totalTanque)} L</li>
+                        <li>Diferença Total: ${formatNumber(totalDiferencaFinal)} L</li>
+                        <li>Dias Analisados: ${dailyData.length}</li>
+                        <li>Dias com Perda: ${dailyData.filter(d => d.diferenca < 0).length}</li>
+                        <li>Dias com Sobra: ${dailyData.filter(d => d.diferenca > 0).length}</li>
+                    </ul>
+                    
+                    <p><strong>LEGENDA DE CORES:</strong></p>
+                    <ul>
+                        <li><span class="verde-forte" style="padding: 2px 5px;">VERDE</span>: SOBRA (Bomba > Tanque) - Bomba registrou a mais</li>
+                        <li><span class="vermelho-forte" style="padding: 2px 5px;">VERMELHO</span>: PERDA (Bomba < Tanque) - Tanque consumiu a mais</li>
+                    </ul>
+                    
+                    <p><strong>INTERPRETAÇÃO CORRETA:</strong></p>
+                    <ul>
+                        <li><strong>PERDA (VERMELHO):</strong> Tanque teve MAIS consumo que o registrado</li>
+                        <li><strong>SOBRA (VERDE):</strong> Tanque teve MENOS consumo que o registrado</li>
+                    </ul>
+                    
+                    <p><strong>RECOMENDAÇÕES:</strong></p>
+                    <ol>
+                        ${totalDiferencaFinal < 0 ? `
+                        <li><strong>ATENÇÃO:</strong> Perda total de ${formatNumber(Math.abs(totalDiferencaFinal))} L identificada</li>
+                        <li>Verificar possíveis vazamentos no sistema</li>
+                        <li>Calibrar medidores de tanque</li>
+                        ` : `
+                        <li>Sobra total de ${formatNumber(totalDiferencaFinal)} L identificada</li>
+                        <li>Verificar calibração das bombas</li>
+                        `}
+                        ${alertasPerda.length > 0 ? `
+                        <li>Investigar dias específicos com perda (vermelho)</li>
+                        ` : ''}
+                        ${alertasCriticos.length > 0 ? `
+                        <li>Verificar urgentemente dias com perda crítica (>2000L)</li>
+                        ` : ''}
+                        <li>Manter controle diário das diferenças</li>
+                        <li>Reportar perdas superiores a 500L</li>
+                    </ol>
+                    
+                    <p><strong>Responsável pela Análise:</strong> Sistema de Controle - Rede Dom Pedro</p>
+                </div>
+            `;
+            
+            relatorioDiv.innerHTML = relatorioHTML;
+            container.appendChild(relatorioDiv);
+        }
+
+        function clearData() {
+            document.getElementById('data-input').value = '';
+            document.getElementById('tabela-container').innerHTML = '';
+            dailyData = [];
+            alertasCriticos = [];
+            alertasPerda = [];
+            empresaInfo = {};
+        }
+
+        function filterResults() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const empresas = document.querySelectorAll('#tabela-container h3');
+            const elements = document.querySelectorAll('#tabela-container > *');
+
+            empresas.forEach((empresaHeader, index) => {
+                const empresa = empresaHeader.textContent.toLowerCase();
+                let show = empresa.includes(input);
+                
+                // Encontra todos os elementos relacionados a esta empresa
+                let currentIndex = index;
+                while (currentIndex < elements.length) {
+                    const element = elements[currentIndex];
+                    if (element.tagName === 'H3' && currentIndex !== index) break;
+                    
+                    element.style.display = show ? '' : 'none';
+                    currentIndex++;
+                }
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>
