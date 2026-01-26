@@ -1,0 +1,3645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Auditoria - Rede Dom Pedro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #2980b9;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --completed-color: #2ecc71;
+            --edited-color: #9b59b6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 45px;
+            filter: brightness(0) invert(1);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title i {
+            color: var(--secondary-color);
+            font-size: 1.8rem;
+        }
+
+        .current-unit-display {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            min-width: 250px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .current-unit-display:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-header {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-header:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Menu Mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Menu Lateral */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #1a252f 100%);
+            color: white;
+            position: fixed;
+            top: 73px;
+            left: 0;
+            bottom: 0;
+            z-index: 999;
+            overflow-y: auto;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.2);
+            border-right: 3px solid var(--secondary-color);
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 30px;
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+            position: relative;
+            font-weight: 500;
+            font-size: 1.05rem;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(90deg, rgba(52, 152, 219, 0.2) 0%, rgba(52, 152, 219, 0.1) 100%);
+            color: white;
+            border-left-color: var(--secondary-color);
+            padding-left: 35px;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, var(--secondary-color) 0%, rgba(52, 152, 219, 0.8) 100%);
+            color: white;
+            border-left-color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .nav-link i {
+            margin-right: 20px;
+            font-size: 1.4rem;
+            width: 28px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.2);
+        }
+
+        .nav-link.active i {
+            transform: scale(1.2);
+            color: white;
+        }
+
+        /* Conteúdo Principal */
+        .main-content {
+            margin-left: 280px;
+            padding: 25px;
+            min-height: calc(100vh - 73px - 70px);
+            background: #f8fafc;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Footer */
+        .footer {
+            margin-left: 280px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+            color: white;
+            padding: 20px 25px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 3px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 6px solid var(--secondary-color);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .status-item {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .status-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--secondary-color);
+        }
+
+        .status-item.completed {
+            border-left: 5px solid var(--completed-color);
+        }
+
+        .status-item i {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .status-item.completed i {
+            color: var(--completed-color);
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid #eaeaea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 700;
+        }
+
+        .card-title i {
+            color: var(--secondary-color);
+            font-size: 2rem;
+        }
+
+        /* Formulários */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .form-label i {
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #333;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        /* Tópicos Container */
+        .topics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .topic-card {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 25px;
+            border: 3px solid #e2e8f0;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card.completed {
+            border-color: var(--completed-color);
+            background: linear-gradient(135deg, #f0fdf4 0%, #e8f5e9 100%);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.2);
+        }
+
+        .topic-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .topic-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topic-title i {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+        }
+
+        .topic-status {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending { 
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border: 2px solid #ffd166;
+        }
+        .status-in-progress { 
+            background: linear-gradient(135deg, #cce5ff 0%, #a2d5f2 100%);
+            color: #004085;
+            border: 2px solid #3498db;
+        }
+        .status-completed { 
+            background: linear-gradient(135deg, #d4edda 0%, #a8e6cf 100%);
+            color: #155724;
+            border: 2px solid #27ae60;
+        }
+
+        .subtopics-list {
+            margin-top: 15px;
+        }
+
+        .subtopic-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #edf2f7;
+            transition: all 0.3s ease;
+        }
+
+        .subtopic-item:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
+        }
+
+        .subtopic-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .subtopic-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--secondary-color);
+            cursor: pointer;
+            border-radius: 4px;
+            border: 2px solid #dee2e6;
+        }
+
+        .subtopic-checkbox label {
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .subtopic-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-photo {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, var(--info-color) 0%, #1c5986 100%);
+            border: 2px solid var(--info-color);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-photo:hover {
+            background: linear-gradient(135deg, #1c5986 0%, #15415f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(41, 128, 185, 0.3);
+        }
+
+        .btn-not-applicable {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            color: #6c757d;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-not-applicable:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            border-color: #adb5bd;
+        }
+
+        .btn-not-applicable.active {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+            color: white;
+            border-color: var(--warning-color);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+        }
+
+        /* Área de Fotos do Subtópico */
+        .subtopic-photos {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+            display: none;
+        }
+
+        .subtopic-photos.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .photos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .photos-header h4 {
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-item button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        /* Botões */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1c5a7a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #219653 0%, #1e8449 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-clean-all {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-clean-all:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            animation: modalSlide 0.4s ease;
+            border: 3px solid var(--secondary-color);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Fotos Container */
+        .photos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .photo-img-container {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .photo-card:hover .photo-img-container img {
+            transform: scale(1.1);
+        }
+
+        .photo-info {
+            padding: 20px;
+        }
+
+        .photo-subtopic {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .photo-subtopic i {
+            color: var(--secondary-color);
+        }
+
+        .photo-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .photo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #888;
+            font-size: 0.85rem;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Animações */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 350px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content, .footer {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .header-actions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .current-unit-display {
+                width: 100%;
+                order: 3;
+                min-width: auto;
+                font-size: 0.9rem;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+            }
+
+            .status-item {
+                min-width: 100%;
+            }
+
+            .topics-container {
+                grid-template-columns: 1fr;
+            }
+
+            .photos-container {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 1.1rem;
+            }
+
+            .logo {
+                height: 35px;
+            }
+
+            .current-unit-display {
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+
+            .card-title {
+                font-size: 1.4rem;
+            }
+
+            .topic-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Utilitários */
+        .mb-20 { margin-bottom: 20px; }
+        .mt-20 { margin-top: 20px; }
+        .mt-30 { margin-top: 30px; }
+        .text-center { text-align: center; }
+        .d-flex { display: flex; }
+        .align-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-10 { gap: 10px; }
+        .gap-20 { gap: 20px; }
+        .w-100 { width: 100%; }
+        .p-20 { padding: 20px; }
+        .bg-light { background: #f8f9fa; }
+        .rounded { border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Logo Dom Pedro" class="logo">
+                <div class="header-title">
+                    <i class="fas fa-gas-pump"></i> Sistema de Auditoria
+                </div>
+            </div>
+            
+            <div class="current-unit-display" id="currentUnitDisplay">
+                Selecione uma unidade
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn-header" onclick="showSection('consultar')">
+                    <i class="fas fa-search"></i> Consultar
+                </button>
+                <button class="btn-header" onclick="printReport()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn-header" onclick="createBackup()">
+                    <i class="fas fa-save"></i> Backup
+                </button>
+            </div>
+        </header>
+
+        <!-- Menu Lateral -->
+        <aside class="sidebar" id="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#inicio" class="nav-link active" onclick="showSection('inicio')">
+                        <i class="fas fa-home"></i> Início
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#auditoria" class="nav-link" onclick="showSection('auditoria')">
+                        <i class="fas fa-clipboard-check"></i> Dados da Unidade
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#topicos" class="nav-link" onclick="showSection('topicos')">
+                        <i class="fas fa-tasks"></i> Tópicos Auditados
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#fotos" class="nav-link" onclick="showSection('fotos')">
+                        <i class="fas fa-camera"></i> Fotos por Subtópico
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#conclusao" class="nav-link" onclick="showSection('conclusao')">
+                        <i class="fas fa-flag-checkered"></i> Conclusão
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#laudo" class="nav-link" onclick="showSection('laudo')">
+                        <i class="fas fa-file-alt"></i> Laudo Final
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#consultar" class="nav-link" onclick="showSection('consultar')">
+                        <i class="fas fa-search"></i> Consultar Auditorias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#backup" class="nav-link" onclick="showSection('backup')">
+                        <i class="fas fa-database"></i> Backup
+                    </a>
+                </li>
+            </ul>
+            
+            <div style="padding: 20px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="btn btn-danger w-100 btn-clean-all" onclick="showClearAllModal()">
+                    <i class="fas fa-broom"></i> Limpar Todo Sistema
+                </button>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Status Bar -->
+            <div class="status-bar no-print fade-in">
+                <div class="status-item" id="statusDados">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">Dados da Unidade</h4>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666;" id="statusDadosInfo">Pendente</p>
+                    </div>
+                </div>
+                <div class="status-item" id="statusTopicos">
+                    <i class="fas fa-clipboard-list"></i>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">Tópicos Auditados</h4>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666;" id="statusTopicosInfo">Pendente</p>
+                    </div>
+                </div>
+                <div class="status-item" id="statusFotos">
+                    <i class="fas fa-camera"></i>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">Fotos por Subtópico</h4>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666;" id="statusFotosInfo">Pendente</p>
+                    </div>
+                </div>
+                <div class="status-item" id="statusLaudo">
+                    <i class="fas fa-file-alt"></i>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">Laudo Final</h4>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666;" id="statusLaudoInfo">Pendente</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Início -->
+            <section id="inicio" class="section-content active fade-in">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </h2>
+                        <button class="btn btn-primary" onclick="showSection('auditoria')">
+                            <i class="fas fa-plus"></i> Nova Auditoria
+                        </button>
+                    </div>
+                    
+                    <div class="welcome-message">
+                        <div style="text-align: center; margin-bottom: 40px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 10px;">Bem-vindo ao Sistema de Auditoria</h3>
+                            <p style="color: #666; max-width: 800px; margin: 0 auto;">Sistema completo para auditorias da Rede Dom Pedro com fotos por subtópico</p>
+                        </div>
+                        
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                            <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--secondary-color);">
+                                <i class="fas fa-gas-pump fa-3x" style="color: var(--secondary-color); margin-bottom: 15px;"></i>
+                                <h3 style="font-size: 2.5rem; color: var(--primary-color); margin: 10px 0;" id="totalUnits">84</h3>
+                                <p style="color: #666;">Unidades Cadastradas</p>
+                            </div>
+                            
+                            <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--success-color);">
+                                <i class="fas fa-check-circle fa-3x" style="color: var(--success-color); margin-bottom: 15px;"></i>
+                                <h3 style="font-size: 2.5rem; color: var(--primary-color); margin: 10px 0;" id="completedAudits">0</h3>
+                                <p style="color: #666;">Auditorias Finalizadas</p>
+                            </div>
+                            
+                            <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--warning-color);">
+                                <i class="fas fa-camera fa-3x" style="color: var(--warning-color); margin-bottom: 15px;"></i>
+                                <h3 style="font-size: 2.5rem; color: var(--primary-color); margin: 10px 0;" id="totalPhotos">0</h3>
+                                <p style="color: #666;">Fotos Adicionadas</p>
+                            </div>
+                            
+                            <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--danger-color);">
+                                <i class="fas fa-clock fa-3x" style="color: var(--danger-color); margin-bottom: 15px;"></i>
+                                <h3 style="font-size: 2.5rem; color: var(--primary-color); margin: 10px 0;" id="inProgressAudits">0</h3>
+                                <p style="color: #666;">Em Andamento</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 40px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-history"></i> Últimas Auditorias
+                            </h3>
+                            <div id="recentAudits" style="background: #f8f9fa; border-radius: 15px; padding: 20px;">
+                                <!-- Carregado dinamicamente -->
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="showSection('auditoria')">
+                                <i class="fas fa-play-circle"></i> Iniciar Nova Auditoria
+                            </button>
+                            <button class="btn btn-success" onclick="showSection('consultar')">
+                                <i class="fas fa-search"></i> Consultar Auditorias
+                            </button>
+                            <button class="btn btn-warning" onclick="loadLastAudit()">
+                                <i class="fas fa-history"></i> Continuar Última
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Dados da Unidade -->
+            <section id="auditoria" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-clipboard-check"></i> Dados da Unidade
+                        </h2>
+                        <button class="btn btn-info" onclick="loadLastAudit()">
+                            <i class="fas fa-history"></i> Carregar Última
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="unit" class="form-label">
+                            <i class="fas fa-gas-pump"></i> Unidade
+                        </label>
+                        <select id="unit" class="form-control" onchange="onUnitChange()">
+                            <option value="">Selecione a Unidade</option>
+                            <!-- Unidades serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city" class="form-label">
+                                <i class="fas fa-city"></i> Cidade
+                            </label>
+                            <input type="text" id="city" class="form-control" placeholder="Digite a cidade">
+                        </div>
+                        <div class="form-group">
+                            <label for="state" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> UF
+                            </label>
+                            <select id="state" class="form-control">
+                                <option value="">Selecione</option>
+                                <option value="MG">MG</option>
+                                <option value="SP">SP</option>
+                                <option value="RJ">RJ</option>
+                                <option value="ES">ES</option>
+                                <option value="BA">BA</option>
+                                <option value="PR">PR</option>
+                                <option value="SC">SC</option>
+                                <option value="RS">RS</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="locationType" class="form-label">
+                                <i class="fas fa-road"></i> Tipo de Localização
+                            </label>
+                            <select id="locationType" class="form-control">
+                                <option value="">Selecione</option>
+                                <option value="Rodoviário">Rodoviário</option>
+                                <option value="Urbano">Urbano</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="highway" class="form-label">
+                                <i class="fas fa-route"></i> Rodovia
+                            </label>
+                            <input type="text" id="highway" class="form-control" placeholder="Ex: BR-381, SP-330">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="manager" class="form-label">
+                                <i class="fas fa-user-tie"></i> Gerente
+                            </label>
+                            <input type="text" id="manager" class="form-control" placeholder="Nome do gerente">
+                        </div>
+                        <div class="form-group">
+                            <label for="auditor" class="form-label">
+                                <i class="fas fa-user-shield"></i> Auditor
+                            </label>
+                            <input type="text" id="auditor" class="form-control" placeholder="Nome do auditor">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="datetime" class="form-label">
+                            <i class="fas fa-clock"></i> Data e Horário
+                        </label>
+                        <input type="datetime-local" id="datetime" class="form-control">
+                    </div>
+
+                    <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="saveAuditData()">
+                            <i class="fas fa-save"></i> Salvar Dados
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('topicos')">
+                            <i class="fas fa-arrow-right"></i> Continuar para Tópicos
+                        </button>
+                        <button class="btn btn-warning" onclick="clearAuditForm()">
+                            <i class="fas fa-times"></i> Limpar Formulário
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Tópicos -->
+            <section id="topicos" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-tasks"></i> Tópicos Auditados
+                        </h2>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="background: #f8f9fa; padding: 10px 20px; border-radius: 20px;">
+                                <span id="topicsProgressText">0/3 tópicos</span>
+                            </div>
+                            <button class="btn btn-warning" onclick="markAllAsNotApplicable()">
+                                <i class="fas fa-ban"></i> Marcar Todos como N/A
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                        <p style="margin: 0; color: #666; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-info-circle"></i> 
+                            Marque os itens realizados. Para os itens realizados, você poderá adicionar fotos.
+                            Itens não realizados podem ser marcados como "Não Aplicável".
+                        </p>
+                    </div>
+
+                    <div class="topics-container" id="topicsContainer">
+                        <!-- Tópicos serão gerados dinamicamente -->
+                    </div>
+
+                    <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="saveTopics()">
+                            <i class="fas fa-save"></i> Salvar Tópicos
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('fotos')">
+                            <i class="fas fa-arrow-right"></i> Ver Fotos por Subtópico
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSection('auditoria')">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Fotos por Subtópico -->
+            <section id="fotos" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-camera"></i> Fotos por Subtópico
+                        </h2>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="background: #f8f9fa; padding: 10px 20px; border-radius: 20px;">
+                                <span id="totalPhotosCount">0 fotos</span>
+                            </div>
+                            <button class="btn btn-primary" onclick="openAddPhotoModal()">
+                                <i class="fas fa-plus"></i> Adicionar Foto
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                        <p style="margin: 0; color: #666; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-info-circle"></i> 
+                            Adicione fotos para cada subtópico que foi marcado como realizado.
+                            Clique em "Adicionar Foto" em cada subtópico para documentar a auditoria.
+                        </p>
+                    </div>
+
+                    <div class="photos-container" id="photosContainer">
+                        <!-- Fotos serão carregadas aqui -->
+                    </div>
+
+                    <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="savePhotos()">
+                            <i class="fas fa-save"></i> Salvar Fotos
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('conclusao')">
+                            <i class="fas fa-arrow-right"></i> Ir para Conclusão
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSection('topicos')">
+                            <i class="fas fa-arrow-left"></i> Voltar para Tópicos
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Conclusão -->
+            <section id="conclusao" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-flag-checkered"></i> Conclusão da Auditoria
+                        </h2>
+                    </div>
+
+                    <div id="conclusionContent">
+                        <!-- Conteúdo dinâmico -->
+                    </div>
+
+                    <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="completeAudit()">
+                            <i class="fas fa-check-circle"></i> Finalizar Auditoria
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('laudo')">
+                            <i class="fas fa-file-alt"></i> Gerar Laudo
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSection('fotos')">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Laudo -->
+            <section id="laudo" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-file-alt"></i> Laudo Final
+                        </h2>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button class="btn btn-info" onclick="generateReportPreview()">
+                                <i class="fas fa-sync"></i> Atualizar
+                            </button>
+                            <button class="btn btn-primary" onclick="printReport()">
+                                <i class="fas fa-print"></i> Imprimir
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="reportPreview">
+                        <!-- Laudo será gerado aqui -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Consultar -->
+            <section id="consultar" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-search"></i> Consultar Auditorias
+                        </h2>
+                        <button class="btn btn-primary" onclick="searchAudits()">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+
+                    <div class="search-box" style="margin-bottom: 30px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" id="searchInput" class="form-control" 
+                                       placeholder="Buscar por unidade, cidade ou auditor...">
+                            </div>
+                            <div class="form-group">
+                                <select id="filterStatus" class="form-control" onchange="searchAudits()">
+                                    <option value="">Todas</option>
+                                    <option value="finalized">Finalizadas</option>
+                                    <option value="in-progress">Em Andamento</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="auditsList">
+                        <!-- Lista de auditorias -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Backup -->
+            <section id="backup" class="section-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-database"></i> Backup e Restauração
+                        </h2>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <p>Gerencie seus backups e restaure auditorias anteriores.</p>
+                    </div>
+
+                    <div class="action-buttons" style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="createBackup()">
+                            <i class="fas fa-save"></i> Criar Backup
+                        </button>
+                        <button class="btn btn-primary" onclick="showBackups()">
+                            <i class="fas fa-history"></i> Ver Backups
+                        </button>
+                        <button class="btn btn-info" onclick="exportAllData()">
+                            <i class="fas fa-download"></i> Exportar Tudo
+                        </button>
+                    </div>
+
+                    <div id="backupListContainer">
+                        <!-- Lista de backups -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div>
+                <p style="font-weight: 600; margin-bottom: 5px;">Sistema de Auditoria - Rede Dom Pedro</p>
+                <p style="font-size: 0.85rem; opacity: 0.8;">Desenvolvido por Waldeciramos © 2025</p>
+            </div>
+            <div style="text-align: right;">
+                <p id="lastSaveInfo" style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 5px;">Último save: --:--</p>
+                <p id="storageInfo" style="font-size: 0.8rem; opacity: 0.7;"><i class="fas fa-hdd"></i> <span id="storageUsed">0</span>KB</p>
+            </div>
+        </footer>
+
+        <!-- Modal para Adicionar Foto -->
+        <div id="photoModal" class="modal">
+            <div class="modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h3 style="color: var(--primary-color);">
+                        <i class="fas fa-camera"></i> Adicionar Foto
+                    </h3>
+                    <button onclick="closePhotoModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-image"></i> Selecionar Foto
+                    </label>
+                    <input type="file" id="photoFile" accept="image/*" class="form-control" onchange="previewPhoto()">
+                </div>
+                
+                <div id="photoPreview" style="margin-bottom: 20px; display: none;">
+                    <img id="previewImage" src="" alt="Preview" style="max-width: 100%; border-radius: 10px;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="photoSubtopic" class="form-label">
+                        <i class="fas fa-tag"></i> Subtópico
+                    </label>
+                    <select id="photoSubtopic" class="form-control">
+                        <option value="">Selecione o subtópico</option>
+                        <!-- Subtópicos serão carregados dinamicamente -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photoDescription" class="form-label">
+                        <i class="fas fa-comment"></i> Descrição
+                    </label>
+                    <textarea id="photoDescription" class="form-control" rows="3" placeholder="Descreva a foto..."></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button class="btn btn-success" onclick="savePhoto()" style="flex: 1;">
+                        <i class="fas fa-save"></i> Salvar Foto
+                    </button>
+                    <button class="btn btn-secondary" onclick="closePhotoModal()" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Limpar Todo Sistema -->
+        <div id="clearAllModal" class="modal">
+            <div class="modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h3 style="color: var(--danger-color);">
+                        <i class="fas fa-exclamation-triangle"></i> Limpar Todo Sistema
+                    </h3>
+                    <button onclick="closeClearAllModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <div style="background: #ffe6e6; padding: 20px; border-radius: 10px; border-left: 5px solid var(--danger-color);">
+                        <h4 style="color: var(--danger-color); margin-bottom: 15px;">ATENÇÃO: Esta ação irá limpar TODOS os dados!</h4>
+                        <ul style="color: #666; padding-left: 20px;">
+                            <li>Todas as auditorias salvas</li>
+                            <li>Todas as fotos adicionadas</li>
+                            <li>Todos os backups</li>
+                            <li>Todas as configurações</li>
+                        </ul>
+                        <p style="color: var(--danger-color); font-weight: bold; margin-top: 15px;">
+                            ESTA AÇÃO NÃO PODE SER DESFEITA!
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn btn-danger" onclick="clearAllStorage()" style="flex: 1;">
+                        <i class="fas fa-check"></i> Sim, Limpar Tudo
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeClearAllModal()" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO COMPLETA DO SISTEMA
+        const APP_CONFIG = {
+            topics: [
+                {
+                    id: 'limpeza',
+                    title: 'Limpeza e Apresentação',
+                    icon: 'fas fa-broom',
+                    subtopics: [
+                        'Iluminação',
+                        'Ilhas',
+                        'Valas',
+                        'Bocas de descarga',
+                        'Pistas',
+                        'Banheiros',
+                        'Loja de Conveniência',
+                        'Área Externa'
+                    ]
+                },
+                {
+                    id: 'bombas',
+                    title: 'Detalhamento de Bombas',
+                    icon: 'fas fa-gas-pump',
+                    subtopics: [
+                        'Limpeza',
+                        'Capas de proteção',
+                        'Teclados',
+                        'Display',
+                        'Mangueiras',
+                        'Bicos',
+                        'Painéis elétricos'
+                    ]
+                },
+                {
+                    id: 'filtros',
+                    title: 'Detalhamento de Filtros',
+                    icon: 'fas fa-filter',
+                    subtopics: [
+                        'Limpeza',
+                        'Mangueiras',
+                        'Sumps',
+                        'Separadores',
+                        'Válvulas',
+                        'Manômetros',
+                        'Drenos'
+                    ]
+                }
+            ],
+            units: [
+                "DOM PEDRO 1", "DOM PEDRO ITATIAIUÇU", "DOM PEDRO LEME", "DOM PEDRO PINDA ROTA NORTE",
+                "DOM PEDRO 2", "DOM PEDRO POUSO ALEGRE", "DOM PEDRO ATIBAIA", "DOM PEDRO ITAPEVA",
+                "DOM PEDRO CAETANÓPOLIS", "DOM PEDRO BETIM 1 ROTA SUL", "DOM PEDRO TURIM", "DOM PEDRO SANTA LUZIA",
+                "DOM PEDRO SALINAS", "DOM PEDRO APARECIDA", "DOM PEDRO MURIAÉ", "DOM PEDRO PARAOPEBA",
+                "DOM PEDRO CONTAGEM NORTE", "DOM PEDRO CONTAGEM SUL", "DOM PEDRO CAMBUÍ", "DOM PEDRO GUARA RODOV.",
+                "DOM PEDRO PINDA ROTA SUL", "DOM PEDRO MIRACATU ROTA NORTE", "DOM PEDRO JK ESTIVA SUL", "DOM PEDRO ALIANÇA",
+                "DOM PEDRO OLIVEIRA", "DOM PEDRO CAMBUÍ URBANO 1", "DOM PEDRO JAGUAQUARA", "DOM PEDRO SÃO GONÇALO",
+                "DOM PEDRO NOVA SERRANA", "DOM PEDRO IGARATINGA", "DOM PEDRO CARMÓPOLIS", "DOM PEDRO BETIM 2 ROTA SUL",
+                "DOM PEDRO PARAGOMINAS", "DOM PEDRO DIVISA ALEGRE", "DOM PEDRO CAMBUÍ URBANO 2", "DOM PEDRO CONTAGEM FERNÃO DIAS",
+                "DOM PEDRO CACHOEIRA DE PAJEÚ", "DOM PEDRO TOCANTINS", "DOM PEDRO SANTO ESTEVÃO", "DOM PEDRO SÃO GONÇALO URB.",
+                "DOM PEDRO ITAGUARA", "DOM PEDRO SENADOR AMARAL", "DOM PEDRO LORENA", "DOM PEDRO DIVISA ALEGRE 2",
+                "DOM PEDRO INCONFIDENTES", "DOM PEDRO JUIZ DE FORA URBANO", "DOM PEDRO BUENO BRANDÃO", "DOM PEDRO POUSO ALEGRE URBANO",
+                "DOM PEDRO CAMANDUCAIA URBANO 1", "DOM PEDRO OURO FINO", "DOM PEDRO CAMANDUCAIA URBANO 2", "DOM PEDRO GUARÁ URBANO 2",
+                "DOM PEDRO GUARÁ URBANO 3", "DOM PEDRO BRAGANÇA URBANO", "DOM PEDRO JACAREÍ URBANO", "DOM PEDRO ATIBAIA URBANO",
+                "DOM PEDRO POUSO ALEGRE URB 2", "DOM PEDRO EXTREMA URBANO", "DOM PEDRO POUSO ALEGRE URB 3", "DOM PEDRO SALES OLIVEIRA",
+                "DOM PEDRO VITÓRIA DA CONQUISTA", "DOM PEDRO JUIZ DE FORA RODOVIA", "DOM PEDRO MONTES CLAROS", "DOM PEDRO VARGEM",
+                "DOM PEDRO SÃO JORGE", "DOM PEDRO S. JOSÉ DOS CAMPOS URB", "DOM PEDRO FREI INOCÊNCIO", "DOM PEDRO BRAGANÇA RODOVIA",
+                "DOM PEDRO BARRA MANSA NORTE", "DOM PEDRO BARRA MANSA SUL", "DOM PEDRO CONSELHEIRO LAFAIETE", "DOM PEDRO PLANALTO",
+                "DOM PEDRO SANTO ESTEVÃO 2", "DOM PEDRO SANTO ESTEVÃO 3", "DOM PEDRO SÃO CRISTÓVÃO", "DOM PEDRO BARREIRAS",
+                "DOM PEDRO DE POSTOS LTDA DP ITABERABA", "DOM PEDRO DE POSTOS LTDA DP VALENCA", "DOM PEDRO SAO GONCALO RODOVIA 2",
+                "DOM PEDRO SAO GONCALO RODOVIA 3", "DOM PEDRO RUSSAS", "DOM PEDRO INHAPIM", "DOM PEDRO LUZ"
+            ]
+        };
+
+        let appState = {
+            currentUnit: null,
+            auditData: {},
+            topicsStatus: {},
+            photos: [],
+            isAuditFinalized: false,
+            auditStartTime: null,
+            currentPhotoSubtopic: null
+        };
+
+        // INICIALIZAÇÃO
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // Configurar data/hora atual
+            const now = new Date();
+            const timezoneOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
+            document.getElementById('datetime').value = localISOTime;
+
+            // Popular unidades
+            populateUnits();
+            
+            // Carregar última auditoria
+            loadLastAuditedUnit();
+            
+            // Atualizar dashboard
+            updateDashboard();
+            
+            // Configurar auto-save
+            setInterval(autoSave, 30000);
+            
+            // Atualizar informações de armazenamento
+            updateStorageInfo();
+            
+            // Verificar se há auditoria em andamento
+            checkActiveAudit();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function showSection(sectionId) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Atualizar menu ativo
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const menuItem = document.querySelector(`[href="#${sectionId}"]`);
+            if (menuItem) {
+                menuItem.classList.add('active');
+            }
+            
+            // Fechar menu mobile se aberto
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+            }
+            
+            // Ações específicas por seção
+            switch(sectionId) {
+                case 'inicio':
+                    updateDashboard();
+                    break;
+                case 'topicos':
+                    loadTopics();
+                    break;
+                case 'fotos':
+                    loadPhotos();
+                    break;
+                case 'conclusao':
+                    updateConclusionStats();
+                    break;
+                case 'laudo':
+                    generateReportPreview();
+                    break;
+                case 'consultar':
+                    loadAuditsList();
+                    break;
+                case 'backup':
+                    showBackups();
+                    break;
+            }
+            
+            // Atualizar barra de status
+            updateStatusBar();
+        }
+
+        function updateStatusBar() {
+            // Resetar todos os itens
+            const statusItems = ['Dados', 'Topicos', 'Fotos', 'Laudo'];
+            statusItems.forEach(item => {
+                const element = document.getElementById(`status${item}`);
+                element.classList.remove('completed');
+            });
+            
+            // Marcar como completos baseado no progresso real
+            if (appState.currentUnit && appState.auditData.city) {
+                document.getElementById('statusDados').classList.add('completed');
+                document.getElementById('statusDadosInfo').textContent = appState.currentUnit;
+            }
+            
+            if (isTopicsCompleted()) {
+                document.getElementById('statusTopicos').classList.add('completed');
+                document.getElementById('statusTopicosInfo').textContent = 'Concluído';
+            }
+            
+            if (appState.photos.length > 0) {
+                document.getElementById('statusFotos').classList.add('completed');
+                document.getElementById('statusFotosInfo').textContent = `${appState.photos.length} fotos`;
+            }
+            
+            if (appState.isAuditFinalized) {
+                document.getElementById('statusLaudo').classList.add('completed');
+                document.getElementById('statusLaudoInfo').textContent = 'Finalizado';
+            }
+        }
+
+        function populateUnits() {
+            const unitSelect = document.getElementById('unit');
+            unitSelect.innerHTML = '<option value="">Selecione a Unidade</option>';
+            
+            APP_CONFIG.units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit;
+                unitSelect.appendChild(option);
+            });
+        }
+
+        function onUnitChange() {
+            const unitSelect = document.getElementById('unit');
+            const selectedUnit = unitSelect.value;
+            
+            if (selectedUnit) {
+                appState.currentUnit = selectedUnit;
+                localStorage.setItem('lastAuditedUnit', selectedUnit);
+                
+                // Atualizar display
+                document.getElementById('currentUnitDisplay').textContent = selectedUnit;
+                
+                // Carregar dados salvos da unidade
+                loadUnitData(selectedUnit);
+                
+                // Iniciar tempo da auditoria
+                if (!appState.auditStartTime) {
+                    appState.auditStartTime = new Date();
+                }
+                
+                // Atualizar dashboard
+                updateDashboard();
+                
+                // Atualizar barra de status
+                updateStatusBar();
+            }
+        }
+
+        function loadLastAuditedUnit() {
+            const lastUnit = localStorage.getItem('lastAuditedUnit');
+            if (lastUnit) {
+                const unitSelect = document.getElementById('unit');
+                unitSelect.value = lastUnit;
+                appState.currentUnit = lastUnit;
+                document.getElementById('currentUnitDisplay').textContent = lastUnit;
+                loadUnitData(lastUnit);
+            }
+        }
+
+        function loadUnitData(unitName) {
+            const savedData = localStorage.getItem(`audit_${unitName}`);
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    // Preencher campos do formulário
+                    document.getElementById('city').value = data.city || '';
+                    document.getElementById('state').value = data.state || '';
+                    document.getElementById('locationType').value = data.locationType || '';
+                    document.getElementById('highway').value = data.highway || '';
+                    document.getElementById('manager').value = data.manager || '';
+                    document.getElementById('auditor').value = data.auditor || '';
+                    if (data.datetime) {
+                        document.getElementById('datetime').value = data.datetime;
+                    }
+                    
+                    // Carregar fotos
+                    if (data.photos) {
+                        appState.photos = data.photos;
+                    }
+                    
+                    // Carregar status dos tópicos
+                    if (data.topicsStatus) {
+                        appState.topicsStatus = data.topicsStatus;
+                    }
+                    
+                    // Carregar status da auditoria
+                    if (data.isAuditFinalized) {
+                        appState.isAuditFinalized = data.isAuditFinalized;
+                    }
+                    
+                    // Carregar dados da auditoria
+                    appState.auditData = data.auditData || data;
+                    
+                    // Atualizar barra de status
+                    updateStatusBar();
+                    
+                } catch (e) {
+                    console.error('Erro ao carregar dados:', e);
+                    showAlert('Erro ao carregar dados salvos.', 'error');
+                }
+            }
+        }
+
+        function saveAuditData() {
+            const unitName = document.getElementById('unit').value;
+            
+            if (!unitName) {
+                showAlert('Por favor, selecione uma unidade.', 'warning');
+                return;
+            }
+            
+            appState.auditData = {
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                locationType: document.getElementById('locationType').value,
+                highway: document.getElementById('highway').value,
+                manager: document.getElementById('manager').value,
+                auditor: document.getElementById('auditor').value,
+                datetime: document.getElementById('datetime').value,
+                unit: unitName
+            };
+            
+            // Salvar dados
+            localStorage.setItem(`audit_${unitName}`, JSON.stringify({
+                ...appState.auditData,
+                topicsStatus: appState.topicsStatus,
+                photos: appState.photos,
+                isAuditFinalized: appState.isAuditFinalized,
+                lastUpdated: new Date().toISOString()
+            }));
+            
+            // Atualizar última auditoria
+            localStorage.setItem('lastAudit', unitName);
+            
+            // Atualizar display
+            document.getElementById('currentUnitDisplay').textContent = unitName;
+            appState.currentUnit = unitName;
+            
+            // Atualizar barra de status
+            document.getElementById('statusDados').classList.add('completed');
+            document.getElementById('statusDadosInfo').textContent = unitName;
+            
+            showAlert('Dados da unidade salvos com sucesso!', 'success');
+            
+            // Atualizar dashboard
+            updateDashboard();
+            
+            return true;
+        }
+
+        function clearAuditForm() {
+            if (confirm('Tem certeza que deseja limpar o formulário? Todos os dados não salvos serão perdidos.')) {
+                document.getElementById('city').value = '';
+                document.getElementById('state').value = '';
+                document.getElementById('locationType').value = '';
+                document.getElementById('highway').value = '';
+                document.getElementById('manager').value = '';
+                document.getElementById('auditor').value = '';
+                document.getElementById('unit').value = '';
+                document.getElementById('currentUnitDisplay').textContent = 'Selecione uma unidade';
+                
+                appState.currentUnit = null;
+                appState.auditData = {};
+                
+                showAlert('Formulário limpo com sucesso.', 'info');
+            }
+        }
+
+        function loadTopics() {
+            const container = document.getElementById('topicsContainer');
+            container.innerHTML = '';
+            
+            let completedTopics = 0;
+            let totalSubtopics = 0;
+            let completedSubtopics = 0;
+            
+            APP_CONFIG.topics.forEach(topic => {
+                const topicCard = document.createElement('div');
+                topicCard.className = 'topic-card';
+                
+                const isTopicCompleted = checkTopicCompletion(topic.id);
+                if (isTopicCompleted) {
+                    topicCard.classList.add('completed');
+                    completedTopics++;
+                }
+                
+                let subtopicsHtml = '';
+                topic.subtopics.forEach((subtopic, index) => {
+                    const subtopicId = `${topic.id}_${index}`;
+                    const isCompleted = appState.topicsStatus[subtopicId] === 'completed';
+                    const isNotApplicable = appState.topicsStatus[subtopicId] === 'not-applicable';
+                    
+                    if (isCompleted) completedSubtopics++;
+                    totalSubtopics++;
+                    
+                    subtopicsHtml += `
+                        <div class="subtopic-item">
+                            <div class="subtopic-checkbox">
+                                <input type="checkbox" 
+                                       id="${subtopicId}" 
+                                       ${isCompleted ? 'checked' : ''}
+                                       onchange="toggleSubtopic('${subtopicId}', this.checked)">
+                                <label for="${subtopicId}">${subtopic}</label>
+                            </div>
+                            <div class="subtopic-actions">
+                                <button class="btn-photo ${isCompleted ? '' : 'disabled'}" 
+                                        ${isCompleted ? '' : 'disabled'}
+                                        onclick="${isCompleted ? `openPhotoModal('${subtopicId}', '${subtopic}')` : ''}">
+                                    <i class="fas fa-camera"></i> Foto
+                                </button>
+                                <button class="btn-not-applicable ${isNotApplicable ? 'active' : ''}" 
+                                        onclick="toggleNotApplicable('${subtopicId}')">
+                                    <i class="fas fa-ban"></i> N/A
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                topicCard.innerHTML = `
+                    <div class="topic-card-header">
+                        <h3 class="topic-title">
+                            <i class="${topic.icon}"></i> ${topic.title}
+                        </h3>
+                        <span class="topic-status status-${isTopicCompleted ? 'completed' : 'pending'}">
+                            ${isTopicCompleted ? 'Concluído' : 'Pendente'}
+                        </span>
+                    </div>
+                    <div class="subtopics-list">
+                        ${subtopicsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(topicCard);
+            });
+            
+            // Atualizar progresso
+            document.getElementById('topicsProgressText').textContent = 
+                `${completedTopics}/${APP_CONFIG.topics.length} tópicos`;
+            
+            // Atualizar barra de status
+            if (completedTopics === APP_CONFIG.topics.length) {
+                document.getElementById('statusTopicos').classList.add('completed');
+                document.getElementById('statusTopicosInfo').textContent = 'Concluído';
+            }
+        }
+
+        function checkTopicCompletion(topicId) {
+            const topic = APP_CONFIG.topics.find(t => t.id === topicId);
+            if (!topic) return false;
+            
+            return topic.subtopics.every((_, index) => {
+                const subtopicId = `${topicId}_${index}`;
+                return appState.topicsStatus[subtopicId] === 'completed';
+            });
+        }
+
+        function toggleSubtopic(subtopicId, isCompleted) {
+            appState.topicsStatus[subtopicId] = isCompleted ? 'completed' : '';
+            
+            // Se marcou como concluído, remove status "não aplicável"
+            if (isCompleted) {
+                document.querySelector(`button[onclick*="${subtopicId}"]`)?.classList?.remove('active');
+            }
+            
+            // Salvar mudanças
+            saveTopics();
+            
+            // Recarregar tópicos
+            loadTopics();
+        }
+
+        function toggleNotApplicable(subtopicId) {
+            const button = document.querySelector(`button[onclick*="toggleNotApplicable('${subtopicId}')"]`);
+            const isCurrentlyNA = button.classList.contains('active');
+            
+            if (isCurrentlyNA) {
+                // Remover N/A
+                appState.topicsStatus[subtopicId] = '';
+                button.classList.remove('active');
+            } else {
+                // Marcar como N/A
+                appState.topicsStatus[subtopicId] = 'not-applicable';
+                button.classList.add('active');
+                
+                // Desmarcar checkbox se estiver marcado
+                const checkbox = document.getElementById(subtopicId);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    appState.topicsStatus[subtopicId] = 'not-applicable';
+                }
+            }
+            
+            saveTopics();
+            loadTopics();
+        }
+
+        function saveTopics() {
+            if (!appState.currentUnit) {
+                showAlert('Por favor, selecione uma unidade primeiro.', 'warning');
+                return;
+            }
+            
+            // Salvar no localStorage
+            const savedData = localStorage.getItem(`audit_${appState.currentUnit}`);
+            let data = {};
+            
+            if (savedData) {
+                try {
+                    data = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('Erro ao parsear dados:', e);
+                }
+            }
+            
+            data.topicsStatus = appState.topicsStatus;
+            data.lastUpdated = new Date().toISOString();
+            
+            localStorage.setItem(`audit_${appState.currentUnit}`, JSON.stringify(data));
+            
+            showAlert('Tópicos salvos com sucesso!', 'success');
+            updateStatusBar();
+            updateLastSaveInfo();
+        }
+
+        function markAllAsNotApplicable() {
+            if (!confirm('Marcar TODOS os itens como não aplicável? Esta ação não poderá ser desfeita.')) {
+                return;
+            }
+            
+            APP_CONFIG.topics.forEach(topic => {
+                topic.subtopics.forEach((_, index) => {
+                    const subtopicId = `${topic.id}_${index}`;
+                    appState.topicsStatus[subtopicId] = 'not-applicable';
+                });
+            });
+            
+            saveTopics();
+            loadTopics();
+            showAlert('Todos os itens marcados como não aplicável.', 'info');
+        }
+
+        function loadPhotos() {
+            const container = document.getElementById('photosContainer');
+            container.innerHTML = '';
+            
+            if (appState.photos.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-camera fa-3x" style="margin-bottom: 20px; color: #ddd;"></i>
+                        <p>Nenhuma foto adicionada ainda.</p>
+                        <button class="btn btn-primary mt-20" onclick="openAddPhotoModal()">
+                            <i class="fas fa-plus"></i> Adicionar Primeira Foto
+                        </button>
+                    </div>
+                `;
+                document.getElementById('totalPhotosCount').textContent = '0 fotos';
+                return;
+            }
+            
+            document.getElementById('totalPhotosCount').textContent = `${appState.photos.length} fotos`;
+            
+            appState.photos.forEach((photo, index) => {
+                const photoCard = document.createElement('div');
+                photoCard.className = 'photo-card fade-in';
+                
+                photoCard.innerHTML = `
+                    <div class="photo-img-container">
+                        <img src="${photo.dataUrl}" alt="${photo.description}" loading="lazy">
+                    </div>
+                    <div class="photo-info">
+                        <h4 class="photo-subtopic">
+                            <i class="fas fa-tag"></i> ${photo.subtopic}
+                        </h4>
+                        <p class="photo-description">${photo.description || 'Sem descrição'}</p>
+                        <div class="photo-meta">
+                            <span><i class="fas fa-calendar"></i> ${new Date(photo.date).toLocaleDateString()}</span>
+                            <button class="btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" 
+                                    onclick="deletePhoto(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(photoCard);
+            });
+            
+            // Atualizar barra de status
+            if (appState.photos.length > 0) {
+                document.getElementById('statusFotos').classList.add('completed');
+                document.getElementById('statusFotosInfo').textContent = `${appState.photos.length} fotos`;
+            }
+        }
+
+        function openAddPhotoModal() {
+            if (!appState.currentUnit) {
+                showAlert('Por favor, selecione uma unidade primeiro.', 'warning');
+                return;
+            }
+            
+            // Popular subtópicos concluídos
+            const subtopicSelect = document.getElementById('photoSubtopic');
+            subtopicSelect.innerHTML = '<option value="">Selecione o subtópico</option>';
+            
+            APP_CONFIG.topics.forEach(topic => {
+                topic.subtopics.forEach((subtopic, index) => {
+                    const subtopicId = `${topic.id}_${index}`;
+                    if (appState.topicsStatus[subtopicId] === 'completed') {
+                        const option = document.createElement('option');
+                        option.value = subtopicId;
+                        option.textContent = `${topic.title} - ${subtopic}`;
+                        subtopicSelect.appendChild(option);
+                    }
+                });
+            });
+            
+            // Limpar campos
+            document.getElementById('photoFile').value = '';
+            document.getElementById('photoDescription').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            
+            // Mostrar modal
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        function previewPhoto() {
+            const fileInput = document.getElementById('photoFile');
+            const previewContainer = document.getElementById('photoPreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function savePhoto() {
+            const fileInput = document.getElementById('photoFile');
+            const subtopicSelect = document.getElementById('photoSubtopic');
+            const description = document.getElementById('photoDescription').value;
+            
+            if (!fileInput.files[0]) {
+                showAlert('Por favor, selecione uma foto.', 'warning');
+                return;
+            }
+            
+            if (!subtopicSelect.value) {
+                showAlert('Por favor, selecione um subtópico.', 'warning');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const subtopicName = subtopicSelect.options[subtopicSelect.selectedIndex].text;
+                
+                const newPhoto = {
+                    id: Date.now(),
+                    subtopic: subtopicName,
+                    subtopicId: subtopicSelect.value,
+                    description: description,
+                    dataUrl: e.target.result,
+                    date: new Date().toISOString(),
+                    unit: appState.currentUnit
+                };
+                
+                appState.photos.push(newPhoto);
+                
+                // Salvar no localStorage
+                savePhotosToStorage();
+                
+                // Fechar modal
+                closePhotoModal();
+                
+                // Recarregar fotos
+                loadPhotos();
+                
+                showAlert('Foto adicionada com sucesso!', 'success');
+            };
+            
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        function savePhotos() {
+            if (!appState.currentUnit) {
+                showAlert('Por favor, selecione uma unidade primeiro.', 'warning');
+                return;
+            }
+            
+            savePhotosToStorage();
+            showAlert('Fotos salvas com sucesso!', 'success');
+            updateLastSaveInfo();
+        }
+
+        function savePhotosToStorage() {
+            const savedData = localStorage.getItem(`audit_${appState.currentUnit}`);
+            let data = {};
+            
+            if (savedData) {
+                try {
+                    data = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('Erro ao parsear dados:', e);
+                }
+            }
+            
+            data.photos = appState.photos;
+            data.lastUpdated = new Date().toISOString();
+            
+            localStorage.setItem(`audit_${appState.currentUnit}`, JSON.stringify(data));
+        }
+
+        function deletePhoto(index) {
+            if (confirm('Tem certeza que deseja excluir esta foto?')) {
+                appState.photos.splice(index, 1);
+                savePhotosToStorage();
+                loadPhotos();
+                showAlert('Foto excluída.', 'info');
+            }
+        }
+
+        function updateConclusionStats() {
+            const container = document.getElementById('conclusionContent');
+            
+            if (!appState.currentUnit) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="margin-bottom: 20px; color: #f39c12;"></i>
+                        <p>Nenhuma auditoria em andamento.</p>
+                        <button class="btn btn-primary mt-20" onclick="showSection('auditoria')">
+                            <i class="fas fa-play"></i> Iniciar Nova Auditoria
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calcular estatísticas
+            const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+            let completedSubtopics = 0;
+            let notApplicableSubtopics = 0;
+            
+            Object.values(appState.topicsStatus).forEach(status => {
+                if (status === 'completed') completedSubtopics++;
+                if (status === 'not-applicable') notApplicableSubtopics++;
+            });
+            
+            const pendingSubtopics = totalSubtopics - completedSubtopics - notApplicableSubtopics;
+            const completionPercentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 40px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 20px;">
+                        <i class="fas fa-chart-bar"></i> Resumo da Auditoria
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--success-color);">
+                            <h4 style="color: var(--success-color); margin-bottom: 10px;">Concluídos</h4>
+                            <p style="font-size: 2rem; font-weight: bold;">${completedSubtopics}</p>
+                            <p style="color: #666;">subtópicos</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--warning-color);">
+                            <h4 style="color: var(--warning-color); margin-bottom: 10px;">Pendentes</h4>
+                            <p style="font-size: 2rem; font-weight: bold;">${pendingSubtopics}</p>
+                            <p style="color: #666;">subtópicos</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid #9b59b6;">
+                            <h4 style="color: #9b59b6; margin-bottom: 10px;">N/A</h4>
+                            <p style="font-size: 2rem; font-weight: bold;">${notApplicableSubtopics}</p>
+                            <p style="color: #666;">subtópicos</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--info-color);">
+                            <h4 style="color: var(--info-color); margin-bottom: 10px;">Fotos</h4>
+                            <p style="font-size: 2rem; font-weight: bold;">${appState.photos.length}</p>
+                            <p style="color: #666;">adicionadas</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 15px;">Progresso Geral</h4>
+                        <div style="background: #e0e0e0; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, var(--success-color) 0%, #4CAF50 100%); 
+                                        width: ${completionPercentage}%; height: 100%; border-radius: 10px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                            <span style="color: #666;">0%</span>
+                            <span style="font-weight: bold;">${completionPercentage}%</span>
+                            <span style="color: #666;">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: ${completionPercentage >= 80 ? '#d4edda' : '#fff3cd'}; 
+                              padding: 20px; border-radius: 15px; border-left: 5px solid ${completionPercentage >= 80 ? '#28a745' : '#ffc107'};">
+                        <h4 style="color: ${completionPercentage >= 80 ? '#155724' : '#856404'}; margin-bottom: 10px;">
+                            <i class="fas fa-${completionPercentage >= 80 ? 'check-circle' : 'exclamation-triangle'}"></i>
+                            Status da Auditoria
+                        </h4>
+                        <p style="color: ${completionPercentage >= 80 ? '#155724' : '#856404'}; margin: 0;">
+                            ${completionPercentage >= 80 
+                                ? 'A auditoria pode ser finalizada. Todas as etapas principais foram concluídas.' 
+                                : 'A auditoria está incompleta. Conclua mais itens antes de finalizar.'}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function completeAudit() {
+            if (!appState.currentUnit) {
+                showAlert('Por favor, selecione uma unidade primeiro.', 'warning');
+                return;
+            }
+            
+            // Calcular se está completa
+            const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+            let completedSubtopics = 0;
+            Object.values(appState.topicsStatus).forEach(status => {
+                if (status === 'completed') completedSubtopics++;
+            });
+            
+            const completionPercentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+            
+            if (completionPercentage < 80 && !confirm(`A auditoria está apenas ${completionPercentage}% completa. Deseja finalizar mesmo assim?`)) {
+                return;
+            }
+            
+            appState.isAuditFinalized = true;
+            
+            // Salvar status finalizado
+            const savedData = localStorage.getItem(`audit_${appState.currentUnit}`);
+            let data = {};
+            
+            if (savedData) {
+                try {
+                    data = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('Erro ao parsear dados:', e);
+                }
+            }
+            
+            data.isAuditFinalized = true;
+            data.finalizedAt = new Date().toISOString();
+            data.completionPercentage = completionPercentage;
+            
+            localStorage.setItem(`audit_${appState.currentUnit}`, JSON.stringify(data));
+            
+            // Registrar auditoria finalizada
+            const completedAudits = JSON.parse(localStorage.getItem('completedAudits') || '[]');
+            completedAudits.push({
+                unit: appState.currentUnit,
+                date: new Date().toISOString(),
+                completionPercentage: completionPercentage,
+                photosCount: appState.photos.length
+            });
+            localStorage.setItem('completedAudits', JSON.stringify(completedAudits));
+            
+            // Atualizar barra de status
+            document.getElementById('statusLaudo').classList.add('completed');
+            document.getElementById('statusLaudoInfo').textContent = 'Finalizado';
+            
+            showAlert(`Auditoria da unidade ${appState.currentUnit} finalizada com sucesso!`, 'success');
+            
+            // Ir para laudo
+            showSection('laudo');
+        }
+
+        function generateReportPreview() {
+            const container = document.getElementById('reportPreview');
+            
+            if (!appState.currentUnit) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-file-alt fa-3x" style="margin-bottom: 20px; color: #ddd;"></i>
+                        <p>Nenhuma auditoria selecionada para gerar laudo.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Buscar dados completos
+            const savedData = localStorage.getItem(`audit_${appState.currentUnit}`);
+            if (!savedData) {
+                container.innerHTML = '<p style="color: #666;">Nenhum dado encontrado.</p>';
+                return;
+            }
+            
+            const data = JSON.parse(savedData);
+            
+            // Calcular estatísticas
+            const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+            let completedSubtopics = 0;
+            let notApplicableSubtopics = 0;
+            
+            if (data.topicsStatus) {
+                Object.values(data.topicsStatus).forEach(status => {
+                    if (status === 'completed') completedSubtopics++;
+                    if (status === 'not-applicable') notApplicableSubtopics++;
+                });
+            }
+            
+            const pendingSubtopics = totalSubtopics - completedSubtopics - notApplicableSubtopics;
+            const completionPercentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+            
+            // Gerar HTML do laudo
+            const reportHTML = `
+                <div style="padding: 20px; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <div style="text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #eee;">
+                        <h1 style="color: var(--primary-color);">LAUDO DE AUDITORIA</h1>
+                        <p style="color: #666;">Rede Dom Pedro - Sistema de Auditoria</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 15px; font-size: 1.1rem;">
+                                <i class="fas fa-info-circle"></i> Informações da Auditoria
+                            </h3>
+                            <p><strong>Unidade:</strong> ${data.unit || 'Não informado'}</p>
+                            <p><strong>Cidade:</strong> ${data.city || 'Não informado'}</p>
+                            <p><strong>UF:</strong> ${data.state || 'Não informado'}</p>
+                            <p><strong>Tipo:</strong> ${data.locationType || 'Não informado'}</p>
+                            <p><strong>Data:</strong> ${data.datetime ? new Date(data.datetime).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                            <p><strong>Gerente:</strong> ${data.manager || 'Não informado'}</p>
+                            <p><strong>Auditor:</strong> ${data.auditor || 'Não informado'}</p>
+                        </div>
+                        
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 15px; font-size: 1.1rem;">
+                                <i class="fas fa-chart-pie"></i> Estatísticas
+                            </h3>
+                            <p><strong>Conclusão:</strong> ${completionPercentage}%</p>
+                            <p><strong>Subitens Concluídos:</strong> ${completedSubtopics}</p>
+                            <p><strong>Subitens Pendentes:</strong> ${pendingSubtopics}</p>
+                            <p><strong>Subitens N/A:</strong> ${notApplicableSubtopics}</p>
+                            <p><strong>Total de Fotos:</strong> ${data.photos?.length || 0}</p>
+                            <p><strong>Status:</strong> ${data.isAuditFinalized ? '<span style="color: #28a745;">FINALIZADO</span>' : '<span style="color: #ffc107;">EM ANDAMENTO</span>'}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">
+                            <i class="fas fa-tasks"></i> Detalhamento por Tópico
+                        </h3>
+                        
+                        ${APP_CONFIG.topics.map(topic => {
+                            let topicCompleted = 0;
+                            let topicNotApplicable = 0;
+                            let topicTotal = topic.subtopics.length;
+                            
+                            topic.subtopics.forEach((_, index) => {
+                                const subtopicId = `${topic.id}_${index}`;
+                                const status = data.topicsStatus?.[subtopicId];
+                                if (status === 'completed') topicCompleted++;
+                                if (status === 'not-applicable') topicNotApplicable++;
+                            });
+                            
+                            const topicPercentage = Math.round((topicCompleted / topicTotal) * 100);
+                            
+                            return `
+                                <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 10px; border-left: 4px solid ${topicPercentage === 100 ? '#28a745' : topicPercentage >= 70 ? '#ffc107' : '#dc3545'};">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <strong>${topic.title}</strong>
+                                        <span>${topicPercentage}%</span>
+                                    </div>
+                                    <div style="background: #e9ecef; height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="background: ${topicPercentage === 100 ? '#28a745' : topicPercentage >= 70 ? '#ffc107' : '#dc3545'}; width: ${topicPercentage}%; height: 100%;"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666; margin-top: 5px;">
+                                        <span>${topicCompleted} concluídos</span>
+                                        <span>${topicNotApplicable} N/A</span>
+                                        <span>${topicTotal - topicCompleted - topicNotApplicable} pendentes</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">
+                            <i class="fas fa-camera"></i> Fotos por Subtópico
+                        </h3>
+                        
+                        ${data.photos && data.photos.length > 0 ? `
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                                ${data.photos.map(photo => `
+                                    <div style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">
+                                        <img src="${photo.dataUrl}" alt="${photo.description}" style="width: 100%; height: 150px; object-fit: cover;">
+                                        <div style="padding: 10px;">
+                                            <small style="color: #666;">${photo.subtopic}</small>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="color: #666; text-align: center;">Nenhuma foto adicionada.</p>'}
+                    </div>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <p><strong>Auditor:</strong></p>
+                                <p style="margin-top: 30px;">_________________________</p>
+                                <p>${data.auditor || 'Não informado'}</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <p>Data da Auditoria</p>
+                                <p style="font-size: 1.2em;">${data.datetime ? new Date(data.datetime).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p><strong>Gerente:</strong></p>
+                                <p style="margin-top: 30px;">_________________________</p>
+                                <p>${data.manager || 'Não informado'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px; font-size: 0.8em; color: #666; text-align: center;">
+                        <p>Laudo gerado automaticamente pelo Sistema de Auditoria da Rede Dom Pedro</p>
+                        <p>Data de geração: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = reportHTML;
+        }
+
+        function printReport() {
+            if (!appState.currentUnit) {
+                showAlert('Por favor, selecione uma unidade primeiro.', 'warning');
+                return;
+            }
+            
+            // Criar janela de impressão
+            const printWindow = window.open('', '_blank');
+            const savedData = localStorage.getItem(`audit_${appState.currentUnit}`);
+            
+            if (!savedData) {
+                showAlert('Nenhum dado encontrado para impressão.', 'warning');
+                return;
+            }
+            
+            const data = JSON.parse(savedData);
+            
+            // Calcular estatísticas
+            const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+            let completedSubtopics = 0;
+            let notApplicableSubtopics = 0;
+            
+            if (data.topicsStatus) {
+                Object.values(data.topicsStatus).forEach(status => {
+                    if (status === 'completed') completedSubtopics++;
+                    if (status === 'not-applicable') notApplicableSubtopics++;
+                });
+            }
+            
+            const pendingSubtopics = totalSubtopics - completedSubtopics - notApplicableSubtopics;
+            const completionPercentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+            
+            // HTML para impressão
+            const printHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Laudo de Auditoria - ${data.unit || 'Unidade'} - Rede Dom Pedro</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #ccc; padding-bottom: 20px; }
+                        .section { margin-bottom: 30px; }
+                        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
+                        .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; }
+                        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+                        .photo-item { text-align: center; }
+                        .photo-item img { max-width: 100%; height: 150px; object-fit: cover; border: 1px solid #ddd; }
+                        .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .signature div { text-align: center; width: 40%; }
+                        .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #666; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>LAUDO DE AUDITORIA</h1>
+                        <h2>Rede Dom Pedro</h2>
+                        <p>Sistema de Auditoria - Laudo Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Informações da Auditoria</h3>
+                        <div class="info-grid">
+                            <div class="info-box">
+                                <p><strong>Unidade:</strong> ${data.unit || 'Não informado'}</p>
+                                <p><strong>Cidade:</strong> ${data.city || 'Não informado'}</p>
+                                <p><strong>UF:</strong> ${data.state || 'Não informado'}</p>
+                            </div>
+                            <div class="info-box">
+                                <p><strong>Data:</strong> ${data.datetime ? new Date(data.datetime).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                                <p><strong>Gerente:</strong> ${data.manager || 'Não informado'}</p>
+                                <p><strong>Auditor:</strong> ${data.auditor || 'Não informado'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Estatísticas da Auditoria</h3>
+                        <div class="info-grid">
+                            <div class="info-box">
+                                <p><strong>Conclusão:</strong> ${completionPercentage}%</p>
+                                <p><strong>Itens Concluídos:</strong> ${completedSubtopics}</p>
+                                <p><strong>Itens Pendentes:</strong> ${pendingSubtopics}</p>
+                            </div>
+                            <div class="info-box">
+                                <p><strong>Itens N/A:</strong> ${notApplicableSubtopics}</p>
+                                <p><strong>Total de Fotos:</strong> ${data.photos?.length || 0}</p>
+                                <p><strong>Status:</strong> ${data.isAuditFinalized ? 'FINALIZADO' : 'EM ANDAMENTO'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Fotos da Auditoria</h3>
+                        ${data.photos && data.photos.length > 0 ? `
+                            <div class="photo-grid">
+                                ${data.photos.map(photo => `
+                                    <div class="photo-item">
+                                        <img src="${photo.dataUrl}" alt="${photo.description}">
+                                        <p><small>${photo.subtopic}</small></p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p>Nenhuma foto registrada.</p>'}
+                    </div>
+                    
+                    <div class="signature">
+                        <div>
+                            <p>_________________________</p>
+                            <p><strong>Auditor</strong></p>
+                            <p>${data.auditor || 'Não informado'}</p>
+                        </div>
+                        <div>
+                            <p>_________________________</p>
+                            <p><strong>Gerente</strong></p>
+                            <p>${data.manager || 'Não informado'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Laudo gerado automaticamente pelo Sistema de Auditoria da Rede Dom Pedro</p>
+                        <p>Documento de uso interno - Válido para controle de qualidade</p>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(() => window.close(), 1000);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
+        }
+
+        function loadAuditsList() {
+            const container = document.getElementById('auditsList');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            
+            container.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
+            
+            setTimeout(() => {
+                let audits = [];
+                
+                // Buscar todas as auditorias salvas
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('audit_')) {
+                        try {
+                            const data = JSON.parse(localStorage.getItem(key));
+                            data.unit = key.replace('audit_', '');
+                            audits.push(data);
+                        } catch (e) {
+                            console.error('Erro ao processar:', key, e);
+                        }
+                    }
+                }
+                
+                // Aplicar filtros
+                if (searchInput) {
+                    audits = audits.filter(audit => 
+                        audit.unit.toLowerCase().includes(searchInput) ||
+                        (audit.city && audit.city.toLowerCase().includes(searchInput)) ||
+                        (audit.auditor && audit.auditor.toLowerCase().includes(searchInput))
+                    );
+                }
+                
+                if (filterStatus === 'finalized') {
+                    audits = audits.filter(audit => audit.isAuditFinalized);
+                } else if (filterStatus === 'in-progress') {
+                    audits = audits.filter(audit => !audit.isAuditFinalized);
+                }
+                
+                // Ordenar por data
+                audits.sort((a, b) => {
+                    const dateA = new Date(a.lastUpdated || 0);
+                    const dateB = new Date(b.lastUpdated || 0);
+                    return dateB - dateA;
+                });
+                
+                if (audits.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-search fa-3x" style="margin-bottom: 20px; color: #ddd;"></i>
+                            <p>Nenhuma auditoria encontrada.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 10px;">
+                        <p style="margin: 0;"><strong>${audits.length}</strong> auditorias encontradas</p>
+                    </div>
+                `;
+                
+                audits.forEach(audit => {
+                    const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+                    let completedSubtopics = 0;
+                    
+                    if (audit.topicsStatus) {
+                        Object.values(audit.topicsStatus).forEach(status => {
+                            if (status === 'completed') completedSubtopics++;
+                        });
+                    }
+                    
+                    const completionPercentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+                    const date = audit.lastUpdated ? new Date(audit.lastUpdated) : new Date();
+                    
+                    html += `
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="color: var(--primary-color); margin-bottom: 5px;">${audit.unit}</h3>
+                                    <p style="color: #666; font-size: 0.9rem;">
+                                        <i class="fas fa-calendar"></i> ${date.toLocaleDateString('pt-BR')} 
+                                        <i class="fas fa-clock ml-20"></i> ${date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="display: inline-block; padding: 5px 15px; border-radius: 20px; 
+                                          background: ${audit.isAuditFinalized ? '#d4edda' : '#fff3cd'}; 
+                                          color: ${audit.isAuditFinalized ? '#155724' : '#856404'}; 
+                                          font-weight: bold;">
+                                        ${audit.isAuditFinalized ? 'FINALIZADA' : 'EM ANDAMENTO'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                <div>
+                                    <p style="margin: 0 0 5px 0; color: #666;">Cidade</p>
+                                    <p style="margin: 0; font-weight: 500;">${audit.city || 'Não informada'}</p>
+                                </div>
+                                <div>
+                                    <p style="margin: 0 0 5px 0; color: #666;">Auditor</p>
+                                    <p style="margin: 0; font-weight: 500;">${audit.auditor || 'Não informado'}</p>
+                                </div>
+                                <div>
+                                    <p style="margin: 0 0 5px 0; color: #666;">Progresso</p>
+                                    <p style="margin: 0; font-weight: 500;">${completionPercentage}% (${completedSubtopics}/${totalSubtopics})</p>
+                                </div>
+                                <div>
+                                    <p style="margin: 0 0 5px 0; color: #666;">Fotos</p>
+                                    <p style="margin: 0; font-weight: 500;">${audit.photos?.length || 0}</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn btn-primary" onclick="loadAudit('${audit.unit}')">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </button>
+                                <button class="btn btn-success" onclick="continueAudit('${audit.unit}')">
+                                    <i class="fas fa-edit"></i> Continuar
+                                </button>
+                                <button class="btn btn-info" onclick="downloadAudit('${audit.unit}')">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteAudit('${audit.unit}')">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }, 500);
+        }
+
+        function searchAudits() {
+            loadAuditsList();
+        }
+
+        function loadAudit(unitName) {
+            const savedData = localStorage.getItem(`audit_${unitName}`);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                // Criar modal para visualização
+                const modalHTML = `
+                    <div id="viewAuditModal" class="modal active">
+                        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                                <h3 style="color: var(--primary-color);">
+                                    <i class="fas fa-eye"></i> Visualizar Auditoria
+                                </h3>
+                                <button onclick="closeModal('viewAuditModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+                            </div>
+                            
+                            <div style="margin-bottom: 30px;">
+                                <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                                    <i class="fas fa-info-circle"></i> Informações
+                                </h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                    <div><strong>Unidade:</strong> ${data.unit || 'Não informada'}</div>
+                                    <div><strong>Cidade:</strong> ${data.city || 'Não informada'}</div>
+                                    <div><strong>Data:</strong> ${data.datetime ? new Date(data.datetime).toLocaleDateString('pt-BR') : 'Não informada'}</div>
+                                    <div><strong>Auditor:</strong> ${data.auditor || 'Não informado'}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 30px;">
+                                <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                                    <i class="fas fa-tasks"></i> Status dos Tópicos
+                                </h4>
+                                ${APP_CONFIG.topics.map(topic => {
+                                    let completed = 0;
+                                    let total = topic.subtopics.length;
+                                    
+                                    topic.subtopics.forEach((subtopic, index) => {
+                                        const subtopicId = `${topic.id}_${index}`;
+                                        if (data.topicsStatus?.[subtopicId] === 'completed') completed++;
+                                    });
+                                    
+                                    return `
+                                        <div style="margin-bottom: 10px;">
+                                            <strong>${topic.title}:</strong> ${completed}/${total} concluídos
+                                            <div style="background: #e9ecef; height: 8px; border-radius: 4px; margin-top: 5px;">
+                                                <div style="background: ${completed === total ? '#28a745' : '#ffc107'}; width: ${(completed/total)*100}%; height: 100%; border-radius: 4px;"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            
+                            <div style="margin-bottom: 30px;">
+                                <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                                    <i class="fas fa-camera"></i> Fotos (${data.photos?.length || 0})
+                                </h4>
+                                ${data.photos && data.photos.length > 0 ? `
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                                        ${data.photos.map(photo => `
+                                            <div style="text-align: center;">
+                                                <img src="${photo.dataUrl}" alt="${photo.description}" 
+                                                     style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px;">
+                                                <small style="color: #666; display: block; margin-top: 5px;">${photo.subtopic}</small>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<p style="color: #666;">Nenhuma foto registrada.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function continueAudit(unitName) {
+            // Carregar auditoria selecionada
+            const unitSelect = document.getElementById('unit');
+            unitSelect.value = unitName;
+            appState.currentUnit = unitName;
+            
+            // Carregar dados
+            loadUnitData(unitName);
+            
+            // Atualizar display
+            document.getElementById('currentUnitDisplay').textContent = unitName;
+            
+            // Ir para seção de dados
+            showSection('auditoria');
+            
+            showAlert(`Auditoria da unidade ${unitName} carregada para edição.`, 'success');
+        }
+
+        function downloadAudit(unitName) {
+            const savedData = localStorage.getItem(`audit_${unitName}`);
+            if (!savedData) {
+                showAlert('Nenhum dado encontrado para exportar.', 'warning');
+                return;
+            }
+            
+            const data = JSON.parse(savedData);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `auditoria_${unitName}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert(`Auditoria ${unitName} exportada com sucesso!`, 'success');
+        }
+
+        function deleteAudit(unitName) {
+            if (!confirm(`Tem certeza que deseja excluir permanentemente a auditoria da unidade ${unitName}?`)) {
+                return;
+            }
+            
+            // Se for a auditoria atual, limpar estado
+            if (appState.currentUnit === unitName) {
+                appState.currentUnit = null;
+                appState.auditData = {};
+                appState.topicsStatus = {};
+                appState.photos = [];
+                appState.isAuditFinalized = false;
+                
+                document.getElementById('currentUnitDisplay').textContent = 'Selecione uma unidade';
+                document.getElementById('unit').value = '';
+            }
+            
+            // Remover do localStorage
+            localStorage.removeItem(`audit_${unitName}`);
+            
+            // Recarregar lista
+            loadAuditsList();
+            
+            showAlert(`Auditoria da unidade ${unitName} excluída permanentemente.`, 'success');
+        }
+
+        function createBackup() {
+            const backupData = {
+                version: '1.0',
+                date: new Date().toISOString(),
+                audits: [],
+                completedAudits: JSON.parse(localStorage.getItem('completedAudits') || '[]')
+            };
+            
+            // Coletar todas as auditorias
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('audit_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        backupData.audits.push({
+                            key: key,
+                            data: data
+                        });
+                    } catch (e) {
+                        console.error('Erro ao processar:', key, e);
+                    }
+                }
+            }
+            
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_auditorias_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert(`Backup criado com sucesso! ${backupData.audits.length} auditorias salvas.`, 'success');
+        }
+
+        function showBackups() {
+            const container = document.getElementById('backupListContainer');
+            
+            // Listar backups existentes (simulado - em produção, você listaria do servidor)
+            container.innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                        <i class="fas fa-info-circle"></i> Informações sobre Backup
+                    </h4>
+                    <p style="color: #666;">Faça download regular dos backups para preservar seus dados.</p>
+                    <ul style="color: #666; padding-left: 20px;">
+                        <li>Os backups são salvos localmente no seu computador</li>
+                        <li>Recomendamos fazer backup diariamente</li>
+                        <li>Para restaurar, importe o arquivo JSON na próxima seção</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 20px; color: #ddd;"></i>
+                    <p>Os backups são salvos localmente no seu computador.</p>
+                    <p>Faça download regularmente para preservar seus dados.</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                        <i class="fas fa-file-import"></i> Restaurar de Backup
+                    </h4>
+                    <input type="file" id="restoreFile" accept=".json" class="form-control" style="margin-bottom: 15px;">
+                    <button class="btn btn-warning w-100" onclick="restoreFromBackup()">
+                        <i class="fas fa-upload"></i> Restaurar Backup
+                    </button>
+                </div>
+            `;
+        }
+
+        function restoreFromBackup() {
+            const fileInput = document.getElementById('restoreFile');
+            
+            if (!fileInput.files[0]) {
+                showAlert('Por favor, selecione um arquivo de backup.', 'warning');
+                return;
+            }
+            
+            if (!confirm('ATENÇÃO: Restaurar um backup irá SOBRESCREVER todos os dados atuais. Deseja continuar?')) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    // Limpar dados atuais
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('audit_') || key === 'completedAudits') {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    
+                    // Restaurar auditorias
+                    backupData.audits.forEach(item => {
+                        localStorage.setItem(item.key, JSON.stringify(item.data));
+                    });
+                    
+                    // Restaurar auditorias finalizadas
+                    if (backupData.completedAudits) {
+                        localStorage.setItem('completedAudits', JSON.stringify(backupData.completedAudits));
+                    }
+                    
+                    // Limpar estado atual
+                    appState.currentUnit = null;
+                    appState.auditData = {};
+                    appState.topicsStatus = {};
+                    appState.photos = [];
+                    appState.isAuditFinalized = false;
+                    
+                    document.getElementById('currentUnitDisplay').textContent = 'Selecione uma unidade';
+                    document.getElementById('unit').value = '';
+                    
+                    showAlert(`Backup restaurado com sucesso! ${backupData.audits.length} auditorias recuperadas.`, 'success');
+                    
+                    // Atualizar dashboard
+                    updateDashboard();
+                    loadAuditsList();
+                    
+                } catch (error) {
+                    console.error('Erro ao restaurar backup:', error);
+                    showAlert('Erro ao processar arquivo de backup. Verifique se é um arquivo válido.', 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showAlert('Erro ao ler arquivo.', 'error');
+            };
+            
+            reader.readAsText(fileInput.files[0]);
+        }
+
+        function exportAllData() {
+            const allData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                audits: [],
+                completedAudits: JSON.parse(localStorage.getItem('completedAudits') || '[]'),
+                appState: appState,
+                config: APP_CONFIG
+            };
+            
+            // Coletar todas as auditorias
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('audit_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        allData.audits.push({
+                            unit: key.replace('audit_', ''),
+                            data: data
+                        });
+                    } catch (e) {
+                        console.error('Erro ao processar:', key, e);
+                    }
+                }
+            }
+            
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `exportacao_completa_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert(`Exportação completa realizada! ${allData.audits.length} auditorias exportadas.`, 'success');
+        }
+
+        function showClearAllModal() {
+            document.getElementById('clearAllModal').classList.add('active');
+        }
+
+        function closeClearAllModal() {
+            document.getElementById('clearAllModal').classList.remove('active');
+        }
+
+        function clearAllStorage() {
+            // Limpar localStorage
+            localStorage.clear();
+            
+            // Resetar estado da aplicação
+            appState = {
+                currentUnit: null,
+                auditData: {},
+                topicsStatus: {},
+                photos: [],
+                isAuditFinalized: false,
+                auditStartTime: null,
+                currentPhotoSubtopic: null
+            };
+            
+            // Resetar formulários
+            document.getElementById('unit').value = '';
+            document.getElementById('city').value = '';
+            document.getElementById('state').value = '';
+            document.getElementById('locationType').value = '';
+            document.getElementById('highway').value = '';
+            document.getElementById('manager').value = '';
+            document.getElementById('auditor').value = '';
+            document.getElementById('currentUnitDisplay').textContent = 'Selecione uma unidade';
+            
+            // Resetar status bar
+            document.getElementById('statusDadosInfo').textContent = 'Pendente';
+            document.getElementById('statusTopicosInfo').textContent = 'Pendente';
+            document.getElementById('statusFotosInfo').textContent = 'Pendente';
+            document.getElementById('statusLaudoInfo').textContent = 'Pendente';
+            
+            const statusItems = ['Dados', 'Topicos', 'Fotos', 'Laudo'];
+            statusItems.forEach(item => {
+                document.getElementById(`status${item}`).classList.remove('completed');
+            });
+            
+            // Atualizar dashboard
+            updateDashboard();
+            
+            // Fechar modal
+            closeClearAllModal();
+            
+            // Mostrar confirmação
+            showAlert('Todos os dados foram apagados com sucesso!', 'success');
+            
+            // Voltar para início
+            showSection('inicio');
+        }
+
+        function updateDashboard() {
+            // Contar auditorias
+            let auditCount = 0;
+            let completedCount = 0;
+            let inProgressCount = 0;
+            let totalPhotos = 0;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('audit_')) {
+                    auditCount++;
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.isAuditFinalized) {
+                            completedCount++;
+                        } else {
+                            inProgressCount++;
+                        }
+                        totalPhotos += (data.photos?.length || 0);
+                    } catch (e) {
+                        console.error('Erro ao contar auditorias:', e);
+                    }
+                }
+            }
+            
+            // Atualizar estatísticas
+            document.getElementById('totalUnits').textContent = APP_CONFIG.units.length;
+            document.getElementById('completedAudits').textContent = completedCount;
+            document.getElementById('inProgressAudits').textContent = inProgressCount;
+            document.getElementById('totalPhotos').textContent = totalPhotos;
+            
+            // Carregar últimas auditorias
+            loadRecentAudits();
+        }
+
+        function loadRecentAudits() {
+            const container = document.getElementById('recentAudits');
+            let audits = [];
+            
+            // Buscar últimas 5 auditorias
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('audit_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        audits.push({
+                            unit: key.replace('audit_', ''),
+                            ...data,
+                            lastUpdated: data.lastUpdated || 0
+                        });
+                    } catch (e) {
+                        console.error('Erro ao carregar auditoria:', e);
+                    }
+                }
+            }
+            
+            // Ordenar por data
+            audits.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+            
+            // Pegar as 5 mais recentes
+            const recentAudits = audits.slice(0, 5);
+            
+            if (recentAudits.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #666;">
+                        <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px; color: #ddd;"></i>
+                        <p>Nenhuma auditoria realizada ainda.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+            
+            recentAudits.forEach(audit => {
+                const date = audit.lastUpdated ? new Date(audit.lastUpdated) : new Date();
+                const completedSubtopics = audit.topicsStatus ? 
+                    Object.values(audit.topicsStatus).filter(status => status === 'completed').length : 0;
+                const totalSubtopics = APP_CONFIG.topics.reduce((acc, topic) => acc + topic.subtopics.length, 0);
+                const percentage = Math.round((completedSubtopics / totalSubtopics) * 100);
+                
+                html += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; 
+                                padding: 15px; background: white; border-radius: 10px; border-left: 4px solid ${audit.isAuditFinalized ? '#28a745' : '#ffc107'};">
+                        <div>
+                            <strong style="color: var(--primary-color);">${audit.unit}</strong>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${audit.city || 'Cidade não informada'} • ${date.toLocaleDateString('pt-BR')}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold; color: ${percentage >= 80 ? '#28a745' : percentage >= 50 ? '#ffc107' : '#dc3545'}">
+                                ${percentage}%
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${audit.isAuditFinalized ? 'Finalizada' : 'Em andamento'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function checkActiveAudit() {
+            const lastAudit = localStorage.getItem('lastAudit');
+            if (lastAudit) {
+                const savedData = localStorage.getItem(`audit_${lastAudit}`);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    if (!data.isAuditFinalized) {
+                        if (confirm('Há uma auditoria em andamento. Deseja continuá-la?')) {
+                            continueAudit(lastAudit);
+                        }
+                    }
+                }
+            }
+        }
+
+        function isTopicsCompleted() {
+            let totalCompleted = 0;
+            let totalTopics = APP_CONFIG.topics.length;
+            
+            APP_CONFIG.topics.forEach(topic => {
+                if (checkTopicCompletion(topic.id)) {
+                    totalCompleted++;
+                }
+            });
+            
+            return totalCompleted === totalTopics;
+        }
+
+        function autoSave() {
+            if (appState.currentUnit && appState.auditData.city) {
+                saveAuditData();
+                updateLastSaveInfo();
+            }
+        }
+
+        function updateLastSaveInfo() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastSaveInfo').textContent = `Último save: ${timeStr}`;
+        }
+
+        function updateStorageInfo() {
+            let totalSize = 0;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                totalSize += (key.length + value.length) * 2; // Estimativa em bytes
+            }
+            
+            const sizeInKB = Math.round(totalSize / 1024);
+            document.getElementById('storageUsed').textContent = sizeInKB;
+        }
+
+        function showAlert(message, type = 'info') {
+            // Criar elemento de alerta
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+                max-width: 400px;
+            `;
+            
+            const colors = {
+                success: '#27ae60',
+                error: '#e74c3c',
+                warning: '#f39c12',
+                info: '#3498db'
+            };
+            
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+            
+            alertDiv.style.backgroundColor = colors[type] || colors.info;
+            
+            alertDiv.innerHTML = `
+                <i class="${icons[type] || icons.info}"></i>
+                <span style="margin-left: 10px;">${message}</span>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
+        }
+
+        // Função para abrir modal de fotos específico
+        function openPhotoModal(subtopicId, subtopicName) {
+            appState.currentPhotoSubtopic = {
+                id: subtopicId,
+                name: subtopicName
+            };
+            
+            // Preencher informações no modal
+            document.getElementById('photoSubtopic').value = subtopicId;
+            const photoSubtopicSelect = document.getElementById('photoSubtopic');
+            
+            // Encontrar a opção correspondente
+            for (let option of photoSubtopicSelect.options) {
+                if (option.value === subtopicId) {
+                    option.selected = true;
+                    break;
+                }
+            }
+            
+            // Abrir modal
+            openAddPhotoModal();
+        }
+
+        // Função para carregar última auditoria
+        function loadLastAudit() {
+            const lastAudit = localStorage.getItem('lastAudit');
+            if (lastAudit) {
+                continueAudit(lastAudit);
+            } else {
+                showAlert('Nenhuma auditoria anterior encontrada.', 'info');
+            }
+        }
+
+        // Função auxiliar para verificar se há dados salvos
+        function hasSavedData(unitName) {
+            return localStorage.getItem(`audit_${unitName}`) !== null;
+        }
+
+        // Função para calcular tempo de auditoria
+        function calculateAuditTime() {
+            if (!appState.auditStartTime) return '--:--';
+            
+            const now = new Date();
+            const diff = now - appState.auditStartTime;
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        // Função para verificar se formulário está completo
+        function isAuditFormComplete() {
+            const requiredFields = ['unit', 'city', 'state', 'manager', 'auditor'];
+            for (const field of requiredFields) {
+                const value = document.getElementById(field).value;
+                if (!value || value.trim() === '') {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Atualizar periodicamente informações da auditoria
+        setInterval(() => {
+            if (appState.auditStartTime) {
+                const auditTimeElement = document.getElementById('auditTimeDisplay');
+                if (!auditTimeElement) {
+                    // Criar elemento se não existir
+                    const statusBar = document.querySelector('.status-bar');
+                    if (statusBar) {
+                        const timeDisplay = document.createElement('div');
+                        timeDisplay.id = 'auditTimeDisplay';
+                        timeDisplay.style.cssText = `
+                            background: rgba(52, 152, 219, 0.1);
+                            padding: 10px 20px;
+                            border-radius: 20px;
+                            font-size: 0.9rem;
+                            color: #2980b9;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        `;
+                        timeDisplay.innerHTML = `<i class="fas fa-clock"></i> <span>${calculateAuditTime()}</span>`;
+                        statusBar.appendChild(timeDisplay);
+                    }
+                } else {
+                    auditTimeElement.querySelector('span').textContent = calculateAuditTime();
+                }
+            }
+        }, 60000); // Atualizar a cada minuto
+
+        // Adicionar evento para salvar antes de sair da página
+        window.addEventListener('beforeunload', function(e) {
+            if (appState.currentUnit && !appState.isAuditFinalized) {
+                // Salvar dados automaticamente
+                if (appState.auditData.city) {
+                    saveAuditData();
+                }
+                
+                // Mostrar confirmação
+                e.preventDefault();
+                e.returnValue = 'Você tem alterações não salvas. Tem certeza que deseja sair?';
+                return e.returnValue;
+            }
+        });
+
+        // Configurar data/hora padrão se não existir
+        function setupDefaultDateTime() {
+            const datetimeInput = document.getElementById('datetime');
+            if (!datetimeInput.value) {
+                const now = new Date();
+                const timezoneOffset = now.getTimezoneOffset() * 60000;
+                const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
+                datetimeInput.value = localISOTime;
+            }
+        }
+
+        // Inicializar ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+            setupDefaultDateTime();
+            
+            // Configurar validação de formulário
+            const auditForm = document.querySelector('#auditoria .card');
+            if (auditForm) {
+                auditForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveAuditData();
+                });
+            }
+            
+            // Configurar teclas de atalho
+            document.addEventListener('keydown', function(e) {
+                // Ctrl + S para salvar
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveAuditData();
+                }
+                
+                // Ctrl + P para imprimir
+                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                    e.preventDefault();
+                    printReport();
+                }
+                
+                // Esc para fejar modais
+                if (e.key === 'Escape') {
+                    closePhotoModal();
+                    closeClearAllModal();
+                    closeModal('viewAuditModal');
+                }
+            });
+        });
+
+        // Exportar função global para debug
+        if (typeof window !== 'undefined') {
+            window.debugAppState = function() {
+                console.log('Estado da Aplicação:', appState);
+                console.log('Unidades Auditadas:', 
+                    Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+                        .filter(key => key.startsWith('audit_'))
+                        .map(key => key.replace('audit_', ''))
+                );
+            };
+        }
+
+        // Adicionar estilos CSS para animações
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+            
+            .disabled {
+                opacity: 0.5;
+                cursor: not-allowed !important;
+            }
+            
+            .ml-20 {
+                margin-left: 20px;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Inicializar quando a página carregar
+        window.onload = initApp;
+    </script>
+</body>
+</html>
