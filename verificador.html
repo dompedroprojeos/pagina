@@ -120,8 +120,8 @@
             td:nth-child(5) { width: 6% !important; }  /* Estoque */
             td:nth-child(8), td:nth-child(9) { width: 6% !important; }  /* Saídas */
             td:nth-child(10) { width: 7% !important; } /* Diferença */
-            td:nth-child(11), td:nth-child(12) { width: 6% !important; } /* Acumulados */
-            td:nth-child(13), td:nth-child(14) { width: 8% !important; } /* Status e Obs */
+            td:nth-child(11) { width: 6% !important; } /* Acumulado */
+            td:nth-child(12), td:nth-child(13) { width: 8% !important; } /* Status e Obs */
             
             /* REDUZ ESPAÇAMENTOS */
             .empresa-section {
@@ -234,6 +234,25 @@
             /* LIMITA ALTURA MÁXIMA DAS LINHAS */
             tr {
                 max-height: 15px !important;
+            }
+            
+            /* RODAPÉ DE IMPRESSÃO */
+            body::after {
+                content: "WaldeciRamos@2025";
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 8pt;
+                color: #666;
+                padding: 5px 0;
+                background: #f0f0f0;
+                border-top: 1px solid #ccc;
+            }
+            
+            body {
+                padding-bottom: 20px !important;
             }
         }
 
@@ -711,6 +730,38 @@
     </footer>
 
     <script>
+        // Desabilitar menu de contexto (botão direito)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('Menu de contexto desativado nesta página.');
+            return false;
+        });
+
+        // Desabilitar F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                alert('Tecla F12 desativada.');
+                return false;
+            }
+            // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+J
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+U
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
         // Dicionário de empresas (mantido igual ao anterior que funcionava)
         const empresasNomes = {
             "50": "DOM PEDRO ITAGUARA",
@@ -806,10 +857,9 @@
         });
 
         // Variáveis globais
-        let dailyData = [];
-        let empresaInfo = {};
+        let allProductsData = []; // Array para armazenar dados de todos os produtos
 
-        // FUNÇÃO PRINCIPAL DE PROCESSAMENTO (igual à anterior que funcionava)
+        // FUNÇÃO PRINCIPAL DE PROCESSAMENTO
         function processData() {
             console.log('Iniciando processamento...');
             const input = document.getElementById('data-input').value;
@@ -821,7 +871,7 @@
             // Pequeno delay para garantir que a mensagem aparece
             setTimeout(() => {
                 try {
-                    analisarDadosCorretamente(input);
+                    analisarDadosMultiplosCombustiveis(input);
                 } catch (error) {
                     console.error('Erro no processamento:', error);
                     tabelaContainer.innerHTML = `
@@ -835,33 +885,29 @@
             }, 100);
         }
 
-        function analisarDadosCorretamente(texto) {
-            console.log('Analisando dados...');
+        function analisarDadosMultiplosCombustiveis(texto) {
+            console.log('Analisando dados com múltiplos combustíveis...');
             const linhas = texto.split('\n');
             const tabelaContainer = document.getElementById('tabela-container');
             
             // Reset dados
-            dailyData = [];
-            empresaInfo = {};
+            allProductsData = [];
             
             let empresaCodigo = null;
             let empresaNome = null;
-            let combustivelInfo = null;
             let periodoInfo = null;
-            let tanquesVinculados = null;
-            let primeiroDia = null;
-            let ultimoDia = null;
+            let produtoAtual = null;
+            let dadosProdutoAtual = [];
             
-            // Variáveis para estatísticas
-            let alertasCriticos = [];
-            let alertasFaltaMedida = [];
-            let totalPerda = 0;
-            let totalSobra = 0;
-            let diasCriticos = 0;
-            let diasFaltaMedida = 0;
-            let totalEntradas = 0;
-            let totalSaidaBomba = 0;
-            let totalSaidaTanque = 0;
+            // Variáveis para estatísticas gerais
+            let estatisticasGerais = {
+                totalProdutos: 0,
+                totalDiasAnalisados: 0,
+                totalPerda: 0,
+                totalSobra: 0,
+                diasCriticos: 0,
+                diasFaltaMedida: 0
+            };
             
             // Processa cada linha
             for (let i = 0; i < linhas.length; i++) {
@@ -874,7 +920,6 @@
                     if (match) {
                         empresaCodigo = match[1].trim();
                         empresaNome = empresasNomes[empresaCodigo] || match[2].trim();
-                        empresaInfo.nome = empresaNome;
                         console.log('Empresa encontrada:', empresaNome);
                     }
                 }
@@ -882,27 +927,22 @@
                 // Procura por informação de período
                 else if (linha.includes("Período:")) {
                     periodoInfo = linha.replace("Período:", "").trim();
-                    empresaInfo.periodo = periodoInfo;
                     console.log('Período encontrado:', periodoInfo);
                 }
                 
-                // Procura por informação de combustível
+                // Procura por novo combustível
                 else if (linha.includes("Combustível:")) {
                     const combustivelMatch = linha.match(/Combustível:\s*\d+\s*-\s*([^|]+)/i);
                     if (combustivelMatch) {
-                        combustivelInfo = combustivelMatch[1].trim();
-                        empresaInfo.combustivel = combustivelInfo;
-                        console.log('Combustível encontrado:', combustivelInfo);
-                    }
-                }
-                
-                // Procura por tanques vinculados
-                else if (linha.includes("Tanques vinculados:")) {
-                    const tanquesMatch = linha.match(/Tanques vinculados:\s*(\d+)/i);
-                    if (tanquesMatch) {
-                        tanquesVinculados = tanquesMatch[1].trim();
-                        empresaInfo.tanques = tanquesVinculados;
-                        console.log('Tanques encontrados:', tanquesVinculados);
+                        // Se havia um produto sendo processado, salva ele
+                        if (produtoAtual && dadosProdutoAtual.length > 0) {
+                            salvarProdutoProcessado(produtoAtual, dadosProdutoAtual, estatisticasGerais);
+                            dadosProdutoAtual = [];
+                        }
+                        
+                        produtoAtual = combustivelMatch[1].trim();
+                        console.log('Novo combustível encontrado:', produtoAtual);
+                        estatisticasGerais.totalProdutos++;
                     }
                 }
                 
@@ -917,9 +957,6 @@
                     if (partes.length >= 9) { // Mínimo necessário
                         const data = partes[0];
                         
-                        if (!primeiroDia) primeiroDia = data;
-                        ultimoDia = data;
-                        
                         // Parse dos valores
                         const medInicial = partes[1] || '0';
                         const litragemInicial = parseNumber(partes[2]);
@@ -931,7 +968,6 @@
                         const saidaTanque = parseNumber(partes[8]);
                         const diferencaRelatorio = partes.length > 9 ? parseNumber(partes[9]) : 0;
                         const acumulado = partes.length > 10 ? parseNumber(partes[10]) : 0;
-                        const difAcum = partes.length > 11 ? parseNumber(partes[11]) : 0;
                         
                         // Calcula a diferença correta
                         const diferencaCalculada = saidaBomba - saidaTanque;
@@ -951,35 +987,28 @@
                             tipo = 'FALTA MEDIDA';
                             cor = 'falta-medida-alerta';
                             status = 'Litragem Final = 0,000';
-                            diasFaltaMedida++;
-                            alertasFaltaMedida.push({ data: data });
+                            estatisticasGerais.diasFaltaMedida++;
                         } else if (diferencaCalculada > 0) {
                             tipo = 'SOBRA';
                             cor = 'verde-forte';
                             status = `Bomba > Tanque em ${formatNumber(diferencaCalculada)} L`;
-                            totalSobra += diferencaCalculada;
+                            estatisticasGerais.totalSobra += diferencaCalculada;
                         } else if (diferencaCalculada < 0) {
                             tipo = 'PERDA';
                             cor = 'vermelho-forte';
                             status = `Tanque > Bomba em ${formatNumber(Math.abs(diferencaCalculada))} L`;
-                            totalPerda += Math.abs(diferencaCalculada);
+                            estatisticasGerais.totalPerda += Math.abs(diferencaCalculada);
                             
                             if (perdaCritica) {
-                                diasCriticos++;
-                                alertasCriticos.push({ data: data, perda: Math.abs(diferencaCalculada) });
+                                estatisticasGerais.diasCriticos++;
                             }
                         } else {
                             tipo = 'ZERO';
                             status = 'Sem diferença';
                         }
                         
-                        // Atualiza totais
-                        totalEntradas += entrada;
-                        totalSaidaBomba += saidaBomba;
-                        totalSaidaTanque += saidaTanque;
-                        
-                        // Armazena dados
-                        dailyData.push({
+                        // Armazena dados do produto atual
+                        dadosProdutoAtual.push({
                             data,
                             medInicial,
                             litragemInicial: litragemInicial,
@@ -992,7 +1021,6 @@
                             diferenca: diferencaCalculada,
                             diferencaRelatorio,
                             acumulado,
-                            difAcum,
                             tipo,
                             cor,
                             status,
@@ -1000,13 +1028,19 @@
                             perdaCritica
                         });
                         
+                        estatisticasGerais.totalDiasAnalisados++;
                         console.log(`Dia ${data} processado: ${tipo} ${formatNumber(diferencaCalculada)}L`);
                     }
                 }
             }
             
+            // Salva o último produto processado
+            if (produtoAtual && dadosProdutoAtual.length > 0) {
+                salvarProdutoProcessado(produtoAtual, dadosProdutoAtual, estatisticasGerais);
+            }
+            
             // Verifica se encontrou dados
-            if (dailyData.length === 0) {
+            if (allProductsData.length === 0) {
                 tabelaContainer.innerHTML = `
                     <div class="alerta-panel">
                         <h4><i class="fas fa-exclamation-circle"></i> Nenhum dado encontrado</h4>
@@ -1021,10 +1055,7 @@
                 return;
             }
             
-            console.log(`Processados ${dailyData.length} dias`);
-            
-            // Calcula totais finais
-            const totalDiferenca = totalSaidaBomba - totalSaidaTanque;
+            console.log(`Processados ${allProductsData.length} produtos`);
             
             // Monta o HTML do resultado
             let html = '';
@@ -1044,31 +1075,143 @@
             html += `<div class="empresa-section">`;
             html += `<h3><i class="fas fa-building"></i> ${empresaNome || 'Empresa não identificada'}</h3>`;
             
-            // Informações
+            // Informações gerais
             html += `<div class="info-combustivel">`;
             if (periodoInfo) html += `<div><strong>Período:</strong> ${periodoInfo}</div>`;
-            if (combustivelInfo) html += `<div><strong>Combustível:</strong> ${combustivelInfo}</div>`;
-            if (tanquesVinculados) html += `<div><strong>Tanques:</strong> ${tanquesVinculados}</div>`;
-            html += `<div><strong>Dias analisados:</strong> ${dailyData.length}</div>`;
             html += `<div><strong>Data da análise:</strong> ${new Date().toLocaleDateString('pt-BR')}</div>`;
+            html += `<div><strong>Produtos encontrados:</strong> ${allProductsData.length}</div>`;
+            html += `<div><strong>Total de dias analisados:</strong> ${estatisticasGerais.totalDiasAnalisados}</div>`;
+            html += `</div>`;
+            
+            // Painel de resumo geral
+            html += `<div class="alerta-panel">`;
+            html += `<h4><i class="fas fa-chart-pie"></i> RESUMO GERAL</h4>`;
+            html += `<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">`;
+            html += `<div style="text-align: center; padding: 8px; background: #e8f5e8; border-radius: 4px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #2e7d32;">${allProductsData.length}</div>
+                        <div style="font-size: 11px; color: #666;">Produtos</div>
+                     </div>`;
+            html += `<div style="text-align: center; padding: 8px; background: #ffebee; border-radius: 4px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #c62828;">${formatNumber(estatisticasGerais.totalPerda)}</div>
+                        <div style="font-size: 11px; color: #666;">Perda Total (L)</div>
+                     </div>`;
+            html += `<div style="text-align: center; padding: 8px; background: #e8f5e8; border-radius: 4px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #2e7d32;">${formatNumber(estatisticasGerais.totalSobra)}</div>
+                        <div style="font-size: 11px; color: #666;">Sobra Total (L)</div>
+                     </div>`;
+            html += `<div style="text-align: center; padding: 8px; background: #e3f2fd; border-radius: 4px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #1565c0;">${estatisticasGerais.diasFaltaMedida}</div>
+                        <div style="font-size: 11px; color: #666;">Dias sem Medida</div>
+                     </div>`;
+            html += `</div>`;
+            html += `</div>`;
+            
+            // Para cada produto, gera uma seção separada
+            allProductsData.forEach((produto, index) => {
+                html += gerarHTMLProduto(produto, index + 1);
+            });
+            
+            // Atualiza o container
+            tabelaContainer.innerHTML = html;
+            
+            console.log('Processamento concluído com sucesso!');
+        }
+
+        function salvarProdutoProcessado(nomeProduto, dadosProduto, estatisticasGerais) {
+            console.log(`Salvando dados do produto: ${nomeProduto} com ${dadosProduto.length} dias`);
+            
+            // Calcula totais para este produto
+            let totalEntradas = 0;
+            let totalSaidaBomba = 0;
+            let totalSaidaTanque = 0;
+            let alertasCriticos = [];
+            let alertasFaltaMedida = [];
+            let totalPerdaProduto = 0;
+            let totalSobraProduto = 0;
+            let diasCriticosProduto = 0;
+            let diasFaltaMedidaProduto = 0;
+            
+            dadosProduto.forEach(d => {
+                totalEntradas += d.entrada;
+                totalSaidaBomba += d.saidaBomba;
+                totalSaidaTanque += d.saidaTanque;
+                
+                if (d.faltaMedida) {
+                    diasFaltaMedidaProduto++;
+                    alertasFaltaMedida.push({ data: d.data });
+                }
+                
+                if (d.perdaCritica) {
+                    diasCriticosProduto++;
+                    alertasCriticos.push({ data: d.data, perda: Math.abs(d.diferenca) });
+                }
+                
+                if (d.diferenca > 0) {
+                    totalSobraProduto += d.diferenca;
+                } else if (d.diferenca < 0) {
+                    totalPerdaProduto += Math.abs(d.diferenca);
+                }
+            });
+            
+            const totalDiferencaProduto = totalSaidaBomba - totalSaidaTanque;
+            
+            // Armazena dados do produto
+            allProductsData.push({
+                nome: nomeProduto,
+                dados: dadosProduto,
+                estatisticas: {
+                    totalDias: dadosProduto.length,
+                    totalEntradas,
+                    totalSaidaBomba,
+                    totalSaidaTanque,
+                    totalDiferenca: totalDiferencaProduto,
+                    totalPerda: totalPerdaProduto,
+                    totalSobra: totalSobraProduto,
+                    diasCriticos: diasCriticosProduto,
+                    diasFaltaMedida: diasFaltaMedidaProduto,
+                    alertasCriticos,
+                    alertasFaltaMedida
+                }
+            });
+        }
+
+        function gerarHTMLProduto(produto, numero) {
+            let html = '';
+            const dados = produto.dados;
+            const estatisticas = produto.estatisticas;
+            
+            // Seção do produto
+            html += `<div class="empresa-section" style="margin-top: 30px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">`;
+            
+            // Cabeçalho do produto
+            html += `<h3 style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;">
+                        <i class="fas fa-gas-pump"></i> PRODUTO ${numero}: ${produto.nome}
+                     </h3>`;
+            
+            // Informações do produto
+            html += `<div class="info-combustivel">`;
+            html += `<div><strong>Total de dias analisados:</strong> ${estatisticas.totalDias}</div>`;
+            html += `<div><strong>Entradas totais:</strong> ${formatNumber(estatisticas.totalEntradas)} L</div>`;
+            html += `<div><strong>Saída bombas:</strong> ${formatNumber(estatisticas.totalSaidaBomba)} L</div>`;
+            html += `<div><strong>Saída tanque:</strong> ${formatNumber(estatisticas.totalSaidaTanque)} L</div>`;
             html += `</div>`;
             
             // Painel de alertas - Falta de Medida
-            if (alertasFaltaMedida.length > 0) {
+            if (estatisticas.alertasFaltaMedida.length > 0) {
                 html += `<div class="alerta-panel falta-medida">`;
                 html += `<h4><i class="fas fa-exclamation-triangle"></i> FALTA DE LANÇAMENTO DE MEDIDA</h4>`;
-                html += `<p><strong>${alertasFaltaMedida.length} dia(s) com litragem final = 0,000</strong></p>`;
+                html += `<p><strong>${estatisticas.alertasFaltaMedida.length} dia(s) com litragem final = 0,000</strong></p>`;
                 html += `<p><em>Ação necessária: Lançar a medida do tanque para estes dias.</em></p>`;
                 html += `</div>`;
             }
             
             // Painel de alertas - Perdas Críticas
-            if (alertasCriticos.length > 0) {
+            if (estatisticas.alertasCriticos.length > 0) {
                 html += `<div class="alerta-panel critico">`;
                 html += `<h4><i class="fas fa-exclamation-triangle"></i> PERDAS CRÍTICAS (> 2.000 L)</h4>`;
-                html += `<p><strong>${alertasCriticos.length} dia(s) com perda crítica</strong></p>`;
+                html += `<p><strong>${estatisticas.alertasCriticos.length} dia(s) com perda crítica</strong></p>`;
                 html += `<ul>`;
-                alertasCriticos.forEach(a => {
+                estatisticas.alertasCriticos.forEach(a => {
                     html += `<li><strong>${a.data}</strong>: ${formatNumber(a.perda)} L de perda</li>`;
                 });
                 html += `</ul>`;
@@ -1076,31 +1219,31 @@
                 html += `</div>`;
             }
             
-            // Estatísticas
+            // Estatísticas do produto
             html += `<div class="estatisticas">`;
             html += `
                 <div class="estatistica-item">
-                    <div class="estatistica-valor">${dailyData.length}</div>
+                    <div class="estatistica-valor">${estatisticas.totalDias}</div>
                     <div class="estatistica-label">Dias Analisados</div>
                 </div>
                 <div class="estatistica-item">
-                    <div class="estatistica-valor ${totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}">
-                        ${formatNumber(totalDiferenca)}
+                    <div class="estatistica-valor ${estatisticas.totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}">
+                        ${formatNumber(estatisticas.totalDiferenca)}
                     </div>
                     <div class="estatistica-label">Diferença Total (L)</div>
                 </div>
                 <div class="estatistica-item">
-                    <div class="estatistica-valor falta-medida-alerta">${diasFaltaMedida}</div>
+                    <div class="estatistica-valor falta-medida-alerta">${estatisticas.diasFaltaMedida}</div>
                     <div class="estatistica-label">Falta Medida</div>
                 </div>
                 <div class="estatistica-item">
-                    <div class="estatistica-valor vermelho-forte">${diasCriticos}</div>
+                    <div class="estatistica-valor vermelho-forte">${estatisticas.diasCriticos}</div>
                     <div class="estatistica-label">Dias Críticos</div>
                 </div>
             `;
             html += `</div>`;
             
-            // Tabela de dados
+            // Tabela de dados do produto
             html += `<table>`;
             html += `
                 <thead>
@@ -1116,7 +1259,6 @@
                         <th>Tanque</th>
                         <th>Diferença</th>
                         <th>Acum.</th>
-                        <th>Dif.Acum</th>
                         <th>Tipo</th>
                         <th>Observações</th>
                     </tr>
@@ -1125,7 +1267,7 @@
             `;
             
             // Adiciona cada linha de dados
-            dailyData.forEach(d => {
+            dados.forEach(d => {
                 const classeLitragemFinal = d.faltaMedida ? 'falta-medida-alerta' : '';
                 
                 html += `<tr>`;
@@ -1140,58 +1282,55 @@
                 html += `<td>${formatNumber(d.saidaTanque)}</td>`;
                 html += `<td class="${d.cor}">${formatNumber(d.diferenca)}</td>`;
                 html += `<td>${formatNumber(d.acumulado)}</td>`;
-                html += `<td>${formatNumber(d.difAcum)}</td>`;
                 html += `<td class="${d.cor}"><strong>${d.tipo}</strong></td>`;
                 html += `<td style="text-align: left; font-size: 10px;">${d.status}</td>`;
                 html += `</tr>`;
             });
             
-            // Linha de totais
+            // Linha de totais do produto
             html += `<tr class="total-row">`;
             html += `<td><strong>TOTAIS</strong></td>`;
             html += `<td colspan="2"></td>`;
-            html += `<td><strong>${formatNumber(totalEntradas)}</strong></td>`;
+            html += `<td><strong>${formatNumber(estatisticas.totalEntradas)}</strong></td>`;
             html += `<td></td>`;
             html += `<td colspan="2"></td>`;
-            html += `<td><strong>${formatNumber(totalSaidaBomba)}</strong></td>`;
-            html += `<td><strong>${formatNumber(totalSaidaTanque)}</strong></td>`;
-            html += `<td class="${totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}"><strong>${formatNumber(totalDiferenca)}</strong></td>`;
-            html += `<td colspan="4"></td>`;
+            html += `<td><strong>${formatNumber(estatisticas.totalSaidaBomba)}</strong></td>`;
+            html += `<td><strong>${formatNumber(estatisticas.totalSaidaTanque)}</strong></td>`;
+            html += `<td class="${estatisticas.totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}">
+                        <strong>${formatNumber(estatisticas.totalDiferenca)}</strong>
+                     </td>`;
+            html += `<td colspan="3"></td>`;
             html += `</tr>`;
             
             html += `</tbody></table>`;
             
-            // Resumo final
-            html += `<div class="info-combustivel" style="margin-top: 20px;">`;
-            html += `<h4><i class="fas fa-chart-bar"></i> RESUMO FINAL</h4>`;
-            html += `<p><strong>Diferença Total do Período:</strong> `;
-            if (totalDiferenca > 0) {
-                html += `<span class="verde-forte" style="padding: 2px 5px;">SOBRA de ${formatNumber(totalDiferenca)} L</span>`;
-            } else if (totalDiferenca < 0) {
-                html += `<span class="vermelho-forte" style="padding: 2px 5px;">PERDA de ${formatNumber(Math.abs(totalDiferenca))} L</span>`;
+            // Resumo final do produto
+            html += `<div class="info-combustivel" style="margin-top: 15px; background-color: #f0f7ff; border-left: 3px solid #3498db;">`;
+            html += `<h4><i class="fas fa-chart-bar"></i> RESUMO DO PRODUTO</h4>`;
+            html += `<p><strong>Diferença Total:</strong> `;
+            if (estatisticas.totalDiferenca > 0) {
+                html += `<span class="verde-forte" style="padding: 2px 5px;">SOBRA de ${formatNumber(estatisticas.totalDiferenca)} L</span>`;
+            } else if (estatisticas.totalDiferenca < 0) {
+                html += `<span class="vermelho-forte" style="padding: 2px 5px;">PERDA de ${formatNumber(Math.abs(estatisticas.totalDiferenca))} L</span>`;
             } else {
                 html += `<span>Sem diferença</span>`;
             }
             html += `</p>`;
             
-            html += `<p><strong>Interpretação das Cores:</strong> `;
-            html += `<span class="verde-forte" style="padding: 2px 5px;">VERDE = SOBRA</span> | `;
-            html += `<span class="vermelho-forte" style="padding: 2px 5px;">VERMELHO = PERDA</span> | `;
-            html += `<span class="falta-medida-alerta" style="padding: 2px 5px;">AZUL = FALTA MEDIDA</span></p>`;
+            html += `<p><strong>Perda Total:</strong> ${formatNumber(estatisticas.totalPerda)} L | `;
+            html += `<strong>Sobra Total:</strong> ${formatNumber(estatisticas.totalSobra)} L</p>`;
             
-            if (diasFaltaMedida > 0) {
-                html += `<p><strong>Atenção:</strong> ${diasFaltaMedida} dia(s) sem lançamento de medida do tanque.</p>`;
+            if (estatisticas.diasFaltaMedida > 0) {
+                html += `<p><strong>Atenção:</strong> ${estatisticas.diasFaltaMedida} dia(s) sem lançamento de medida do tanque.</p>`;
             }
+            html += `</div>`;
             
             html += `</div>`;
             
-            // Atualiza o container
-            tabelaContainer.innerHTML = html;
-            
-            console.log('Processamento concluído com sucesso!');
+            return html;
         }
 
-        // Funções auxiliares (mantidas do código anterior que funcionava)
+        // Funções auxiliares
         function parseNumber(valor) {
             if (!valor || valor === '0,000' || valor === '0.000' || valor === '0') return 0;
             let texto = valor.toString().trim();
@@ -1209,19 +1348,18 @@
         function clearData() {
             document.getElementById('data-input').value = '';
             document.getElementById('tabela-container').innerHTML = '';
-            dailyData = [];
-            empresaInfo = {};
+            allProductsData = [];
         }
 
         function filterResults() {
             const input = document.getElementById('search-input').value.toLowerCase();
-            const empresas = document.querySelectorAll('.empresa-section h3');
+            const produtos = document.querySelectorAll('.empresa-section h3');
             
-            empresas.forEach(empresaHeader => {
-                const empresa = empresaHeader.textContent.toLowerCase();
-                const empresaSection = empresaHeader.closest('.empresa-section');
-                if (empresaSection) {
-                    empresaSection.style.display = empresa.includes(input) ? '' : 'none';
+            produtos.forEach(produtoHeader => {
+                const produto = produtoHeader.textContent.toLowerCase();
+                const produtoSection = produtoHeader.closest('.empresa-section');
+                if (produtoSection) {
+                    produtoSection.style.display = produto.includes(input) ? '' : 'none';
                 }
             });
         }
@@ -1235,31 +1373,39 @@
         }
 
         function exportData() {
-            if (dailyData.length === 0) {
+            if (allProductsData.length === 0) {
                 alert('Não há dados para exportar! Analise os dados primeiro.');
                 return;
             }
             
             let texto = `RELATÓRIO DE ANÁLISE DE PERDAS - REDE DOM PEDRO\n`;
             texto += `==================================================\n\n`;
-            texto += `Empresa: ${empresaInfo.nome || 'Não identificada'}\n`;
-            texto += `Período: ${empresaInfo.periodo || 'Não informado'}\n`;
-            texto += `Data da análise: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
             
-            texto += `DETALHAMENTO DIÁRIO:\n`;
-            texto += `-------------------\n`;
-            texto += `Data       | Lit.Final | Bomba     | Tanque    | Diferença | Tipo\n`;
-            texto += `--------------------------------------------------------------\n`;
-            
-            dailyData.forEach(d => {
-                texto += `${d.data} | ${formatNumber(d.litragemFinal).padStart(9)} | ${formatNumber(d.saidaBomba).padStart(9)} | ${formatNumber(d.saidaTanque).padStart(9)} | ${formatNumber(d.diferenca).padStart(9)} | ${d.tipo}\n`;
+            allProductsData.forEach((produto, index) => {
+                texto += `PRODUTO ${index + 1}: ${produto.nome}\n`;
+                texto += `Dias analisados: ${produto.estatisticas.totalDias}\n`;
+                texto += `Diferença total: ${formatNumber(produto.estatisticas.totalDiferenca)} L\n`;
+                texto += `Perda total: ${formatNumber(produto.estatisticas.totalPerda)} L\n`;
+                texto += `Sobra total: ${formatNumber(produto.estatisticas.totalSobra)} L\n`;
+                texto += `Dias sem medida: ${produto.estatisticas.diasFaltaMedida}\n`;
+                texto += `Dias críticos: ${produto.estatisticas.diasCriticos}\n\n`;
+                
+                texto += `DETALHAMENTO DIÁRIO:\n`;
+                texto += `Data       | Bomba     | Tanque    | Diferença | Tipo\n`;
+                texto += `---------------------------------------------------\n`;
+                
+                produto.dados.forEach(d => {
+                    texto += `${d.data} | ${formatNumber(d.saidaBomba).padStart(9)} | ${formatNumber(d.saidaTanque).padStart(9)} | ${formatNumber(d.diferenca).padStart(9)} | ${d.tipo}\n`;
+                });
+                
+                texto += `\n${'='.repeat(80)}\n\n`;
             });
             
             const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Analise_Perdas_${(empresaInfo.nome || 'Empresa').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+            a.download = `Analise_Perdas_Multiplos_Produtos_${new Date().toISOString().split('T')[0]}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
