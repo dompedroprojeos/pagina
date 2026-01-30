@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador NF Prodac vs AutoSystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .creator-header {
+            background: linear-gradient(135deg, #1a5f7a 0%, #2a8cb5 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .creator-info {
+            font-weight: 600;
+        }
+        
+        .creator-year {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a5f7a 0%, #2a8cb5 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #1a5f7a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        
+        textarea:focus {
+            border-color: #2a8cb5;
+            outline: none;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .info-box ul {
+            margin: 5px 0 0 15px;
+        }
+        
+        .actions {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .process-btn {
+            background: linear-gradient(135deg, #38a3a5 0%, #57cc99 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .process-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(86, 204, 153, 0.3);
+        }
+        
+        .results-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .total-prodac { color: #38a3a5; }
+        .total-autosystem { color: #57cc99; }
+        .total-diff { color: #e63946; }
+        
+        .inconsistencies-box {
+            background: #fff0f0;
+            border: 2px solid #ffcccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .inconsistencies-box h3 {
+            color: #e63946;
+            margin-bottom: 15px;
+        }
+        
+        .inconsistency-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nf-item {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #e63946;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a5f7a;
+            border-bottom: 2px solid #eee;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tbody tr:hover {
+            background: #f8faff;
+        }
+        
+        .value-cell {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .total-row {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #1a5f7a;
+        }
+        
+        .total-row td {
+            padding: 15px 12px;
+        }
+        
+        .export-btn {
+            background: #2a8cb5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .export-btn:hover {
+            background: #1a5f7a;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .no-results i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #1a5f7a 0%, #2a8cb5 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .footer-text h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .footer-text p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .character-container {
+            flex: 0 0 auto;
+        }
+
+     .character {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden; /* ESSENCIAL para cortar a imagem no círculo */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border: 5px solid white;
+}
+
+.character-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ajusta a imagem para preencher sem distorcer */
+    object-position: center; /* Centraliza o foco da imagem */
+}
+
+        .copyright {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .summary-box {
+            background: #e8f4fc;
+            border: 2px solid #c3e6ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box h3 {
+            color: #1a5f7a;
+            margin-bottom: 15px;
+        }
+
+        .summary-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #2a8cb5;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .total-value-prodac { color: #38a3a5; }
+        .total-value-autosystem { color: #57cc99; }
+        .total-value-diff { color: #e63946; }
+
+        .details-toggle {
+            background: #f8f9fa;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #1a5f7a;
+            font-weight: 600;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .details-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .mismatch-row {
+            background-color: #fff8f8 !important;
+        }
+
+        .missing-prodac-row {
+            background-color: #f8fff8 !important;
+        }
+
+        .missing-autosystem-row {
+            background-color: #fff8f8 !important;
+        }
+
+        .correct-row {
+            background-color: #f8fff8 !important;
+        }
+
+        .tax-row {
+            background-color: #fff8e1 !important;
+        }
+
+        .tax-info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .status-ok {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .status-warning {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .status-error {
+            color: #e63946;
+            font-weight: bold;
+        }
+
+        .tax-details {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Modal de bloqueio */
+        .block-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .block-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+
+        .block-content h2 {
+            color: #e63946;
+            margin-bottom: 15px;
+        }
+
+        .block-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            background: #2a8cb5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .warning-text {
+            color: #e63946;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal de bloqueio -->
+    <div id="blockModal" class="block-modal">
+        <div class="block-content">
+            <h2>⚠️ ACESSO BLOQUEADO</h2>
+            <p class="warning-text">O uso do DevTools (F12) não é permitido nesta aplicação!</p>
+            <p>Esta ferramenta é para uso exclusivo da equipe autorizada.</p>
+            <p style="font-size: 12px; margin-top: 15px; color: #888;">
+                Sistema desenvolvido por Waldeci Ramos © 2026
+            </p>
+            <button class="close-modal" onclick="closeBlockModal()">ENTENDI</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="creator-header">
+            <div class="creator-info">🛠️ SISTEMA DESENVOLVIDO POR WALDECI RAMOS</div>
+            <div class="creator-year">© 2026 - TODOS OS DIREITOS RESERVADOS</div>
+        </div>
+        
+        <header>
+            <h1>Comparador de Notas Fiscais - Prodac vs AutoSystem</h1>
+            <p>Compare números de NF e valores - Gere relatório de inconsistências</p>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <div class="section-title">
+                    <span style="color: #38a3a5;">●</span>
+                    <h2>Dados Prodac</h2>
+                </div>
+                <textarea id="prodacData" placeholder="Cole os dados do Prodac aqui... Exemplo:
+Número Nota	Dt.Escritur.	Série	SubSér	CFOP	Terceiro	UF	Espécie	Desdob	Valor Contábil
+0003914939	04/10/2024	1     	0     	2652  	34.274.233/0065-69	SP	NF-E 	1	25.857,50
+0003914942	04/10/2024	1     	0     	2652  	34.274.233/0065-69	SP	NF-E 	1	26.483,00"></textarea>
+                <div class="info-box">
+                    <strong>Formato esperado:</strong>
+                    <ul>
+                        <li>Formato tabulado com <strong>Número Nota</strong> e <strong>Valor Contábil</strong></li>
+                        <li>Extrai todos os campos: NF, Data, CFOP, Terceiro, etc.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <div class="section-title">
+                    <span style="color: #57cc99;">●</span>
+                    <h2>Dados AutoSystem</h2>
+                </div>
+                <textarea id="autosystemData" placeholder="Cole os dados do AutoSystem aqui... Exemplo:
+Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI	Vl. Sub. ST
+04/10/2024	PETROBRAS DISTRIBUIDORA	3914939	27101259	061	GASOLINA COMUM C	25.857,50	0,00	0,00	0,00	0,00	0,00
+04/10/2024	PETROBRAS DISTRIBUIDORA	3914942	27101259	061	GASOLINA COMUM C ADIT PETROBRAS GRID	26.483,00	0,00	0,00	0,00	0,00	0,00"></textarea>
+                <div class="info-box">
+                    <strong>Importante:</strong>
+                    <ul>
+                        <li>O AutoSystem tem os impostos separados</li>
+                        <li>Será somado: <strong>Valor + Vl. Sub. ST</strong></li>
+                        <li>Esta soma será comparada com o Valor Contábil do Prodac</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button id="processBtn" class="process-btn">Comparar Notas</button>
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2 style="color: #1a5f7a;">Resultados da Comparação</h2>
+                <button id="exportBtn" class="export-btn">Exportar Relatório</button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value total-prodac" id="totalProdac">0</div>
+                    <div class="stat-label">Notas no Prodac</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value total-autosystem" id="totalAutosystem">0</div>
+                    <div class="stat-label">Notas no AutoSystem</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value total-diff" id="totalDiff">0</div>
+                    <div class="stat-label">Inconsistências Reais</div>
+                </div>
+            </div>
+
+            <div id="summaryContainer">
+                <!-- Resumo será inserido aqui -->
+            </div>
+            
+            <div id="inconsistenciesContainer">
+                <!-- Conteúdo será inserido aqui -->
+            </div>
+            
+            <div id="noInconsistencies" class="no-results" style="display: none;">
+                <i>✓</i>
+                <h3>Nenhuma inconsistência encontrada!</h3>
+                <p>Todas as notas estão consistentes entre os sistemas.</p>
+            </div>
+
+            <div id="allNotesContainer">
+                <!-- Todas as notas serão exibidas aqui -->
+            </div>
+        </div>
+        
+        <div id="noData" class="no-results">
+            <i>📋</i>
+            <h3>Cole os dados para começar</h3>
+            <p>Cole os dados do Prodac e AutoSystem nos campos acima e clique em "Comparar Notas"</p>
+        </div>
+        
+      <footer>
+    <div class="footer-content">
+        <div class="footer-text">
+            <h3>Sistema de Comparação NF - Prodac vs AutoSystem</h3>
+            <p>Ferramenta desenvolvida para auditoria fiscal e controle contábil.</p>
+            <p>Identifica inconsistências entre sistemas de maneira rápida e eficiente.</p>
+        </div>
+        <div class="character-container">
+            <!-- Imagem do cabeçalho dentro do círculo -->
+            <div class="character">
+                <img src="cabecalho.png" alt="Personagem" class="character-img">
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <p>© 2026 - Desenvolvido por Waldeci Ramos | Versão 1.0 | Todos os direitos reservados</p>
+        <p>Esta ferramenta é para uso exclusivo da equipe autorizada.</p>
+    </div>
+</footer>
+    </div>
+    
+    <script>
+        // ==============================
+        // PROTEÇÃO CONTRA DEVTOOLS E DIREITO
+        // ==============================
+        
+        // Bloquear botão direito do mouse
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showBlockModal("O botão direito está desabilitado nesta aplicação.");
+            return false;
+        });
+        
+        // Bloquear teclas de atalho (F12, Ctrl+Shift+I, Ctrl+Shift+J, etc.)
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                showBlockModal("O uso do DevTools (F12) não é permitido.");
+                return false;
+            }
+            // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                showBlockModal("O uso do DevTools não é permitido.");
+                return false;
+            }
+            // Ctrl+Shift+J
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                showBlockModal("O uso do Console não é permitido.");
+                return false;
+            }
+            // Ctrl+U
+            if (e.ctrlKey && e.keyCode === 85) {
+                showBlockModal("A visualização do código fonte não é permitida.");
+                return false;
+            }
+        });
+        
+        // Detectar abertura do DevTools (método moderno)
+        let devToolsOpen = false;
+        const threshold = 160; // Diferença entre inner e outer width/height
+        
+        function checkDevTools() {
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            
+            if ((widthThreshold || heightThreshold) && !devToolsOpen) {
+                devToolsOpen = true;
+                showBlockModal("DevTools detectado! Esta ferramenta é protegida.");
+            }
+        }
+        
+        // Verificar periodicamente
+        setInterval(checkDevTools, 1000);
+        
+        // Modal de bloqueio
+        function showBlockModal(message) {
+            const modal = document.getElementById('blockModal');
+            if (message) {
+                modal.querySelector('.warning-text').textContent = message;
+            }
+            modal.style.display = 'flex';
+        }
+        
+        function closeBlockModal() {
+            document.getElementById('blockModal').style.display = 'none';
+        }
+        
+        // ==============================
+        // FUNCIONALIDADE DO COMPARADOR
+        // ==============================
+        
+        // Quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botão de processar
+            document.getElementById('processBtn').addEventListener('click', processComparison);
+            
+            // Botão de exportar
+            document.getElementById('exportBtn').addEventListener('click', exportReport);
+            
+            // Verificar se há dados para habilitar botão
+            ['prodacData', 'autosystemData'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    const prodacData = document.getElementById('prodacData').value.trim();
+                    const autosystemData = document.getElementById('autosystemData').value.trim();
+                    document.getElementById('processBtn').disabled = !(prodacData || autosystemData);
+                });
+            });
+            
+            // Fechar modal com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.keyCode === 27) { // ESC
+                    closeBlockModal();
+                }
+            });
+        });
+        
+        // Processar comparação
+        function processComparison() {
+            const prodacData = document.getElementById('prodacData').value;
+            const autosystemData = document.getElementById('autosystemData').value;
+            
+            // Extrair dados
+            const prodacNotes = extractProdacNotes(prodacData);
+            const autosystemNotes = extractAutosystemNotes(autosystemData);
+            
+            // Comparar
+            const comparison = compareNotes(prodacNotes, autosystemNotes);
+            
+            // Mostrar resultados
+            displayResults(comparison);
+            
+            // Mostrar seção de resultados
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('noData').style.display = 'none';
+        }
+        
+        // Extrair notas do Prodac - formato tabulado
+        function extractProdacNotes(text) {
+            const notes = {};
+            if (!text.trim()) return notes;
+            
+            const lines = text.split('\n');
+            let headers = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Verificar se é linha de cabeçalho
+                if (line.toLowerCase().includes('número') || line.toLowerCase().includes('nota')) {
+                    // Extrair cabeçalhos - assumindo que estão separados por tabulação
+                    headers = line.split('\t');
+                    if (headers.length < 2) {
+                        // Tentar separar por múltiplos espaços
+                        headers = line.split(/\s{2,}/);
+                    }
+                    continue;
+                }
+                
+                // Processar linha de dados
+                // Tentar separar por tabulação primeiro
+                let fields = line.split('\t');
+                if (fields.length < 2) {
+                    // Tentar separar por múltiplos espaços
+                    fields = line.split(/\s{2,}/);
+                }
+                
+                if (fields.length < 2) continue;
+                
+                // Primeiro campo deve ser o número da nota
+                let nfNumber = fields[0].trim();
+                if (!nfNumber.match(/^\d+$/)) continue;
+                
+                // Remover zeros à esquerda para comparação
+                const nfNumberClean = nfNumber.replace(/^0+/, '');
+                
+                // Procurar valor contábil - geralmente o último campo
+                let value = 0;
+                for (let j = fields.length - 1; j >= 0; j--) {
+                    const field = fields[j].trim();
+                    // Procurar padrão de valor monetário brasileiro
+                    const valueMatch = field.match(/[\d.,]+/);
+                    if (valueMatch) {
+                        const valueStr = valueMatch[0];
+                        try {
+                            value = parseFloat(valueStr.replace(/\./g, '').replace(',', '.'));
+                            break;
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                }
+                
+                // Extrair outros campos
+                let date = '';
+                let cfop = '';
+                let terceiro = '';
+                let uf = '';
+                let especie = '';
+                let desdob = '';
+                let serie = '';
+                let subs = '';
+                
+                // Tentar encontrar data
+                for (const field of fields) {
+                    if (field.match(/\d{2}\/\d{2}\/\d{4}/)) {
+                        date = field.trim();
+                        break;
+                    }
+                }
+                
+                // Tentar encontrar CFOP (4 dígitos)
+                for (const field of fields) {
+                    if (field.match(/^\d{4}$/)) {
+                        cfop = field.trim();
+                        break;
+                    }
+                }
+                
+                // Se conseguiu extrair, adicionar
+                if (nfNumberClean && !isNaN(value) && value > 0) {
+                    notes[nfNumberClean] = {
+                        nfDisplay: nfNumber, // Com zeros
+                        nf: nfNumberClean,   // Sem zeros
+                        value: value,
+                        date: date,
+                        cfop: cfop,
+                        terceiro: fields.length > 5 ? fields[5].trim() : '',
+                        uf: fields.length > 6 ? fields[6].trim() : '',
+                        especie: fields.length > 7 ? fields[7].trim() : '',
+                        desdob: fields.length > 8 ? fields[8].trim() : '',
+                        serie: fields.length > 2 ? fields[2].trim() : '',
+                        subs: fields.length > 3 ? fields[3].trim() : '',
+                        rawLine: line
+                    };
+                }
+            }
+            
+            return notes;
+        }
+        
+        // Extrair notas do AutoSystem - formato tabulado
+        function extractAutosystemNotes(text) {
+            const notes = {};
+            if (!text.trim()) return notes;
+            
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Pular linha de cabeçalho
+                if (line.toLowerCase().includes('data') && line.toLowerCase().includes('nf')) {
+                    continue;
+                }
+                
+                // Tentar separar por tabulação
+                let fields = line.split('\t');
+                if (fields.length < 7) {
+                    // Tentar separar por múltiplos espaços
+                    fields = line.split(/\s{2,}/);
+                }
+                
+                if (fields.length < 7) continue;
+                
+                // O terceiro campo deve ser NF (índice 2)
+                let nfNumber = fields[2].trim();
+                if (!nfNumber.match(/^\d+$/)) continue;
+                
+                // Extrair valor da mercadoria (campo 6 - índice 6)
+                let valorMercadoria = 0;
+                if (fields[6] && fields[6].trim()) {
+                    try {
+                        const valorStr = fields[6].trim();
+                        valorMercadoria = parseFloat(valorStr.replace(/\./g, '').replace(',', '.'));
+                    } catch (e) {
+                        // Tentar em outro campo se não conseguir
+                    }
+                }
+                
+                // Extrair valor da substituição tributária (campo 12 - índice 11)
+                let valorSubST = 0;
+                if (fields.length > 11 && fields[11] && fields[11].trim()) {
+                    try {
+                        const subSTStr = fields[11].trim();
+                        valorSubST = parseFloat(subSTStr.replace(/\./g, '').replace(',', '.'));
+                    } catch (e) {
+                        // Se não conseguir, manter 0
+                    }
+                }
+                
+                // O valor total no AutoSystem é a soma: Valor + Vl. Sub. ST
+                const valorTotal = valorMercadoria + valorSubST;
+                
+                // Se conseguiu extrair, adicionar
+                if (nfNumber && !isNaN(valorTotal) && valorTotal > 0) {
+                    notes[nfNumber] = {
+                        nf: nfNumber,
+                        valorMercadoria: valorMercadoria,
+                        valorSubST: valorSubST,
+                        valorTotal: valorTotal,
+                        date: fields[0] ? fields[0].trim() : '',
+                        emitente: fields[1] ? fields[1].trim() : '',
+                        ncm: fields[3] ? fields[3].trim() : '',
+                        cst: fields[4] ? fields[4].trim() : '',
+                        descricao: fields[5] ? fields[5].trim() : '',
+                        rawLine: line
+                    };
+                }
+            }
+            
+            return notes;
+        }
+        
+        // Comparar as notas
+        function compareNotes(prodacNotes, autosystemNotes) {
+            const results = {
+                allNotes: {},
+                matchedNotes: [],
+                missingInProdac: [],
+                missingInAutosystem: [],
+                valueMismatches: [],
+                correctWithTax: [],
+                stats: {
+                    totalProdac: Object.keys(prodacNotes).length,
+                    totalAutosystem: Object.keys(autosystemNotes).length,
+                    totalMatched: 0,
+                    totalMissingInProdac: 0,
+                    totalMissingInAutosystem: 0,
+                    totalValueMismatches: 0,
+                    totalCorrectWithTax: 0,
+                    totalValueInconsistencies: 0,
+                    totalValueProdac: 0,
+                    totalValueAutosystem: 0
+                }
+            };
+            
+            // Calcular totais do Prodac
+            for (const nf in prodacNotes) {
+                results.stats.totalValueProdac += prodacNotes[nf].value;
+            }
+            
+            // Calcular totais do AutoSystem
+            for (const nf in autosystemNotes) {
+                results.stats.totalValueAutosystem += autosystemNotes[nf].valorTotal;
+            }
+            
+            // Primeiro, verificar notas no Prodac
+            for (const nf in prodacNotes) {
+                const prodacNote = prodacNotes[nf];
+                const autosystemNote = autosystemNotes[nf];
+                
+                results.allNotes[nf] = {
+                    nf: nf,
+                    nfDisplay: prodacNote.nfDisplay,
+                    prodacValue: prodacNote.value,
+                    autosystemValorMercadoria: autosystemNote ? autosystemNote.valorMercadoria : null,
+                    autosystemValorSubST: autosystemNote ? autosystemNote.valorSubST : null,
+                    autosystemValorTotal: autosystemNote ? autosystemNote.valorTotal : null,
+                    date: prodacNote.date,
+                    cfop: prodacNote.cfop,
+                    terceiro: prodacNote.terceiro,
+                    uf: prodacNote.uf,
+                    especie: prodacNote.especie,
+                    desdob: prodacNote.desdob,
+                    serie: prodacNote.serie,
+                    subs: prodacNote.subs,
+                    matched: !!autosystemNote,
+                    status: 'unknown'
+                };
+                
+                if (autosystemNote) {
+                    const difference = Math.abs(prodacNote.value - autosystemNote.valorTotal);
+                    
+                    // Verificar se é apenas diferença de impostos
+                    if (difference <= 0.01) {
+                        // Valores exatamente iguais
+                        results.matchedNotes.push({
+                            nf: nf,
+                            nfDisplay: prodacNote.nfDisplay,
+                            prodacValue: prodacNote.value,
+                            autosystemValorMercadoria: autosystemNote.valorMercadoria,
+                            autosystemValorSubST: autosystemNote.valorSubST,
+                            autosystemValorTotal: autosystemNote.valorTotal,
+                            date: prodacNote.date,
+                            cfop: prodacNote.cfop
+                        });
+                        results.stats.totalMatched++;
+                        results.allNotes[nf].status = 'ok_exact';
+                    } else if (Math.abs(prodacNote.value - (autosystemNote.valorMercadoria + autosystemNote.valorSubST)) <= 0.01) {
+                        // Valores correspondem considerando impostos separados
+                        results.correctWithTax.push({
+                            nf: nf,
+                            nfDisplay: prodacNote.nfDisplay,
+                            prodacValue: prodacNote.value,
+                            autosystemValorMercadoria: autosystemNote.valorMercadoria,
+                            autosystemValorSubST: autosystemNote.valorSubST,
+                            autosystemValorTotal: autosystemNote.valorTotal,
+                            date: prodacNote.date,
+                            cfop: prodacNote.cfop,
+                            difference: difference
+                        });
+                        results.stats.totalCorrectWithTax++;
+                        results.allNotes[nf].status = 'ok_with_tax';
+                    } else {
+                        // Valores realmente diferentes
+                        results.valueMismatches.push({
+                            nf: nf,
+                            nfDisplay: prodacNote.nfDisplay,
+                            type: 'value_mismatch',
+                            prodacValue: prodacNote.value,
+                            autosystemValorMercadoria: autosystemNote.valorMercadoria,
+                            autosystemValorSubST: autosystemNote.valorSubST,
+                            autosystemValorTotal: autosystemNote.valorTotal,
+                            date: prodacNote.date,
+                            cfop: prodacNote.cfop,
+                            difference: difference,
+                            percDiff: ((difference / prodacNote.value) * 100).toFixed(2)
+                        });
+                        results.stats.totalValueMismatches++;
+                        results.stats.totalValueInconsistencies += difference;
+                        results.allNotes[nf].status = 'mismatch';
+                    }
+                } else {
+                    // Nota só no Prodac
+                    results.missingInAutosystem.push({
+                        nf: nf,
+                        nfDisplay: prodacNote.nfDisplay,
+                        type: 'missing_autosystem',
+                        prodacValue: prodacNote.value,
+                        autosystemValorTotal: null,
+                        date: prodacNote.date,
+                        cfop: prodacNote.cfop
+                    });
+                    results.stats.totalMissingInAutosystem++;
+                    results.stats.totalValueInconsistencies += prodacNote.value;
+                    results.allNotes[nf].status = 'missing_autosystem';
+                }
+            }
+            
+            // Verificar notas só no AutoSystem
+            for (const nf in autosystemNotes) {
+                if (!prodacNotes[nf]) {
+                    results.missingInProdac.push({
+                        nf: nf,
+                        nfDisplay: nf.padStart(10, '0'),
+                        type: 'missing_prodac',
+                        prodacValue: null,
+                        autosystemValorMercadoria: autosystemNotes[nf].valorMercadoria,
+                        autosystemValorSubST: autosystemNotes[nf].valorSubST,
+                        autosystemValorTotal: autosystemNotes[nf].valorTotal,
+                        date: autosystemNotes[nf].date || '',
+                        cfop: ''
+                    });
+                    results.stats.totalMissingInProdac++;
+                    results.stats.totalValueInconsistencies += autosystemNotes[nf].valorTotal;
+                }
+            }
+            
+            // Calcular totais de inconsistências REAIS (apenas as que não são apenas impostos separados)
+            results.stats.totalRealInconsistencies = 
+                results.stats.totalMissingInProdac + 
+                results.stats.totalMissingInAutosystem + 
+                results.stats.totalValueMismatches;
+            
+            // Ordenar resultados
+            results.missingInProdac.sort((a, b) => parseInt(a.nf) - parseInt(b.nf));
+            results.missingInAutosystem.sort((a, b) => parseInt(a.nf) - parseInt(b.nf));
+            results.valueMismatches.sort((a, b) => parseInt(a.nf) - parseInt(b.nf));
+            results.correctWithTax.sort((a, b) => parseInt(a.nf) - parseInt(b.nf));
+            
+            return results;
+        }
+        
+        // Exibir resultados
+        function displayResults(results) {
+            // Atualizar estatísticas
+            document.getElementById('totalProdac').textContent = results.stats.totalProdac;
+            document.getElementById('totalAutosystem').textContent = results.stats.totalAutosystem;
+            document.getElementById('totalDiff').textContent = results.stats.totalRealInconsistencies;
+            
+            const container = document.getElementById('inconsistenciesContainer');
+            const summaryContainer = document.getElementById('summaryContainer');
+            const allNotesContainer = document.getElementById('allNotesContainer');
+            
+            // Mostrar resumo
+            let summaryHtml = `
+                <div class="summary-box">
+                    <h3>Resumo da Comparação</h3>
+                    <div class="summary-content">
+                        <div class="summary-item">
+                            <div class="summary-value total-value-prodac">${formatCurrency(results.stats.totalValueProdac)}</div>
+                            <div class="summary-label">Valor Total Prodac</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value total-value-autosystem">${formatCurrency(results.stats.totalValueAutosystem)}</div>
+                            <div class="summary-label">Valor Total AutoSystem (com impostos)</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" style="color: #ff9800;">${formatCurrency(Math.abs(results.stats.totalValueProdac - results.stats.totalValueAutosystem))}</div>
+                            <div class="summary-label">Diferença Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value total-value-diff">${formatCurrency(results.stats.totalValueInconsistencies)}</div>
+                            <div class="summary-label">Valor em Inconsistências Reais</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 16px; font-weight: bold; color: #4caf50;">${results.stats.totalMatched}</div>
+                            <div style="font-size: 12px; color: #666;">Notas Iguais</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 16px; font-weight: bold; color: #2196f3;">${results.stats.totalCorrectWithTax}</div>
+                            <div style="font-size: 12px; color: #666;">OK (impostos sep.)</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 16px; font-weight: bold; color: #f44336;">${results.stats.totalValueMismatches}</div>
+                            <div style="font-size: 12px; color: #666;">Valores Incorretos</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 16px; font-weight: bold; color: #9c27b0;">${results.stats.totalMissingInProdac + results.stats.totalMissingInAutosystem}</div>
+                            <div style="font-size: 12px; color: #666;">Notas Faltando</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            summaryContainer.innerHTML = summaryHtml;
+            
+            if (results.stats.totalRealInconsistencies === 0) {
+                document.getElementById('noInconsistencies').style.display = 'block';
+                container.innerHTML = '';
+                
+                // Mostrar todas as notas (todas correspondem)
+                showAllNotes(results);
+                return;
+            }
+            
+            document.getElementById('noInconsistencies').style.display = 'none';
+            
+            // Criar relatório de inconsistências REAIS
+            let html = '';
+            
+            // Notas com valores realmente diferentes (não apenas impostos)
+            if (results.valueMismatches.length > 0) {
+                html += `
+                    <div class="inconsistencies-box">
+                        <h3>Notas com valores INCORRETOS (${results.valueMismatches.length}):</h3>
+                        <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                            Estas notas têm valores que NÃO correspondem mesmo considerando os impostos separados
+                        </p>
+                        
+                        <div class="inconsistency-list">
+                `;
+                
+                // Lista de números de NF
+                for (const inc of results.valueMismatches) {
+                    html += `<div class="nf-item">${inc.nfDisplay}</div>`;
+                }
+                
+                html += `
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Número Nota</th>
+                                    <th>Dt. Escritur.</th>
+                                    <th>CFOP</th>
+                                    <th>Valor Prodac</th>
+                                    <th>Valor AutoSystem</th>
+                                    <th>Diferença</th>
+                                    <th>% Dif.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Tabela com detalhes
+                for (const inc of results.valueMismatches) {
+                    const autoSystemDetail = inc.autosystemValorSubST > 0 ? 
+                        `${formatCurrency(inc.autosystemValorMercadoria)} + ${formatCurrency(inc.autosystemValorSubST)}` : 
+                        formatCurrency(inc.autosystemValorTotal);
+                    
+                    html += `
+                        <tr class="mismatch-row">
+                            <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
+                            <td>${inc.date || ' '}</td>
+                            <td><strong>${inc.cfop || '2652'}</strong></td>
+                            <td class="value-cell" style="color: #38a3a5;">${formatCurrency(inc.prodacValue)}</td>
+                            <td class="value-cell" style="color: #57cc99;">
+                                ${autoSystemDetail}
+                                ${inc.autosystemValorSubST > 0 ? '<div class="tax-details">(mercadoria + ST)</div>' : ''}
+                            </td>
+                            <td class="value-cell" style="color: #e63946; font-weight: bold;">${formatCurrency(inc.difference)}</td>
+                            <td class="value-cell" style="color: #ff9800;">${inc.percDiff}%</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                        </tbody>
+                    </table>
+                </div>
+                `;
+            }
+            
+            // Notas faltando no AutoSystem
+            if (results.missingInAutosystem.length > 0) {
+                html += `
+                    <div class="inconsistencies-box">
+                        <h3>Notas presentes apenas no Prodac (${results.missingInAutosystem.length}):</h3>
+                        
+                        <div class="inconsistency-list">
+                `;
+                
+                // Lista de números de NF
+                for (const inc of results.missingInAutosystem) {
+                    html += `<div class="nf-item">${inc.nfDisplay}</div>`;
+                }
+                
+                html += `
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Número Nota</th>
+                                    <th>Dt. Escritur.</th>
+                                    <th>CFOP</th>
+                                    <th>Valor Contábil</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Tabela com detalhes
+                for (const inc of results.missingInAutosystem) {
+                    html += `
+                        <tr class="missing-autosystem-row">
+                            <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
+                            <td>${inc.date || ' '}</td>
+                            <td><strong>${inc.cfop || '2652'}</strong></td>
+                            <td class="value-cell" style="color: #e63946;">${formatCurrency(inc.prodacValue)}</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            // Notas faltando no Prodac
+            if (results.missingInProdac.length > 0) {
+                html += `
+                    <div class="inconsistencies-box">
+                        <h3>Notas presentes apenas no AutoSystem (${results.missingInProdac.length}):</h3>
+                        
+                        <div class="inconsistency-list">
+                `;
+                
+                // Lista de números de NF
+                for (const inc of results.missingInProdac) {
+                    html += `<div class="nf-item">${inc.nfDisplay}</div>`;
+                }
+                
+                html += `
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Número Nota</th>
+                                    <th>Data</th>
+                                    <th>Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Tabela com detalhes
+                for (const inc of results.missingInProdac) {
+                    const autoSystemDetail = inc.autosystemValorSubST > 0 ? 
+                        `${formatCurrency(inc.autosystemValorMercadoria)} + ${formatCurrency(inc.autosystemValorSubST)}` : 
+                        formatCurrency(inc.autosystemValorTotal);
+                    
+                    html += `
+                        <tr class="missing-prodac-row">
+                            <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
+                            <td>${inc.date || ' '}</td>
+                            <td class="value-cell" style="color: #57cc99;">
+                                ${autoSystemDetail}
+                                ${inc.autosystemValorSubST > 0 ? '<div class="tax-details">(mercadoria + ST)</div>' : ''}
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            // Notas que estão corretas considerando impostos separados
+            if (results.correctWithTax.length > 0) {
+                html += `
+                    <div style="background: #e8f7f0; border: 2px solid #c3e6d5; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="color: #2196f3;">Notas corretas (impostos separados) (${results.correctWithTax.length}):</h3>
+                        <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                            Estas notas estão corretas: Valor Prodac = Valor AutoSystem + Substituição Tributária
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                `;
+                
+                // Lista de números de NF
+                for (const inc of results.correctWithTax) {
+                    html += `<div style="background: white; padding: 8px; border-radius: 4px; border-left: 4px solid #2196f3; font-family: monospace; font-weight: 600; text-align: center;">${inc.nfDisplay}</div>`;
+                }
+                
+                html += `
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 15px;">
+                            <button class="details-toggle" onclick="toggleTaxNotes()">
+                                <span>▼</span> Mostrar Detalhes das Notas com Impostos
+                            </button>
+                            <div class="details-content" id="taxNotesContent" style="display: none;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Número Nota</th>
+                                            <th>Dt. Escritur.</th>
+                                            <th>CFOP</th>
+                                            <th>Valor Prodac</th>
+                                            <th>Valor Mercadoria</th>
+                                            <th>Vl. Sub. ST</th>
+                                            <th>Valor Total</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                // Tabela com detalhes
+                for (const inc of results.correctWithTax) {
+                    const calculo = `${formatCurrency(inc.autosystemValorMercadoria)} + ${formatCurrency(inc.autosystemValorSubST)} = ${formatCurrency(inc.autosystemValorTotal)}`;
+                    
+                    html += `
+                        <tr class="tax-row">
+                            <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
+                            <td>${inc.date || ' '}</td>
+                            <td><strong>${inc.cfop || '2652'}</strong></td>
+                            <td class="value-cell" style="color: #38a3a5;">${formatCurrency(inc.prodacValue)}</td>
+                            <td class="value-cell">${formatCurrency(inc.autosystemValorMercadoria)}</td>
+                            <td class="value-cell" style="color: #ff9800;">${formatCurrency(inc.autosystemValorSubST)}</td>
+                            <td class="value-cell" style="color: #57cc99;">${formatCurrency(inc.autosystemValorTotal)}</td>
+                            <td><span class="status-ok">✓ OK</span></td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Mostrar todas as notas
+            showAllNotes(results);
+        }
+        
+        // Alternar visibilidade das notas com impostos
+        function toggleTaxNotes() {
+            const content = document.getElementById('taxNotesContent');
+            const toggle = document.querySelector('#taxNotesContent').closest('.details-content').previousElementSibling.querySelector('span');
+            
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'block';
+                toggle.textContent = '▲';
+            }
+        }
+        
+        // Mostrar todas as notas
+        function showAllNotes(results) {
+            const allNotesContainer = document.getElementById('allNotesContainer');
+            
+            let html = `
+                <button class="details-toggle" onclick="toggleAllNotes()">
+                    <span>▼</span> Mostrar Todas as Notas (${results.stats.totalProdac + results.stats.totalMissingInProdac})
+                </button>
+                <div class="details-content" id="allNotesContent">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Número Nota</th>
+                                <th>Dt. Escritur.</th>
+                                <th>Série</th>
+                                <th>SubSér</th>
+                                <th>CFOP</th>
+                                <th>Terceiro</th>
+                                <th>UF</th>
+                                <th>Espécie</th>
+                                <th>Desdob</th>
+                                <th>Valor Prodac</th>
+                                <th>Valor AutoSystem</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Ordenar notas por número
+            const allNfs = Object.keys(results.allNotes).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            // Adicionar notas do Prodac
+            for (const nf of allNfs) {
+                const note = results.allNotes[nf];
+                let status = '';
+                let rowClass = '';
+                let autoSystemDisplay = '-';
+                
+                if (note.status === 'missing_autosystem') {
+                    status = '<span class="status-error">Falta no AutoSystem</span>';
+                    rowClass = 'missing-autosystem-row';
+                } else if (note.status === 'ok_exact') {
+                    status = '<span class="status-ok">✓ OK</span>';
+                    autoSystemDisplay = formatCurrency(note.autosystemValorTotal);
+                } else if (note.status === 'ok_with_tax') {
+                    status = '<span class="status-ok">✓ OK (impostos)</span>';
+                    rowClass = 'tax-row';
+                    autoSystemDisplay = `
+                        ${formatCurrency(note.autosystemValorMercadoria)}<br>
+                        <span style="color: #ff9800; font-size: 11px;">+ ST: ${formatCurrency(note.autosystemValorSubST)}</span>
+                    `;
+                } else if (note.status === 'mismatch') {
+                    status = '<span class="status-error">Valor Incorreto</span>';
+                    rowClass = 'mismatch-row';
+                    autoSystemDisplay = `
+                        ${formatCurrency(note.autosystemValorMercadoria)}<br>
+                        <span style="color: #ff9800; font-size: 11px;">+ ST: ${formatCurrency(note.autosystemValorSubST)}</span>
+                    `;
+                }
+                
+                html += `
+                    <tr class="${rowClass}">
+                        <td style="font-family: monospace; font-weight: bold;">${note.nfDisplay}</td>
+                        <td>${note.date || ' '}</td>
+                        <td>${note.serie || '1'}</td>
+                        <td>${note.subs || '0'}</td>
+                        <td><strong>${note.cfop || '2652'}</strong></td>
+                        <td>${note.terceiro || '34.274.233/0065-69'}</td>
+                        <td>${note.uf || 'SP'}</td>
+                        <td>${note.especie || 'NF-E'}</td>
+                        <td>${note.desdob || '1'}</td>
+                        <td class="value-cell">${formatCurrency(note.prodacValue)}</td>
+                        <td class="value-cell">${autoSystemDisplay}</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }
+            
+            // Adicionar notas que só existem no AutoSystem
+            for (const inc of results.missingInProdac) {
+                const autoSystemDisplay = inc.autosystemValorSubST > 0 ? 
+                    `${formatCurrency(inc.autosystemValorMercadoria)}<br><span style="color: #ff9800; font-size: 11px;">+ ST: ${formatCurrency(inc.autosystemValorSubST)}</span>` : 
+                    formatCurrency(inc.autosystemValorTotal);
+                
+                html += `
+                    <tr class="missing-prodac-row">
+                        <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
+                        <td>${inc.date || ' '}</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td><strong>?</strong></td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>NF-E</td>
+                        <td>1</td>
+                        <td class="value-cell">-</td>
+                        <td class="value-cell" style="color: #57cc99;">${autoSystemDisplay}</td>
+                        <td><span class="status-error">Falta no Prodac</span></td>
+                    </tr>
+                `;
+            }
+            
+            // Total
+            html += `
+                        <tr class="total-row">
+                            <td colspan="9" style="text-align: right; font-weight: bold;">TOTAL:</td>
+                            <td class="value-cell" style="color: #38a3a5;">${formatCurrency(results.stats.totalValueProdac)}</td>
+                            <td class="value-cell" style="color: #57cc99;">${formatCurrency(results.stats.totalValueAutosystem)}</td>
+                            <td class="value-cell" style="color: #ff9800; font-weight: bold;">Dif: ${formatCurrency(Math.abs(results.stats.totalValueProdac - results.stats.totalValueAutosystem))}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            `;
+            
+            allNotesContainer.innerHTML = html;
+        }
+        
+        // Alternar visibilidade de todas as notas
+        function toggleAllNotes() {
+            const content = document.getElementById('allNotesContent');
+            const toggle = document.querySelector('#allNotesContent').closest('.details-content').previousElementSibling.querySelector('span');
+            
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'block';
+                toggle.textContent = '▲';
+            }
+        }
+        
+        // Exportar relatório
+        function exportReport() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Relatório de Comparação NF - Prodac vs AutoSystem\n\n";
+            csvContent += `Data da análise: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+            
+            // Adicionar resumo
+            csvContent += "RESUMO\n";
+            csvContent += `Total de notas no Prodac: ${document.getElementById('totalProdac').textContent}\n`;
+            csvContent += `Total de notas no AutoSystem: ${document.getElementById('totalAutosystem').textContent}\n`;
+            csvContent += `Total de inconsistências reais: ${document.getElementById('totalDiff').textContent}\n\n`;
+            
+            // Pegar resumo dos valores
+            const summaryValues = document.querySelectorAll('.summary-value');
+            if (summaryValues.length >= 4) {
+                csvContent += `Valor Total Prodac: ${summaryValues[0].textContent}\n`;
+                csvContent += `Valor Total AutoSystem (com impostos): ${summaryValues[1].textContent}\n`;
+                csvContent += `Diferença Total: ${summaryValues[2].textContent}\n`;
+                csvContent += `Valor em Inconsistências Reais: ${summaryValues[3].textContent}\n\n`;
+            }
+            
+            // Exportar todas as inconsistências reais
+            const inconsistencyTables = document.querySelectorAll('.inconsistencies-box table');
+            
+            inconsistencyTables.forEach((table) => {
+                const title = table.closest('.inconsistencies-box').querySelector('h3').textContent;
+                csvContent += `${title}\n`;
+                
+                // Cabeçalhos
+                const headers = [];
+                table.querySelectorAll('thead th').forEach(th => {
+                    headers.push(th.textContent.trim());
+                });
+                csvContent += headers.join(";") + "\n";
+                
+                // Dados
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    if (!row.classList.contains('total-row')) {
+                        const rowData = [];
+                        row.querySelectorAll('td').forEach(td => {
+                            // Remover HTML para texto simples
+                            let text = td.textContent.trim();
+                            // Remover quebras de linha extras
+                            text = text.replace(/\n/g, ' ');
+                            rowData.push(text);
+                        });
+                        csvContent += rowData.join(";") + "\n";
+                    }
+                });
+                
+                csvContent += "\n";
+            });
+            
+            // Baixar arquivo
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `comparacao_nf_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Formatar valor monetário
+        function formatCurrency(value) {
+            if (value === null || value === undefined || isNaN(value)) return '';
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+    </script>
+</body>
+</html>
