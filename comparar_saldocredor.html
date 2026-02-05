@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador ICMS - Visualizar e Comparar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2d5aa0;
+            --secondary-color: #1a365d;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --error-color: #f56565;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .app-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .app-title {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .table-custom {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table-custom thead th {
+            background: #2d5aa0;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+        
+        .table-custom tbody tr {
+            transition: all 0.2s;
+        }
+        
+        .table-custom tbody tr:hover {
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+        
+        .table-custom tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-color: #e2e8f0;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-match {
+            background: var(--success-color);
+        }
+        
+        .status-mismatch {
+            background: var(--warning-color);
+        }
+        
+        .status-notfound {
+            background: var(--error-color);
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(45, 90, 160, 0.3);
+        }
+        
+        .btn-success-custom {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.3);
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #4a5568;
+            font-weight: 600;
+            padding: 10px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background: transparent;
+        }
+        
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 15px;
+        }
+        
+        .form-control-custom {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 12px;
+        }
+        
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+        
+        .highlight-row {
+            background: #fffacd !important;
+            animation: highlight 2s ease-in-out;
+        }
+        
+        @keyframes highlight {
+            0% { background: #e6fffa; }
+            100% { background: #fffacd; }
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+            z-index: 10;
+        }
+        
+        .search-input {
+            padding-left: 45px;
+        }
+        
+        .value-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .comparison-result {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .comparison-match {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .comparison-mismatch {
+            background: #feebc8;
+            color: #744210;
+        }
+        
+        .comparison-notfound {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .scrollable-table {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .icon-large {
+            font-size: 4rem;
+            opacity: 0.5;
+        }
+        
+        .debug-info {
+            background: #f7fafc;
+            border-left: 4px solid #4299e1;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Cabeçalho -->
+            <div class="app-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="app-title">
+                            <i class="bi bi-clipboard-data me-3"></i>
+                            Validador ICMS - Visualizar e Comparar
+                        </h1>
+                        <div class="app-subtitle">
+                            Veja todos os CNPJs da planilha e depois compare com os PDFs
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid py-4">
+                <!-- Abas -->
+                <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">
+                            <i class="bi bi-table me-2"></i>1. Visualizar Planilha
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button" role="tab">
+                            <i class="bi bi-file-pdf me-2"></i>2. Comparar com PDFs
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">
+                            <i class="bi bi-clipboard-check me-2"></i>3. Resultados
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="mainTabsContent">
+                    <!-- PASSO 1: Visualizar Planilha -->
+                    <div class="tab-pane fade show active" id="step1" role="tabpanel">
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">
+                                            <i class="bi bi-upload me-2"></i>Carregar Planilha Completa
+                                        </h5>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Mês da planilha</label>
+                                                <select id="planilhaMes" class="form-select form-control-custom">
+                                                    <option value="1">Janeiro</option>
+                                                    <option value="2">Fevereiro</option>
+                                                    <option value="3">Março</option>
+                                                    <option value="4">Abril</option>
+                                                    <option value="5">Maio</option>
+                                                    <option value="6">Junho</option>
+                                                    <option value="7">Julho</option>
+                                                    <option value="8">Agosto</option>
+                                                    <option value="9">Setembro</option>
+                                                    <option value="10">Outubro</option>
+                                                    <option value="11" selected>Novembro</option>
+                                                    <option value="12">Dezembro</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Ano</label>
+                                                <input type="number" id="planilhaAno" class="form-control form-control-custom" value="2024" min="2000" max="2100">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Nome da unidade (opcional)</label>
+                                                <input type="text" id="filterUnidade" class="form-control form-control-custom" placeholder="Filtrar por unidade...">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label">Cole aqui TODOS os dados da planilha</label>
+                                            <textarea id="planilhaDados" class="form-control form-control-custom" rows="12" placeholder="Cole aqui todos os dados da sua planilha..."></textarea>
+                                            <small class="text-muted">Cole exatamente como está na planilha original, com todas as unidades e CNPJs</small>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-3">
+                                            <button id="carregarPlanilha" class="btn btn-primary-custom flex-grow-1">
+                                                <i class="bi bi-eye me-2"></i>Visualizar Planilha
+                                            </button>
+                                            <button class="btn btn-outline-primary" onclick="carregarExemploPlanilha()">
+                                                <i class="bi bi-magic me-2"></i>Exemplo
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="planilhaStatus" class="mt-3 d-none">
+                                            <div class="alert alert-custom alert-success">
+                                                <i class="bi bi-check-circle me-2"></i>
+                                                <strong>Planilha carregada com sucesso!</strong> 
+                                                <span id="planilhaCount">0</span> unidades encontradas
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="debugInfo" class="debug-info d-none">
+                                            <!-- Informações de debug serão mostradas aqui -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tabela de Visualização -->
+                                <div id="tabelaPlanilha" class="d-none">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="card-title mb-0">
+                                                    <i class="bi bi-table me-2"></i>Valores de <span id="mesTitulo">Novembro</span>/<span id="anoTitulo">2024</span>
+                                                </h5>
+                                                <div class="d-flex gap-2">
+                                                    <div class="search-container">
+                                                        <i class="bi bi-search search-icon"></i>
+                                                        <input type="text" id="searchCNPJ" class="form-control form-control-custom search-input" placeholder="Buscar CNPJ ou unidade...">
+                                                    </div>
+                                                    <button id="exportPlanilha" class="btn btn-success-custom">
+                                                        <i class="bi bi-file-earmark-excel me-2"></i>Exportar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="scrollable-table">
+                                                <table class="table table-custom">
+                                                    <thead>
+                                                        <tr>
+                                                            <th width="30%">Unidade</th>
+                                                            <th width="25%">CNPJ</th>
+                                                            <th width="15%">Estado</th>
+                                                            <th width="15%">ICMS a Pagar</th>
+                                                            <th width="15%">Crédito Inicial</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tabelaDados">
+                                                        <!-- Dados serão inseridos aqui -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                            <div class="mt-3 text-end">
+                                                <button class="btn btn-primary-custom" onclick="document.getElementById('step2-tab').click()">
+                                                    Ir para Comparação <i class="bi bi-arrow-right ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 2: Comparar com PDFs -->
+                    <div class="tab-pane fade" id="step2" role="tabpanel">
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">
+                                            <i class="bi bi-file-pdf me-2"></i>Comparar com Dados dos PDFs
+                                        </h5>
+                                        
+                                        <div class="alert alert-custom alert-info mb-4">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Primeiro carregue a planilha no Passo 1</strong> para poder comparar com os PDFs
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label">Cole os dados extraídos dos PDFs</label>
+                                            <textarea id="pdfDados" class="form-control form-control-custom" rows="8" placeholder="Cole aqui os dados dos PDFs..."></textarea>
+                                            <small class="text-muted">Formato: Arquivo[TAB]Caminho[TAB]CNPJ[TAB]Período[TAB]Saldo Credor</small>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <button class="btn btn-outline-primary w-100 mb-2" onclick="carregarExemploPDFs()">
+                                                <i class="bi bi-magic me-2"></i>Carregar Dados de Exemplo dos PDFs
+                                            </button>
+                                        </div>
+                                        
+                                        <button id="compararDados" class="btn btn-success-custom w-100" disabled>
+                                            <i class="bi bi-play-circle me-2"></i>Comparar com Planilha
+                                        </button>
+                                        
+                                        <div id="comparacaoStatus" class="mt-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 3: Resultados -->
+                    <div class="tab-pane fade" id="step3" role="tabpanel">
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <!-- Estatísticas -->
+                                <div id="statsSection" class="mb-4 d-none">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <div class="stats-card">
+                                                <div class="stats-number" id="totalComparados">0</div>
+                                                <div class="stats-label">CNPJs Comparados</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <div class="stats-card" style="background: linear-gradient(135deg, #48bb78, #38a169);">
+                                                <div class="stats-number" id="matchCount">0</div>
+                                                <div class="stats-label">✓ Valores Iguais</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <div class="stats-card" style="background: linear-gradient(135deg, #ed8936, #dd6b20);">
+                                                <div class="stats-number" id="mismatchCount">0</div>
+                                                <div class="stats-label">⚠️ Valores Diferentes</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <div class="stats-card" style="background: linear-gradient(135deg, #f56565, #c53030);">
+                                                <div class="stats-number" id="notfoundCount">0</div>
+                                                <div class="stats-label">✗ Não Encontrados</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Resultados da Comparação -->
+                                <div id="resultadosComparacao" class="d-none">
+                                    <div class="card border-0 shadow-sm mb-4">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="card-title mb-0">
+                                                    <i class="bi bi-clipboard-check me-2"></i>Resultados da Comparação
+                                                </h5>
+                                                <div class="d-flex gap-2">
+                                                    <input type="text" id="filterResultados" class="form-control form-control-custom" placeholder="Filtrar resultados..." style="width: 250px;">
+                                                    <select id="filterStatusResultados" class="form-select form-control-custom" style="width: 180px;">
+                                                        <option value="all">Todos os status</option>
+                                                        <option value="match">✓ Apenas iguais</option>
+                                                        <option value="mismatch">⚠️ Apenas diferentes</option>
+                                                        <option value="notfound">✗ Apenas não encontrados</option>
+                                                    </select>
+                                                    <button id="exportResultados" class="btn btn-primary-custom">
+                                                        <i class="bi bi-download me-2"></i>Exportar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="scrollable-table">
+                                                <table class="table table-custom">
+                                                    <thead>
+                                                        <tr>
+                                                            <th width="20%">Arquivo PDF</th>
+                                                            <th width="20%">CNPJ</th>
+                                                            <th width="15%">Período</th>
+                                                            <th width="15%">Valor no PDF</th>
+                                                            <th width="15%">Valor na Planilha</th>
+                                                            <th width="15%">Resultado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tabelaResultados">
+                                                        <!-- Resultados serão inseridos aqui -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mensagem inicial -->
+                                <div id="mensagemInicial" class="text-center text-muted py-5">
+                                    <i class="bi bi-clipboard-check icon-large"></i>
+                                    <h5 class="mt-3">Complete os passos anteriores para ver os resultados</h5>
+                                    <p class="text-muted">Carregue a planilha e os dados dos PDFs para realizar a comparação</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Estado global
+        let planilhaCompleta = []; // Array com todos os dados da planilha
+        let pdfsData = []; // Array com dados dos PDFs
+        let resultadosComparacao = []; // Resultados da comparação
+        let mesPlanilha = 11; // Default: Novembro
+        let anoPlanilha = 2024;
+
+        // Elementos DOM
+        const carregarPlanilhaBtn = document.getElementById('carregarPlanilha');
+        const compararDadosBtn = document.getElementById('compararDados');
+        const exportPlanilhaBtn = document.getElementById('exportPlanilha');
+        const exportResultadosBtn = document.getElementById('exportResultados');
+
+        // Função para formatar valor brasileiro para número
+        function parseValorBrasileiro(valorStr) {
+            if (!valorStr || valorStr === '' || valorStr === '0' || valorStr === '---' || valorStr === 'R$' || valorStr === 'R$ ') return 0;
+            
+            // Remover "R$", espaços, e converter para número
+            let limpo = valorStr.toString()
+                .replace('R$', '')
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/\s+/g, '')
+                .trim();
+            
+            // Se terminar com "-" é negativo
+            const isNegativo = limpo.endsWith('-');
+            if (isNegativo) {
+                limpo = limpo.replace('-', '');
+            }
+            
+            const valor = parseFloat(limpo);
+            return isNaN(valor) ? 0 : (isNegativo ? -valor : valor);
+        }
+
+        // Função para formatar número para valor brasileiro
+        function formatarValorBrasileiro(valor) {
+            if (valor === null || valor === undefined || valor === 0) return '0,00';
+            return valor.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Função para nome do mês
+        function getNomeMes(numero) {
+            const meses = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+            return meses[numero - 1] || numero;
+        }
+
+        // Carregar exemplo de planilha
+        function carregarExemploPlanilha() {
+            const exemplo = `ALIANÇA	20.415.295/0012-27	MG	---		677952,22			705654,52	R$ 677.952,22		116601,83	R$ 705.654,52		762896,79	R$ 116.601,83		790232,53	R$ 762.896,79		815663,56	-R$ 790.232,53		R$ 844.514,67	-R$ 815.663,56	R$ 844.514,67	R$ 873.210,93	R$ 0,00	R$ 873.210,93	R$ 896.950,75	R$ 0,00	R$ 896.950,75	R$ 921.204,94	R$ 0,00	R$ 921.204,94	R$ 937.081,89	R$ 0,00	R$ 937.081,89	R$ 952.862,81	R$ 0,00
+APARECIDA	20.415.295/0030-09	SP	---		414165,32			417509,46	R$ 414.165,32		419793,59	R$ 417.509,46		411966,7	R$ 419.793,59		403610,48	R$ 411.966,70		395106,97	-R$ 403.610,48		R$ 388.496,85	-R$ 395.106,97	R$ 388.496,85	R$ 383.375,56	R$ 0,00	R$ 383.375,56	R$ 377.910,24	R$ 0,00	R$ 377.910,24	R$ 370.110,79	R$ 0,00	R$ 370.110,79	R$ 365.679,34	R$ 0,00	R$ 365.679,34	R$ 359.658,85	R$ 0,00
+BUENO BRANDÃO	20.415.295/0054-86	MG	---		34282,32			35658,01	R$ 34.282,32		37554,9	R$ 35.658,01		39732,68	R$ 37.554,90		41608,36	R$ 39.732,68		43594,59	-R$ 41.608,36		R$ 45.359,82	-R$ 43.594,59	R$ 45.359,82	R$ 48.379,50	R$ 0,00	R$ 48.379,50	R$ 49.767,66	R$ 0,00	49767,66	R$ 51.642,50	R$ 0,00	51642,5	R$ 52.930,72	R$ 0,00	R$ 52.930,72	R$ 54.009,88	R$ 0,00
+CAMANDUCAIA URBANO 1	20.415.295/0053-03	MG	---		34585,4			36208,19	R$ 34.585,40		37637,02	R$ 36.208,19		39190,83	R$ 37.637,02		41278,17	R$ 39.190,83		43140,36	-R$ 41.278,17		R$ 45.076,32	-R$ 43.140,36	R$ 45.076,32	R$ 47.157,81	R$ 0,00	R$ 47.157,81	R$ 49.029,94	R$ 0,00	R$ 49.029,94	R$ 51.151,70	R$ 0,00	51151,7	R$ 52.765,60	R$ 0,00	R$ 52.765,60	R$ 54.376,23	R$ 0,00
+CAMANDUCAIA URBANO 2	20.415.295/0052-14	MG	---		71481,16			75569,35	R$ 71.481,16		79921,21	R$ 75.569,35		85224,78	R$ 79.921,21		90571,41	R$ 85.224,78		95565,45	-R$ 90.571,41		R$ 101.639,38	-R$ 95.565,45	R$ 101.639,38	R$ 106.432,77	R$ 0,00	R$ 106.432,77	R$ 111.565,56	R$ 0,00	R$ 111.565,56	R$ 116.268,68	R$ 0,00	116268,68	R$ 120.181,57	R$ 0,00	R$ 120.181,57	R$ 124.143,39	R$ 0,00`;
+            
+            document.getElementById('planilhaDados').value = exemplo;
+            alert('Exemplo de planilha carregado! Agora clique em "Visualizar Planilha".');
+        }
+
+        // Carregar exemplo de PDFs
+        function carregarExemploPDFs() {
+            const exemplo = `630 A.pdf	Aparecida/630 A.pdf	20.415.295/0030-09	11/2024	370110,79
+654 A.pdf	Bueno Brandão/654 A.pdf	20.415.295/0054-86	11/2024	51642,5
+653 A.pdf	Camanducaia Urbano 1/653 A.pdf	20.415.295/0053-03	11/2024	51151,7
+652 A.pdf	Camanducaia Urbano 2/652 A.pdf	20.415.295/0052-14	11/2024	116268,68`;
+            
+            document.getElementById('pdfDados').value = exemplo;
+            
+            // Se já tem planilha carregada, habilitar comparação
+            if (planilhaCompleta.length > 0) {
+                compararDadosBtn.disabled = false;
+                document.getElementById('comparacaoStatus').innerHTML = `
+                    <div class="alert alert-custom alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Dados de exemplo carregados. Clique em "Comparar com Planilha".
+                    </div>
+                `;
+            } else {
+                alert('Dados de exemplo carregados! Agora carregue a planilha no Passo 1.');
+            }
+        }
+
+        // Processar planilha completa - CORRIGIDO
+        function processarPlanilhaCompleta(dados) {
+            planilhaCompleta = [];
+            const linhas = dados.split('\n').filter(linha => linha.trim());
+            
+            // Verificar se a primeira linha tem cabeçalho com meses
+            const primeiraLinha = linhas[0];
+            let startIndex = 0;
+            
+            if (primeiraLinha.includes('Janeiro') || primeiraLinha.includes('Crédito Inicial') || primeiraLinha.includes('Unidade')) {
+                // Encontrar onde começam os dados reais
+                for (let i = 0; i < linhas.length; i++) {
+                    const linha = linhas[i];
+                    const colunas = linha.split('\t');
+                    // Verifica se é uma linha de dados (tem pelo menos CNPJ ou unidade)
+                    if (colunas.length >= 2 && 
+                        (colunas[0] && !colunas[0].includes('Janeiro') && 
+                         !colunas[0].includes('Fevereiro') && 
+                         !colunas[0].includes('Unidade'))) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Usar apenas as linhas de dados
+            const linhasDados = linhas.slice(startIndex);
+            
+            // Debug: mostrar estrutura
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = `<strong>Debug Info:</strong> ${linhasDados.length} linhas de dados encontradas`;
+            debugInfo.classList.remove('d-none');
+            
+            // Calcular posição da coluna para o mês selecionado
+            // Estrutura da planilha: Unidade, CNPJ, Estado, ICMS a pagar, depois para cada mês: Crédito Inicial, Saldo a transportar, Divergência
+            const colunaBase = 4; // Após: Unidade (0), CNPJ (1), Estado (2), ICMS a pagar (3)
+            
+            linhasDados.forEach((linha, index) => {
+                // Dividir por tabs
+                const colunas = linha.split('\t');
+                
+                if (colunas.length >= 3) {
+                    const unidade = colunas[0]?.trim() || '';
+                    let cnpj = '';
+                    let estado = '';
+                    let icms_pagar = '';
+                    let credito_inicial = 0;
+                    
+                    // Procurar CNPJ (pode estar na coluna 1 ou 2)
+                    for (let i = 1; i < Math.min(4, colunas.length); i++) {
+                        const texto = colunas[i]?.trim() || '';
+                        if (texto && (texto.match(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/) || 
+                                     texto.match(/\d{14}/) || 
+                                     texto.match(/\d{2}\.\d{3}\.\d{3}\/\d{3}-\d{2}/))) {
+                            cnpj = texto;
+                            
+                            // Estado geralmente é a próxima coluna ou a anterior
+                            if (i + 1 < colunas.length) {
+                                const possivelEstado = colunas[i + 1]?.trim();
+                                if (possivelEstado && possivelEstado.match(/^[A-Z]{2}$/)) {
+                                    estado = possivelEstado;
+                                }
+                            }
+                            if (i - 1 >= 0 && !estado) {
+                                const possivelEstado = colunas[i - 1]?.trim();
+                                if (possivelEstado && possivelEstado.match(/^[A-Z]{2}$/)) {
+                                    estado = possivelEstado;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    
+                    // Procurar ICMS a pagar (geralmente na coluna 3)
+                    for (let i = 2; i < Math.min(5, colunas.length); i++) {
+                        const texto = colunas[i]?.trim();
+                        if (texto && (texto === 'SIM' || texto === '---' || texto.includes('R$') || texto === 'NÃO')) {
+                            icms_pagar = texto;
+                            break;
+                        }
+                    }
+                    
+                    // Calcular posição do mês
+                    // Cada mês ocupa 3 colunas: Crédito Inicial, Saldo a transportar, Divergência
+                    // Janeiro começa na coluna 4, Fevereiro na 7, Março na 10, etc.
+                    const colunaMes = colunaBase + ((mesPlanilha - 1) * 3);
+                    
+                    if (colunas.length > colunaMes) {
+                        // Primeiro tentar pegar o valor exato da coluna
+                        let valorStr = colunas[colunaMes]?.trim();
+                        
+                        // Se não encontrou, procurar nas colunas próximas
+                        if (!valorStr || valorStr === '' || valorStr === '---' || valorStr === 'R$') {
+                            // Procurar em um raio de 3 colunas
+                            for (let offset = -3; offset <= 3; offset++) {
+                                const testIndex = colunaMes + offset;
+                                if (testIndex >= 0 && testIndex < colunas.length) {
+                                    const testValor = colunas[testIndex]?.trim();
+                                    if (testValor && testValor !== '' && testValor !== '---' && 
+                                        testValor !== 'R$' && testValor !== 'R$ 0,00' && testValor !== '0,00') {
+                                        valorStr = testValor;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        credito_inicial = parseValorBrasileiro(valorStr);
+                        
+                        // Se ainda não encontrou, fazer uma busca mais ampla
+                        if (credito_inicial === 0) {
+                            // Procurar qualquer valor numérico nas colunas do mês selecionado
+                            for (let offset = 0; offset < 3; offset++) {
+                                const testIndex = colunaMes + offset;
+                                if (testIndex < colunas.length) {
+                                    const valor = parseValorBrasileiro(colunas[testIndex]);
+                                    if (valor !== 0) {
+                                        credito_inicial = valor;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (unidade && cnpj) {
+                        planilhaCompleta.push({
+                            unidade,
+                            cnpj,
+                            estado,
+                            icms_pagar,
+                            credito_inicial,
+                            linha_original: linha,
+                            mes: mesPlanilha,
+                            ano: anoPlanilha
+                        });
+                    }
+                }
+            });
+            
+            if (planilhaCompleta.length === 0) {
+                throw new Error('Nenhum dado válido encontrado na planilha.');
+            }
+            
+            console.log(`Planilha processada: ${planilhaCompleta.length} unidades`);
+            console.log('Mês processado:', mesPlanilha);
+            console.log('Primeiros 3 registros:', planilhaCompleta.slice(0, 3));
+        }
+
+        // Carregar e processar planilha
+        carregarPlanilhaBtn.addEventListener('click', function() {
+            const dados = document.getElementById('planilhaDados').value.trim();
+            if (!dados) {
+                alert('Por favor, cole os dados da planilha.');
+                return;
+            }
+            
+            mesPlanilha = parseInt(document.getElementById('planilhaMes').value);
+            anoPlanilha = parseInt(document.getElementById('planilhaAno').value);
+            
+            try {
+                // Mostrar loading
+                carregarPlanilhaBtn.innerHTML = '<span class="loading"></span> Processando...';
+                carregarPlanilhaBtn.disabled = true;
+                
+                setTimeout(() => {
+                    processarPlanilhaCompleta(dados);
+                    
+                    // Atualizar interface
+                    document.getElementById('planilhaStatus').classList.remove('d-none');
+                    document.getElementById('planilhaCount').textContent = planilhaCompleta.length;
+                    document.getElementById('tabelaPlanilha').classList.remove('d-none');
+                    document.getElementById('mesTitulo').textContent = getNomeMes(mesPlanilha);
+                    document.getElementById('anoTitulo').textContent = anoPlanilha;
+                    
+                    // Renderizar tabela
+                    renderizarTabelaPlanilha();
+                    
+                    // Habilitar botão de comparação
+                    compararDadosBtn.disabled = false;
+                    
+                    // Restaurar botão
+                    carregarPlanilhaBtn.innerHTML = '<i class="bi bi-eye me-2"></i>Visualizar Planilha';
+                    carregarPlanilhaBtn.disabled = false;
+                    
+                    alert(`✅ Planilha carregada com sucesso!\n${planilhaCompleta.length} unidades encontradas\nMês: ${getNomeMes(mesPlanilha)}/${anoPlanilha}`);
+                    
+                }, 500);
+                
+            } catch (error) {
+                alert(`❌ Erro ao processar planilha: ${error.message}`);
+                console.error(error);
+                carregarPlanilhaBtn.innerHTML = '<i class="bi bi-eye me-2"></i>Visualizar Planilha';
+                carregarPlanilhaBtn.disabled = false;
+            }
+        });
+
+        // Renderizar tabela da planilha
+        function renderizarTabelaPlanilha() {
+            const tabela = document.getElementById('tabelaDados');
+            const searchTerm = document.getElementById('filterUnidade').value.toLowerCase();
+            const searchCNPJ = document.getElementById('searchCNPJ').value.toLowerCase();
+            
+            let html = '';
+            let count = 0;
+            
+            planilhaCompleta.forEach(item => {
+                // Aplicar filtros
+                if (searchTerm && !item.unidade.toLowerCase().includes(searchTerm) && 
+                    !item.cnpj.toLowerCase().includes(searchTerm)) {
+                    return;
+                }
+                
+                if (searchCNPJ && !item.unidade.toLowerCase().includes(searchCNPJ) && 
+                    !item.cnpj.toLowerCase().includes(searchCNPJ)) {
+                    return;
+                }
+                
+                count++;
+                
+                html += `
+                    <tr>
+                        <td><strong>${item.unidade}</strong></td>
+                        <td><code>${item.cnpj}</code></td>
+                        <td>${item.estado || '-'}</td>
+                        <td>${item.icms_pagar || '-'}</td>
+                        <td class="value-cell">R$ ${formatarValorBrasileiro(item.credito_inicial)}</td>
+                    </tr>
+                `;
+            });
+            
+            tabela.innerHTML = html || '<tr><td colspan="5" class="text-center">Nenhum dado encontrado</td></tr>';
+            
+            // Atualizar contador
+            document.getElementById('planilhaCount').textContent = count;
+        }
+
+        // Exportar planilha
+        exportPlanilhaBtn.addEventListener('click', function() {
+            if (planilhaCompleta.length === 0) {
+                alert('Nenhum dado para exportar.');
+                return;
+            }
+            
+            try {
+                const data = planilhaCompleta.map(item => ({
+                    'Unidade': item.unidade,
+                    'CNPJ': item.cnpj,
+                    'Estado': item.estado || '',
+                    'ICMS a Pagar': item.icms_pagar || '',
+                    'Crédito Inicial': item.credito_inicial,
+                    'Mês': `${getNomeMes(mesPlanilha)}/${anoPlanilha}`
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Planilha ICMS");
+                
+                const filename = `planilha_icms_${getNomeMes(mesPlanilha).substring(0,3).toLowerCase()}_${anoPlanilha}.xlsx`;
+                XLSX.writeFile(wb, filename);
+                
+            } catch (error) {
+                alert(`Erro ao exportar: ${error.message}`);
+            }
+        });
+
+        // Comparar com PDFs
+        compararDadosBtn.addEventListener('click', function() {
+            if (planilhaCompleta.length === 0) {
+                alert('Por favor, carregue primeiro a planilha no Passo 1.');
+                document.getElementById('step1-tab').click();
+                return;
+            }
+            
+            const dados = document.getElementById('pdfDados').value.trim();
+            if (!dados) {
+                alert('Por favor, cole os dados dos PDFs.');
+                return;
+            }
+            
+            try {
+                // Mostrar loading
+                compararDadosBtn.innerHTML = '<span class="loading"></span> Comparando...';
+                compararDadosBtn.disabled = true;
+                
+                setTimeout(() => {
+                    processarDadosPDFs(dados);
+                    realizarComparacao();
+                    atualizarEstatisticas();
+                    mostrarResultados();
+                    
+                    // Ir para aba de resultados
+                    document.getElementById('step3-tab').click();
+                    
+                    // Restaurar botão
+                    compararDadosBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Comparar com Planilha';
+                    compararDadosBtn.disabled = false;
+                    
+                }, 500);
+                
+            } catch (error) {
+                alert(`❌ Erro ao comparar dados: ${error.message}`);
+                console.error(error);
+                compararDadosBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Comparar com Planilha';
+                compararDadosBtn.disabled = false;
+            }
+        });
+
+        // Processar dados dos PDFs
+        function processarDadosPDFs(dados) {
+            pdfsData = [];
+            const linhas = dados.split('\n').filter(linha => linha.trim());
+            
+            linhas.forEach((linha) => {
+                const colunas = linha.split('\t');
+                
+                if (colunas.length >= 5) {
+                    const item = {
+                        arquivo: colunas[0]?.trim() || '',
+                        caminho: colunas[1]?.trim() || '',
+                        cnpj: colunas[2]?.trim() || '',
+                        periodo: colunas[3]?.trim() || '',
+                        saldo_credor: colunas[4]?.trim() || '',
+                        saldo_credor_valor: parseValorBrasileiro(colunas[4]?.trim())
+                    };
+                    
+                    pdfsData.push(item);
+                } else if (colunas.length >= 3) {
+                    const item = {
+                        arquivo: colunas[0]?.trim() || '',
+                        caminho: '',
+                        cnpj: colunas[1]?.trim() || '',
+                        periodo: colunas[2]?.trim() || '',
+                        saldo_credor: colunas[3]?.trim() || '',
+                        saldo_credor_valor: parseValorBrasileiro(colunas[3]?.trim())
+                    };
+                    
+                    pdfsData.push(item);
+                }
+            });
+        }
+
+        // Realizar comparação
+        function realizarComparacao() {
+            resultadosComparacao = [];
+            
+            // Criar mapa rápido de CNPJs da planilha
+            const planilhaMap = new Map();
+            planilhaCompleta.forEach(item => {
+                planilhaMap.set(item.cnpj, {
+                    unidade: item.unidade,
+                    credito_inicial: item.credito_inicial
+                });
+            });
+            
+            pdfsData.forEach(item => {
+                const resultado = {
+                    arquivo: item.arquivo,
+                    cnpj: item.cnpj,
+                    periodo: item.periodo,
+                    valor_pdf: item.saldo_credor_valor,
+                    valor_planilha: null,
+                    unidade: '',
+                    status: 'notfound',
+                    diferenca: 0,
+                    mensagem: 'CNPJ não encontrado na planilha'
+                };
+                
+                if (item.cnpj && planilhaMap.has(item.cnpj)) {
+                    const dadosPlanilha = planilhaMap.get(item.cnpj);
+                    resultado.valor_planilha = dadosPlanilha.credito_inicial;
+                    resultado.unidade = dadosPlanilha.unidade;
+                    
+                    // Comparar valores
+                    const diff = Math.abs(item.saldo_credor_valor - resultado.valor_planilha);
+                    
+                    if (diff < 0.01) {
+                        resultado.status = 'match';
+                        resultado.mensagem = 'Valores coincidem';
+                    } else {
+                        resultado.status = 'mismatch';
+                        resultado.diferenca = diff;
+                        resultado.mensagem = `Diferença: R$ ${formatarValorBrasileiro(diff)}`;
+                    }
+                }
+                
+                resultadosComparacao.push(resultado);
+            });
+        }
+
+        // Atualizar estatísticas
+        function atualizarEstatisticas() {
+            const match = resultadosComparacao.filter(r => r.status === 'match').length;
+            const mismatch = resultadosComparacao.filter(r => r.status === 'mismatch').length;
+            const notfound = resultadosComparacao.filter(r => r.status === 'notfound').length;
+            
+            document.getElementById('totalComparados').textContent = resultadosComparacao.length;
+            document.getElementById('matchCount').textContent = match;
+            document.getElementById('mismatchCount').textContent = mismatch;
+            document.getElementById('notfoundCount').textContent = notfound;
+            
+            // Mostrar seção de estatísticas
+            document.getElementById('statsSection').classList.remove('d-none');
+        }
+
+        // Mostrar resultados
+        function mostrarResultados() {
+            document.getElementById('resultadosComparacao').classList.remove('d-none');
+            document.getElementById('mensagemInicial').classList.add('d-none');
+            filtrarResultados();
+        }
+
+        // Filtrar resultados
+        function filtrarResultados() {
+            const searchTerm = document.getElementById('filterResultados').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatusResultados').value;
+            const tabela = document.getElementById('tabelaResultados');
+            
+            let html = '';
+            let count = 0;
+            
+            resultadosComparacao.forEach(item => {
+                // Aplicar filtros
+                if (searchTerm && 
+                    !item.arquivo.toLowerCase().includes(searchTerm) && 
+                    !item.cnpj.toLowerCase().includes(searchTerm) &&
+                    !item.unidade.toLowerCase().includes(searchTerm)) {
+                    return;
+                }
+                
+                if (statusFilter !== 'all' && item.status !== statusFilter) {
+                    return;
+                }
+                
+                count++;
+                
+                // Determinar classe do resultado
+                let resultadoClass = '';
+                let resultadoIcon = '';
+                switch (item.status) {
+                    case 'match':
+                        resultadoClass = 'comparison-match';
+                        resultadoIcon = 'bi-check-circle';
+                        break;
+                    case 'mismatch':
+                        resultadoClass = 'comparison-mismatch';
+                        resultadoIcon = 'bi-exclamation-triangle';
+                        break;
+                    case 'notfound':
+                        resultadoClass = 'comparison-notfound';
+                        resultadoIcon = 'bi-x-circle';
+                        break;
+                }
+                
+                html += `
+                    <tr class="${item.status === 'mismatch' ? 'highlight-row' : ''}">
+                        <td><strong>${item.arquivo}</strong><br><small>${item.unidade || ''}</small></td>
+                        <td><code>${item.cnpj}</code></td>
+                        <td>${item.periodo}</td>
+                        <td class="value-cell">R$ ${formatarValorBrasileiro(item.valor_pdf)}</td>
+                        <td class="value-cell">${item.valor_planilha !== null ? 'R$ ' + formatarValorBrasileiro(item.valor_planilha) : 'N/A'}</td>
+                        <td>
+                            <span class="comparison-result ${resultadoClass}">
+                                <i class="bi ${resultadoIcon} me-1"></i> ${item.mensagem}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tabela.innerHTML = html || '<tr><td colspan="6" class="text-center">Nenhum resultado encontrado</td></tr>';
+        }
+
+        // Exportar resultados
+        exportResultadosBtn.addEventListener('click', function() {
+            if (resultadosComparacao.length === 0) {
+                alert('Nenhum resultado para exportar.');
+                return;
+            }
+            
+            try {
+                const data = resultadosComparacao.map(item => ({
+                    'Arquivo PDF': item.arquivo,
+                    'Unidade': item.unidade || '',
+                    'CNPJ': item.cnpj,
+                    'Período': item.periodo,
+                    'Valor no PDF': item.valor_pdf,
+                    'Valor na Planilha': item.valor_planilha || '',
+                    'Diferença': item.diferenca || '',
+                    'Status': item.status === 'match' ? 'OK' : 
+                             item.status === 'mismatch' ? 'DIVERGÊNCIA' : 'NÃO ENCONTRADO',
+                    'Observação': item.mensagem
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Comparação ICMS");
+                
+                const filename = `comparacao_icms_${getNomeMes(mesPlanilha).substring(0,3).toLowerCase()}_${anoPlanilha}.xlsx`;
+                XLSX.writeFile(wb, filename);
+                
+            } catch (error) {
+                alert(`Erro ao exportar: ${error.message}`);
+            }
+        });
+
+        // Configurar listeners para filtros
+        document.getElementById('filterUnidade').addEventListener('input', renderizarTabelaPlanilha);
+        document.getElementById('searchCNPJ').addEventListener('input', renderizarTabelaPlanilha);
+        document.getElementById('filterResultados').addEventListener('input', filtrarResultados);
+        document.getElementById('filterStatusResultados').addEventListener('change', filtrarResultados);
+
+        // Inicialização
+        console.log('Validador ICMS iniciado');
+        
+        // Quando carregar planilha, atualizar status do botão de comparação
+        const pdfDadosTextarea = document.getElementById('pdfDados');
+        pdfDadosTextarea.addEventListener('input', function() {
+            if (planilhaCompleta.length > 0 && this.value.trim()) {
+                compararDadosBtn.disabled = false;
+            }
+        });
+        
+        // Carregar exemplo inicial
+        window.addEventListener('load', function() {
+            carregarExemploPlanilha();
+        });
+    </script>
+</body>
+</html>
