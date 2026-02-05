@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Específico - PDFs ICMS "Número A"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2d5aa0;
+            --secondary-color: #1a365d;
+            --accent-color: #4299e1;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --error-color: #f56565;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .app-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .app-title {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .app-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+        
+        .criteria-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .criteria-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .criteria-item i {
+            color: var(--primary-color);
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .folder-selector {
+            border: 3px dashed var(--accent-color);
+            background: rgba(66, 153, 225, 0.05);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .folder-selector:hover {
+            background: rgba(66, 153, 225, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(66, 153, 225, 0.2);
+        }
+        
+        .folder-icon {
+            font-size: 4.5rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .file-pattern {
+            background: #e6fffa;
+            color: #234e52;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin: 5px;
+            border: 2px solid #81e6d9;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-valid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-invalid {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .status-skipped {
+            background: #feebc8;
+            color: #744210;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .result-item:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .result-item.valid {
+            border-left: 5px solid var(--success-color);
+        }
+        
+        .result-item.invalid {
+            border-left: 5px solid var(--error-color);
+            opacity: 0.8;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+        
+        .data-field {
+            background: #edf2f7;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 3px;
+            display: inline-block;
+        }
+        
+        .data-field.found {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .data-field.missing {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .log-entry {
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            background: #f7fafc;
+        }
+        
+        .log-entry.info {
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .log-entry.success {
+            border-left: 3px solid var(--success-color);
+            background: #f0fff4;
+        }
+        
+        .log-entry.warning {
+            border-left: 3px solid var(--warning-color);
+            background: #fffaf0;
+        }
+        
+        .log-entry.error {
+            border-left: 3px solid var(--error-color);
+            background: #fff5f5;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .filter-chip {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 3px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .filter-chip.active {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.3);
+        }
+        
+        .validation-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+        
+        .validation-icon.valid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .validation-icon.invalid {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .file-path {
+            color: #718096;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+        }
+        
+        .data-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .data-label {
+            min-width: 120px;
+            font-weight: 600;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Cabeçalho -->
+            <div class="app-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="app-title">
+                            <i class="bi bi-file-earmark-check-fill me-3"></i>
+                            Scanner Específico - PDFs ICMS
+                        </h1>
+                        <div class="app-subtitle">
+                            Busca arquivos "NÚMERO A.pdf" e extrai CNPJ, Período e Saldo Credor
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoProcess" checked style="transform: scale(1.3);">
+                            <label class="form-check-label" for="autoProcess" style="font-size: 0.9rem;">Processar Automaticamente</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid py-4">
+                <div class="row">
+                    <!-- Coluna Esquerda -->
+                    <div class="col-lg-4">
+                        <!-- Critérios de Busca -->
+                        <div class="criteria-card">
+                            <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Critérios de Busca</h5>
+                            <div class="criteria-item">
+                                <i class="bi bi-123"></i>
+                                <div>
+                                    <strong>Padrão do Nome:</strong>
+                                    <div class="mt-1">
+                                        <span class="file-pattern">630 A.pdf</span>
+                                        <span class="file-pattern">1028 A.pdf</span>
+                                        <span class="file-pattern">649 A.pdf</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="criteria-item">
+                                <i class="bi bi-x-circle"></i>
+                                <div>
+                                    <strong>NÃO Aceito:</strong>
+                                    <div class="mt-1">
+                                        <span class="file-pattern" style="background:#fed7d7; border-color:#fc8181;">630 GIA A.pdf</span>
+                                        <span class="file-pattern" style="background:#fed7d7; border-color:#fc8181;">1028 B.pdf</span>
+                                        <span class="file-pattern" style="background:#fed7d7; border-color:#fc8181;">teste.pdf</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="criteria-item">
+                                <i class="bi bi-file-text"></i>
+                                <div>
+                                    <strong>Dados Extraídos:</strong>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success">CNPJ: 20.415.295/0054-86</span>
+                                        <span class="badge bg-success">Período: 11/2024</span>
+                                        <span class="badge bg-success">Saldo Credor: 51.642,50</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="criteria-item">
+                                <i class="bi bi-search"></i>
+                                <div>
+                                    <strong>Extrai da 3ª Coluna:</strong>
+                                    <div class="mt-1">
+                                        <code>"009 - Saldo credor do período anterior 51.642,50"</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seleção de Pasta -->
+                        <div class="folder-selector mb-4" id="folderSelector">
+                            <div class="folder-icon">
+                                <i class="bi bi-folder-plus"></i>
+                            </div>
+                            <h4 class="mb-3">Selecionar Pasta Raiz</h4>
+                            <p class="text-muted mb-4">
+                                O sistema buscará recursivamente por arquivos com padrão <br>
+                                <strong>"NÚMERO ESPAÇO A.pdf"</strong>
+                            </p>
+                            
+                            <div id="folderInfo" class="d-none">
+                                <div class="alert alert-primary">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-folder-fill me-2"></i>
+                                            <strong id="selectedFolderName">Pasta selecionada</strong>
+                                        </div>
+                                        <span id="foundCount" class="badge bg-primary">0 encontrados</span>
+                                    </div>
+                                    <div id="folderPath" class="file-path mt-2"></div>
+                                </div>
+                                
+                                <button id="scanButton" class="btn btn-primary btn-lg w-100 mt-3">
+                                    <i class="bi bi-search me-2"></i>Iniciar Busca Específica
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Configurações -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-gear me-2"></i>Configurações
+                                </h5>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="recursiveSearch" checked>
+                                    <label class="form-check-label" for="recursiveSearch">
+                                        Buscar em subpastas
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="skipInvalidFiles" checked>
+                                    <label class="form-check-label" for="skipInvalidFiles">
+                                        Ignorar arquivos inválidos
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="debugMode">
+                                    <label class="form-check-label" for="debugMode">
+                                        Modo Debug (mostra mais detalhes)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exportação -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-download me-2"></i>Exportar Resultados
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Formato</label>
+                                    <select id="exportFormat" class="form-select">
+                                        <option value="csv">CSV (Excel)</option>
+                                        <option value="json">JSON</option>
+                                        <option value="excel">Excel XLSX</option>
+                                    </select>
+                                </div>
+                                
+                                <button id="exportButton" class="btn export-btn w-100" disabled>
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>Exportar Dados Encontrados
+                                </button>
+                                
+                                <div id="exportStatus" class="mt-2 text-center small"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita -->
+                    <div class="col-lg-8">
+                        <!-- Progresso -->
+                        <div id="progressSection" class="card border-0 shadow-sm mb-4 d-none">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-speedometer2 me-2"></i>Progresso da Busca
+                                </h5>
+                                
+                                <div class="progress-container">
+                                    <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small id="progressText">Preparando busca...</small>
+                                    <small id="progressPercent">0%</small>
+                                </div>
+                                
+                                <div id="currentProcessing" class="mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="validation-icon">
+                                            <i class="bi bi-hourglass-split"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">Processando:</small>
+                                            <div id="currentFile" class="fw-semibold">Aguardando...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estatísticas -->
+                        <div id="statsSection" class="d-none">
+                            <div class="row mb-4">
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="stats-number" id="totalFiles">0</div>
+                                        <div class="stats-label">Arquivos Encontrados</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="stats-number" id="validFiles">0</div>
+                                        <div class="stats-label">Com Dados</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="stats-number" id="invalidFiles">0</div>
+                                        <div class="stats-label">Sem Dados</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="stats-number" id="skippedFiles">0</div>
+                                        <div class="stats-label">Ignorados</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filtros -->
+                        <div id="filtersSection" class="card border-0 shadow-sm mb-4 d-none">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-funnel me-2"></i>Filtros
+                                </h5>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <input type="text" id="filterCNPJ" class="form-control" placeholder="Filtrar por CNPJ...">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" id="filterPeriod" class="form-control" placeholder="Ex: 10/2024">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" id="filterFile" class="form-control" placeholder="Filtrar por nome...">
+                                            <button id="clearFilters" class="btn btn-outline-secondary">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="activeFilters" class="d-none">
+                                    <small class="text-muted me-2">Filtros ativos:</small>
+                                    <div id="filterChips"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resultados -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-check2-square me-2"></i>Resultados da Extração
+                                    </h5>
+                                    <span id="resultsCount" class="badge bg-primary">0 com dados</span>
+                                </div>
+                                
+                                <div id="resultsContainer">
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-folder2-open display-4 d-block mb-3"></i>
+                                        <p>Selecione uma pasta para iniciar a busca específica</p>
+                                        <small class="text-muted">
+                                            Apenas arquivos com padrão "NÚMERO A.pdf" serão processados
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs -->
+                        <div class="card border-0 shadow-sm mt-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-journal-text me-2"></i>Log de Processamento
+                                    </h5>
+                                    <button id="clearLogs" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-trash"></i> Limpar
+                                    </button>
+                                </div>
+                                
+                                <div id="logsContainer" style="max-height: 250px; overflow-y: auto;">
+                                    <div class="log-entry info">
+                                        Sistema pronto para busca específica
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Configuração do PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Estado global
+        let selectedDirectoryHandle = null;
+        let allPDFFiles = [];
+        let processedFilesData = [];
+        let filteredData = [];
+
+        // Elementos DOM
+        const folderSelector = document.getElementById('folderSelector');
+        const folderInfo = document.getElementById('folderInfo');
+        const scanButton = document.getElementById('scanButton');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const currentFile = document.getElementById('currentFile');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const logsContainer = document.getElementById('logsContainer');
+        const exportButton = document.getElementById('exportButton');
+        const statsSection = document.getElementById('statsSection');
+        const filtersSection = document.getElementById('filtersSection');
+
+        // Logs
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = message;
+            
+            logsContainer.prepend(logEntry);
+            
+            // Limitar logs
+            const logs = logsContainer.children;
+            if (logs.length > 100) {
+                logsContainer.removeChild(logs[logs.length - 1]);
+            }
+        }
+
+        // Limpar logs
+        document.getElementById('clearLogs').addEventListener('click', () => {
+            logsContainer.innerHTML = '<div class="log-entry info">Log limpo</div>';
+        });
+
+        // Selecionar pasta
+        folderSelector.addEventListener('click', async () => {
+            try {
+                selectedDirectoryHandle = await window.showDirectoryPicker();
+                
+                // Atualizar UI
+                document.getElementById('selectedFolderName').textContent = selectedDirectoryHandle.name;
+                document.getElementById('folderPath').textContent = selectedDirectoryHandle.name;
+                folderInfo.classList.remove('d-none');
+                
+                addLog(`Pasta selecionada: "${selectedDirectoryHandle.name}"`, 'info');
+                
+                // Auto-processar se configurado
+                if (document.getElementById('autoProcess').checked) {
+                    setTimeout(() => scanButton.click(), 500);
+                }
+                
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    addLog(`Erro ao selecionar pasta: ${error.message}`, 'error');
+                    alert('Por favor, selecione uma pasta para continuar.');
+                }
+            }
+        });
+
+        // Validar nome do arquivo
+        function isValidFileName(filename) {
+            // Padrão: número, espaço, A, .pdf (case insensitive)
+            // Exemplos válidos: "630 A.pdf", "1028 A.pdf", "649 A.pdf", "635 a.pdf"
+            const pattern = /^\d+\sA\.pdf$/i;
+            return pattern.test(filename);
+        }
+
+        // Buscar PDFs com validação específica
+        async function findSpecificPDFs(directoryHandle, recursive = true, basePath = '') {
+            const validPDFs = [];
+            const skippedPDFs = [];
+            
+            try {
+                for await (const [name, handle] of directoryHandle.entries()) {
+                    const currentPath = basePath ? `${basePath}/${name}` : name;
+                    
+                    if (handle.kind === 'file' && name.toLowerCase().endsWith('.pdf')) {
+                        // Verificar se o nome segue o padrão específico
+                        if (isValidFileName(name)) {
+                            validPDFs.push({
+                                name,
+                                handle,
+                                path: currentPath,
+                                directory: basePath,
+                                status: 'pending'
+                            });
+                            addLog(`✅ Arquivo com padrão válido: ${name}`, 'success');
+                        } else {
+                            skippedPDFs.push({
+                                name,
+                                path: currentPath,
+                                reason: 'Padrão de nome inválido'
+                            });
+                            addLog(`⏭️ Ignorado (padrão inválido): ${name}`, 'warning');
+                        }
+                    } else if (recursive && handle.kind === 'directory') {
+                        const subResults = await findSpecificPDFs(handle, recursive, currentPath);
+                        validPDFs.push(...subResults.validPDFs);
+                        skippedPDFs.push(...subResults.skippedPDFs);
+                    }
+                }
+            } catch (error) {
+                addLog(`Erro ao acessar pasta: ${error.message}`, 'error');
+            }
+            
+            return { validPDFs, skippedPDFs };
+        }
+
+        // Escanear pasta
+        scanButton.addEventListener('click', async () => {
+            if (!selectedDirectoryHandle) {
+                alert('Por favor, selecione uma pasta primeiro.');
+                return;
+            }
+            
+            try {
+                addLog('Iniciando busca específica por PDFs...', 'info');
+                scanButton.disabled = true;
+                
+                const recursive = document.getElementById('recursiveSearch').checked;
+                
+                // Buscar PDFs específicos
+                const searchResults = await findSpecificPDFs(selectedDirectoryHandle, recursive);
+                allPDFFiles = searchResults.validPDFs;
+                
+                if (allPDFFiles.length === 0) {
+                    addLog('Nenhum PDF com padrão válido encontrado', 'warning');
+                    alert('Nenhum arquivo com padrão "NÚMERO A.pdf" encontrado.');
+                    scanButton.disabled = false;
+                    return;
+                }
+                
+                // Atualizar contador
+                document.getElementById('foundCount').textContent = `${allPDFFiles.length} arquivo(s)`;
+                addLog(`Encontrados ${allPDFFiles.length} arquivo(s) com padrão válido`, 'success');
+                
+                // Processar PDFs
+                await processSpecificPDFs(searchResults.skippedPDFs);
+                
+            } catch (error) {
+                addLog(`Erro na busca: ${error.message}`, 'error');
+                scanButton.disabled = false;
+            }
+        });
+
+        // Ler conteúdo do PDF
+        async function readPDFContent(fileHandle) {
+            try {
+                const file = await fileHandle.getFile();
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                let fullText = '';
+                
+                // Ler TODAS as páginas para garantir que encontramos todos os dados
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+                
+                return {
+                    success: true,
+                    text: fullText,
+                    pages: pdf.numPages
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    text: '',
+                    pages: 0,
+                    error: error.message
+                };
+            }
+        }
+
+        // Extrair dados do texto - VERSÃO CORRIGIDA COM REGEX ESPECÍFICO
+        function extractDataFromText(text, fileInfo) {
+            const data = {
+                arquivo: fileInfo.name,
+                caminho: fileInfo.path,
+                diretorio: fileInfo.directory,
+                cnpj: null,
+                periodo: null,
+                saldo_credor: null,
+                possui_dados: false,
+                validacoes: [],
+                processado_em: new Date().toISOString(),
+                debug_info: ''
+            };
+
+            try {
+                // Buscar CNPJ
+                const cnpjPatterns = [
+                    /CNPJ:\s*([\d]{2}\.[\d]{3}\.[\d]{3}\/\d{4}-\d{2})/i,
+                    /CNPJ\s*([\d]{2}\.[\d]{3}\.[\d]{3}\/\d{4}-\d{2})/i,
+                    /CNPJ.*?([\d]{2}\.[\d]{3}\.[\d]{3}\/\d{4}-\d{2})/i
+                ];
+                
+                for (const pattern of cnpjPatterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        data.cnpj = match[1];
+                        data.validacoes.push('CNPJ encontrado');
+                        data.possui_dados = true;
+                        break;
+                    }
+                }
+
+                // Buscar Período
+                const periodoPatterns = [
+                    /Mês ou Período\/Ano:\s*(\d{1,2}\/\d{4})/i,
+                    /Período\/Ano:\s*(\d{1,2}\/\d{4})/i,
+                    /Mês\/Ano:\s*(\d{1,2}\/\d{4})/i,
+                    /Período.*?(\d{1,2}\/\d{4})/i
+                ];
+                
+                for (const pattern of periodoPatterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        data.periodo = match[1];
+                        data.validacoes.push('Período encontrado');
+                        data.possui_dados = true;
+                        break;
+                    }
+                }
+
+                // Buscar Saldo Credor Anterior - REGEX ESPECÍFICO CORRIGIDO
+                // O padrão exato do PDF: "009 - Saldo credor do período anterior 51.642,50"
+                // Está na terceira coluna da tabela
+                
+                // Método 1: Regex específico para o padrão exato
+                const saldoPattern1 = /009\s*[-–]\s*Saldo credor do período anterior\s*([\d.,]+)/i;
+                const saldoMatch1 = text.match(saldoPattern1);
+                
+                if (saldoMatch1) {
+                    data.saldo_credor = saldoMatch1[1];
+                    data.validacoes.push('Saldo credor encontrado (regex específico)');
+                    data.possui_dados = true;
+                    data.debug_info = `Regex 1 encontrou: ${saldoMatch1[1]}`;
+                } else {
+                    // Método 2: Regex mais flexível
+                    const saldoPattern2 = /Saldo credor do período anterior[^\d]*([\d.,]+)/i;
+                    const saldoMatch2 = text.match(saldoPattern2);
+                    
+                    if (saldoMatch2) {
+                        data.saldo_credor = saldoMatch2[1];
+                        data.validacoes.push('Saldo credor encontrado (regex flexível)');
+                        data.possui_dados = true;
+                        data.debug_info = `Regex 2 encontrou: ${saldoMatch2[1]}`;
+                    } else {
+                        // Método 3: Procurar por contexto da tabela
+                        const lines = text.split('\n');
+                        for (let i = 0; i < lines.length; i++) {
+                            if (lines[i].includes('Saldo credor do período anterior')) {
+                                // Extrair números da linha
+                                const numbers = lines[i].match(/(\d{1,3}(?:\.\d{3})*(?:,\d{2}))/g);
+                                if (numbers && numbers.length > 0) {
+                                    // Pegar o último número (que deve ser o valor)
+                                    for (let j = numbers.length - 1; j >= 0; j--) {
+                                        const num = numbers[j];
+                                        // Ignorar números como "009" (sem vírgula)
+                                        if (num.includes(',') && parseInt(num.replace(/[.,]/g, '')) > 100) {
+                                            data.saldo_credor = num;
+                                            data.validacoes.push('Saldo credor encontrado (análise de linha)');
+                                            data.possui_dados = true;
+                                            data.debug_info = `Linha ${i}: encontrado ${num}`;
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Verificar se encontrou todos os dados
+                const dadosEncontrados = [];
+                if (data.cnpj) dadosEncontrados.push('CNPJ');
+                if (data.periodo) dadosEncontrados.push('Período');
+                if (data.saldo_credor) dadosEncontrados.push('Saldo Credor');
+                
+                if (dadosEncontrados.length > 0) {
+                    data.validacoes.push(`Dados encontrados: ${dadosEncontrados.join(', ')}`);
+                }
+
+                // Verificar dados faltantes
+                if (!data.cnpj) data.validacoes.push('CNPJ não encontrado');
+                if (!data.periodo) data.validacoes.push('Período não encontrado');
+                if (!data.saldo_credor) data.validacoes.push('Saldo credor não encontrado');
+
+                // Modo debug: mostrar informações extras
+                if (document.getElementById('debugMode').checked) {
+                    if (!data.saldo_credor) {
+                        // Procurar por "009" no texto para debug
+                        const debugMatch = text.match(/009[^\d]*([\d.,]+)/);
+                        if (debugMatch) {
+                            data.debug_info += ` | Debug: encontrado ${debugMatch[1]} após 009`;
+                        }
+                        
+                        // Procurar por "Saldo credor" no texto
+                        const saldoIndex = text.indexOf('Saldo credor');
+                        if (saldoIndex !== -1) {
+                            const contexto = text.substring(saldoIndex, saldoIndex + 200);
+                            data.debug_info += ` | Contexto: ${contexto.substring(0, 100)}...`;
+                        }
+                    }
+                }
+
+            } catch (error) {
+                data.validacoes.push(`Erro na extração: ${error.message}`);
+                data.debug_info = `Erro: ${error.message}`;
+            }
+
+            return data;
+        }
+
+        // Processar PDFs específicos
+        async function processSpecificPDFs(skippedFiles) {
+            processedFilesData = [];
+            
+            // Mostrar progresso
+            progressSection.classList.remove('d-none');
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            statsSection.classList.remove('d-none');
+            filtersSection.classList.remove('d-none');
+            
+            let filesWithData = 0;
+            let filesWithoutData = 0;
+            let skippedCount = skippedFiles.length;
+            
+            for (let i = 0; i < allPDFFiles.length; i++) {
+                const pdfFile = allPDFFiles[i];
+                
+                // Atualizar progresso
+                const progress = ((i + 1) / allPDFFiles.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressPercent.textContent = `${Math.round(progress)}%`;
+                progressText.textContent = `Processando arquivo ${i + 1} de ${allPDFFiles.length}`;
+                currentFile.textContent = pdfFile.name;
+                
+                try {
+                    addLog(`Lendo: ${pdfFile.name}`, 'info');
+                    
+                    // Ler conteúdo do PDF
+                    const content = await readPDFContent(pdfFile.handle);
+                    
+                    if (content.success) {
+                        addLog(`✅ PDF lido: ${pdfFile.name} (${content.pages} páginas)`, 'success');
+                        
+                        // Extrair dados
+                        const data = extractDataFromText(content.text, pdfFile);
+                        processedFilesData.push(data);
+                        
+                        if (data.possui_dados) {
+                            filesWithData++;
+                            const dadosExtraidos = [];
+                            if (data.cnpj) dadosExtraidos.push('CNPJ');
+                            if (data.periodo) dadosExtraidos.push('Período');
+                            if (data.saldo_credor) dadosExtraidos.push(`Saldo: ${data.saldo_credor}`);
+                            
+                            addLog(`✓ Dados extraídos de ${pdfFile.name}: ${dadosExtraidos.join(', ')}`, 'success');
+                        } else {
+                            filesWithoutData++;
+                            addLog(`⚠️ Sem dados extraíveis: ${pdfFile.name}`, 'warning');
+                        }
+                        
+                    } else {
+                        filesWithoutData++;
+                        addLog(`❌ Erro ao ler PDF: ${pdfFile.name} - ${content.error}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    filesWithoutData++;
+                    addLog(`❌ Erro ao processar ${pdfFile.name}: ${error.message}`, 'error');
+                }
+                
+                // Atualizar estatísticas e UI
+                updateStatistics(filesWithData, filesWithoutData, skippedCount);
+                if (i % 2 === 0 || i === allPDFFiles.length - 1) {
+                    updateResults();
+                }
+            }
+            
+            // Finalizar
+            progressText.textContent = 'Processamento concluído!';
+            currentFile.textContent = '';
+            scanButton.disabled = false;
+            
+            // Habilitar botão de exportar se houver dados
+            const filesWithDataArray = processedFilesData.filter(d => d.possui_dados);
+            if (filesWithDataArray.length > 0) {
+                exportButton.disabled = false;
+                addLog(`✅ Processamento concluído: ${filesWithData} com dados, ${filesWithoutData} sem dados, ${skippedCount} ignorados. Exportação habilitada.`, 'success');
+            } else {
+                addLog(`⚠️ Processamento concluído: ${filesWithData} com dados, ${filesWithoutData} sem dados, ${skippedCount} ignorados. Nenhum dado para exportar.`, 'warning');
+            }
+        }
+
+        // Atualizar estatísticas
+        function updateStatistics(withData, withoutData, skipped) {
+            document.getElementById('totalFiles').textContent = allPDFFiles.length;
+            document.getElementById('validFiles').textContent = withData;
+            document.getElementById('invalidFiles').textContent = withoutData;
+            document.getElementById('skippedFiles').textContent = skipped;
+        }
+
+        // Atualizar resultados
+        function updateResults() {
+            applyFilters();
+            renderResults();
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const cnpjFilter = document.getElementById('filterCNPJ').value.trim().toLowerCase();
+            const periodFilter = document.getElementById('filterPeriod').value.trim().toLowerCase();
+            const fileFilter = document.getElementById('filterFile').value.trim().toLowerCase();
+            
+            filteredData = processedFilesData.filter(item => {
+                const matchesCNPJ = !cnpjFilter || (item.cnpj && item.cnpj.toLowerCase().includes(cnpjFilter));
+                const matchesPeriod = !periodFilter || (item.periodo && item.periodo.toLowerCase().includes(periodFilter));
+                const matchesFile = !fileFilter || 
+                    item.arquivo.toLowerCase().includes(fileFilter) ||
+                    item.caminho.toLowerCase().includes(fileFilter);
+                
+                return matchesCNPJ && matchesPeriod && matchesFile;
+            });
+            
+            // Atualizar filtros ativos
+            updateActiveFilters(cnpjFilter, periodFilter, fileFilter);
+            renderResults();
+        }
+
+        // Atualizar filtros ativos
+        function updateActiveFilters(cnpj, period, fileName) {
+            const chipsContainer = document.getElementById('filterChips');
+            chipsContainer.innerHTML = '';
+            
+            let hasFilters = false;
+            
+            if (cnpj) {
+                chipsContainer.innerHTML += `
+                    <span class="filter-chip active">
+                        CNPJ: ${cnpj}
+                        <i class="bi bi-x ms-2" onclick="removeFilter('cnpj')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+            
+            if (period) {
+                chipsContainer.innerHTML += `
+                    <span class="filter-chip active">
+                        Período: ${period}
+                        <i class="bi bi-x ms-2" onclick="removeFilter('period')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+            
+            if (fileName) {
+                chipsContainer.innerHTML += `
+                    <span class="filter-chip active">
+                        Arquivo: ${fileName}
+                        <i class="bi bi-x ms-2" onclick="removeFilter('file')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+            
+            document.getElementById('activeFilters').classList.toggle('d-none', !hasFilters);
+        }
+
+        // Remover filtro
+        window.removeFilter = function(filterType) {
+            if (filterType === 'cnpj') {
+                document.getElementById('filterCNPJ').value = '';
+            } else if (filterType === 'period') {
+                document.getElementById('filterPeriod').value = '';
+            } else if (filterType === 'file') {
+                document.getElementById('filterFile').value = '';
+            }
+            applyFilters();
+        };
+
+        // Limpar filtros
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            document.getElementById('filterCNPJ').value = '';
+            document.getElementById('filterPeriod').value = '';
+            document.getElementById('filterFile').value = '';
+            applyFilters();
+        });
+
+        // Renderizar resultados
+        function renderResults() {
+            resultsContainer.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-search display-4 d-block mb-3"></i>
+                        <p>Nenhum resultado encontrado</p>
+                        <small class="text-muted">Tente ajustar os filtros</small>
+                    </div>
+                `;
+                document.getElementById('resultsCount').textContent = '0 com dados';
+                return;
+            }
+            
+            const filesWithData = filteredData.filter(d => d.possui_dados);
+            document.getElementById('resultsCount').textContent = `${filesWithData.length} com dados`;
+            
+            filteredData.forEach((item, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `result-item ${item.possui_dados ? 'valid' : 'invalid'}`;
+                
+                // Ícone de validação
+                let validationIcon = '';
+                if (item.possui_dados) {
+                    validationIcon = `
+                        <div class="validation-icon valid">
+                            <i class="bi bi-check"></i>
+                        </div>
+                    `;
+                } else {
+                    validationIcon = `
+                        <div class="validation-icon invalid">
+                            <i class="bi bi-x"></i>
+                        </div>
+                    `;
+                }
+                
+                // Dados
+                const cnpjDisplay = item.cnpj ? 
+                    `<span class="data-field found">${item.cnpj}</span>` : 
+                    `<span class="data-field missing">Não encontrado</span>`;
+                
+                const periodoDisplay = item.periodo ?
+                    `<span class="data-field found">${item.periodo}</span>` :
+                    `<span class="data-field missing">Não encontrado</span>`;
+                
+                const saldoDisplay = item.saldo_credor ?
+                    `<span class="data-field found">${item.saldo_credor}</span>` :
+                    `<span class="data-field missing">Não encontrado</span>`;
+                
+                resultDiv.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        ${validationIcon}
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="file-name">${item.arquivo}</div>
+                                    <div class="file-path">${item.caminho}</div>
+                                </div>
+                                <span class="status-badge ${item.possui_dados ? 'status-valid' : 'status-invalid'}">
+                                    ${item.possui_dados ? 'COM DADOS' : 'SEM DADOS'}
+                                </span>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <div class="data-row">
+                                    <div class="data-label">CNPJ:</div>
+                                    <div>${cnpjDisplay}</div>
+                                </div>
+                                <div class="data-row">
+                                    <div class="data-label">Período:</div>
+                                    <div>${periodoDisplay}</div>
+                                </div>
+                                <div class="data-row">
+                                    <div class="data-label">Saldo Credor:</div>
+                                    <div>${saldoDisplay}</div>
+                                </div>
+                            </div>
+                            
+                            ${item.validacoes.length > 0 ? `
+                            <div class="mt-2">
+                                <small class="text-muted">Validações:</small>
+                                <div class="mt-1">
+                                    ${item.validacoes.map(v => `<span class="badge bg-light text-dark me-1">${v}</span>`).join('')}
+                                </div>
+                            </div>` : ''}
+                            
+                            ${item.debug_info && document.getElementById('debugMode').checked ? `
+                            <div class="debug-info mt-2">
+                                <small class="text-muted">Debug:</small>
+                                <div>${item.debug_info}</div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(resultDiv);
+            });
+        }
+
+        // Exportar dados
+        exportButton.addEventListener('click', () => {
+            const validData = filteredData.filter(d => d.possui_dados);
+            
+            if (validData.length === 0) {
+                alert('Nenhum dado válido para exportar.');
+                return;
+            }
+            
+            const format = document.getElementById('exportFormat').value;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            
+            try {
+                if (format === 'csv') {
+                    exportToCSV(validData, `dados_icms_${timestamp}.csv`);
+                } else if (format === 'json') {
+                    exportToJSON(validData, `dados_icms_${timestamp}.json`);
+                } else if (format === 'excel') {
+                    exportToExcel(validData, `dados_icms_${timestamp}.xlsx`);
+                }
+                
+                addLog(`✅ Dados exportados: ${validData.length} registros em ${format.toUpperCase()}`, 'success');
+                document.getElementById('exportStatus').innerHTML = 
+                    '<span class="text-success">Exportação concluída!</span>';
+                
+                setTimeout(() => {
+                    document.getElementById('exportStatus').innerHTML = '';
+                }, 3000);
+                
+            } catch (error) {
+                addLog(`❌ Erro na exportação: ${error.message}`, 'error');
+                document.getElementById('exportStatus').innerHTML = 
+                    `<span class="text-danger">Erro: ${error.message}</span>`;
+            }
+        });
+
+        // Funções de exportação
+        function exportToCSV(data, filename) {
+            const headers = ['Arquivo', 'Caminho', 'CNPJ', 'Período', 'Saldo Credor Anterior'];
+            const csvRows = [
+                headers.join(','),
+                ...data.map(item => [
+                    `"${item.arquivo.replace(/"/g, '""')}"`,
+                    `"${item.caminho.replace(/"/g, '""')}"`,
+                    `"${item.cnpj || ''}"`,
+                    `"${item.periodo || ''}"`,
+                    `"${item.saldo_credor || ''}"`
+                ].join(','))
+            ];
+            
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            downloadFile(blob, filename);
+        }
+
+        function exportToJSON(data, filename) {
+            const jsonData = data.map(item => ({
+                arquivo: item.arquivo,
+                caminho: item.caminho,
+                cnpj: item.cnpj,
+                periodo: item.periodo,
+                saldo_credor: item.saldo_credor
+            }));
+            
+            const jsonContent = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            downloadFile(blob, filename);
+        }
+
+        function exportToExcel(data, filename) {
+            const rows = data.map(item => ({
+                Arquivo: item.arquivo,
+                Caminho: item.caminho,
+                CNPJ: item.cnpj || '',
+                Período: item.periodo || '',
+                'Saldo Credor Anterior': item.saldo_credor || ''
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Dados ICMS");
+            XLSX.writeFile(wb, filename);
+        }
+
+        function downloadFile(blob, filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Configurar listeners para filtros
+        document.getElementById('filterCNPJ').addEventListener('input', applyFilters);
+        document.getElementById('filterPeriod').addEventListener('input', applyFilters);
+        document.getElementById('filterFile').addEventListener('input', applyFilters);
+
+        // Inicialização
+        addLog('Scanner específico iniciado. Buscando apenas arquivos "NÚMERO A.pdf".', 'info');
+        addLog('Extrai: CNPJ, Período e Saldo Credor da 3ª coluna.', 'info');
+    </script>
+</body>
+</html>
