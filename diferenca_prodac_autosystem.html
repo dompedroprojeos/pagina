@@ -893,6 +893,15 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     }
                 }
                 
+                // Tentar extrair CFOP da descrição
+                let cfopFromDesc = '';
+                if (fields[5]) {
+                    const cfopMatch = fields[5].match(/CFOP[:\s]*(\d{4})/i);
+                    if (cfopMatch) {
+                        cfopFromDesc = cfopMatch[1];
+                    }
+                }
+                
                 // FÓRMULA CORRETA: Valor - Desconto + Frete
                 const valorCalculado = valor - desconto + frete;
                 
@@ -922,6 +931,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         emitente: fields[1] ? fields[1].trim() : '',
                         ncm: fields[3] ? fields[3].trim() : '',
                         cst: fields[4] ? fields[4].trim() : '',
+                        cfop: cfopFromDesc, // Adicionar CFOP extraído da descrição
                         rawLine: line
                     };
                 }
@@ -965,6 +975,19 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 const prodacNote = prodacNotes[nf];
                 const autosystemNote = autosystemNotes[nf];
                 
+                // CORREÇÃO: Buscar CFOP onde estiver disponível
+                let cfop = prodacNote.cfop; // Primeiro tenta do Prodac
+                
+                // Se não tem no Prodac, tenta buscar no AutoSystem
+                if ((!cfop || cfop === '') && autosystemNote && autosystemNote.cfop) {
+                    cfop = autosystemNote.cfop;
+                }
+                
+                // Se ainda não encontrou, usar valor padrão ou deixar em branco
+                if (!cfop || cfop === '') {
+                    cfop = '';
+                }
+                
                 results.allNotes[nf] = {
                     nf: nf,
                     nfDisplay: prodacNote.nfDisplay,
@@ -972,7 +995,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     autosystemValorTotal: autosystemNote ? autosystemNote.valorTotal : null,
                     autosystemItens: autosystemNote ? autosystemNote.itens : [],
                     date: prodacNote.date,
-                    cfop: prodacNote.cfop,
+                    cfop: cfop, // Usar CFOP encontrado
                     terceiro: prodacNote.terceiro,
                     uf: prodacNote.uf,
                     especie: prodacNote.especie,
@@ -994,7 +1017,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                             prodacValue: prodacNote.value,
                             autosystemValorTotal: autosystemNote.valorTotal,
                             date: prodacNote.date,
-                            cfop: prodacNote.cfop,
+                            cfop: cfop, // Usar CFOP encontrado
                             autosystemItens: autosystemNote.itens
                         });
                         results.stats.totalMatched++;
@@ -1008,7 +1031,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                             autosystemValorTotal: autosystemNote.valorTotal,
                             autosystemItens: autosystemNote.itens,
                             date: prodacNote.date,
-                            cfop: prodacNote.cfop,
+                            cfop: cfop, // Usar CFOP encontrado
                             difference: difference,
                             percDiff: ((difference / prodacNote.value) * 100).toFixed(2)
                         });
@@ -1024,7 +1047,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         prodacValue: prodacNote.value,
                         autosystemValorTotal: null,
                         date: prodacNote.date,
-                        cfop: prodacNote.cfop
+                        cfop: cfop // Usar CFOP encontrado (do Prodac)
                     });
                     results.stats.totalMissingInAutosystem++;
                     results.stats.totalValueInconsistencies += prodacNote.value;
@@ -1035,18 +1058,22 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
             // Verificar notas só no AutoSystem
             for (const nf in autosystemNotes) {
                 if (!prodacNotes[nf]) {
+                    // CORREÇÃO: Para notas que só existem no AutoSystem, buscar CFOP do AutoSystem
+                    const autosystemNote = autosystemNotes[nf];
+                    let cfop = autosystemNote.cfop || '';
+                    
                     results.missingInProdac.push({
                         nf: nf,
                         nfDisplay: nf.padStart(10, '0'),
                         type: 'missing_prodac',
                         prodacValue: null,
-                        autosystemValorTotal: autosystemNotes[nf].valorTotal,
-                        autosystemItens: autosystemNotes[nf].itens,
-                        date: autosystemNotes[nf].date || '',
-                        cfop: ''
+                        autosystemValorTotal: autosystemNote.valorTotal,
+                        autosystemItens: autosystemNote.itens,
+                        date: autosystemNote.date || '',
+                        cfop: cfop // Usar CFOP do AutoSystem
                     });
                     results.stats.totalMissingInProdac++;
-                    results.stats.totalValueInconsistencies += autosystemNotes[nf].valorTotal;
+                    results.stats.totalValueInconsistencies += autosystemNote.valorTotal;
                 }
             }
             
@@ -1169,11 +1196,12 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         ).join('<br>');
                     }
                     
+                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="mismatch-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
                             <td>${inc.date || ' '}</td>
-                            <td><strong>${inc.cfop || '1551'}</strong></td>
+                            <td><strong>${inc.cfop || ''}</strong></td>
                             <td class="value-cell" style="color: #38a3a5;">${formatCurrency(inc.prodacValue)}</td>
                             <td class="value-cell" style="color: #57cc99;">
                                 ${formatCurrency(inc.autosystemValorTotal)}
@@ -1222,11 +1250,12 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 `;
                 
                 for (const inc of results.missingInAutosystem) {
+                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="missing-autosystem-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
                             <td>${inc.date || ' '}</td>
-                            <td><strong>${inc.cfop || '1551'}</strong></td>
+                            <td><strong>${inc.cfop || ''}</strong></td>
                             <td class="value-cell" style="color: #e63946;">${formatCurrency(inc.prodacValue)}</td>
                         </tr>
                     `;
@@ -1260,6 +1289,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                                 <tr>
                                     <th>Número Nota</th>
                                     <th>Data</th>
+                                    <th>CFOP</th>
                                     <th>Valor Total</th>
                                     <th>Itens</th>
                                 </tr>
@@ -1275,10 +1305,12 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         ).join('<br>');
                     }
                     
+                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="missing-prodac-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
                             <td>${inc.date || ' '}</td>
+                            <td><strong>${inc.cfop || ''}</strong></td>
                             <td class="value-cell" style="color: #57cc99;">
                                 ${formatCurrency(inc.autosystemValorTotal)}
                                 ${inc.autosystemItens.length > 1 ? '<div class="tax-details">(' + inc.autosystemItens.length + ' itens)</div>' : ''}
@@ -1355,9 +1387,9 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         <td>${note.date || ' '}</td>
                         <td>${note.serie || '1'}</td>
                         <td>${note.subs || '0'}</td>
-                        <td><strong>${note.cfop || '1551'}</strong></td>
+                        <td><strong>${note.cfop || ''}</strong></td>
                         <td>${note.terceiro || ' '}</td>
-                        <td>${note.uf || 'MG'}</td>
+                        <td>${note.uf || ''}</td>
                         <td>${note.especie || 'NF-E'}</td>
                         <td>${note.desdob || ' '}</td>
                         <td class="value-cell">${formatCurrency(note.prodacValue)}</td>
@@ -1374,7 +1406,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         <td>${inc.date || ' '}</td>
                         <td>1</td>
                         <td>0</td>
-                        <td><strong>?</strong></td>
+                        <td><strong>${inc.cfop || ''}</strong></td>
                         <td>?</td>
                         <td>?</td>
                         <td>NF-E</td>
