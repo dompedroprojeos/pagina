@@ -573,7 +573,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 <div class="info-box">
                     <strong>FÓRMULA CORRIGIDA:</strong>
                     <ul>
-                        <li>Cada item: <strong>Valor - Vl. Descto + Vl. Frete</strong></li>
+                        <li>Cada item: <strong style="color: #e63946;">Valor - Vl. Descto + Vl. Frete + Vl. IPI</strong></li>
                         <li>Soma todos os itens da mesma NF</li>
                         <li>Compara com Valor Contábil do Prodac</li>
                     </ul>
@@ -645,7 +645,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 </div>
             </div>
             <div class="copyright">
-                <p>© 2026 - Desenvolvido por Waldeci Ramos | Versão 1.0 | Todos os direitos reservados</p>
+                <p>© 2026 - Desenvolvido por Waldeci Ramos | Versão 1.1 - Inclusão IPI | Todos os direitos reservados</p>
                 <p>Esta ferramenta é para uso exclusivo da equipe autorizada.</p>
             </div>
         </footer>
@@ -709,7 +709,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
         }
         
         // ==============================
-        // FUNCIONALIDADE DO COMPARADOR - CORRIGIDA
+        // FUNCIONALIDADE DO COMPARADOR - CORRIGIDA COM IPI
         // ==============================
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -830,7 +830,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
             return notes;
         }
         
-        // FUNÇÃO CORRIGIDA - FÓRMULA: Valor - Vl. Descto + Vl. Frete
+        // FUNÇÃO CORRIGIDA - FÓRMULA: Valor - Vl. Descto + Vl. Frete + Vl. IPI
         function extractAutosystemNotes(text) {
             const notes = {};
             if (!text.trim()) return notes;
@@ -848,20 +848,21 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 
                 // Separar por tabulação ou múltiplos espaços
                 let fields = line.split('\t');
-                if (fields.length < 8) {
+                if (fields.length < 10) { // Precisa de pelo menos 10 campos para incluir IPI
                     fields = line.split(/\s{2,}/);
                 }
                 
-                if (fields.length < 8) continue;
+                if (fields.length < 10) continue;
                 
                 // O terceiro campo deve ser NF (índice 2)
                 let nfNumber = fields[2].trim();
                 if (!nfNumber.match(/^\d+$/)) continue;
                 
-                // CORREÇÃO: Extrair Valor, Desconto e Frete
+                // CORREÇÃO: Extrair Valor, Desconto, Frete e IPI
                 let valor = 0;
                 let desconto = 0;
                 let frete = 0;
+                let ipi = 0;
                 
                 // Campo Valor (índice 6)
                 if (fields[6] && fields[6].trim()) {
@@ -893,6 +894,16 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     }
                 }
                 
+                // CAMPO IPI (índice 10) - NOVO
+                if (fields[10] && fields[10].trim()) {
+                    try {
+                        const ipiStr = fields[10].trim();
+                        ipi = parseFloat(ipiStr.replace(/\./g, '').replace(',', '.'));
+                    } catch (e) {
+                        ipi = 0;
+                    }
+                }
+                
                 // Tentar extrair CFOP da descrição
                 let cfopFromDesc = '';
                 if (fields[5]) {
@@ -902,8 +913,8 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     }
                 }
                 
-                // FÓRMULA CORRETA: Valor - Desconto + Frete
-                const valorCalculado = valor - desconto + frete;
+                // FÓRMULA CORRETA: Valor - Desconto + Frete + IPI
+                const valorCalculado = valor - desconto + frete + ipi;
                 
                 // Se a NF já existe, somar o valor
                 if (notes[nfNumber]) {
@@ -913,6 +924,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         valor: valor,
                         desconto: desconto,
                         frete: frete,
+                        ipi: ipi,
                         valorCalculado: valorCalculado
                     });
                 } else {
@@ -925,13 +937,14 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                             valor: valor,
                             desconto: desconto,
                             frete: frete,
+                            ipi: ipi,
                             valorCalculado: valorCalculado
                         }],
                         date: fields[0] ? fields[0].trim() : '',
                         emitente: fields[1] ? fields[1].trim() : '',
                         ncm: fields[3] ? fields[3].trim() : '',
                         cst: fields[4] ? fields[4].trim() : '',
-                        cfop: cfopFromDesc, // Adicionar CFOP extraído da descrição
+                        cfop: cfopFromDesc,
                         rawLine: line
                     };
                 }
@@ -995,7 +1008,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     autosystemValorTotal: autosystemNote ? autosystemNote.valorTotal : null,
                     autosystemItens: autosystemNote ? autosystemNote.itens : [],
                     date: prodacNote.date,
-                    cfop: cfop, // Usar CFOP encontrado
+                    cfop: cfop,
                     terceiro: prodacNote.terceiro,
                     uf: prodacNote.uf,
                     especie: prodacNote.especie,
@@ -1017,7 +1030,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                             prodacValue: prodacNote.value,
                             autosystemValorTotal: autosystemNote.valorTotal,
                             date: prodacNote.date,
-                            cfop: cfop, // Usar CFOP encontrado
+                            cfop: cfop,
                             autosystemItens: autosystemNote.itens
                         });
                         results.stats.totalMatched++;
@@ -1031,7 +1044,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                             autosystemValorTotal: autosystemNote.valorTotal,
                             autosystemItens: autosystemNote.itens,
                             date: prodacNote.date,
-                            cfop: cfop, // Usar CFOP encontrado
+                            cfop: cfop,
                             difference: difference,
                             percDiff: ((difference / prodacNote.value) * 100).toFixed(2)
                         });
@@ -1047,7 +1060,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         prodacValue: prodacNote.value,
                         autosystemValorTotal: null,
                         date: prodacNote.date,
-                        cfop: cfop // Usar CFOP encontrado (do Prodac)
+                        cfop: cfop
                     });
                     results.stats.totalMissingInAutosystem++;
                     results.stats.totalValueInconsistencies += prodacNote.value;
@@ -1070,7 +1083,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         autosystemValorTotal: autosystemNote.valorTotal,
                         autosystemItens: autosystemNote.itens,
                         date: autosystemNote.date || '',
-                        cfop: cfop // Usar CFOP do AutoSystem
+                        cfop: cfop
                     });
                     results.stats.totalMissingInProdac++;
                     results.stats.totalValueInconsistencies += autosystemNote.valorTotal;
@@ -1109,6 +1122,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                         <div class="summary-item">
                             <div class="summary-value total-value-autosystem">${formatCurrency(results.stats.totalValueAutosystem)}</div>
                             <div class="summary-label">Valor Total AutoSystem</div>
+                            <div class="tax-info">(com IPI incluso)</div>
                         </div>
                         <div class="summary-item">
                             <div class="summary-value" style="color: #ff9800;">${formatCurrency(Math.abs(results.stats.totalValueProdac - results.stats.totalValueAutosystem))}</div>
@@ -1159,7 +1173,7 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     <div class="inconsistencies-box">
                         <h3>Notas com valores DIFERENTES (${results.valueMismatches.length}):</h3>
                         <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
-                            Prodac vs AutoSystem (Valor - Desconto + Frete)
+                            Prodac vs AutoSystem (Valor - Desconto + Frete + IPI)
                         </p>
                         
                         <div class="inconsistency-list">
@@ -1192,11 +1206,10 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     let detalhesItens = '';
                     if (inc.autosystemItens && inc.autosystemItens.length > 0) {
                         detalhesItens = inc.autosystemItens.map(item => 
-                            `${item.descricao.substring(0, 20)}... = ${formatCurrency(item.valor)} - ${formatCurrency(item.desconto)} + ${formatCurrency(item.frete)}`
+                            `${item.descricao.substring(0, 20)}... = ${formatCurrency(item.valor)} - ${formatCurrency(item.desconto)} + ${formatCurrency(item.frete)} + IPI ${formatCurrency(item.ipi)}`
                         ).join('<br>');
                     }
                     
-                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="mismatch-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
@@ -1250,7 +1263,6 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                 `;
                 
                 for (const inc of results.missingInAutosystem) {
-                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="missing-autosystem-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
@@ -1301,11 +1313,10 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
                     let detalhesItens = '';
                     if (inc.autosystemItens && inc.autosystemItens.length > 0) {
                         detalhesItens = inc.autosystemItens.map(item => 
-                            `${item.descricao.substring(0, 20)}... = ${formatCurrency(item.valor)} - ${formatCurrency(item.desconto)} + ${formatCurrency(item.frete)}`
+                            `${item.descricao.substring(0, 20)}... = ${formatCurrency(item.valor)} - ${formatCurrency(item.desconto)} + ${formatCurrency(item.frete)} + IPI ${formatCurrency(item.ipi)}`
                         ).join('<br>');
                     }
                     
-                    // CORREÇÃO: Usar CFOP (pode ser vazio se não encontrado)
                     html += `
                         <tr class="missing-prodac-row">
                             <td style="font-family: monospace; font-weight: bold;">${inc.nfDisplay}</td>
@@ -1509,4 +1520,5 @@ Data	Emitente	NF	NCM	CST	Descrição	Valor	Vl. Descto	Vl. Frete	Vl. ICMS	Vl. IPI
         }
     </script>
 </body>
+
 </html>
