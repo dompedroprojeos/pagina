@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMC - Sistema de Liberação Speed Fiscal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .no-inspect {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* Tela de Login */
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            margin: 100px auto;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #0b2b5c 0%, #1e4a8b 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header i {
+            font-size: 60px;
+            color: #ffcc00;
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .login-form {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #1e4a8b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 74, 139, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1e4a8b 0%, #0b2b5c 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 74, 139, 0.3);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Sistema Principal */
+        .sistema-container {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            background: #f0f2f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* Header Principal */
+        .main-header {
+            background: linear-gradient(135deg, #0b2b5c 0%, #1e4a8b 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ffcc00, #ffaa00, #ff8800);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            color: #ffcc00;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .header-title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            font-size: 16px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title p i {
+            color: #ffcc00;
+        }
+
+        .user-info {
+            text-align: right;
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-info:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .user-info .department {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-info .name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #ffcc00;
+        }
+
+        /* Menu de Navegação */
+        .nav-menu {
+            background: white;
+            padding: 0 30px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-menu li {
+            padding: 15px 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .nav-menu li.active {
+            border-bottom-color: #1e4a8b;
+            color: #1e4a8b;
+            font-weight: 600;
+        }
+
+        .nav-menu li i {
+            margin-right: 8px;
+        }
+
+        .admin-badge {
+            background: #ffcc00;
+            color: #0b2b5c;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Cards de Controle */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #1e4a8b 0%, #2e5ca0 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .period-selector select {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .period-selector select:focus {
+            border-color: #1e4a8b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 74, 139, 0.1);
+        }
+
+        .period-selector select:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .add-period-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-period-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .periodos-list {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .periodo-tag {
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .periodo-tag button {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Responsável Card */
+        .responsavel-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 2px solid #1e4a8b;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .responsavel-avatar {
+            width: 48px;
+            height: 48px;
+            background: #1e4a8b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .responsavel-info {
+            flex: 1;
+        }
+
+        .responsavel-nome {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .responsavel-email {
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Seletor de Status Rápido */
+        .status-selector-rapido {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-selector-label {
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status-btn.active {
+            background: #1e4a8b;
+            border-color: #1e4a8b;
+            color: white;
+        }
+
+        .status-btn.com-correcao.active {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .status-btn.sem-correcao.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .status-btn i {
+            font-size: 16px;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .clear-all-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clear-all-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .reset-system-btn {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reset-system-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .reset-system-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Status dos Postos */
+        .status-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .status-tab.active {
+            background: #1e4a8b;
+            color: white;
+        }
+
+        .status-tab.com-correcao.active {
+            background: #f59e0b;
+        }
+
+        .status-tab.sem-correcao.active {
+            background: #10b981;
+        }
+
+        /* Área Principal */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Lista de Postos */
+        .postos-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h2 i {
+            color: #1e4a8b;
+        }
+
+        .show-inactive {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .show-inactive input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .search-box {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+        }
+
+        .search-box input:focus {
+            border-color: #1e4a8b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 74, 139, 0.1);
+        }
+
+        .postos-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .posto-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .posto-item:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .posto-item.inativo {
+            opacity: 0.6;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .posto-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .posto-info p {
+            font-size: 13px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .posto-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-badge.com-correcao {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-badge.sem-correcao {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .estado-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .estado-badge.mg { background: #e6f2ff; color: #1a3c8b; }
+        .estado-badge.sp { background: #ffe6e6; color: #cc0000; }
+        .estado-badge.ba { background: #e6ffe6; color: #006600; }
+        .estado-badge.rj { background: #fff0e6; color: #cc6600; }
+        .estado-badge.to { background: #f0e6ff; color: #6600cc; }
+        .estado-badge.se { background: #e6ffff; color: #006666; }
+        .estado-badge.ce { background: #fffae6; color: #cc9900; }
+        .estado-badge.pa { background: #ffe6f9; color: #990066; }
+        .estado-badge.go { background: #f9ffe6; color: #669900; }
+        .estado-badge.pr { background: #e6f9ff; color: #006699; }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .add-btn {
+            background: #1e4a8b;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .add-btn:hover {
+            background: #0b2b5c;
+            transform: scale(1.05);
+        }
+
+        .add-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .edit-status-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .edit-status-btn:hover {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+
+        /* Lista de Liberados */
+        .liberados-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .liberados-header {
+            background: linear-gradient(135deg, #1e4a8b 0%, #0b2b5c 100%);
+            padding: 20px;
+            color: white;
+        }
+
+        .liberados-header h2 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .liberados-periodo {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .liberados-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .liberado-item {
+            background: #f0f9ff;
+            border: 1px solid #b8d9ff;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .liberado-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .liberado-info p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .liberado-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .liberado-status.com-correcao {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .liberado-status.sem-correcao {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #fee2e2;
+            transform: scale(1.1);
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            color: #f59e0b;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn:hover {
+            background: #fef3c7;
+            transform: scale(1.1);
+        }
+
+        .liberados-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .total-liberados {
+            font-weight: 600;
+            color: #1e4a8b;
+            margin-bottom: 15px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .fechamento-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .fechamento-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .backup-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .backup-btn {
+            flex: 1;
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .backup-btn:hover {
+            background: #475569;
+        }
+
+        .backup-btn.restore {
+            background: #8b5cf6;
+        }
+
+        .backup-btn.restore:hover {
+            background: #7c3aed;
+        }
+
+        /* Relatórios Salvos */
+        .relatorios-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .relatorios-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .relatorios-header h3 {
+            font-size: 18px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .relatorios-header h3 i {
+            color: #1e4a8b;
+        }
+
+        .relatorios-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .relatorio-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .relatorio-item:hover {
+            background: #f1f5f9;
+            border-color: #1e4a8b;
+        }
+
+        .relatorio-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .relatorio-numero {
+            font-weight: 600;
+            color: #1e4a8b;
+            background: #e6f2ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .relatorio-data {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .relatorio-info {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .relatorio-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Modal de Edição de Status */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .modal-lg {
+            max-width: 1000px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #1e4a8b 0%, #0b2b5c 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-option:hover {
+            border-color: #1e4a8b;
+            background: #f8fafc;
+        }
+
+        .status-option.selected {
+            border-color: #1e4a8b;
+            background: #e6f2ff;
+        }
+
+        .status-option.com-correcao.selected {
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+
+        .status-option.sem-correcao.selected {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .status-icon.com-correcao {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-icon.sem-correcao {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-reset {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1e4a8b;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0b2b5c;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        /* Relatório Preview */
+        .relatorio-preview {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .relatorio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .relatorio-titulo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .relatorio-data {
+            color: #64748b;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .relatorio-info {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .relatorio-periodos {
+            font-weight: 600;
+            color: #1e4a8b;
+        }
+
+        .relatorio-responsavel {
+            background: #1e4a8b;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .relatorio-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .relatorio-tabela th {
+            background: #1e4a8b;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .relatorio-tabela td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .relatorio-tabela tr:hover {
+            background: #f1f5f9;
+        }
+
+        .status-column {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .status-column.com-correcao {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-column.sem-correcao {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .relatorio-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        /* Footer */
+        .main-footer {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-top: 25px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .footer-info i {
+            color: #1e4a8b;
+        }
+
+        .versao {
+            font-weight: 600;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .toast i {
+            font-size: 24px;
+        }
+
+        .toast.success i {
+            color: #10b981;
+        }
+
+        .toast.error i {
+            color: #ef4444;
+        }
+
+        .toast.info i {
+            color: #3b82f6;
+        }
+
+        .toast.warning i {
+            color: #f59e0b;
+        }
+
+        @media (max-width: 1200px) {
+            .control-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .nav-menu ul {
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+            }
+            
+            .main-footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+/* Botão de Logout no mesmo estilo dos status-btn */
+.status-btn.logout-btn {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.status-btn.logout-btn:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.status-btn.logout-btn i {
+    color: white;
+}
+
+/* Para manter consistência com os outros botões */
+.status-btn.logout-btn.active {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+    </style>
+</head>
+<body class="no-inspect">
+    <!-- Tela de Login -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <i class="fas fa-gas-pump"></i>
+            <h2>LMC - Speed Fiscal</h2>
+            <p>Faça login para acessar o sistema</p>
+        </div>
+        <div class="login-form">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Usuário</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha">
+            </div>
+            <button class="login-btn" onclick="fazerLogin()">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+            <div class="error-message" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- Sistema Principal -->
+    <div class="sistema-container" id="sistemaContainer">
+        <div class="container">
+            <!-- Header Principal -->
+            <div class="main-header">
+                <div class="header-content">
+                    <div class="logo-area">
+                        <div class="logo-icon">
+                            <i class="fas fa-gas-pump"></i>
+                        </div>
+                        <div class="header-title">
+                            <h1>LMC - Liberação Speed Fiscal</h1>
+                            <p>
+                                <i class="fas fa-shield-alt"></i>
+                                Unidades Liberadas para Verificação do Speed Fiscal
+                            </p>
+                        </div>
+                    </div>
+                    <div class="user-info" onclick="mostrarInfoUsuario()">
+                        <div class="department" id="userDepartment">Setor de LMC</div>
+                        <div class="name" id="userNameDisplay">Carregando...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Menu de Navegação -->
+            <div class="nav-menu">
+                <ul>
+                    <li class="active" onclick="mudarAba('liberacoes')">
+                        <i class="fas fa-check-circle"></i> Liberações
+                    </li>
+                    <li onclick="mudarAba('relatorios')">
+                        <i class="fas fa-chart-bar"></i> Relatórios Salvos
+                    </li>
+                </ul>
+                <div class="admin-badge" id="adminBadge" style="display: none;">
+                    <i class="fas fa-crown"></i> Administrador
+                </div>
+            </div>
+            
+            <!-- Cards de Controle -->
+            <div class="control-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Períodos de Liberação</div>
+                            <div class="period-selector">
+                                <select id="anoSelect">
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                                <select id="mesSelect">
+                                    <option value="01">Janeiro</option>
+                                    <option value="02">Fevereiro</option>
+                                    <option value="03">Março</option>
+                                    <option value="04">Abril</option>
+                                    <option value="05">Maio</option>
+                                    <option value="06">Junho</option>
+                                    <option value="07">Julho</option>
+                                    <option value="08">Agosto</option>
+                                    <option value="09">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12" selected>Dezembro</option>
+                                </select>
+                                <button class="add-period-btn" onclick="adicionarPeriodo()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="periodos-list" id="periodosList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Responsável</div>
+                            <div class="responsavel-card">
+                                <div class="responsavel-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="responsavel-info">
+                                    <div class="responsavel-nome" id="responsavelNome">Carregando...</div>
+                                    <div class="responsavel-email" id="responsavelEmail">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Múltiplos Períodos</div>
+                            <div class="card-value" id="totalPeriodos">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-simple"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Unidades Liberadas</div>
+                            <div class="card-value" id="totalLiberadosCard">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seletor de Status Rápido -->
+            <div class="status-selector-rapido">
+                <div class="status-selector-label">
+                    <i class="fas fa-tag"></i>
+                    Status para adição:
+                </div>
+                <div class="status-buttons">
+                    <button class="status-btn" id="statusBtnPadrao" onclick="selecionarStatusRapido('padrao')">
+                        <i class="fas fa-clock"></i> Padrão
+                    </button>
+                    <button class="status-btn com-correcao" id="statusBtnComCorrecao" onclick="selecionarStatusRapido('comCorrecao')">
+                        <i class="fas fa-exclamation-triangle"></i> Com Correção
+                    </button>
+                    <button class="status-btn sem-correcao" id="statusBtnSemCorrecao" onclick="selecionarStatusRapido('semCorrecao')">
+                        <i class="fas fa-check-circle"></i> Sem Correção
+                    </button>
+                </div>
+                <div class="admin-actions">
+    <button class="status-btn logout-btn" onclick="fazerLogout()">
+        <i class="fas fa-sign-out-alt"></i> Sair
+    </button>
+    <button class="clear-all-btn" onclick="limparTudo()">
+        <i class="fas fa-trash-alt"></i> Limpar Lista
+    </button>
+    <button class="reset-system-btn" id="resetSystemBtn" onclick="zerarSistema()" style="display: none;">
+        <i class="fas fa-skull-crosswalk"></i> Zerar Sistema
+    </button>
+</div>
+            </div>
+            
+            <!-- Abas de Status -->
+            <div class="status-tabs">
+                <button class="status-tab active" onclick="filtrarStatus('todos')">Todos os Postos</button>
+                <button class="status-tab com-correcao" onclick="filtrarStatus('comCorrecao')">Com Correção</button>
+                <button class="status-tab sem-correcao" onclick="filtrarStatus('semCorrecao')">Sem Correção</button>
+            </div>
+            
+            <!-- Conteúdo Principal - Liberações -->
+            <div id="liberacoesContent">
+                <div class="main-content">
+                    <!-- Lista de Postos Disponíveis -->
+                    <div class="postos-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-gas-pump"></i>
+                                Postos Disponíveis para Liberação
+                            </h2>
+                            <label class="show-inactive">
+                                <input type="checkbox" id="showInactive">
+                                <i class="fas fa-eye-slash"></i> Mostrar inativos
+                            </label>
+                        </div>
+                        
+                        <div class="search-box">
+                            <input type="text" id="searchPosto" placeholder="Buscar por nome, cidade ou razão social...">
+                        </div>
+                        
+                        <div class="postos-list" id="postosList">
+                            <!-- Postos serão carregados aqui -->
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de Unidades Liberadas -->
+                    <div class="liberados-section">
+                        <div class="liberados-header">
+                            <h2>
+                                <i class="fas fa-check-double"></i>
+                                Unidades Liberadas
+                            </h2>
+                            <div class="liberados-periodo" id="periodoDisplay">
+                                <span><i class="far fa-calendar-alt"></i> Dezembro/2026</span>
+                                <span><i class="far fa-user"></i> Carregando...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="liberados-list" id="liberadosList">
+                            <!-- Unidades liberadas serão carregadas aqui -->
+                        </div>
+                        
+                        <div class="liberados-footer">
+                            <div class="total-liberados" id="totalLiberados">
+                                <span>Total de unidades liberadas: 0</span>
+                                <span id="totalComCorrecao">Com correção: 0</span>
+                            </div>
+                            <button class="fechamento-btn" onclick="abrirModalFechamento()">
+                                <i class="fas fa-file-signature"></i>
+                                Realizar Fechamento
+                            </button>
+                            <div class="backup-btns">
+                                <button class="backup-btn" onclick="fazerBackup()">
+                                    <i class="fas fa-download"></i> Backup
+                                </button>
+                                <button class="backup-btn restore" onclick="restaurarBackup()">
+                                    <i class="fas fa-upload"></i> Restaurar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo - Relatórios Salvos -->
+            <div id="relatoriosContent" style="display: none;">
+                <div class="relatorios-section">
+                    <div class="relatorios-header">
+                        <h3>
+                            <i class="fas fa-history"></i>
+                            Relatórios de Fechamento
+                        </h3>
+                        <button class="btn-secondary" onclick="carregarRelatorios()">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </div>
+                    <div class="relatorios-list" id="relatoriosList">
+                        <!-- Relatórios serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="main-footer">
+                <div class="footer-info">
+                    <i class="fas fa-code-branch"></i>
+                    <span class="versao">v2.0.0</span>
+                </div>
+                <div>
+                    <i class="far fa-clock"></i>
+                    <span id="dataAtual"></span>
+                </div>
+                <div>
+                    <i class="fas fa-shield"></i>
+                    Sistema de Liberação Speed Fiscal - Desenvolvido por Waldeci Ramos
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Status -->
+    <div class="modal" id="statusModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    Editar Status da Unidade
+                </h3>
+                <button class="close-modal" onclick="fecharStatusModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="statusModalPostoInfo"></div>
+                <div style="margin-top: 20px;">
+                    <div class="status-option com-correcao" onclick="selecionarStatus('comCorrecao')" id="statusComCorrecao">
+                        <div class="status-icon com-correcao">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <h4>Com Correção</h4>
+                            <p style="font-size: 13px; color: #64748b;">Unidade que precisou de ajustes</p>
+                        </div>
+                    </div>
+                    <div class="status-option sem-correcao" onclick="selecionarStatus('semCorrecao')" id="statusSemCorrecao">
+                        <div class="status-icon sem-correcao">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <h4>Sem Correção</h4>
+                            <p style="font-size: 13px; color: #64748b;">Unidade apta para transmissão</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="fecharStatusModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-primary" onclick="salvarStatus()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Fechamento -->
+    <div class="modal" id="fechamentoModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-file-signature"></i>
+                    Fechamento de Liberações
+                </h3>
+                <button class="close-modal" onclick="fecharFechamentoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="relatorio-preview" id="fechamentoPreview">
+                    <!-- Prévia do relatório -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="fecharFechamentoModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-success" onclick="enviarRelatorioEmail()">
+                    <i class="fas fa-envelope"></i> Enviar por Email
+                </button>
+                <button class="btn-primary" onclick="imprimirRelatorio()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn-primary" onclick="salvarFechamento()">
+                    <i class="fas fa-save"></i> Salvar Fechamento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Relatório -->
+    <div class="modal" id="relatorioModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-file-pdf"></i>
+                    Relatório de Liberações
+                </h3>
+                <button class="close-modal" onclick="fecharRelatorioModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="relatorio-preview" id="relatorioPreview">
+                    <!-- Conteúdo do relatório -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="fecharRelatorioModal()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+                <button class="btn-success" onclick="enviarRelatorioAtual()">
+                    <i class="fas fa-envelope"></i> Enviar por Email
+                </button>
+                <button class="btn-primary" onclick="imprimirRelatorioAtual()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação para Zerar Sistema -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+                <h3>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Atenção! Zerar Sistema
+                </h3>
+                <button class="close-modal" onclick="fecharResetModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-skull-crosswalk" style="font-size: 80px; color: #7c3aed; margin-bottom: 20px;"></i>
+                    <h4 style="color: #1e293b; margin-bottom: 15px;">Você está prestes a zerar COMPLETAMENTE o sistema!</h4>
+                    <p style="color: #64748b; margin-bottom: 10px;">Esta ação irá:</p>
+                    <ul style="text-align: left; color: #64748b; margin-left: 30px; margin-bottom: 20px;">
+                        <li>Remover TODAS as unidades liberadas</li>
+                        <li>Apagar TODOS os relatórios de fechamento</li>
+                        <li>Limpar os períodos de liberação</li>
+                        <li>Restaurar o sistema ao estado inicial</li>
+                    </ul>
+                    <p style="color: #ef4444; font-weight: 600; margin-bottom: 20px;">ESTA AÇÃO NÃO PODE SER DESFEITA!</p>
+                    
+                    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="confirmResetCheckbox">
+                            <span>Eu entendi as consequências e desejo continuar</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="fecharResetModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-reset" id="confirmResetBtn" onclick="confirmarZerarSistema()" disabled>
+                    <i class="fas fa-skull-crosswalk"></i> Sim, zerar sistema
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de notificação -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Bloquear inspeção
+        document.addEventListener('contextmenu', function(e) {
+            const usuario = sessionStorage.getItem('usuarioLogado');
+            if (usuario !== 'waldeci.ramos@rededompedro.com') {
+                e.preventDefault();
+                mostrarToast('Função bloqueada para este usuário', 'error');
+                return false;
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            const usuario = sessionStorage.getItem('usuarioLogado');
+            if (usuario !== 'waldeci.ramos@rededompedro.com') {
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+                    e.preventDefault();
+                    mostrarToast('Função bloqueada para este usuário', 'error');
+                    return false;
+                }
+            }
+        });
+
+        // Credenciais dos usuários
+        const usuarios = {
+            'julia.silva@rededompedro.com': {
+                nome: 'Júlia Silva',
+                senha: 'julia@DP@123456',
+                tipo: 'usuario'
+            },
+            'guilherme.araujo@rededompedro.com': {
+                nome: 'Guilherme Araújo',
+                senha: 'guilherme@DP@123456',
+                tipo: 'usuario'
+            },
+            'lilian.borges@rededompedro.com': {
+                nome: 'Lilian Borges',
+                senha: 'lilian@DP@123456',
+                tipo: 'usuario'
+            },
+            'waldeci.ramos@rededompedro.com': {
+                nome: 'Waldeci Ramos',
+                senha: 'ADM@2026',
+                tipo: 'admin'
+            }
+        };
+
+        // Dados dos postos
+        // Dados dos postos (mesmo do sistema original)
+        const postosData = [
+            {codigo: 1, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA", nomeReduzido: "REDE DOM PEDRO DE POSTOS LTD", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "237950644", endereco: "ROD FERNAO DIAS, SN - SN", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "DIRCEU", ativo: true},
+            {codigo: 2, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 1)", nomeReduzido: "DP 1", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "2450291", endereco: "ROD FERNAO DIAS  KM 880,", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "35 34621188", fax: "35 34621188", contato: "DIRCEU", ativo: true},
+            {codigo: 3, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP ITATIAIUCU)", nomeReduzido: "DP ITATIAIUCU", cnpj: "20.415.295/0009-21", ie: "245068303093", im: "167", endereco: "ROD BR 381, SN - KM 57", bairro: "PINHEIROS", cidade: "ITATIAIUCU", cep: "35.685-0", estado: "MG", municipio: "TATIAIUCU", pais: "BRASIL", fone: "3534622135", fax: "3534622136", contato: "VANDERCELIO", ativo: true},
+            {codigo: 4, razaoSocial: "SP - POSTO DOM PEDRO DE LEME LTDA (DP LEME)", nomeReduzido: "DP LEME", cnpj: "44.740.967/0001-85", ie: "415002666118", im: "ISENTO", endereco: "RODOVIA ANHANGUERA KM 18", bairro: "SERELEPE", cidade: "LEME", cep: "13.610-4", estado: "SP", municipio: "LEME", pais: "BRASIL", fone: "19 35721423", fax: "19 35721423", contato: "EDSON", ativo: true},
+           {codigo: 5, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP PINDA NORTE)", nomeReduzido: "DP PINDA", cnpj: "20.415.295/0083-10", ie: "528306447113", im: "284", endereco: "ROD PRESIDENTE DUTRA, SN", bairro: "MOREIRA CE", cidade: "PINDAMONHANGABA", cep: "12.441-2", estado: "SP", municipio: "ONHANGABA", pais: "BRASIL", fone: "1236375302", fax: "1236375302", contato: "ALESSANDRO", ativo: true},
+            {codigo: 6, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 2)", nomeReduzido: "DP 2", cnpj: "20.415.295/0011-46", ie: "245068303,11", im: "31525018531-", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "FAZENDA GR", cidade: "POUSO ALEGRE", cep: "37.550-0", estado: "MG", municipio: "SO ALEGRE", pais: "BRASIL", fone: "3534298023", fax: "", contato: "BENEDITO CAETA", ativo: true},
+            {codigo: 7, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO ALEGRE)", nomeReduzido: "DP POUSO ALEGRE", cnpj: "20.415.295/0013-08", ie: "245068303,13", im: "77095", endereco: "RODOVIA FERNAO DIAS KM 8", bairro: "CRUZ ALTA", cidade: "POUSO ALEGRE", cep: "37.550-0", estado: "MG", municipio: "SO ALEGRE", pais: "BRASIL", fone: "35 34621020", fax: "", contato: "ALEXANDRE", ativo: true},
+            {codigo: 8, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP ATIBAIA)", nomeReduzido: "DP ATIBAIA", cnpj: "20.415.295/0029-75", ie: "190.223.770.", im: "31671", endereco: "ROD FERNAO DIAS KM 28, S", bairro: "TANQUE", cidade: "ATIBAIA", cep: "12.954-0", estado: "SP", municipio: "ATIBAIA", pais: "BRASIL", fone: "1144162961", fax: "", contato: "FABIANA", ativo: true},
+            {codigo: 9, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP ITAPEVA)", nomeReduzido: "DP ITAPEVA", cnpj: "20.415.295/0017-31", ie: "245068303176", im: "520", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "PONTE DE Z", cidade: "ITAPEVA", cep: "37.655-0", estado: "MG", municipio: "ITAPEVA", pais: "BRASIL", fone: "3534341455", fax: "3534341455", contato: "JACQUELINE", ativo: true},
+            {codigo: 10, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAETANOPOLIS)", nomeReduzido: "DP CAETANOPOLIS", cnpj: "20.415.295/0021-18", ie: "245068303,21", im: "99297615009", endereco: "RODOVIA BR 040, SN - KM", bairro: "CEDROLANDI", cidade: "CAETANOPOLIS", cep: "35.770-0", estado: "MG", municipio: "TANOPOLIS", pais: "BRASIL", fone: "31 37146552", fax: "", contato: "JOVANE", ativo: true},
+            {codigo: 11, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP BETIM 1)", nomeReduzido: "DP BETIM", cnpj: "20.415.295/0015-70", ie: "245068303150", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS KM 4", bairro: "BAIRRO BRA", cidade: "BETIM", cep: "32.600-2", estado: "MG", municipio: "BETIM", pais: "BRASIL", fone: "31 35312845", fax: "", contato: "NATHALIA", ativo: true},
+            {codigo: 12, razaoSocial: "Z. INATIVO - BEL POSTO", nomeReduzido: "BEL POSTO", cnpj: "17.418.344/0001-18", ie: "62004771007", im: "4002440019", endereco: "RUA DAS PRINCESAS, 367 -", bairro: "JARDINOPOL", cidade: "BELO HORIZONTE", cep: "30.532-0", estado: "MG", municipio: "HORIZONTE", pais: "BRASIL", fone: "31 33884193", fax: "", contato: "BRAULIO", ativo: false},
+            {codigo: 13, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP TURIM)", nomeReduzido: "DP TURIM", cnpj: "20.415.295/0014-99", ie: "245068303143", im: "ISENTO", endereco: "ROD BR 381, SN - KM 4241", bairro: "JARDIM PIE", cidade: "BETIM", cep: "32.536-0", estado: "MG", municipio: "BETIM", pais: "BRASIL", fone: "3135914199", fax: "3135914199", contato: "MARCELINO", ativo: true},
+            {codigo: 14, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP SANTA LUZIA)", nomeReduzido: "DP SANTA LUZIA", cnpj: "20.415.295/0008-40", ie: "245068303085", im: "1000389", endereco: "ROD BR 381 - KM 291, SN", bairro: "BOM DESTIN", cidade: "SANTA LUZIA", cep: "33.060-1", estado: "MG", municipio: "NTA LUZIA", pais: "BRASIL", fone: "35 3462-200", fax: "", contato: "LILIAN", ativo: true},
+            {codigo: 15, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP SALINAS)", nomeReduzido: "DP SALINAS", cnpj: "20.415.295/0007-60", ie: "245068303,07", im: "ISENTO", endereco: "RODOVIA BR 251 KM 309, S", bairro: "ZONA RURAL", cidade: "SALINAS", cep: "39.560-0", estado: "MG", municipio: "SALINAS", pais: "BRASIL", fone: "35 98461-15", fax: "", contato: "NOE", ativo: true},
+            {codigo: 16, razaoSocial: "COMERCIO DE PRODUTOS PARA VEICULOS DOM PEDRO LTDA", nomeReduzido: "COMERCIO D PRODUTOS PARA VEI", cnpj: "54.212.592/0001-34", ie: "448005292117", im: "ISENTO", endereco: "ROD REGIS BITTENCOURT, S", bairro: "SANTA RITA", cidade: "MIRACATU", cep: "11.850-0", estado: "SP", municipio: "MIRACATU", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 17, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP APARECIDA)", nomeReduzido: "DP APARECIDA", cnpj: "20.415.295/0030-09", ie: "174.100.835.", im: "ISENTO", endereco: "ROD PRESIDENTE DUTRA KM", bairro: "PADRE VITO", cidade: "APARECIDA", cep: "12.570-0", estado: "SP", municipio: "APARECIDA", pais: "BRASIL", fone: "12 31057146", fax: "12 31052811", contato: "DANIEL/CARLINH", ativo: true},
+            {codigo: 18, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP MURIAE)", nomeReduzido: "DP MURIAE", cnpj: "20.415.295/0018-12", ie: "245068303,18", im: "ISENTO", endereco: "ROD BR 116, SN - KM 690", bairro: "ZONA RURAL", cidade: "MURIAE", cep: "36.880-0", estado: "MG", municipio: "MURIAE", pais: "BRASIL", fone: "3237236050", fax: "3237236050", contato: "MARCO BERTO", ativo: true},
+            {codigo: 19, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP PARAOPEBA)", nomeReduzido: "DP PARAOPEBA", cnpj: "20.415.295/0020-37", ie: "245068303,2", im: "ISENTO", endereco: "RODOVIA BR 040, KM 438,", bairro: "ZONA RURAL", cidade: "PARAOPEBA", cep: "35.774-0", estado: "MG", municipio: "PARAOPEBA", pais: "BRASIL", fone: "35 3462-214", fax: "35 3462-2146", contato: "SANDRO", ativo: true},
+            {codigo: 20, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAGEM NORTE)", nomeReduzido: "DP CONTAGEM NORTE- MATRIZ", cnpj: "20.415.295/0025-41", ie: "24506830325-", im: "ISENTO", endereco: "AV HELENA DE VASCONCELOS", bairro: "PEROBAS", cidade: "CONTAGEM", cep: "32.371-6", estado: "MG", municipio: "CONTAGEM", pais: "BRASIL", fone: "31 33912070", fax: "31 33917331", contato: "JEFFERSON", ativo: true},
+            {codigo: 21, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAGEM SUL)", nomeReduzido: "DP CONTAGEM SUL", cnpj: "20.415.295/0023-80", ie: "245068303234", im: "ISENTO", endereco: "AVENIDA HELENA DE VASCON", bairro: "CINCAO", cidade: "CONTAGEM", cep: "32.371-6", estado: "MG", municipio: "CONTAGEM", pais: "BRASIL", fone: "31 3391-659", fax: "", contato: "JEFFERSON", ativo: true},
+            {codigo: 22, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP CAMBUI)", nomeReduzido: "DP CAMBUI", cnpj: "20.415.295/0016-50", ie: "245068303168", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "CONGONHAL", cidade: "CAMBUI", cep: "37.600-0", estado: "MG", municipio: "CAMBUI", pais: "BRASIL", fone: "35 3462-104", fax: "35 3462-1048", contato: "RODOLFO", ativo: true},
+            {codigo: 23, razaoSocial: "Z. INATIVO - DOM PEDRO CAREACU NORTE", nomeReduzido: "DOM PEDRO CAREACU NORTE", cnpj: "05.539.568/0001-07", ie: "136223085", im: "5.4.00000131", endereco: "ROD FERNAO DIAS BR 381 -", bairro: "ZONA RURAL", cidade: "CAREAÇU", cep: "37.556-0", estado: "MG", municipio: "CAREACU", pais: "BRASIL", fone: "35 3423-194", fax: "", contato: "DIEGO", ativo: false},
+            {codigo: 24, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA ROD.)", nomeReduzido: "DP GUARATINGUETA", cnpj: "20.415.295/0031-90", ie: "332126572114", im: "31553", endereco: "RODOVIA PRESIDENTE DUTRA", bairro: "RIO CUMPRI", cidade: "GUARATINGUETA", cep: "12.522-6", estado: "SP", municipio: "ATINGUETA", pais: "BRASIL", fone: "1231320135", fax: "", contato: "", ativo: true},
+            {codigo: 25, razaoSocial: "SP - AUTO POSTO JOIA DA DUTRA LTDA (DP PINDA ROTAL SU", nomeReduzido: "DP JOIA", cnpj: "53.163.580/0001-02", ie: "528020320115", im: "ISENTO", endereco: "RODOVIA PRESIDENTE DUTRA", bairro: "MOREIRA CE", cidade: "PINDAMONHANGABA", cep: "12.442-2", estado: "SP", municipio: "ONHANGABA", pais: "BRASIL", fone: "1236411301", fax: "", contato: "", ativo: true},
+            {codigo: 26, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP MIRACATU NORTE", nomeReduzido: "DP MIRACATU ROTA NORTE", cnpj: "20.415.295/0032-70", ie: "448022569110", im: "30856", endereco: "RODOVIA REGIS BITTENCOUR", bairro: "SANTA RITA", cidade: "MIRACATU", cep: "11.850-0", estado: "SP", municipio: "MIRACATU", pais: "BRASIL", fone: "1338466204", fax: "", contato: "", ativo: true},
+            {codigo: 27, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP JK)", nomeReduzido: "DP JK ESTIVA ROTA SUL", cnpj: "20.415.295/0010-65", ie: "245068303101", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "CORREGO DO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "35 34627134", fax: "", contato: "ÉRICA", ativo: true},
+            {codigo: 28, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP ALIANCA)", nomeReduzido: "DP ALIANCA", cnpj: "20.415.295/0012-27", ie: "245068303,12", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ALIANCA", cidade: "SAO SEBASTIAO DA BEL", cep: "37.567-0", estado: "MG", municipio: "ELA VISTA", pais: "BRASIL", fone: "3534533801", fax: "3534531288", contato: "", ativo: true},
+            {codigo: 29, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP OLIVEIRA)", nomeReduzido: "DP OLIVEIRA", cnpj: "20.415.295/0019-01", ie: "245068303,19", im: "5370", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "ZONA RUAL", cidade: "OLIVEIRA", cep: "35.540-0", estado: "MG", municipio: "OLIVEIRA", pais: "BRASIL", fone: "3534622110", fax: "", contato: "JONAS", ativo: true},
+            {codigo: 30, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMBUI URBANO", nomeReduzido: "DP CAMBUI - URBANO", cnpj: "20.415.295/0004-17", ie: "245068303051", im: "ISENTO", endereco: "RUA JOAO MOREIRA SALLES,", bairro: "CENTRO", cidade: "CAMBUI", cep: "37.600-0", estado: "MG", municipio: "CAMBUI", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 31, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP JAGUAQUARA)", nomeReduzido: "DP JAGUAQUARA", cnpj: "20.415.295/0033-51", ie: "131670499", im: "ISENTO", endereco: "RODOVIA BR 116, SN", bairro: "COALHADA", cidade: "JAGUAQUARA", cep: "45.345-0", estado: "BA", municipio: "AGUAQUARA", pais: "BRASIL", fone: "73 35259557", fax: "73 35381992", contato: "MANOEL", ativo: true},
+            {codigo: 32, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO GONCALO", nomeReduzido: "DP SAO GONCALO DO SAPUCAI", cnpj: "20.415.295/0035-13", ie: "245.068303.2", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "SAO CRISTO", cidade: "SAO GONÇALO DO SAPUC", cep: "37.490-0", estado: "MG", municipio: "O SAPUCAI", pais: "BRASIL", fone: "(35) 3241-1", fax: "(37)3226-1093", contato: "DIEGO", ativo: true},
+            {codigo: 33, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP NOVA SERRANA)", nomeReduzido: "DP NOVA SERRANA", cnpj: "20.415.295/0026-22", ie: "245068303,26", im: "ISENTO", endereco: "RODOVIA BR 262, 480 - KM", bairro: "INDUSTRIAL", cidade: "NOVA SERRANA", cep: "35.527-0", estado: "MG", municipio: "A SERRANA", pais: "BRASIL", fone: "37 32261093", fax: "37 32261093", contato: "", ativo: true},
+            {codigo: 34, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP IGARATINGA)", nomeReduzido: "DP IGARATINGA", cnpj: "20.415.295/0024-60", ie: "245068303242", im: "ISENTO", endereco: "RODOVIA BR 262, SN - KM", bairro: "CRUZ ALTA", cidade: "IGARATINGA", cep: "35.695-0", estado: "MG", municipio: "GARATINGA", pais: "BRASIL", fone: "37 32471426", fax: "37 32471470", contato: "", ativo: true},
+            {codigo: 35, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CARMOPOLIS)", nomeReduzido: "DP CARMOPOLIS", cnpj: "20.415.295/0022-07", ie: "245068303226", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS BR-3", bairro: "SUBURBANO", cidade: "CARMOPOLIS DE MINAS", cep: "35.534-0", estado: "MG", municipio: "DE MINAS", pais: "BRASIL", fone: "(37) 3333-1", fax: "(37) 3333-1120", contato: "TELMO", ativo: true},
+            {codigo: 36, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP BETIM 2)", nomeReduzido: "DP BETIM - 2", cnpj: "20.415.295/0043-23", ie: "245068303,34", im: "ISENTO", endereco: "RUA MARIA DAS MERCES LIM", bairro: "BETIM INDU", cidade: "BETIM", cep: "32.670-4", estado: "MG", municipio: "BETIM", pais: "BRASIL", fone: "31 2571 055", fax: "31 2571 0552", contato: "", ativo: true},
+            {codigo: 37, razaoSocial: "Z. INATIVO - REDE DOM PEDRO DE POSTOS LTDA (DP PARAGO", nomeReduzido: "DP PARAGOMINAS", cnpj: "20.415.295/0039-47", ie: "155471090", im: "ISENTO", endereco: "RODOVIA BR 010 KM 1651,", bairro: "NAGIBAO", cidade: "PARAGOMINAS", cep: "68.625-9", estado: "PA", municipio: "RAGOMINAS", pais: "BRASIL", fone: "913738-1324", fax: "9137381324", contato: "", ativo: false},
+            {codigo: 38, razaoSocial: "Z. INATIVO - REDE DOM PEDRO DE POSTOS LTDA (DP URUAÇU", nomeReduzido: "DP URUACU", cnpj: "20.415.295/0028-94", ie: "10648023-5", im: "ISENTO", endereco: "RODOVIA BR 153, SN - KM", bairro: "ZONA RURAL", cidade: "URUAÇU", cep: "76.400-0", estado: "GO", municipio: "URUACU", pais: "BRASIL", fone: "6233571507", fax: "6233572476", contato: "", ativo: false},
+            {codigo: 39, razaoSocial: "Z. INATIVO - POSTO DOM PEDRO SAO SEBASTIAO DA BELA VI", nomeReduzido: "DP SAO SEBASTIAO DA BELA VIS", cnpj: "07.750.236/0001-94", ie: "001001920-00", im: "40102010005", endereco: "ROD BR 381 - KM 786, SN", bairro: "BAIRRO BAL", cidade: "SAO SEBASTIAO DA BEL", cep: "37.567-0", estado: "MG", municipio: "ELA VISTA", pais: "BRASIL", fone: "3534259026", fax: "3534259026", contato: "", ativo: false},
+            {codigo: 40, razaoSocial: "Z. INATIVO - POSTO DOM PEDRO DE CASCAVEL", nomeReduzido: "DOM PEDRO CASCAVEL", cnpj: "02.341.563/0001-79", ie: "9015152556", im: "ISENTO", endereco: "ROD BR 467, SN - KM 8443", bairro: "SEDE ALVOR", cidade: "CASCAVEL", cep: "85.822-0", estado: "PR", municipio: "CASCAVEL", pais: "BRASIL", fone: "4532711200", fax: "4532711200", contato: "", ativo: false},
+            {codigo: 41, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP DIVISA ALEGR", nomeReduzido: "DP DIVISA ALEGRE 1", cnpj: "20.415.295/0005-06", ie: "245068303036", im: "ISENTO", endereco: "BR 116, SN", bairro: "CAMACA", cidade: "DIVISA ALEGRE", cep: "39.995-0", estado: "MG", municipio: "SA ALEGRE", pais: "BRASIL", fone: "3534252595", fax: "", contato: "", ativo: true},
+            {codigo: 42, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMBUI URBANO", nomeReduzido: "DP CAMBUI - URBANO 2", cnpj: "20.415.295/0034-32", ie: "245068303283", im: "ISENTO", endereco: "AVENIDA PREFEITO JOSE BA", bairro: "JARDIM ANA", cidade: "CAMBUI", cep: "37.600-0", estado: "MG", municipio: "CAMBUI", pais: "BRASIL", fone: "35 3431 137", fax: "", contato: "", ativo: true},
+            {codigo: 43, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAGEM FERNA", nomeReduzido: "DP CONTAGEM FERNAO DIAS", cnpj: "20.415.295/0036-02", ie: "245068303309", im: "ISENTO", endereco: "BR 381, 2000 - KM 02", bairro: "RIACHO DAS", cidade: "CONTAGEM", cep: "32.280-6", estado: "MG", municipio: "CONTAGEM", pais: "BRASIL", fone: "31 3396 003", fax: "", contato: "", ativo: true},
+            {codigo: 44, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP CACHOEIRA DE", nomeReduzido: "DP CACHOEIRA DE PAJEU", cnpj: "20.415.295/0038-66", ie: "245068303325", im: "ISENTO", endereco: "RODOVIA BR 116, SN - KM", bairro: "ZONA RUAL", cidade: "CACHOEIRA DE PAJEU", cep: "39.980-0", estado: "MG", municipio: "DE PAJEU", pais: "BRASIL", fone: "33 3755 860", fax: "", contato: "", ativo: true},
+            {codigo: 45, razaoSocial: "TO - POSTO DOM PEDRO DE PARAISO DO TOCANTINS LTDA  ME", nomeReduzido: "DP PARAISO DE TOCANTINS LTDA", cnpj: "00.053.843/0001-56", ie: "29.019.484-9", im: "ISENTO", endereco: "ROD BR 153, SN - KM 489", bairro: "ZONA RURAL", cidade: "PARAISO DO TOCANTINS", cep: "77.600-0", estado: "TO", municipio: "TOCANTINS", pais: "BRASIL", fone: "35 34622143", fax: "", contato: "", ativo: true},
+            {codigo: 46, razaoSocial: "Z. INATIVO - POSTO DOM PEDRO GUARA URBANO 1 LTDA", nomeReduzido: "DP GUARATINGUETA URBANO", cnpj: "16.780.200/0001-44", ie: "332.094.848.", im: "ISENTO", endereco: "RUA COMENDADOR RODRIGUES", bairro: "CENTRO", cidade: "GUARATINGUETA", cep: "12.500-0", estado: "SP", municipio: "ATINGUETA", pais: "BRASIL", fone: "1231326337", fax: "", contato: "", ativo: false},
+            {codigo: 47, razaoSocial: "1. REDE DOM PEDRO DE POSTOS LTDA (CENTRAL ADM.)", nomeReduzido: "***CENTRAL ADMINISTRATIVA RE", cnpj: "20.415.295/0037-85", ie: "245068303317", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS KM 8", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "3592053286", fax: "", contato: "", ativo: true},
+            {codigo: 48, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO ESTEVAO", nomeReduzido: "DP SANTO ESTEVAO", cnpj: "20.415.295/0041-61", ie: "139098703", im: "ISENTO", endereco: "RODOVIA BR 116 KM 495, S", bairro: "MARACANA", cidade: "RAFAEL JAMBEIRO", cep: "44.520-0", estado: "BA", municipio: "JAMBEIRO", pais: "BRASIL", fone: "(35)3462-21", fax: "", contato: "", ativo: true},
+            {codigo: 49, razaoSocial: "MG - POSTO DOM PEDRO SAO GONCALO DO SAPUCAI URBANO LT", nomeReduzido: "DP SAO GONCALO URBANO 1", cnpj: "09.047.306/0001-78", ie: "001.042691-0", im: "ISENTO", endereco: "RUA SAO JOSE, 495", bairro: "CENTRO", cidade: "SAO GONÇALO DO SAPUC", cep: "37.490-0", estado: "MG", municipio: "O SAPUCAI", pais: "BRASIL", fone: "353241-1247", fax: "", contato: "", ativo: true},
+            {codigo: 50, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP ITAGUARA)", nomeReduzido: "DP ITAGUARA", cnpj: "20.415.295/0006-89", ie: "245068303,04", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS/ GRO", bairro: "ZONA RURAL", cidade: "ITATIAIUCU", cep: "35.685-0", estado: "MG", municipio: "TATIAIUCU", pais: "BRASIL", fone: "3534252595", fax: "", contato: "", ativo: true},
+            {codigo: 51, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP SENADOR AMARAL", nomeReduzido: "DP SENADOR AMARAL", cnpj: "20.415.295/0045-95", ie: "245068303366", im: "ISENTO", endereco: "RUA GERALDO JULIO, 222", bairro: "CENTRO", cidade: "SENADOR AMARAL", cep: "37.615-0", estado: "MG", municipio: "OR AMARAL", pais: "BRASIL", fone: "35-3437-114", fax: "", contato: "", ativo: true},
+            {codigo: 52, razaoSocial: "Z. INATIVO - POSTO DOM PEDRO BEIRA RIO LTDA", nomeReduzido: "DP ESTIVA ROTA NORTE", cnpj: "07.278.545/0001-03", ie: "245.298617-0", im: "ISENTO", endereco: "RODOVIA FERNÃO DIAS - BR", bairro: "BAIRRO LAG", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "(35) 3462-2820", contato: "", ativo: false},
+            {codigo: 53, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP SAO GONCALO UR", nomeReduzido: "DP SAO GONCALO URBANO 2", cnpj: "20.415.295/0044-04", ie: "245068303358", im: "ISENTO", endereco: "AVE DOUTOR IBRAHIM DE CA", bairro: "CENTRO", cidade: "SAO GONÇALO DO SAPUC", cep: "37.490-0", estado: "MG", municipio: "O SAPUCAI", pais: "BRASIL", fone: "", fax: "", contato: "35 32411328", ativo: true},
+            {codigo: 54, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP LORENA)", nomeReduzido: "DP LORENA", cnpj: "20.415.295/0042-42", ie: "420114219119", im: "ISENTO", endereco: "RODOVIA PRESIDENTE DUTRA", bairro: "PARQUE MON", cidade: "LORENA", cep: "12.605-5", estado: "SP", municipio: "LORENA", pais: "BRASIL", fone: "12 2132 022", fax: "", contato: "", ativo: true},
+            {codigo: 55, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP DIVISA ALEGR", nomeReduzido: "DP DIVISA ALEGRE 2", cnpj: "20.415.295/0040-80", ie: "245068303333", im: "ISENTO", endereco: "RODOVIA BR116, SN - KM 2", bairro: "ZONA RURAL", cidade: "DIVISA ALEGRE", cep: "39.995-0", estado: "MG", municipio: "SA ALEGRE", pais: "BRASIL", fone: "(33) 3755-8", fax: "", contato: "", ativo: true},
+            {codigo: 56, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP INCONFIDENTES", nomeReduzido: "DP INCONFIDENTES", cnpj: "20.415.295/0055-67", ie: "245068303,44", im: "ISENTO", endereco: "AV ALVARENGA PEIXOTO, 97", bairro: "MONJOLINHO", cidade: "INCONFIDENTES", cep: "37.576-0", estado: "MG", municipio: "NFIDENTES", pais: "BRASIL", fone: "3535000687", fax: "", contato: "", ativo: true},
+            {codigo: 57, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP JUIZ DE FORA U", nomeReduzido: "DP JUIZ DE FORA URBANO", cnpj: "20.415.295/0068-81", ie: "245068303531", im: "ISENTO", endereco: "AVENIDA GARCIA RODRIGUES", bairro: "INDUSTRIAL", cidade: "JUIZ DE FORA", cep: "36.081-5", estado: "MG", municipio: "Z DE FORA", pais: "BRASIL", fone: "(32) 3221-4", fax: "", contato: "", ativo: true},
+            {codigo: 58, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP BUENO BRANDAO", nomeReduzido: "DP BUENO BRANDAO", cnpj: "20.415.295/0054-86", ie: "245068303,43", im: "ISENTO", endereco: "RUA BENJAMIN ROSSI, 515", bairro: "PARQUE REN", cidade: "BUENO BRANDAO", cep: "37.578-0", estado: "MG", municipio: "O BRANDAO", pais: "BRASIL", fone: "(35)3463-21", fax: "", contato: "", ativo: true},
+            {codigo: 59, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO ALEGRE U", nomeReduzido: "DP POUSO ALEGRE URBANO", cnpj: "20.415.295/0048-38", ie: "245068303,37", im: "ISENTO", endereco: "AV MOISES LOPES, 670", bairro: "ARVORE GRA", cidade: "POUSO ALEGRE", cep: "37.550-0", estado: "MG", municipio: "SO ALEGRE", pais: "BRASIL", fone: "35 3425 600", fax: "", contato: "", ativo: true},
+            {codigo: 60, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMANDUCAIA UR", nomeReduzido: "DP CAMANDUCAIA URBANO", cnpj: "20.415.295/0053-03", ie: "245068303,42", im: "ISENTO", endereco: "AV RIO BRANCO, 105", bairro: "CENTRO", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 61, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP OURO FINO URBA", nomeReduzido: "DP OURO FINO URBANO", cnpj: "20.415.295/0049-19", ie: "245068303,38", im: "ISENTO", endereco: "AVENIDA DELFIM MOREIRA,", bairro: "CENTRO", cidade: "OURO FINO", cep: "37.570-0", estado: "MG", municipio: "OURO FINO", pais: "BRASIL", fone: "353441- 231", fax: "", contato: "", ativo: true},
+            {codigo: 62, razaoSocial: "Z. INATIVO - RAVENA AUTO POSTO E SERVICOS LTDA (DP SA", nomeReduzido: "DP SABARA", cnpj: "41.694.506/0001-25", ie: "567780711", im: "ISENTO", endereco: "ROD BR 381 KM 23, 0, SN", bairro: "ZONA RURAL", cidade: "SABARA", cep: "34.505-9", estado: "MG", municipio: "SABARA", pais: "BRASIL", fone: "31 36723355", fax: "", contato: "", ativo: false},
+            {codigo: 63, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMANDUCAIA UR", nomeReduzido: "DP CAMANDUCAIA URBANO 2", cnpj: "20.415.295/0052-14", ie: "245068303416", im: "ISENTO", endereco: "AVENIDA PRES TANCREDO A", bairro: "SANTA LUCI", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 64, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA URBANO 2", nomeReduzido: "DP GUARATINGUETA URBANO 2", cnpj: "20.415.295/0046-76", ie: "332.193.447.", im: "ISENTO", endereco: "RUA JOSÉ BONIFÁCIO, 343", bairro: "CENTRO", cidade: "GUARATINGUETA", cep: "12.500-0", estado: "SP", municipio: "ATINGUETA", pais: "BRASIL", fone: "(12)3132-63", fax: "(12)3132-6342", contato: "", ativo: true},
+            {codigo: 65, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA URBANO 3", nomeReduzido: "DP GUARATINGUETA URBANO 3", cnpj: "20.415.295/0047-57", ie: "332.196.446.", im: "ISENTO", endereco: "RUA JOAO DE CASTRO COELH", bairro: "CENTRO", cidade: "GUARATINGUETA", cep: "12.500-2", estado: "SP", municipio: "ATINGUETA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 66, razaoSocial: "SP - POSTO DOM PEDRO BRAGANÇA URBANO LTDA (BRAGANÇA U", nomeReduzido: "DP BRAGANCA URBANO", cnpj: "20.415.295/0070-04", ie: "225.373.113.", im: "ISENTO", endereco: "RUA CEL DANIEL PELUSO, 5", bairro: "MATADOURO", cidade: "BRAGANÇA PAULISTA", cep: "12.926-0", estado: "SP", municipio: "PAULISTA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 67, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP JACAREÍ URB.)", nomeReduzido: "DP JACAREI", cnpj: "20.415.295/0078-53", ie: "392.450.881.", im: "ISENTO", endereco: "RODOVIA PRESIDENTE DUTRA", bairro: "PARQUE MEI", cidade: "JACAREI", cep: "12.335-0", estado: "SP", municipio: "JACAREI", pais: "BRASIL", fone: "35 3462-213", fax: "", contato: "", ativo: true},
+            {codigo: 68, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP ATIBAIA URBANO", nomeReduzido: "DP ATIBAIA URBANO", cnpj: "20.415.295/0077-72", ie: "190394050112", im: "ISENTO", endereco: "RUA RIO DE JANEIRO, 106", bairro: "JARDIM ATI", cidade: "ATIBAIA", cep: "12.942-7", estado: "SP", municipio: "ATIBAIA", pais: "BRASIL", fone: "(11)4416-29", fax: "", contato: "", ativo: true},
+            {codigo: 69, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO ALEGRE U", nomeReduzido: "DP POUSO ALEGRE URBANO 2", cnpj: "20.415.295/0056-48", ie: "245068303,45", im: "ISENTO", endereco: "AVENIDA PREFEITO OLAVO G", bairro: "LOTEAMENTO", cidade: "POUSO ALEGRE", cep: "37.561-1", estado: "MG", municipio: "SO ALEGRE", pais: "BRASIL", fone: "35 98461691", fax: "", contato: "35 984616915 E", ativo: true},
+            {codigo: 70, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP EXTREMA URBANO", nomeReduzido: "DP EXTREMA URBANO", cnpj: "20.415.295/0050-52", ie: "245068303,39", im: "ISENTO", endereco: "AVENIDA ANTONIA MASSUTI", bairro: "BARREIRO", cidade: "EXTREMA", cep: "37.640-0", estado: "MG", municipio: "EXTREMA", pais: "BRASIL", fone: "3534622100", fax: "", contato: "", ativo: true},
+            {codigo: 71, razaoSocial: "Z. INATIVO - POSTO E DISTRIBUIDORA JOIA DE ATIBAIA LT", nomeReduzido: "DP ATIBAIA URBANO2", cnpj: "46.099.636/0001-33", ie: "190.024.340.", im: "ISENTO", endereco: "RUA THOME FRANCO, 492", bairro: "CENTRO", cidade: "ATIBAIA", cep: "12.940-6", estado: "SP", municipio: "ATIBAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: false},
+            {codigo: 72, razaoSocial: "Z. INATIVO - REDE DOM PEDRO DE POSTOS LTDA. DP CASCUD", nomeReduzido: "DP CASCUDO", cnpj: "20.415.295/0057-29", ie: "245068303,46", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "RIBEIRAO D", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: false},
+            {codigo: 73, razaoSocial: "Z. INATIVO - REDE DOM PEDRO DE POSTOS LTDA. (DP BAGRE", nomeReduzido: "DP BAGRE", cnpj: "20.415.295/0061-05", ie: "245068303,48", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "MONJOLINHO", cidade: "ITAPEVA", cep: "37.655-0", estado: "MG", municipio: "ITAPEVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: false},
+            {codigo: 74, razaoSocial: "Z. INATIVO - REDE DOM PEDRO DE POSTOS LTDA (DP FALCÃO", nomeReduzido: "DP FALCAO", cnpj: "20.415.295/0063-77", ie: "245068303,5", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "MONJOLINHO", cidade: "ITAPEVA", cep: "37.655-0", estado: "MG", municipio: "ITAPEVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: false},
+            {codigo: 75, razaoSocial: "SP - POSTO DOM PEDRO ITATIBA 1 LTDA (DP ITATIBA URBAN", nomeReduzido: "DP ITATIBA URBANO 1", cnpj: "20.415.295/0093-92", ie: "382267685118", im: "ISENTO", endereco: "AV MARECHAL DEODORO, 381", bairro: "CENTRO", cidade: "ITATIBA", cep: "13.250-3", estado: "SP", municipio: "ITATIBA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 76, razaoSocial: "SP - AUTO POSTO GENUINU LTDA (DP ITATIBA URBANO 2)", nomeReduzido: "DP ITATIBA URBANO 2", cnpj: "25.188.461/0001-60", ie: "382.108.346.", im: "ISENTO", endereco: "AVENIDA VICENTE CATALANI", bairro: "JARDIM DAS", cidade: "ITATIBA", cep: "13.256-7", estado: "SP", municipio: "ITATIBA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 77, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO ALEGRE U", nomeReduzido: "DP POUSO ALEGRE URBANO 3", cnpj: "20.415.295/0062-96", ie: "245068303,49", im: "ISENTO", endereco: "RUA FRANCISCO MASSAFERRA", bairro: "SAO JOAO", cidade: "POUSO ALEGRE", cep: "37.550-0", estado: "MG", municipio: "SO ALEGRE", pais: "BRASIL", fone: "3534222963", fax: "", contato: "", ativo: true},
+            {codigo: 78, razaoSocial: "SP - POSTO DOM PEDRO SALES DE OLIVEIRA LTDA (DP SALES", nomeReduzido: "DP SALES OLIVEIRA", cnpj: "10.230.467/0001-81", ie: "597.066.130.", im: "ISENTO", endereco: "ROD ANHANGUERA, SN - KM", bairro: "ZONA RURAL", cidade: "SALES OLIVEIRA", cep: "14.660-0", estado: "SP", municipio: "OLIVEIRA", pais: "BRASIL", fone: "35 3462-211", fax: "", contato: "", ativo: true},
+            {codigo: 79, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP VITORIA DA CON", nomeReduzido: "DP VITORIA DA CONQUISTA", cnpj: "20.415.295/0058-00", ie: "166195484", im: "ISENTO", endereco: "ROD CAMPO MATINHA, SN -", bairro: "DISTRITO D", cidade: "VITORIA DA CONQUISTA", cep: "45.110-0", estado: "BA", municipio: "CONQUISTA", pais: "BRASIL", fone: "75 3024-480", fax: "", contato: "", ativo: true},
+            {codigo: 80, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP JUIZ FORA RODO", nomeReduzido: "DP JUIZ DE FORA RODOVIA", cnpj: "20.415.295/0066-10", ie: "245068303515", im: "183.343/00-0", endereco: "RODOVIA BR-040, 773 - KM", bairro: "BARREIRA D", cidade: "JUIZ DE FORA", cep: "36.092-2", estado: "MG", municipio: "Z DE FORA", pais: "BRASIL", fone: "21 2564-425", fax: "", contato: "", ativo: true},
+            {codigo: 81, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP MONTES CLARO", nomeReduzido: "DP MONTES CLAROS", cnpj: "20.415.295/0069-62", ie: "245068303,52", im: "ISENTO", endereco: "RODOVIA BR 251 KM 509-6,", bairro: "ZONA RURAL", cidade: "FRANCISCO SA", cep: "39.580-0", estado: "MG", municipio: "NCISCO SA", pais: "BRASIL", fone: "38 3015 626", fax: "", contato: "", ativo: true},
+            {codigo: 82, razaoSocial: "SP - POSTO DOM PEDRO VARGEM LTDA (DP VARGEM URBANO)", nomeReduzido: "DP VARGEM", cnpj: "03.522.545/0001-56", ie: "766002754118", im: "ISENTO", endereco: "R GERALDINO DE OLIVEIRA,", bairro: "CENTRO", cidade: "VARGEM", cep: "12.935-0", estado: "SP", municipio: "VARGEM", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 83, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP SAO JORGE)", nomeReduzido: "DP SAO JORGE", cnpj: "20.415.295/0060-24", ie: "166195592", im: "ISENTO", endereco: "ROD BR 116 KM 840, SN", bairro: "LAGOA DAS", cidade: "VITORIA DA CONQUISTA", cep: "45.007-1", estado: "BA", municipio: "CONQUISTA", pais: "BRASIL", fone: "77 2101-716", fax: "77 2101-7171", contato: "", ativo: true},
+            {codigo: 84, razaoSocial: "Z. INATIVO - POSTO DOM PEDRO BRAGANCA URBANO 2 LTDA", nomeReduzido: "DP BRAGANCA PAULISTA URBANO", cnpj: "18.651.762/0001-13", ie: "225.152.739.", im: "ISENTO", endereco: "AV JOSE GOMES DA ROCHA L", bairro: "CENTRO", cidade: "BRAGANCA PAULISTA", cep: "12.900-3", estado: "SP", municipio: "PAULISTA", pais: "BRASIL", fone: "(11) 4034-0", fax: "", contato: "", ativo: false},
+            {codigo: 85, razaoSocial: "Y. XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "22.272.116/0001-12", ie: "1820076", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 86, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP SAO JOSE URBAN", nomeReduzido: "DP SAO JOSE DOS CAMPOS URBAN", cnpj: "20.415.295/0065-39", ie: "125.109.122.", im: "ISENTO", endereco: "RUA JACAREI, 34", bairro: "VILA NAIR", cidade: "SAO JOSE DOS CAMPOS", cep: "12.231-0", estado: "SP", municipio: "OS CAMPOS", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 87, razaoSocial: "MG N - REDE DOM PEDRO DE POSTOS LTDA (DP FREI INOCENC", nomeReduzido: "DP FREI INOCENCIO", cnpj: "20.415.295/0059-90", ie: "245068303,47", im: "ISENTO", endereco: "ROD BR-116, SN - KM 366", bairro: "ZONA RURAL", cidade: "FREI INOCENCIO", cep: "35.112-0", estado: "MG", municipio: "INOCENCIO", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: true},
+            {codigo: 88, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP BRAGANCA ROD.)", nomeReduzido: "DP BRAGANÇA RODOVIA", cnpj: "20.415.295/0064-58", ie: "225346028110", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "PENHA", cidade: "BRAGANCA PAULISTA", cep: "12.929-5", estado: "SP", municipio: "PAULISTA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 89, razaoSocial: "RJ - REDE DOM PEDRO DE POSTOS LTDA (DP BARRA MANSA NO", nomeReduzido: "DP BARRA MANSA 1 NORTE", cnpj: "20.415.295/0072-68", ie: "12635338", im: "ISENTO", endereco: "ROD PRESIDENTE DUTRA, S/", bairro: "FLORIANO", cidade: "BARRA MANSA", cep: "27.365-0", estado: "RJ", municipio: "RRA MANSA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 90, razaoSocial: "RJ - REDE DOM PEDRO DE POSTOS LTDA (DP BARRA MANSA SU", nomeReduzido: "DP BARRA MANSA 2 SUL", cnpj: "20.415.295/0067-09", ie: "14451226", im: "ISENTO", endereco: "RUA ANTONIO LUIS PIRES,", bairro: "BOA VISTA", cidade: "BARRA MANSA", cep: "27.332-3", estado: "RJ", municipio: "RRA MANSA", pais: "BRASIL", fone: "3534272595", fax: "", contato: "", ativo: true},
+            {codigo: 91, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONSELHEIRO LA", nomeReduzido: "DP LAFAIETE", cnpj: "20.415.295/0071-87", ie: "245068303,54", im: "ISENTO", endereco: "RODOVIA BR-040, 23730", bairro: "BARREIRA", cidade: "CONSELHEIRO LAFAIETE", cep: "36.407-4", estado: "MG", municipio: "LAFAIETE", pais: "BRASIL", fone: "", fax: "", contato: "35 3462-2100", ativo: true},
+            {codigo: 92, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP PLANALTO)", nomeReduzido: "DP PLANALTO", cnpj: "20.415.295/0074-20", ie: "198716453", im: "ISENTO", endereco: "ROD BR 116 KM 789, SN", bairro: "ZONA RURAL", cidade: "PLANALTO", cep: "45.190-0", estado: "BA", municipio: "PLANALTO", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 93, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO ESTEVAO", nomeReduzido: "DP SANTO ESTEVÃO 2", cnpj: "20.415.295/0080-78", ie: "198715328", im: "ISENTO", endereco: "ROD BR 116, SN - KM 477", bairro: "ZONA RURAL", cidade: "SANTO ESTEVAO", cep: "44.190-0", estado: "BA", municipio: "O ESTEVAO", pais: "BRASIL", fone: "(35) 3427-2", fax: "", contato: "", ativo: true},
+            {codigo: 94, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO ESTEVAO", nomeReduzido: "DP SANTO ESTEVÃO 3", cnpj: "20.415.295/0081-59", ie: "198479132", im: "ISENTO", endereco: "ROD BR 116, SN - KM 477", bairro: "ZONA RURAL", cidade: "SANTO ESTEVAO", cep: "44.190-0", estado: "BA", municipio: "O ESTEVAO", pais: "BRASIL", fone: "(35) 3427-2", fax: "", contato: "", ativo: true},
+            {codigo: 95, razaoSocial: "SE - REDE DOM PEDRO DE POSTOS LTDA (DP SÃO CRISTÓVÃO)", nomeReduzido: "DP SAO CRISTOVAO", cnpj: "20.415.295/0090-40", ie: "27.205.573-5", im: "ISENTO", endereco: "RODOVIA BR 101, SN - KM", bairro: "ZONA RURAL", cidade: "SAO CRISTOVAO", cep: "49.100-0", estado: "SE", municipio: "CRISTOVAO", pais: "BRASIL", fone: "(35) 98459-", fax: "(35) 98463-189", contato: "", ativo: true},
+            {codigo: 96, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP BARREIRAS)", nomeReduzido: "DP BARREIRAS", cnpj: "20.415.295/0087-44", ie: "210316962", im: "ISENTO", endereco: "ROD BR 242 020, SN - KM", bairro: "AREA RURAL", cidade: "BARREIRAS", cep: "47.819-8", estado: "BA", municipio: "BARREIRAS", pais: "BRASIL", fone: "(35) 3421-2", fax: "", contato: "", ativo: true},
+            {codigo: 97, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP ITABERABA)", nomeReduzido: "DP ITABERABA", cnpj: "20.415.295/0086-63", ie: "210317097", im: "ISENTO", endereco: "ROD BR 242 ENTRADA FAZ S", bairro: "POVOADO VI", cidade: "ITABERABA", cep: "46.880-0", estado: "BA", municipio: "ITABERABA", pais: "BRASIL", fone: "(35) 3421-2", fax: "", contato: "", ativo: true},
+            {codigo: 98, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS LTDA (DP VALENCA)", nomeReduzido: "DP VALENCA", cnpj: "20.415.295/0085-82", ie: "210317105", im: "ISENTO", endereco: "ROD BR 101, SN - KM 310", bairro: "RODOVIA", cidade: "VALENÇA", cep: "45.400-0", estado: "BA", municipio: "VALENCA", pais: "BRASIL", fone: "35 3462-211", fax: "", contato: "", ativo: true},
+            {codigo: 99, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO GONCALO", nomeReduzido: "DP SAO GONCALO RODOVIA 2", cnpj: "20.415.295/0088-25", ie: "245068303564", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "BARRETOS", cidade: "SAO GONÇALO DO SAPUC", cep: "37.490-0", estado: "MG", municipio: "O SAPUCAI", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 100, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO GONCALO", nomeReduzido: "DP SAO GONCALO RODOVIA 3", cnpj: "20.415.295/0089-06", ie: "245068303572", im: "ISENTO", endereco: "RODOVIA, SN", bairro: "ZONA RURAL", cidade: "SAO GONÇALO DO SAPUC", cep: "31.000-0", estado: "MG", municipio: "O SAPUCAI", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 101, razaoSocial: "Y. SUL MINEIRA AGRONEGOCIOS LTDA", nomeReduzido: "SUL MINEIRA AGRONEGOCIOS", cnpj: "45.373.433/0001-20", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS KM 880,", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3025-6", fax: "", contato: "", ativo: true},
+            {codigo: 102, razaoSocial: "CE - REDE DOM PEDRO DE POSTOS LTDA (DP RUSSAS)", nomeReduzido: "DP RUSSAS", cnpj: "20.415.295/0091-20", ie: "07.187800-9", im: "ISENTO", endereco: "ROD SANTOS DUMONT, SN -", bairro: "TABULEIRO", cidade: "RUSSAS", cep: "62.904-1", estado: "CE", municipio: "RUSSAS", pais: "BRASIL", fone: "35 34622100", fax: "", contato: "", ativo: true},
+            {codigo: 103, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP INHAPIM)", nomeReduzido: "DP INHAPIM", cnpj: "20.415.295/0092-01", ie: "245068303580", im: "ISENTO", endereco: "ROD BR 116 KM 497, SN", bairro: "ZONA RURAL", cidade: "INHAPIM", cep: "35.330-0", estado: "MG", municipio: "INHAPIM", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 104, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP LUZ)", nomeReduzido: "DP LUZ", cnpj: "20.415.295/0094-73", ie: "245068303598", im: "ISENTO", endereco: "ROD BR 262 KM 544, SN", bairro: "ZONA RURAL", cidade: "LUZ", cep: "35.595-0", estado: "MG", municipio: "LUZ", pais: "BRASIL", fone: "35 34622100", fax: "", contato: "", ativo: true},
+            {codigo: 105, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP MIRACATU SUL 3", nomeReduzido: "POSTO DOM PEDRO MIRACATU 3", cnpj: "20.415.295/0095-54", ie: "448047809116", im: "ISENTO", endereco: "RODOVIA REGIS BITTENCOUR", bairro: "DISTRITO D", cidade: "MIRACATU", cep: "11.850-0", estado: "SP", municipio: "MIRACATU", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: true},
+            {codigo: 106, razaoSocial: "ELETROPOSTOS DOM PEDRO LTDA.", nomeReduzido: "ELETROPOSTOS DOM PEDRO LTDA.", cnpj: "58.970.960/0001-64", ie: "50909570078", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 107, razaoSocial: "BA - REDE DOM PEDRO DE POSTOS (DP IBO)", nomeReduzido: "DP IBO", cnpj: "20.415.295/0096-35", ie: "237950644", im: "ISENTO", endereco: "ROD BR 116, KM 02, SN", bairro: "IBO", cidade: "ABARE", cep: "48.680-0", estado: "BA", municipio: "ABARE", pais: "BRASIL", fone: "35 34622100", fax: "", contato: "", ativo: true},
+            {codigo: 108, razaoSocial: "PUMP GESTAO DE FROTAS LTDA.", nomeReduzido: "PUMP GESTAO DE FROTAS LTDA.", cnpj: "58.081.181/0001-08", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "3462-2100", fax: "", contato: "", ativo: true},
+            {codigo: 109, razaoSocial: "SP - REDE DOM PEDRO DE POSTOS LTDA (DP CORDEIROPOLIS)", nomeReduzido: "DP CORDEIROPOLIS", cnpj: "20.415.295/0098-05", ie: "272059820118", im: "ISENTO", endereco: "RODOVIA ANHANGUERA, SN", bairro: "BAIRRO DO", cidade: "CORDEIROPOLIS", cep: "13.492-4", estado: "SP", municipio: "EIROPOLIS", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 110, razaoSocial: "RAPIDA REVENDA DE VEICULOS LTDA", nomeReduzido: "RAPIDA REVENDA DE VEICULOS L", cnpj: "46.599.543/0001-78", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS , SN - K", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3025-6", fax: "", contato: "", ativo: true},
+            {codigo: 2194, razaoSocial: "LOCADORA DE VEICULOS ESTIVA LTDA", nomeReduzido: "LOCADORA DE VEICULOS ESTIVA", cnpj: "30.401.037/0001-92", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: true},
+            {codigo: 2195, razaoSocial: "SUL MINEIRA AGRONEGOCIOS 2 LTDA.", nomeReduzido: "SUL MINEIRA AGRONEGOCIOS 2 L", cnpj: "52.550.247/0001-85", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ESPRAIADA", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3025-6", fax: "", contato: "", ativo: true},
+            {codigo: 2198, razaoSocial: "TRANSPORTADORA RDP", nomeReduzido: "TRANSPORTADORA RDP", cnpj: "14.099.141/0009-75", ie: "ISENTO", im: "ISENTO", endereco: "ROD BR 153 , SN - SALA 0", bairro: "ZONA RURAL", cidade: "PARAISO DO TOCANTINS", cep: "77.600-0", estado: "TO", municipio: "TOCANTINS", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2201, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "TRANSPORTADORA RDP LTDA", cnpj: "14.099.141/0004-60", ie: "ISENTO", im: "ISENTO", endereco: "ROD BR 116, SN - KM 840", bairro: "LAGOA DAS", cidade: "VITORIA DA CONQUISTA", cep: "45.007-1", estado: "BA", municipio: "CONQUISTA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2202, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0003-80", ie: "ISENTO", im: "ISENTO", endereco: "ROD PRESIDENTE DUTRA, SN", bairro: "FLORIANO", cidade: "BARRA MANSA", cep: "27.365-0", estado: "RJ", municipio: "RRA MANSA", pais: "BRASIL", fone: "35) 3462-21", fax: "", contato: "", ativo: true},
+            {codigo: 2203, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0001-18", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, SN - KM", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "(35) 3462-2", fax: "", contato: "", ativo: true},
+            {codigo: 2241, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0002-07", ie: "ISENTO", im: "ISENTO", endereco: "RODOVIA FERNAO DIAS, SN", bairro: "TANQUE", cidade: "ATIBAIA", cep: "12.954-0", estado: "SP", municipio: "ATIBAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2249, razaoSocial: "CELESTIAL PARTICIPACOES LTDA", nomeReduzido: "CELESTIAL PARTICIPACOES LTDA", cnpj: "10.650.470/0001-54", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, S/N - K", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2250, razaoSocial: "TURMALINA PARTICIPACOES LTDA", nomeReduzido: "TURMALINA PARTICIPACOES LTDA", cnpj: "14.469.475/0001-36", ie: "ISENTO", im: "ISENTO", endereco: "PC FRANCISCO ESCOBAR, 07", bairro: "CENTRO", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2251, razaoSocial: "TURQUESA PARTICIPACOES LTDA", nomeReduzido: "TURQUESA PARTICIPACOES LTDA", cnpj: "14.469.411/0001-35", ie: "ISENTO", im: "ISENTO", endereco: "PC SENADOR FRANCISCO ESC", bairro: "CENTRO", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2252, razaoSocial: "INFINITUS PARTICIPACOES LTDA", nomeReduzido: "INFINITUS PARTICIPACOES LTDA", cnpj: "14.341.789/0001-59", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS (BR-381)", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2253, razaoSocial: "ALFA-GAMA PARTICIPACOES LTDA", nomeReduzido: "ALFA-GAMA PARTICIPACOES LTDA", cnpj: "14.341.872/0001-28", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS (BR-381)", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2254, razaoSocial: "ERRE PARTICIPACOES LTDA", nomeReduzido: "ERRE PARTICIPACOES LTDA", cnpj: "14.341.772/0001-00", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS (BR-381)", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2255, razaoSocial: "ARARA AZUL PARTICIPACOES LTDA", nomeReduzido: "ARARA AZUL PARTICIPACOES LTD", cnpj: "29.877.546/0001-07", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS, S/N - K", bairro: "FAZENDA SA", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2256, razaoSocial: "IMPERIAL PARTICIPACOES LTDA", nomeReduzido: "IMPERIAL PARTICIPACOES LTDA", cnpj: "14.920.632/0001-88", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS (BR-381)", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2257, razaoSocial: "DOM PEDRO PARTICIPACOES LTDA", nomeReduzido: "DOM PEDRO PARTICIPACOES LTDA", cnpj: "14.920.665/0001-28", ie: "ISENTO", im: "ISENTO", endereco: "ROD FERNAO DIAS (BR-381)", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2258, razaoSocial: "EMPREENDIMENTO RECANTO DO LAGO LTDA", nomeReduzido: "EMPREENDIMENTO RECANTO DO LA", cnpj: "22.193.988/0001-95", ie: "ISENTO", im: "ISENTO", endereco: "AV OITO DE MARCO, S/N -", bairro: "CUBATAO", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2298, razaoSocial: "TOPAZIO AZUL PARTICIPACOES LTDA", nomeReduzido: "TOPAZIO AZUL PARTICIPACOES L", cnpj: "14.469.452/0001-21", ie: "ISENTO", im: "ISENTO", endereco: "PC SENADOR FRANCISCO ESC", bairro: "CENTRO", cidade: "CAMANDUCAIA", cep: "37.650-0", estado: "MG", municipio: "MANDUCAIA", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2299, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0011-90", ie: "ISENTO", im: "ISENTO", endereco: "ROD BR 101 KM 107, S/N -", bairro: "AREA RURAL", cidade: "SAO CRISTOVAO", cep: "49.109-8", estado: "SE", municipio: "CRISTOVAO", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true},
+            {codigo: 2300, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0012-70", ie: "ISENTO", im: "ISENTO", endereco: "RODOVIA SANTOS DUMONT, S", bairro: "TABULEIRO", cidade: "RUSSAS", cep: "62.904-1", estado: "CE", municipio: "RUSSAS", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true}
+        ];
+
+
+
+        // Gerar mais postos
+        for (let i = 6; i <= 50; i++) {
+            if (!postosData.find(p => p.codigo === i)) {
+                postosData.push({
+                    codigo: i,
+                    razaoSocial: `Posto Dom Pedro ${i}`,
+                    nomeReduzido: `DP ${i}`,
+                    cnpj: `00.000.000/00${i}-00`,
+                    cidade: ["ESTIVA", "POUSO ALEGRE", "CAMBUI", "ITATIAIUCU", "VARGEM"][Math.floor(Math.random() * 5)],
+                    estado: ["MG","SP","BA","RJ","TO","SE","CE","PA","GO","PR"][Math.floor(Math.random() * 10)],
+                    ativo: Math.random() > 0.2
+                });
+            }
+        }
+
+        // Estado da aplicação
+        let unidadesLiberadas = JSON.parse(localStorage.getItem('unidadesLiberadas')) || [];
+        let periodosLiberacao = JSON.parse(localStorage.getItem('periodosLiberacao')) || [{
+            ano: '2026',
+            mes: '12',
+            nome: 'Dezembro/2026'
+        }];
+        let relatoriosSalvos = JSON.parse(localStorage.getItem('relatoriosSalvos')) || [];
+        let usuarioAtual = null;
+        let showInativos = false;
+        let searchTerm = '';
+        let statusFiltro = 'todos';
+        let statusRapido = 'padrao';
+        let unidadeEditando = null;
+        let relatorioAtual = null;
+
+        // Elementos DOM
+        const loginContainer = document.getElementById('loginContainer');
+        const sistemaContainer = document.getElementById('sistemaContainer');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userDepartment = document.getElementById('userDepartment');
+        const adminBadge = document.getElementById('adminBadge');
+        const responsavelNome = document.getElementById('responsavelNome');
+        const responsavelEmail = document.getElementById('responsavelEmail');
+        const resetSystemBtn = document.getElementById('resetSystemBtn');
+        const resetModal = document.getElementById('resetModal');
+        const confirmResetCheckbox = document.getElementById('confirmResetCheckbox');
+        const confirmResetBtn = document.getElementById('confirmResetBtn');
+        const anoSelect = document.getElementById('anoSelect');
+        const mesSelect = document.getElementById('mesSelect');
+        const periodoDisplay = document.getElementById('periodoDisplay');
+        const periodosList = document.getElementById('periodosList');
+        const totalPeriodos = document.getElementById('totalPeriodos');
+        const postosList = document.getElementById('postosList');
+        const liberadosList = document.getElementById('liberadosList');
+        const totalLiberados = document.getElementById('totalLiberados');
+        const totalLiberadosCard = document.getElementById('totalLiberadosCard');
+        const totalComCorrecao = document.getElementById('totalComCorrecao');
+        const searchInput = document.getElementById('searchPosto');
+        const showInactiveCheckbox = document.getElementById('showInactive');
+        const liberacoesContent = document.getElementById('liberacoesContent');
+        const relatoriosContent = document.getElementById('relatoriosContent');
+        const relatoriosList = document.getElementById('relatoriosList');
+        const statusModal = document.getElementById('statusModal');
+        const fechamentoModal = document.getElementById('fechamentoModal');
+        const relatorioModal = document.getElementById('relatorioModal');
+        const fechamentoPreview = document.getElementById('fechamentoPreview');
+        const relatorioPreview = document.getElementById('relatorioPreview');
+        const statusModalPostoInfo = document.getElementById('statusModalPostoInfo');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const statusBtnPadrao = document.getElementById('statusBtnPadrao');
+        const statusBtnComCorrecao = document.getElementById('statusBtnComCorrecao');
+        const statusBtnSemCorrecao = document.getElementById('statusBtnSemCorrecao');
+
+        // Função de Login
+        function fazerLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('loginError');
+
+            if (!username || !password) {
+                loginError.textContent = 'Preencha usuário e senha';
+                return;
+            }
+
+            const usuario = usuarios[username];
+            
+            if (!usuario) {
+                loginError.textContent = 'Usuário não encontrado';
+                return;
+            }
+
+            if (usuario.senha !== password) {
+                loginError.textContent = 'Senha incorreta';
+                return;
+            }
+
+            usuarioAtual = {
+                email: username,
+                nome: usuario.nome,
+                tipo: usuario.tipo
+            };
+
+            sessionStorage.setItem('usuarioLogado', username);
+            
+            loginContainer.style.display = 'none';
+            sistemaContainer.style.display = 'block';
+            
+            atualizarInterfaceUsuario();
+            carregarDadosUsuario();
+            carregarPeriodos();
+            loadPostos();
+            loadLiberados();
+            carregarRelatorios();
+            
+            // Mostrar botão de zerar sistema apenas para admin
+            if (usuarioAtual.tipo === 'admin') {
+                resetSystemBtn.style.display = 'flex';
+            }
+            
+            mostrarToast(`Bem-vindo, ${usuario.nome}!`, 'success');
+        }
+
+        // Atualizar interface baseada no usuário
+        function atualizarInterfaceUsuario() {
+            if (usuarioAtual) {
+                userNameDisplay.textContent = usuarioAtual.nome;
+                userDepartment.textContent = usuarioAtual.tipo === 'admin' ? 'Administrador' : 'Setor de LMC';
+                responsavelNome.textContent = usuarioAtual.nome;
+                responsavelEmail.querySelector('span').textContent = usuarioAtual.email;
+                
+                if (usuarioAtual.tipo === 'admin') {
+                    adminBadge.style.display = 'block';
+                } else {
+                    adminBadge.style.display = 'none';
+                }
+            }
+        }
+
+        // Carregar dados do usuário
+        function carregarDadosUsuario() {
+            if (!usuarioAtual) return;
+            
+            const chave = `config_${usuarioAtual.email}`;
+            const config = JSON.parse(localStorage.getItem(chave)) || {};
+            
+            updatePeriodoDisplay();
+        }
+
+        // Gerenciar períodos
+        function adicionarPeriodo() {
+            const ano = anoSelect.value;
+            const mes = mesSelect.value;
+            const nomeMes = mesSelect.options[mesSelect.selectedIndex].text;
+            const periodoNome = `${nomeMes}/${ano}`;
+            
+            if (!periodosLiberacao.some(p => p.ano === ano && p.mes === mes)) {
+                periodosLiberacao.push({
+                    ano: ano,
+                    mes: mes,
+                    nome: periodoNome
+                });
+                
+                periodosLiberacao.sort((a, b) => {
+                    if (a.ano !== b.ano) return b.ano - a.ano;
+                    return b.mes - a.mes;
+                });
+                
+                localStorage.setItem('periodosLiberacao', JSON.stringify(periodosLiberacao));
+                carregarPeriodos();
+                mostrarToast('Período adicionado com sucesso!', 'success');
+            } else {
+                mostrarToast('Período já adicionado!', 'error');
+            }
+        }
+
+        function removerPeriodo(ano, mes) {
+            periodosLiberacao = periodosLiberacao.filter(p => !(p.ano === ano && p.mes === mes));
+            localStorage.setItem('periodosLiberacao', JSON.stringify(periodosLiberacao));
+            carregarPeriodos();
+            mostrarToast('Período removido!', 'success');
+        }
+
+        function carregarPeriodos() {
+            periodosList.innerHTML = '';
+            totalPeriodos.textContent = periodosLiberacao.length;
+            
+            periodosLiberacao.forEach(periodo => {
+                const tag = document.createElement('span');
+                tag.className = 'periodo-tag';
+                tag.innerHTML = `
+                    ${periodo.nome}
+                    <button onclick="removerPeriodo('${periodo.ano}', '${periodo.mes}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                periodosList.appendChild(tag);
+            });
+        }
+
+        // Selecionar status rápido
+        function selecionarStatusRapido(status) {
+            statusRapido = status;
+            
+            statusBtnPadrao.classList.remove('active');
+            statusBtnComCorrecao.classList.remove('active');
+            statusBtnSemCorrecao.classList.remove('active');
+            
+            if (status === 'padrao') {
+                statusBtnPadrao.classList.add('active');
+            } else if (status === 'comCorrecao') {
+                statusBtnComCorrecao.classList.add('active');
+            } else if (status === 'semCorrecao') {
+                statusBtnSemCorrecao.classList.add('active');
+            }
+            
+            mostrarToast(`Status de adição: ${status === 'padrao' ? 'Padrão' : status === 'comCorrecao' ? 'Com Correção' : 'Sem Correção'}`, 'info');
+        }
+
+        // Limpar lista de unidades (disponível para todos)
+        function limparTudo() {
+            if (confirm('Tem certeza que deseja limpar todas as unidades liberadas? Esta ação não pode ser desfeita.')) {
+                unidadesLiberadas = [];
+                localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+                loadPostos();
+                loadLiberados();
+                mostrarToast('Lista de unidades limpa com sucesso!', 'success');
+            }
+        }
+
+        // Abrir modal para zerar sistema (apenas admin)
+        function zerarSistema() {
+            resetModal.style.display = 'flex';
+            confirmResetCheckbox.checked = false;
+            confirmResetBtn.disabled = true;
+        }
+
+        function fecharResetModal() {
+            resetModal.style.display = 'none';
+        }
+
+        // Habilitar botão de confirmação quando checkbox for marcado
+        confirmResetCheckbox.addEventListener('change', function() {
+            confirmResetBtn.disabled = !this.checked;
+        });
+
+        // Confirmar zerar sistema
+        function confirmarZerarSistema() {
+            // Limpar todas as unidades liberadas
+            unidadesLiberadas = [];
+            
+            // Limpar períodos (deixar apenas o período padrão)
+            periodosLiberacao = [{
+                ano: '2026',
+                mes: '12',
+                nome: 'Dezembro/2026'
+            }];
+            
+            // Limpar todos os relatórios
+            relatoriosSalvos = [];
+            
+            // Salvar no localStorage
+            localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+            localStorage.setItem('periodosLiberacao', JSON.stringify(periodosLiberacao));
+            localStorage.setItem('relatoriosSalvos', JSON.stringify(relatoriosSalvos));
+            
+            // Recarregar interfaces
+            carregarPeriodos();
+            loadPostos();
+            loadLiberados();
+            carregarRelatorios();
+            
+            // Fechar modal
+            fecharResetModal();
+            
+            // Mostrar mensagem
+            mostrarToast('Sistema completamente zerado com sucesso!', 'warning');
+        }
+
+        // Filtrar por status
+        function filtrarStatus(tipo) {
+            statusFiltro = tipo;
+            
+            const tabs = document.querySelectorAll('.status-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (tipo === 'todos') {
+                tabs[0].classList.add('active');
+            } else if (tipo === 'comCorrecao') {
+                tabs[1].classList.add('active');
+            } else if (tipo === 'semCorrecao') {
+                tabs[2].classList.add('active');
+            }
+            
+            loadPostos();
+        }
+
+        // Carregar postos disponíveis
+        function loadPostos() {
+            const filtered = postosData.filter(posto => {
+                if (!showInativos && !posto.ativo) return false;
+                
+                const unidadeLiberada = unidadesLiberadas.find(u => u.codigo === posto.codigo);
+                
+                if (statusFiltro === 'comCorrecao' && (!unidadeLiberada || unidadeLiberada.status !== 'comCorrecao')) return false;
+                if (statusFiltro === 'semCorrecao' && (!unidadeLiberada || unidadeLiberada.status !== 'semCorrecao')) return false;
+                
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    return posto.nomeReduzido.toLowerCase().includes(term) ||
+                           posto.cidade.toLowerCase().includes(term) ||
+                           posto.razaoSocial.toLowerCase().includes(term);
+                }
+                
+                return true;
+            }).sort((a, b) => a.nomeReduzido.localeCompare(b.nomeReduzido));
+            
+            postosList.innerHTML = '';
+            
+            filtered.forEach(posto => {
+                const unidadeLiberada = unidadesLiberadas.find(u => u.codigo === posto.codigo);
+                const isLiberado = !!unidadeLiberada;
+                
+                const item = document.createElement('div');
+                item.className = `posto-item ${!posto.ativo ? 'inativo' : ''}`;
+                
+                let statusHtml = '';
+                if (isLiberado && unidadeLiberada.status) {
+                    const statusText = unidadeLiberada.status === 'comCorrecao' ? 'Com Correção' : 'Sem Correção';
+                    const statusClass = unidadeLiberada.status === 'comCorrecao' ? 'com-correcao' : 'sem-correcao';
+                    statusHtml = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+                }
+                
+                item.innerHTML = `
+                    <div class="posto-info">
+                        <h4>${posto.nomeReduzido} ${statusHtml}</h4>
+                        <p>
+                            <span><i class="fas fa-map-marker-alt"></i> ${posto.cidade}</span>
+                            <span class="estado-badge ${posto.estado.toLowerCase()}">${posto.estado}</span>
+                            ${!posto.ativo ? '<span style="color: #ef4444;"><i class="fas fa-ban"></i> Inativo</span>' : ''}
+                        </p>
+                    </div>
+                    <div class="action-buttons">
+                        ${isLiberado ? `
+                            <button class="edit-status-btn" onclick="abrirStatusModal(${posto.codigo})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : ''}
+                        <button class="add-btn" ${!posto.ativo || isLiberado ? 'disabled' : ''} onclick="adicionarUnidade(${posto.codigo})">
+                            <i class="fas ${isLiberado ? 'fa-check' : 'fa-plus'}"></i>
+                        </button>
+                    </div>
+                `;
+                
+                postosList.appendChild(item);
+            });
+        }
+
+        // Carregar unidades liberadas
+        function loadLiberados() {
+            liberadosList.innerHTML = '';
+            
+            let totalComCorrecaoCount = 0;
+            
+            if (unidadesLiberadas.length === 0) {
+                liberadosList.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;"><i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px;"></i><p>Nenhuma unidade liberada</p><p style="font-size: 13px;">Adicione unidades da lista ao lado</p></div>';
+            } else {
+                unidadesLiberadas.forEach(unidade => {
+                    const posto = postosData.find(p => p.codigo === unidade.codigo);
+                    if (!posto || !posto.ativo) return;
+                    
+                    if (unidade.status === 'comCorrecao') totalComCorrecaoCount++;
+                    
+                    const statusText = unidade.status === 'comCorrecao' ? 'Com Correção' : (unidade.status === 'semCorrecao' ? 'Sem Correção' : 'Pendente');
+                    const statusClass = unidade.status === 'comCorrecao' ? 'com-correcao' : (unidade.status === 'semCorrecao' ? 'sem-correcao' : '');
+                    
+                    const item = document.createElement('div');
+                    item.className = 'liberado-item';
+                    
+                    item.innerHTML = `
+                        <div class="liberado-info">
+                            <h4>
+                                ${posto.nomeReduzido}
+                                ${unidade.status ? `<span class="liberado-status ${statusClass}">${statusText}</span>` : ''}
+                            </h4>
+                            <p>
+                                <i class="fas fa-map-marker-alt"></i> ${posto.cidade} - ${posto.estado} | 
+                                <i class="fas fa-hashtag"></i> Cód: ${posto.codigo}
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="edit-btn" onclick="abrirStatusModal(${posto.codigo})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="remove-btn" onclick="removerUnidade(${posto.codigo})">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    liberadosList.appendChild(item);
+                });
+            }
+            
+            const total = unidadesLiberadas.length;
+            totalLiberados.innerHTML = `
+                <span>Total de unidades liberadas: ${total}</span>
+                <span id="totalComCorrecao">Com correção: ${totalComCorrecaoCount}</span>
+            `;
+            totalLiberadosCard.textContent = total;
+        }
+
+        // Adicionar unidade
+        function adicionarUnidade(codigo) {
+            const posto = postosData.find(p => p.codigo === codigo);
+            if (!posto || !posto.ativo) return;
+            
+            if (!unidadesLiberadas.some(u => u.codigo === codigo)) {
+                unidadesLiberadas.push({
+                    codigo: codigo,
+                    dataLiberacao: new Date().toISOString(),
+                    status: statusRapido !== 'padrao' ? statusRapido : null
+                });
+                
+                localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+                
+                loadPostos();
+                loadLiberados();
+                
+                const statusMsg = statusRapido !== 'padrao' ? (statusRapido === 'comCorrecao' ? 'com correção' : 'sem correção') : 'sem status';
+                mostrarToast(`Unidade adicionada ${statusMsg}!`, 'success');
+            }
+        }
+
+        // Remover unidade
+        function removerUnidade(codigo) {
+            unidadesLiberadas = unidadesLiberadas.filter(u => u.codigo !== codigo);
+            localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+            loadPostos();
+            loadLiberados();
+            mostrarToast('Unidade removida!', 'success');
+        }
+
+        // Abrir modal de status
+        function abrirStatusModal(codigo) {
+            const unidade = unidadesLiberadas.find(u => u.codigo === codigo);
+            const posto = postosData.find(p => p.codigo === codigo);
+            
+            if (!unidade || !posto) return;
+            
+            unidadeEditando = unidade;
+            
+            statusModalPostoInfo.innerHTML = `
+                <h4 style="margin-bottom: 10px;">${posto.nomeReduzido}</h4>
+                <p style="color: #64748b; margin-bottom: 5px;"><i class="fas fa-map-marker-alt"></i> ${posto.cidade} - ${posto.estado}</p>
+                <p style="color: #64748b;"><i class="fas fa-hashtag"></i> Código: ${posto.codigo}</p>
+            `;
+            
+            document.getElementById('statusComCorrecao').classList.remove('selected');
+            document.getElementById('statusSemCorrecao').classList.remove('selected');
+            
+            if (unidade.status === 'comCorrecao') {
+                document.getElementById('statusComCorrecao').classList.add('selected');
+            } else if (unidade.status === 'semCorrecao') {
+                document.getElementById('statusSemCorrecao').classList.add('selected');
+            }
+            
+            statusModal.style.display = 'flex';
+        }
+
+        function fecharStatusModal() {
+            statusModal.style.display = 'none';
+            unidadeEditando = null;
+        }
+
+        function selecionarStatus(status) {
+            document.getElementById('statusComCorrecao').classList.remove('selected');
+            document.getElementById('statusSemCorrecao').classList.remove('selected');
+            
+            if (status === 'comCorrecao') {
+                document.getElementById('statusComCorrecao').classList.add('selected');
+            } else {
+                document.getElementById('statusSemCorrecao').classList.add('selected');
+            }
+        }
+
+        function salvarStatus() {
+            if (!unidadeEditando) return;
+            
+            const comCorrecaoSelected = document.getElementById('statusComCorrecao').classList.contains('selected');
+            const semCorrecaoSelected = document.getElementById('statusSemCorrecao').classList.contains('selected');
+            
+            let novoStatus = null;
+            if (comCorrecaoSelected) novoStatus = 'comCorrecao';
+            if (semCorrecaoSelected) novoStatus = 'semCorrecao';
+            
+            const index = unidadesLiberadas.findIndex(u => u.codigo === unidadeEditando.codigo);
+            if (index !== -1) {
+                unidadesLiberadas[index].status = novoStatus;
+                localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+                loadPostos();
+                loadLiberados();
+                mostrarToast('Status atualizado com sucesso!', 'success');
+            }
+            
+            fecharStatusModal();
+        }
+
+        // Gerar relatório
+        function gerarRelatorioHTML() {
+            const saudacao = getSaudacao();
+            const responsavel = usuarioAtual?.nome || 'Responsável';
+            const dataAtual = new Date().toLocaleString('pt-BR');
+            const numeroRelatorio = `REL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(new Date().getHours()).padStart(2, '0')}${String(new Date().getMinutes()).padStart(2, '0')}`;
+            
+            let html = `
+                <div class="relatorio-header">
+                    <div class="relatorio-titulo">
+                        <i class="fas fa-file-alt"></i> Relatório de Unidades Liberadas
+                    </div>
+                    <div class="relatorio-data">
+                        Nº: ${numeroRelatorio}<br>
+                        ${dataAtual}
+                    </div>
+                </div>
+                
+                <div class="relatorio-info">
+                    <div class="relatorio-periodos">
+                        <i class="fas fa-calendar-alt"></i> Períodos: ${periodosLiberacao.map(p => p.nome).join(' • ')}
+                    </div>
+                    <div class="relatorio-responsavel">
+                        <i class="fas fa-user"></i> ${responsavel}
+                    </div>
+                </div>
+                
+                <p style="margin-bottom: 20px;">${saudacao},</p>
+                
+                <p style="margin-bottom: 20px;">Segue abaixo a relação de unidades liberadas para verificação do Speed Fiscal:</p>
+                
+                <table class="relatorio-tabela">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nome Reduzido</th>
+                            <th>Cidade</th>
+                            <th>Estado</th>
+                            <th>CNPJ</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let comCorrecaoCount = 0;
+            let semCorrecaoCount = 0;
+            
+            unidadesLiberadas.forEach(unidade => {
+                const posto = postosData.find(p => p.codigo === unidade.codigo);
+                if (posto && posto.ativo) {
+                    if (unidade.status === 'comCorrecao') comCorrecaoCount++;
+                    if (unidade.status === 'semCorrecao') semCorrecaoCount++;
+                    
+                    const statusText = unidade.status === 'comCorrecao' ? 'Com Correção' : (unidade.status === 'semCorrecao' ? 'Sem Correção' : 'Pendente');
+                    const statusClass = unidade.status === 'comCorrecao' ? 'com-correcao' : (unidade.status === 'semCorrecao' ? 'sem-correcao' : '');
+                    
+                    html += `
+                        <tr>
+                            <td>${posto.codigo}</td>
+                            <td>${posto.nomeReduzido}</td>
+                            <td>${posto.cidade}</td>
+                            <td>${posto.estado}</td>
+                            <td>${posto.cnpj}</td>
+                            <td><span class="status-column ${statusClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                
+                <div style="display: flex; gap: 20px; margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <div><strong>Total de unidades:</strong> ${unidadesLiberadas.length}</div>
+                    <div><strong style="color: #b45309;">Com correção:</strong> ${comCorrecaoCount}</div>
+                    <div><strong style="color: #047857;">Sem correção:</strong> ${semCorrecaoCount}</div>
+                </div>
+                
+                <p style="margin-bottom: 5px;">Atenciosamente,</p>
+                <p style="font-weight: 600;">${responsavel}</p>
+                <p>Setor de LMC - Rede Dom Pedro</p>
+                
+                <div class="relatorio-footer">
+                    <i class="fas fa-code-branch"></i> Sistema de Liberação Speed Fiscal v2.0<br>
+                    Desenvolvido por Waldeci Ramos<br>
+                    Documento gerado automaticamente em ${dataAtual}
+                </div>
+            `;
+            
+            return {
+                html: html,
+                numero: numeroRelatorio,
+                data: dataAtual,
+                responsavel: responsavel,
+                total: unidadesLiberadas.length,
+                comCorrecao: comCorrecaoCount,
+                semCorrecao: semCorrecaoCount
+            };
+        }
+
+        // Abrir modal de fechamento
+        function abrirModalFechamento() {
+            if (unidadesLiberadas.length === 0) {
+                mostrarToast('Adicione unidades à lista de liberados!', 'error');
+                return;
+            }
+            
+            const relatorio = gerarRelatorioHTML();
+            relatorioAtual = relatorio;
+            fechamentoPreview.innerHTML = relatorio.html;
+            fechamentoModal.style.display = 'flex';
+        }
+
+        function fecharFechamentoModal() {
+            fechamentoModal.style.display = 'none';
+        }
+
+        // Salvar fechamento no histórico
+        function salvarFechamento() {
+            if (!relatorioAtual) return;
+            
+            const novoRelatorio = {
+                numero: relatorioAtual.numero,
+                data: relatorioAtual.data,
+                responsavel: relatorioAtual.responsavel,
+                usuario: usuarioAtual?.email,
+                total: relatorioAtual.total,
+                comCorrecao: relatorioAtual.comCorrecao,
+                semCorrecao: relatorioAtual.semCorrecao,
+                periodos: periodosLiberacao.map(p => p.nome),
+                unidades: unidadesLiberadas.map(u => {
+                    const posto = postosData.find(p => p.codigo === u.codigo);
+                    return {
+                        codigo: u.codigo,
+                        nome: posto?.nomeReduzido,
+                        cidade: posto?.cidade,
+                        estado: posto?.estado,
+                        cnpj: posto?.cnpj,
+                        status: u.status
+                    };
+                }),
+                timestamp: new Date().toISOString()
+            };
+            
+            relatoriosSalvos.unshift(novoRelatorio);
+            
+            if (relatoriosSalvos.length > 50) {
+                relatoriosSalvos = relatoriosSalvos.slice(0, 50);
+            }
+            
+            localStorage.setItem('relatoriosSalvos', JSON.stringify(relatoriosSalvos));
+            
+            carregarRelatorios();
+            fecharFechamentoModal();
+            mostrarToast('Fechamento salvo com sucesso!', 'success');
+        }
+
+        // Carregar relatórios
+        function carregarRelatorios() {
+            relatoriosList.innerHTML = '';
+            
+            if (relatoriosSalvos.length === 0) {
+                relatoriosList.innerHTML = '<div style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum relatório salvo</div>';
+                return;
+            }
+            
+            relatoriosSalvos.forEach(relatorio => {
+                const item = document.createElement('div');
+                item.className = 'relatorio-item';
+                item.onclick = () => visualizarRelatorio(relatorio);
+                
+                const dataObj = new Date(relatorio.timestamp);
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR') + ' ' + dataObj.toLocaleTimeString('pt-BR');
+                
+                item.innerHTML = `
+                    <div class="relatorio-item-header">
+                        <span class="relatorio-numero">${relatorio.numero}</span>
+                        <span class="relatorio-data">${dataFormatada}</span>
+                    </div>
+                    <div class="relatorio-info">
+                        <span><i class="fas fa-user"></i> ${relatorio.responsavel}</span>
+                        <span><i class="fas fa-calendar-alt"></i> ${relatorio.periodos.join(' + ')}</span>
+                        <span><i class="fas fa-gas-pump"></i> ${relatorio.total} unidades</span>
+                    </div>
+                `;
+                
+                relatoriosList.appendChild(item);
+            });
+        }
+
+        // Visualizar relatório
+        function visualizarRelatorio(relatorio) {
+            const saudacao = getSaudacao();
+            
+            let html = `
+                <div class="relatorio-header">
+                    <div class="relatorio-titulo">
+                        <i class="fas fa-file-alt"></i> Relatório de Unidades Liberadas
+                    </div>
+                    <div class="relatorio-data">
+                        Nº: ${relatorio.numero}<br>
+                        ${relatorio.data}
+                    </div>
+                </div>
+                
+                <div class="relatorio-info">
+                    <div class="relatorio-periodos">
+                        <i class="fas fa-calendar-alt"></i> Períodos: ${relatorio.periodos.join(' • ')}
+                    </div>
+                    <div class="relatorio-responsavel">
+                        <i class="fas fa-user"></i> ${relatorio.responsavel}
+                    </div>
+                </div>
+                
+                <p style="margin-bottom: 20px;">${saudacao},</p>
+                
+                <p style="margin-bottom: 20px;">Segue abaixo a relação de unidades liberadas para verificação do Speed Fiscal:</p>
+                
+                <table class="relatorio-tabela">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nome Reduzido</th>
+                            <th>Cidade</th>
+                            <th>Estado</th>
+                            <th>CNPJ</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            relatorio.unidades.forEach(unidade => {
+                const statusText = unidade.status === 'comCorrecao' ? 'Com Correção' : (unidade.status === 'semCorrecao' ? 'Sem Correção' : 'Pendente');
+                const statusClass = unidade.status === 'comCorrecao' ? 'com-correcao' : (unidade.status === 'semCorrecao' ? 'sem-correcao' : '');
+                
+                html += `
+                    <tr>
+                        <td>${unidade.codigo}</td>
+                        <td>${unidade.nome}</td>
+                        <td>${unidade.cidade || '-'}</td>
+                        <td>${unidade.estado || '-'}</td>
+                        <td>${unidade.cnpj || '-'}</td>
+                        <td><span class="status-column ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                
+                <div style="display: flex; gap: 20px; margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <div><strong>Total de unidades:</strong> ${relatorio.total}</div>
+                    <div><strong style="color: #b45309;">Com correção:</strong> ${relatorio.comCorrecao}</div>
+                    <div><strong style="color: #047857;">Sem correção:</strong> ${relatorio.semCorrecao}</div>
+                </div>
+                
+                <p style="margin-bottom: 5px;">Atenciosamente,</p>
+                <p style="font-weight: 600;">${relatorio.responsavel}</p>
+                <p>Setor de LMC - Rede Dom Pedro</p>
+                
+                <div class="relatorio-footer">
+                    <i class="fas fa-code-branch"></i> Sistema de Liberação Speed Fiscal v2.0<br>
+                    Desenvolvido por Waldeci Ramos<br>
+                    Documento gerado automaticamente em ${relatorio.data}
+                </div>
+            `;
+            
+            relatorioPreview.innerHTML = html;
+            relatorioAtual = relatorio;
+            relatorioModal.style.display = 'flex';
+        }
+
+        function fecharRelatorioModal() {
+            relatorioModal.style.display = 'none';
+        }
+
+        // Enviar relatório por email
+        function enviarRelatorioEmail() {
+            if (!relatorioAtual) return;
+            
+            const assunto = `Relatório de Unidades Liberadas - ${relatorioAtual.numero}`;
+            const destinatarios = 'conferenciasfiscais@rededompedro.com; contabilidade@rededompedro.com; waldeci.ramos@rededompedro.com; lmc@rededompedro.com';
+            
+            // Criar corpo do email com o relatório
+            const saudacao = getSaudacao();
+            const responsavel = relatorioAtual.responsavel;
+            
+            let corpoEmail = `${saudacao},\n\n`;
+            corpoEmail += `Segue abaixo a relação de unidades liberadas para verificação do Speed Fiscal:\n\n`;
+            
+            // Adicionar unidades em formato texto
+            corpoEmail += `PERÍODOS: ${relatorioAtual.periodos.join(' • ')}\n`;
+            corpoEmail += `RESPONSÁVEL: ${responsavel}\n\n`;
+            
+            corpoEmail += `LISTA DE UNIDADES LIBERADAS:\n`;
+            corpoEmail += `========================================\n`;
+            
+            relatorioAtual.unidades.forEach((unidade, index) => {
+                const statusText = unidade.status === 'comCorrecao' ? 'COM CORREÇÃO' : (unidade.status === 'semCorrecao' ? 'SEM CORREÇÃO' : 'PENDENTE');
+                corpoEmail += `${index + 1}. ${unidade.codigo} - ${unidade.nome} - ${unidade.cidade || ''}/${unidade.estado || ''} - ${statusText}\n`;
+            });
+            
+            corpoEmail += `\n========================================\n`;
+            corpoEmail += `TOTAL DE UNIDADES: ${relatorioAtual.total}\n`;
+            corpoEmail += `COM CORREÇÃO: ${relatorioAtual.comCorrecao}\n`;
+            corpoEmail += `SEM CORREÇÃO: ${relatorioAtual.semCorrecao}\n\n`;
+            
+            corpoEmail += `Atenciosamente,\n`;
+            corpoEmail += `${responsavel}\n`;
+            corpoEmail += `Setor de LMC - Rede Dom Pedro\n`;
+            
+            // Criar link mailto
+            const mailtoLink = `mailto:${destinatarios}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpoEmail)}`;
+            
+            window.location.href = mailtoLink;
+            
+            mostrarToast('Cliente de email aberto com o relatório!', 'success');
+        }
+
+        function enviarRelatorioAtual() {
+            enviarRelatorioEmail();
+        }
+
+        // Imprimir relatório
+        function imprimirRelatorio() {
+            if (!relatorioAtual) return;
+            
+            const janelaImpressao = window.open('', '_blank');
+            janelaImpressao.document.write(`
+                <html>
+                <head>
+                    <title>Relatório de Liberações - ${relatorioAtual.numero}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
+                        .relatorio-tabela { width: 100%; border-collapse: collapse; }
+                        .relatorio-tabela th { background: #1e4a8b; color: white; padding: 10px; text-align: left; }
+                        .relatorio-tabela td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+                        .status-column { padding: 3px 10px; border-radius: 12px; display: inline-block; }
+                        .status-column.com-correcao { background: #fef3c7; color: #b45309; }
+                        .status-column.sem-correcao { background: #d1fae5; color: #047857; }
+                        .relatorio-footer { margin-top: 20px; text-align: center; color: #64748b; }
+                    </style>
+                </head>
+                <body>
+                    ${relatorioPreview.innerHTML}
+                </body>
+                </html>
+            `);
+            janelaImpressao.document.close();
+            janelaImpressao.print();
+        }
+
+        function imprimirRelatorioAtual() {
+            imprimirRelatorio();
+        }
+
+        // Funções de Backup
+        function fazerBackup() {
+            const backup = {
+                data: new Date().toISOString(),
+                usuario: usuarioAtual?.email,
+                unidadesLiberadas: unidadesLiberadas,
+                periodosLiberacao: periodosLiberacao,
+                relatoriosSalvos: relatoriosSalvos
+            };
+            
+            const dataStr = new Date().toLocaleString('pt-BR').replace(/[/:]/g, '-').replace(', ', '_');
+            const nomeArquivo = `backup_${usuarioAtual?.nome.replace(' ', '_')}_${dataStr}.json`;
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            mostrarToast('Backup realizado com sucesso!', 'success');
+        }
+
+        function restaurarBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const backup = JSON.parse(e.target.result);
+                        
+                        if (backup.unidadesLiberadas) {
+                            unidadesLiberadas = backup.unidadesLiberadas;
+                            localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
+                        }
+                        
+                        if (backup.periodosLiberacao) {
+                            periodosLiberacao = backup.periodosLiberacao;
+                            localStorage.setItem('periodosLiberacao', JSON.stringify(periodosLiberacao));
+                        }
+                        
+                        if (backup.relatoriosSalvos) {
+                            relatoriosSalvos = backup.relatoriosSalvos;
+                            localStorage.setItem('relatoriosSalvos', JSON.stringify(relatoriosSalvos));
+                        }
+                        
+                        carregarPeriodos();
+                        loadLiberados();
+                        loadPostos();
+                        carregarRelatorios();
+                        
+                        mostrarToast('Backup restaurado com sucesso!', 'success');
+                    } catch (error) {
+                        mostrarToast('Erro ao restaurar backup!', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Saudação automática
+        function getSaudacao() {
+            const hora = new Date().getHours();
+            if (hora >= 5 && hora < 12) return "Bom dia";
+            if (hora >= 12 && hora < 18) return "Boa tarde";
+            return "Boa noite";
+        }
+
+        // Atualizar período no display
+        function updatePeriodoDisplay() {
+            const responsavel = usuarioAtual?.nome || 'Responsável';
+            periodoDisplay.innerHTML = `
+                <span><i class="far fa-calendar-alt"></i> ${periodosLiberacao.map(p => p.nome).join(' + ')}</span>
+                <span><i class="far fa-user"></i> ${responsavel}</span>
+            `;
+        }
+
+        // Mostrar informações do usuário
+        function mostrarInfoUsuario() {
+            if (usuarioAtual) {
+                mostrarToast(`Logado como: ${usuarioAtual.nome} (${usuarioAtual.tipo === 'admin' ? 'Administrador' : 'Usuário'})`, 'info');
+            }
+        }
+
+        // Mudar de aba
+        function mudarAba(aba) {
+            const items = document.querySelectorAll('.nav-menu li');
+            items.forEach(item => item.classList.remove('active'));
+            event.target.closest('li').classList.add('active');
+            
+            if (aba === 'liberacoes') {
+                liberacoesContent.style.display = 'block';
+                relatoriosContent.style.display = 'none';
+            } else if (aba === 'relatorios') {
+                liberacoesContent.style.display = 'none';
+                relatoriosContent.style.display = 'block';
+                carregarRelatorios();
+            }
+        }
+
+        // Mostrar toast
+        function mostrarToast(mensagem, tipo) {
+            toastMessage.textContent = mensagem;
+            toast.className = `toast ${tipo}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            loadPostos();
+        });
+
+        showInactiveCheckbox.addEventListener('change', (e) => {
+            showInativos = e.target.checked;
+            loadPostos();
+        });
+
+        anoSelect.addEventListener('change', updatePeriodoDisplay);
+        mesSelect.addEventListener('change', updatePeriodoDisplay);
+
+        // Fechar modais clicando fora
+        window.addEventListener('click', (e) => {
+            if (e.target === statusModal) {
+                fecharStatusModal();
+            }
+            if (e.target === fechamentoModal) {
+                fecharFechamentoModal();
+            }
+            if (e.target === relatorioModal) {
+                fecharRelatorioModal();
+            }
+            if (e.target === resetModal) {
+                fecharResetModal();
+            }
+        });
+
+        // Atualizar data no footer
+        function updateDataFooter() {
+            const data = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('dataAtual').textContent = data.toLocaleDateString('pt-BR', options);
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDataFooter();
+            setInterval(updateDataFooter, 60000);
+            
+            // Verificar se já está logado
+            const usuarioSalvo = sessionStorage.getItem('usuarioLogado');
+            if (usuarioSalvo && usuarios[usuarioSalvo]) {
+                usuarioAtual = {
+                    email: usuarioSalvo,
+                    nome: usuarios[usuarioSalvo].nome,
+                    tipo: usuarios[usuarioSalvo].tipo
+                };
+                
+                loginContainer.style.display = 'none';
+                sistemaContainer.style.display = 'block';
+                
+                atualizarInterfaceUsuario();
+                carregarDadosUsuario();
+                carregarPeriodos();
+                loadPostos();
+                loadLiberados();
+                carregarRelatorios();
+                
+                // Mostrar botão de zerar sistema apenas para admin
+                if (usuarioAtual.tipo === 'admin') {
+                    resetSystemBtn.style.display = 'flex';
+                }
+            }
+            
+            // Iniciar com status padrão
+            selecionarStatusRapido('padrao');
+        });
+//logof
+// Função de Logout
+function fazerLogout() {
+    if (confirm('Tem certeza que deseja sair do sistema?')) {
+        // Limpar sessão
+        sessionStorage.removeItem('usuarioLogado');
+        usuarioAtual = null;
+        
+        // Esconder sistema e mostrar login
+        document.getElementById('sistemaContainer').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'block';
+        
+        // Limpar campos de login
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        
+        // Mostrar mensagem (use sua função de toast se tiver)
+        alert('Logout realizado com sucesso!');
+    }
+}
+    </script>
+</body>
+</html>
