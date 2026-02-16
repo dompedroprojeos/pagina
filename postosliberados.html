@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Dashboard Scanner PDF Prodac</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #06d6a0;
+            --warning: #ffb703;
+            --danger: #ef476f;
+            --update: #9d4edd;
+            --dark: #2b2d42;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        /* Setas de navegação fixas */
+        .nav-arrows {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .nav-arrow {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--update));
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 3px solid white;
+        }
+        
+        .nav-arrow:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        
+        .nav-arrow.top {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .nav-arrow.bottom {
+            background: linear-gradient(135deg, #06d6a0, #118ab2);
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+            margin-bottom: 30px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Header do Dashboard */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary), #3a0ca3);
+            color: white;
+            padding: 25px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .dashboard-title {
+            font-weight: 800;
+            font-size: 2.2rem;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Cards de estatísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .stat-card.success {
+            background: linear-gradient(135deg, #06d6a0, #118ab2);
+        }
+        
+        .stat-card.update {
+            background: linear-gradient(135deg, #9d4edd, #7209b7);
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #ef476f, #bc4a9c);
+        }
+        
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+        
+        /* Seletor de pasta */
+        .folder-selector {
+            border: 3px dashed var(--primary);
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), rgba(58, 12, 163, 0.05));
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .folder-selector:hover {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(58, 12, 163, 0.1));
+            transform: scale(1.02);
+            border-color: var(--update);
+        }
+        
+        .folder-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Barra de progresso */
+        .progress-container {
+            background: #e9ecef;
+            border-radius: 50px;
+            padding: 5px;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar-custom {
+            height: 30px;
+            border-radius: 50px;
+            background: linear-gradient(90deg, var(--primary), var(--update));
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar-custom::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Cards de município/pasta */
+        .municipio-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .municipio-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .municipio-card.success {
+            border-left-color: var(--success);
+            background: linear-gradient(to right, #f0fff4, white);
+        }
+        
+        .municipio-card.update {
+            border-left-color: var(--update);
+            background: linear-gradient(to right, #faf5ff, white);
+        }
+        
+        .municipio-card.danger {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, #fff5f5, white);
+        }
+        
+        .municipio-nome {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .municipio-caminho {
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-family: monospace;
+            margin-top: 5px;
+            padding-left: 35px;
+        }
+        
+        /* Badges de arquivos */
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 2px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .file-badge.original {
+            color: #0f5e3a;
+            border-left: 3px solid var(--success);
+        }
+        
+        .file-badge.update {
+            color: #5a2a8c;
+            border-left: 3px solid var(--update);
+            background: #faf5ff;
+        }
+        
+        /* Pasta vazia */
+        .empty-folder {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #adb5bd;
+        }
+        
+        /* Filtros chips */
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 50px;
+            margin: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .filter-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+        
+        .filter-chip.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .filter-chip i {
+            margin-right: 5px;
+        }
+        
+        /* Botões de Relatório */
+        .report-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .report-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .report-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        .report-btn.all {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        }
+        
+        .report-btn.com-arquivos {
+            background: linear-gradient(135deg, #06d6a0, #118ab2);
+        }
+        
+        .report-btn.atualizacoes {
+            background: linear-gradient(135deg, #9d4edd, #7209b7);
+        }
+        
+        .report-btn.vazios {
+            background: linear-gradient(135deg, #ef476f, #bc4a9c);
+        }
+        
+        /* Modal de Relatório - Versão para Impressão A4 */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        
+        .report-content {
+            background: white;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .report-header {
+            background: linear-gradient(135deg, var(--primary), var(--update));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .report-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .report-close:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+        
+        /* Estilo do relatório para impressão A4 */
+        .report-print-area {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 10px;
+        }
+        
+        .report-print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .report-print-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .report-print-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .report-print-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .report-print-stat {
+            text-align: center;
+        }
+        
+        .report-print-stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .report-print-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .report-print-section {
+            margin-bottom: 25px;
+        }
+        
+        .report-print-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid;
+        }
+        
+        .report-print-section-title.success {
+            border-bottom-color: var(--success);
+            color: #118ab2;
+        }
+        
+        .report-print-section-title.danger {
+            border-bottom-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .report-print-section-title.update {
+            border-bottom-color: var(--update);
+            color: var(--update);
+        }
+        
+        .report-print-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            columns: 3; /* Divide em 3 colunas para caber em A4 */
+            column-gap: 20px;
+        }
+        
+        .report-print-item {
+            break-inside: avoid;
+            margin-bottom: 8px;
+            padding: 5px 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .report-print-item i {
+            font-size: 14px;
+        }
+        
+        .report-print-item.success {
+            border-left: 3px solid var(--success);
+        }
+        
+        .report-print-item.update {
+            border-left: 3px solid var(--update);
+        }
+        
+        .report-print-item.danger {
+            border-left: 3px solid var(--danger);
+        }
+        
+        .report-print-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #ccc;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        /* Estilos de impressão */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .nav-arrows,
+            .folder-selector,
+            .btn-analyze,
+            .search-box,
+            .filter-chip,
+            .report-buttons,
+            .report-close,
+            .report-print {
+                display: none !important;
+            }
+            
+            .report-content {
+                max-height: none;
+                overflow: visible;
+                padding: 20px;
+            }
+            
+            .report-print-list {
+                columns: 3;
+            }
+            
+            .report-print-item {
+                break-inside: avoid;
+                -webkit-column-break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Barra de pesquisa */
+        .search-box {
+            background: white;
+            border-radius: 50px;
+            padding: 5px 5px 5px 20px;
+            border: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 12px 0;
+            background: transparent;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        
+        /* Resultado da pesquisa */
+        .search-result {
+            background: #e0f2fe;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .result-highlight {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        /* Informação da pasta raiz */
+        .pasta-raiz-info {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .caminho-completo {
+            background: rgba(255,255,255,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        
+        /* Títulos das seções */
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 25px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title.success {
+            border-bottom-color: var(--success);
+            color: #118ab2;
+        }
+        
+        .section-title.danger {
+            border-bottom-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .section-title.primary {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .section-title.update {
+            border-bottom-color: var(--update);
+            color: var(--update);
+        }
+        
+        /* Botão analisar */
+        .btn-analyze {
+            background: linear-gradient(135deg, var(--primary), var(--update));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            width: 100%;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+        
+        .btn-analyze:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Badge de contagem */
+        .badge-count {
+            background: white;
+            color: var(--dark);
+            border-radius: 50px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        /* Logs */
+        .log-container {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            color: #0ff;
+        }
+        
+        .log-entry {
+            padding: 5px 10px;
+            margin: 3px 0;
+            border-radius: 5px;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .log-entry.success {
+            background: rgba(6, 214, 160, 0.2);
+            color: #0f0;
+            border-left: 3px solid #0f0;
+        }
+        
+        .log-entry.update {
+            background: rgba(157, 78, 221, 0.2);
+            color: #d0bfff;
+            border-left: 3px solid var(--update);
+        }
+        
+        .log-entry.info {
+            background: rgba(67, 97, 238, 0.2);
+            color: #99f;
+            border-left: 3px solid #00f;
+        }
+        
+        /* Scroll suave */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Container principal */
+        .content-wrapper {
+            padding-bottom: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Setas de navegação fixas -->
+    <div class="nav-arrows">
+        <button class="nav-arrow top" id="goToTop" title="Voltar ao topo">
+            <i class="bi bi-arrow-up"></i>
+        </button>
+        <button class="nav-arrow bottom" id="goToBottom" title="Ir para o final">
+            <i class="bi bi-arrow-down"></i>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="main-container">
+            <!-- Header do Dashboard -->
+            <div class="dashboard-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="dashboard-title">
+                            <i class="bi bi-speedometer2 me-3"></i>
+                            DASHBOARD PDF PRODAC
+                        </h1>
+                        <p class="dashboard-subtitle">
+                            <i class="bi bi-geo-alt-fill me-2"></i>
+                            Análise em tempo real - Municípios e subpastas
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-white text-dark p-3">
+                            <i class="bi bi-buildings me-2"></i>
+                            <span id="totalMunicipios">0</span> Itens
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 content-wrapper">
+                <!-- Cards de Estatísticas do Dashboard -->
+                <div class="stats-grid" id="statsSection" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPastas">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-number" id="totalCompletas">0</div>
+                        <div class="stat-label">Com Arquivos</div>
+                    </div>
+                    <div class="stat-card update">
+                        <div class="stat-number" id="totalAtualizadas">0</div>
+                        <div class="stat-label">Atualizações</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-number" id="totalVazias">0</div>
+                        <div class="stat-label">Vazios</div>
+                    </div>
+                </div>
+
+                <!-- BOTÕES DE RELATÓRIO -->
+                <div class="report-buttons" id="reportButtons" style="display: none;">
+                    <button class="report-btn all" id="reportAll">
+                        <i class="bi bi-files"></i>
+                        Relatório Completo
+                    </button>
+                    <button class="report-btn com-arquivos" id="reportComArquivos">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Com Arquivos
+                    </button>
+                    <button class="report-btn atualizacoes" id="reportAtualizacoes">
+                        <i class="bi bi-star-fill"></i>
+                        Atualizações
+                    </button>
+                    <button class="report-btn vazios" id="reportVazios">
+                        <i class="bi bi-x-circle-fill"></i>
+                        Vazios
+                    </button>
+                </div>
+
+                <!-- Seleção da Pasta do Município -->
+                <div class="folder-selector" id="folderSelector">
+                    <div class="folder-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4>📌 Clique para selecionar a pasta do MUNICÍPIO</h4>
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Ex: Selecione a pasta "Atibaia" - O sistema analisará apenas esta pasta
+                    </p>
+                </div>
+
+                <!-- Informações da Pasta Selecionada -->
+                <div id="folderInfo" style="display: none;">
+                    <div class="pasta-raiz-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-building-check text-primary me-2"></i>
+                                <strong id="selectedFolderName"></strong>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" id="changeFolderBtn">
+                                <i class="bi bi-arrow-repeat me-1"></i>Trocar
+                            </button>
+                        </div>
+                        <div class="caminho-completo mt-2" id="caminhoCompleto"></div>
+                    </div>
+                </div>
+
+                <!-- Botão Analisar -->
+                <button class="btn-analyze" id="scanButton" disabled>
+                    <i class="bi bi-search me-2"></i>
+                    ANALISAR MUNICÍPIO
+                </button>
+
+                <!-- Barra de Progresso Animada -->
+                <div id="progressSection" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-bar-custom" id="progressBar" style="width: 0%">
+                            <span id="progressPercent">0%</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                            <i class="bi bi-folder me-2"></i>
+                            <span id="currentFile">Iniciando...</span>
+                        </div>
+                        <span class="badge bg-primary" id="progressCount">0/0</span>
+                    </div>
+                </div>
+
+                <!-- Barra de Pesquisa em Tempo Real -->
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="🔍 Pesquisar município em tempo real...">
+                </div>
+                <div id="searchResult" class="search-result" style="display: none;"></div>
+
+                <!-- Filtros Rápidos -->
+                <div class="mt-4" id="filtersSection" style="display: none;">
+                    <div class="d-flex flex-wrap">
+                        <div class="filter-chip active" id="filterAll">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                            Todos
+                            <span class="badge-count" id="countAll">0</span>
+                        </div>
+                        <div class="filter-chip" id="filterWithFiles">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            Com Arquivos
+                            <span class="badge-count" id="countWithFiles">0</span>
+                        </div>
+                        <div class="filter-chip" id="filterWithUpdates">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            Atualizações
+                            <span class="badge-count" id="countWithUpdates">0</span>
+                        </div>
+                        <div class="filter-chip" id="filterEmpty">
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                            Vazios
+                            <span class="badge-count" id="countEmpty">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DASHBOARD - RELATÓRIO VISUAL -->
+                <div id="dashboard">
+                    <!-- Card do Município Principal -->
+                    <div id="municipioPrincipalSection" style="display: none;">
+                        <h3 class="section-title primary">
+                            <i class="bi bi-building"></i>
+                            MUNICÍPIO: <span id="municipioNome"></span>
+                        </h3>
+                        <div id="municipioPrincipalCard" class="mb-4"></div>
+                    </div>
+
+                    <!-- Subpastas Com Arquivos -->
+                    <div id="comArquivosSection" style="display: none;">
+                        <h3 class="section-title success">
+                            <i class="bi bi-check-circle-fill"></i>
+                            COM ARQUIVOS ENCONTRADOS
+                            <span class="badge bg-success" id="comArquivosCount">0</span>
+                        </h3>
+                        <div id="comArquivosList" class="mb-4"></div>
+                    </div>
+
+                    <!-- Subpastas Vazias -->
+                    <div id="vaziasSection" style="display: none;">
+                        <h3 class="section-title danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            SEM ARQUIVOS
+                            <span class="badge bg-danger" id="vaziasCount">0</span>
+                        </h3>
+                        <div id="vaziasList" class="mb-4"></div>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5><i class="bi bi-terminal me-2"></i>Console</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="clearLogs">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="log-container" id="logs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Relatório -->
+    <div id="reportModal" style="display: none;" class="report-modal">
+        <div class="report-content">
+            <div class="report-header">
+                <h2 id="modalTitle"><i class="bi bi-file-text me-2"></i>Relatório</h2>
+                <button class="report-close" onclick="fecharModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="report-print-area"></div>
+            <button class="report-print" onclick="window.print()">
+                <i class="bi bi-printer me-2"></i>Imprimir Relatório
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Estado Global
+        let pastaMunicipio = null;
+        let todasSubpastas = [];
+        let filtroAtivo = 'todos';
+
+        // Elementos DOM
+        const folderSelector = document.getElementById('folderSelector');
+        const folderInfo = document.getElementById('folderInfo');
+        const selectedFolderName = document.getElementById('selectedFolderName');
+        const caminhoCompleto = document.getElementById('caminhoCompleto');
+        const changeFolderBtn = document.getElementById('changeFolderBtn');
+        const scanButton = document.getElementById('scanButton');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const currentFile = document.getElementById('currentFile');
+        const progressCount = document.getElementById('progressCount');
+        const statsSection = document.getElementById('statsSection');
+        const filtersSection = document.getElementById('filtersSection');
+        const reportButtons = document.getElementById('reportButtons');
+        const municipioPrincipalSection = document.getElementById('municipioPrincipalSection');
+        const municipioNome = document.getElementById('municipioNome');
+        const municipioPrincipalCard = document.getElementById('municipioPrincipalCard');
+        const comArquivosSection = document.getElementById('comArquivosSection');
+        const vaziasSection = document.getElementById('vaziasSection');
+        const comArquivosList = document.getElementById('comArquivosList');
+        const vaziasList = document.getElementById('vaziasList');
+        const logs = document.getElementById('logs');
+        
+        // Elementos de Pesquisa
+        const searchInput = document.getElementById('searchInput');
+        const searchResult = document.getElementById('searchResult');
+        
+        // Modal
+        const reportModal = document.getElementById('reportModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+
+        // Setas de Navegação
+        const goToTop = document.getElementById('goToTop');
+        const goToBottom = document.getElementById('goToBottom');
+
+        // Funções do Modal
+        window.fecharModal = function() {
+            reportModal.style.display = 'none';
+        };
+
+        // Navegação
+        goToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        goToBottom.addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+
+        // Logs
+        function addLog(msg, tipo = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${tipo}`;
+            entry.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle' : tipo === 'update' ? 'star' : 'info-circle'} me-2"></i>${msg}`;
+            logs.insertBefore(entry, logs.firstChild);
+            if (logs.children.length > 30) logs.removeChild(logs.lastChild);
+        }
+
+        document.getElementById('clearLogs').addEventListener('click', () => {
+            logs.innerHTML = '';
+            addLog('Log limpo', 'info');
+        });
+
+        // Validação de arquivo
+        function validarArquivo(nome) {
+            const nomeLower = nome.toLowerCase();
+            if (!nomeLower.endsWith('.pdf')) return { valido: false };
+            
+            const semExt = nomeLower.slice(0, -4);
+            
+            if (/^\d+\s+a$/.test(semExt)) {
+                return { valido: true, tipo: 'original' };
+            }
+            if (/^\d+\s+a\s+atualizada$/.test(semExt)) {
+                return { valido: true, tipo: 'atualizada' };
+            }
+            return { valido: false };
+        }
+
+        // Selecionar pasta
+        folderSelector.addEventListener('click', async () => {
+            try {
+                pastaMunicipio = await window.showDirectoryPicker();
+                
+                selectedFolderName.textContent = pastaMunicipio.name;
+                caminhoCompleto.textContent = pastaMunicipio.name;
+                
+                folderInfo.style.display = 'block';
+                scanButton.disabled = false;
+                
+                addLog(`🏢 Município: ${pastaMunicipio.name}`, 'success');
+                
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    addLog(`❌ Erro: ${error.message}`, 'warning');
+                }
+            }
+        });
+
+        // Trocar pasta
+        changeFolderBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                pastaMunicipio = await window.showDirectoryPicker();
+                
+                selectedFolderName.textContent = pastaMunicipio.name;
+                caminhoCompleto.textContent = pastaMunicipio.name;
+                
+                addLog(`🏢 Alterado para: ${pastaMunicipio.name}`, 'success');
+                
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    addLog(`❌ Erro: ${error.message}`, 'warning');
+                }
+            }
+        });
+
+        // Analisar
+        scanButton.addEventListener('click', async () => {
+            if (!pastaMunicipio) return;
+            
+            try {
+                addLog(`🚀 Analisando ${pastaMunicipio.name}...`, 'info');
+                scanButton.disabled = true;
+                progressSection.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressPercent.textContent = '0%';
+                
+                todasSubpastas = [];
+                
+                await analisarMunicipio(pastaMunicipio, pastaMunicipio.name);
+                
+                todasSubpastas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+                
+                atualizarDashboard();
+                
+                statsSection.style.display = 'grid';
+                filtersSection.style.display = 'block';
+                reportButtons.style.display = 'grid';
+                
+                addLog(`✅ Concluído! ${todasSubpastas.length} itens`, 'success');
+                
+            } catch (error) {
+                addLog(`❌ Erro: ${error.message}`, 'warning');
+            } finally {
+                progressSection.style.display = 'none';
+                scanButton.disabled = false;
+            }
+        });
+
+        // Analisar município
+        async function analisarMunicipio(diretorio, caminhoBase) {
+            let processados = 0;
+            let total = 0;
+            
+            for await (const [nome, handle] of diretorio.entries()) {
+                if (handle.kind === 'directory') total++;
+            }
+            
+            if (total === 0) {
+                const arquivos = await listarArquivos(diretorio);
+                
+                todasSubpastas.push({
+                    nome: diretorio.name,
+                    caminho: caminhoBase,
+                    isPrincipal: true,
+                    originais: arquivos.originais,
+                    atualizados: arquivos.atualizados,
+                    temArquivos: arquivos.originais.length > 0 || arquivos.atualizados.length > 0,
+                    temAtualizados: arquivos.atualizados.length > 0
+                });
+                
+                return;
+            }
+            
+            for await (const [nome, handle] of diretorio.entries()) {
+                if (handle.kind === 'directory') {
+                    processados++;
+                    const progresso = Math.round((processados / total) * 100);
+                    progressBar.style.width = `${progresso}%`;
+                    progressPercent.textContent = `${progresso}%`;
+                    progressCount.textContent = `${processados}/${total}`;
+                    currentFile.textContent = `📁 ${nome}`;
+                    
+                    const arquivos = await listarArquivos(handle);
+                    
+                    todasSubpastas.push({
+                        nome: nome,
+                        caminho: `${caminhoBase}/${nome}`,
+                        isPrincipal: false,
+                        originais: arquivos.originais,
+                        atualizados: arquivos.atualizados,
+                        temArquivos: arquivos.originais.length > 0 || arquivos.atualizados.length > 0,
+                        temAtualizados: arquivos.atualizados.length > 0
+                    });
+                }
+            }
+        }
+
+        // Listar arquivos
+        async function listarArquivos(diretorio) {
+            const originais = [];
+            const atualizados = [];
+            
+            for await (const [nome, handle] of diretorio.entries()) {
+                if (handle.kind === 'file') {
+                    const validacao = validarArquivo(nome);
+                    if (validacao.valido) {
+                        if (validacao.tipo === 'original') originais.push(nome);
+                        else atualizados.push(nome);
+                    }
+                }
+            }
+            
+            return { originais, atualizados };
+        }
+
+        // Atualizar dashboard
+        function atualizarDashboard() {
+            const total = todasSubpastas.length;
+            const comArquivos = todasSubpastas.filter(p => p.temArquivos).length;
+            const comAtualizadas = todasSubpastas.filter(p => p.temAtualizados).length;
+            const vazias = total - comArquivos;
+            
+            document.getElementById('totalPastas').textContent = total;
+            document.getElementById('totalCompletas').textContent = comArquivos;
+            document.getElementById('totalAtualizadas').textContent = comAtualizadas;
+            document.getElementById('totalVazias').textContent = vazias;
+            document.getElementById('totalMunicipios').textContent = total;
+            
+            document.getElementById('countAll').textContent = total;
+            document.getElementById('countWithFiles').textContent = comArquivos;
+            document.getElementById('countWithUpdates').textContent = comAtualizadas;
+            document.getElementById('countEmpty').textContent = vazias;
+            
+            renderizarDashboard();
+        }
+
+        // Renderizar dashboard
+        function renderizarDashboard() {
+            const municipioPrincipal = todasSubpastas.find(p => p.isPrincipal);
+            const subpastas = todasSubpastas.filter(p => !p.isPrincipal);
+            const comArquivos = subpastas.filter(p => p.temArquivos);
+            const vazias = subpastas.filter(p => !p.temArquivos);
+            
+            // Município principal
+            if (municipioPrincipal) {
+                municipioPrincipalSection.style.display = 'block';
+                municipioNome.textContent = municipioPrincipal.nome;
+                
+                let arquivosHtml = '<div class="mt-3">';
+                municipioPrincipal.originais.forEach(arq => {
+                    arquivosHtml += `<span class="file-badge original"><i class="bi bi-file-earmark-pdf me-1"></i>${arq}</span> `;
+                });
+                municipioPrincipal.atualizados.forEach(arq => {
+                    arquivosHtml += `<span class="file-badge update"><i class="bi bi-star-fill me-1"></i>${arq}</span> `;
+                });
+                arquivosHtml += '</div>';
+                
+                let classe = municipioPrincipal.temAtualizados ? 'update' : (municipioPrincipal.temArquivos ? 'success' : 'danger');
+                
+                municipioPrincipalCard.innerHTML = `
+                    <div class="municipio-card ${classe}">
+                        <div class="municipio-nome">
+                            <i class="bi bi-building"></i>
+                            ${municipioPrincipal.nome}
+                        </div>
+                        <div class="municipio-caminho">
+                            <i class="bi bi-geo-alt me-1"></i>${municipioPrincipal.caminho}
+                        </div>
+                        ${arquivosHtml}
+                    </div>
+                `;
+            }
+            
+            // Com arquivos
+            if (comArquivos.length > 0) {
+                comArquivosSection.style.display = 'block';
+                document.getElementById('comArquivosCount').textContent = comArquivos.length;
+                comArquivosList.innerHTML = comArquivos.map(pasta => {
+                    let classe = pasta.temAtualizados ? 'update' : 'success';
+                    
+                    let arquivosHtml = '<div class="mt-3">';
+                    pasta.originais.forEach(arq => {
+                        arquivosHtml += `<span class="file-badge original"><i class="bi bi-file-earmark-pdf me-1"></i>${arq}</span> `;
+                    });
+                    pasta.atualizados.forEach(arq => {
+                        arquivosHtml += `<span class="file-badge update"><i class="bi bi-star-fill me-1"></i>${arq}</span> `;
+                    });
+                    arquivosHtml += '</div>';
+                    
+                    return `
+                        <div class="municipio-card ${classe}">
+                            <div class="municipio-nome">
+                                <i class="bi bi-folder"></i>
+                                ${pasta.nome}
+                                ${pasta.temAtualizados ? '<span class="badge bg-warning ms-2">ATUALIZADA</span>' : ''}
+                            </div>
+                            <div class="municipio-caminho">
+                                <i class="bi bi-geo-alt me-1"></i>${pasta.caminho}
+                            </div>
+                            ${arquivosHtml}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                comArquivosSection.style.display = 'none';
+            }
+            
+            // Vazias
+            if (vazias.length > 0) {
+                vaziasSection.style.display = 'block';
+                document.getElementById('vaziasCount').textContent = vazias.length;
+                vaziasList.innerHTML = vazias.map(pasta => `
+                    <div class="municipio-card danger">
+                        <div class="municipio-nome">
+                            <i class="bi bi-folder-x text-danger"></i>
+                            ${pasta.nome}
+                        </div>
+                        <div class="municipio-caminho">
+                            <i class="bi bi-geo-alt me-1"></i>${pasta.caminho}
+                        </div>
+                        <div class="empty-folder mt-3">
+                            <i class="bi bi-emoji-frown empty-icon"></i>
+                            <p class="mb-0">Nenhum arquivo encontrado</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                vaziasSection.style.display = 'none';
+            }
+        }
+
+        // Gerar relatório formatado para impressão A4
+        function gerarRelatorio(tipo) {
+            const subpastas = todasSubpastas.filter(p => !p.isPrincipal);
+            const municipioPrincipal = todasSubpastas.find(p => p.isPrincipal);
+            const data = new Date().toLocaleString('pt-BR');
+            
+            let titulo = '';
+            let lista = [];
+            let corTitulo = '';
+            let icone = '';
+            
+            switch(tipo) {
+                case 'all':
+                    titulo = 'RELATÓRIO COMPLETO - TODAS AS PASTAS';
+                    lista = subpastas;
+                    corTitulo = 'primary';
+                    icone = '📋';
+                    break;
+                case 'comArquivos':
+                    titulo = 'PASTAS COM ARQUIVOS ENCONTRADOS';
+                    lista = subpastas.filter(p => p.temArquivos);
+                    corTitulo = 'success';
+                    icone = '✅';
+                    break;
+                case 'atualizacoes':
+                    titulo = 'PASTAS COM VERSÕES ATUALIZADAS';
+                    lista = subpastas.filter(p => p.temAtualizados);
+                    corTitulo = 'update';
+                    icone = '⭐';
+                    break;
+                case 'vazios':
+                    titulo = 'PASTAS SEM ARQUIVOS';
+                    lista = subpastas.filter(p => !p.temArquivos);
+                    corTitulo = 'danger';
+                    icone = '❌';
+                    break;
+            }
+            
+            // Ordenar alfabeticamente
+            lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            
+            let html = `
+                <div class="report-print-header">
+                    <div class="report-print-title">${icone} ${titulo}</div>
+                    <div class="report-print-subtitle">
+                        Município: ${municipioPrincipal ? municipioPrincipal.nome : '-'} | 
+                        Data: ${data} | 
+                        Total: ${lista.length} pastas
+                    </div>
+                </div>
+                
+                <div class="report-print-stats">
+                    <div class="report-print-stat">
+                        <div class="report-print-stat-label">Total Pastas</div>
+                        <div class="report-print-stat-value">${todasSubpastas.length}</div>
+                    </div>
+                    <div class="report-print-stat">
+                        <div class="report-print-stat-label">Com Arquivos</div>
+                        <div class="report-print-stat-value">${todasSubpastas.filter(p => p.temArquivos).length}</div>
+                    </div>
+                    <div class="report-print-stat">
+                        <div class="report-print-stat-label">Atualizações</div>
+                        <div class="report-print-stat-value">${todasSubpastas.filter(p => p.temAtualizados).length}</div>
+                    </div>
+                    <div class="report-print-stat">
+                        <div class="report-print-stat-label">Vazios</div>
+                        <div class="report-print-stat-value">${todasSubpastas.filter(p => !p.temArquivos).length}</div>
+                    </div>
+                </div>
+            `;
+            
+            if (municipioPrincipal) {
+                html += `
+                    <div class="report-print-section">
+                        <div class="report-print-section-title primary">
+                            📌 MUNICÍPIO PRINCIPAL
+                        </div>
+                        <div class="report-print-item ${municipioPrincipal.temAtualizados ? 'update' : (municipioPrincipal.temArquivos ? 'success' : 'danger')}" style="margin-bottom: 15px; padding: 10px;">
+                            <i class="bi bi-building"></i>
+                            <strong>${municipioPrincipal.nome}</strong>
+                            ${municipioPrincipal.temArquivos ? 
+                                (municipioPrincipal.temAtualizados ? '⭐ Com atualizações' : '✅ Com arquivos') : 
+                                '❌ Vazio'}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (lista.length > 0) {
+                html += `
+                    <div class="report-print-section">
+                        <div class="report-print-section-title ${corTitulo}">
+                            ${icone} ${titulo} (${lista.length})
+                        </div>
+                        <ul class="report-print-list">
+                `;
+                
+                lista.forEach(p => {
+                    const classe = p.temAtualizados ? 'update' : (p.temArquivos ? 'success' : 'danger');
+                    const iconeItem = p.temAtualizados ? '⭐' : (p.temArquivos ? '📄' : '📁');
+                    html += `
+                        <li class="report-print-item ${classe}">
+                            <i class="bi bi-${p.temAtualizados ? 'star-fill' : (p.temArquivos ? 'file-earmark-pdf' : 'folder-x')}"></i>
+                            ${p.nome}
+                        </li>
+                    `;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="alert alert-warning mt-4">
+                        Nenhuma pasta encontrada nesta categoria.
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="report-print-footer">
+                    <p>Scanner PDF Prodac - Relatório gerado automaticamente</p>
+                    <p>Documento válido para análise de arquivos "NÚMERO A.pdf" e "NÚMERO A atualizada.pdf"</p>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Eventos dos botões de relatório
+        document.getElementById('reportAll').addEventListener('click', () => {
+            modalTitle.innerHTML = '<i class="bi bi-files me-2"></i>Relatório Completo';
+            modalContent.innerHTML = gerarRelatorio('all');
+            reportModal.style.display = 'flex';
+        });
+
+        document.getElementById('reportComArquivos').addEventListener('click', () => {
+            modalTitle.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Pastas com Arquivos';
+            modalContent.innerHTML = gerarRelatorio('comArquivos');
+            reportModal.style.display = 'flex';
+        });
+
+        document.getElementById('reportAtualizacoes').addEventListener('click', () => {
+            modalTitle.innerHTML = '<i class="bi bi-star-fill me-2"></i>Pastas com Atualizações';
+            modalContent.innerHTML = gerarRelatorio('atualizacoes');
+            reportModal.style.display = 'flex';
+        });
+
+        document.getElementById('reportVazios').addEventListener('click', () => {
+            modalTitle.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Pastas Vazias';
+            modalContent.innerHTML = gerarRelatorio('vazios');
+            reportModal.style.display = 'flex';
+        });
+
+        // Pesquisa em tempo real
+        searchInput.addEventListener('input', () => {
+            const termo = searchInput.value.trim().toLowerCase();
+            
+            if (!termo || todasSubpastas.length === 0) {
+                searchResult.style.display = 'none';
+                return;
+            }
+
+            const encontradas = todasSubpastas.filter(p => 
+                p.nome.toLowerCase().includes(termo)
+            );
+
+            if (encontradas.length === 0) {
+                searchResult.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Nenhum resultado para "${searchInput.value}"
+                `;
+                searchResult.style.display = 'block';
+                return;
+            }
+
+            let html = `<i class="bi bi-check-circle-fill text-success me-2"></i>
+                       <strong>${encontradas.length}</strong> encontrado(s):<br>`;
+            
+            encontradas.forEach(p => {
+                const status = p.temArquivos ? 
+                    (p.temAtualizados ? '🟣 ATUALIZADA' : '🟢 COM ARQUIVOS') : 
+                    '🔴 VAZIA';
+                html += `<span class="result-highlight">📁 ${p.nome}</span> - ${status}<br>`;
+            });
+
+            searchResult.innerHTML = html;
+            searchResult.style.display = 'block';
+        });
+
+        // Filtros
+        document.getElementById('filterAll').addEventListener('click', function() {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            filtroAtivo = 'todos';
+            aplicarFiltros();
+        });
+
+        document.getElementById('filterWithFiles').addEventListener('click', function() {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            filtroAtivo = 'comArquivos';
+            aplicarFiltros();
+        });
+
+        document.getElementById('filterWithUpdates').addEventListener('click', function() {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            filtroAtivo = 'atualizadas';
+            aplicarFiltros();
+        });
+
+        document.getElementById('filterEmpty').addEventListener('click', function() {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            filtroAtivo = 'vazias';
+            aplicarFiltros();
+        });
+
+        function aplicarFiltros() {
+            const subpastas = todasSubpastas.filter(p => !p.isPrincipal);
+            
+            if (filtroAtivo === 'todos') {
+                comArquivosSection.style.display = 'block';
+                vaziasSection.style.display = 'block';
+                if (subpastas.filter(p => p.temArquivos).length === 0) comArquivosSection.style.display = 'none';
+                if (subpastas.filter(p => !p.temArquivos).length === 0) vaziasSection.style.display = 'none';
+            } else if (filtroAtivo === 'comArquivos') {
+                comArquivosSection.style.display = 'block';
+                vaziasSection.style.display = 'none';
+            } else if (filtroAtivo === 'atualizadas') {
+                const comAtualizadas = subpastas.filter(p => p.temAtualizados);
+                if (comAtualizadas.length > 0) {
+                    comArquivosSection.style.display = 'block';
+                    comArquivosList.innerHTML = comAtualizadas.map(pasta => {
+                        let arquivosHtml = '<div class="mt-3">';
+                        pasta.atualizados.forEach(arq => {
+                            arquivosHtml += `<span class="file-badge update"><i class="bi bi-star-fill me-1"></i>${arq}</span> `;
+                        });
+                        arquivosHtml += '</div>';
+                        
+                        return `
+                            <div class="municipio-card update">
+                                <div class="municipio-nome">
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    ${pasta.nome}
+                                    <span class="badge bg-warning ms-2">ATUALIZADA</span>
+                                </div>
+                                <div class="municipio-caminho">
+                                    <i class="bi bi-geo-alt me-1"></i>${pasta.caminho}
+                                </div>
+                                ${arquivosHtml}
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    comArquivosSection.style.display = 'none';
+                }
+                vaziasSection.style.display = 'none';
+            } else if (filtroAtivo === 'vazias') {
+                comArquivosSection.style.display = 'none';
+                vaziasSection.style.display = 'block';
+            }
+        }
+
+        // Inicialização
+        addLog('🚀 Dashboard pronto!', 'info');
+        addLog('📌 Selecione um município', 'info');
+    </script>
+</body>
+</html>
