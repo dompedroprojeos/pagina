@@ -535,7 +535,7 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
+            min-width: 1400px;
         }
 
         .data-table th {
@@ -1045,7 +1045,7 @@
             </div>
         </div>
 
-        <!-- NAVEGAÇÃO CORRIGIDA - IDs correspondem aos data-tab -->
+        <!-- NAVEGAÇÃO -->
         <div class="nav-container">
             <div class="nav-tabs">
                 <button class="nav-tab active" data-tab="nova">
@@ -1070,7 +1070,7 @@
         </div>
 
         <div class="main-content">
-            <!-- ABA NOVA SOLICITAÇÃO (ID = tab-nova) -->
+            <!-- ABA NOVA SOLICITAÇÃO -->
             <div class="tab-content active" id="tab-nova">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1189,7 +1189,7 @@
                 </div>
             </div>
 
-            <!-- ABA FLUXO DE SOLICITAÇÕES (ID = tab-fluxo) -->
+            <!-- ABA FLUXO DE SOLICITAÇÕES (MELHORADA) -->
             <div class="tab-content" id="tab-fluxo">
                 <div class="form-card">
                     <h3><i class="fas fa-project-diagram"></i> Fluxo de Solicitações</h3>
@@ -1219,12 +1219,14 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Data</th>
+                                    <th>Data Criação</th>
                                     <th>Posto</th>
-                                    <th>Mês/Ano</th>
+                                    <th>Mês/Ano (análise)</th>
                                     <th>Origem</th>
                                     <th>Status</th>
-                                    <th>Destinatário</th>
+                                    <th>Data Envio</th>
+                                    <th>Data Solução</th>
+                                    <th>Destinatário / Email resp.</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -1240,7 +1242,7 @@
                 </div>
             </div>
 
-            <!-- ABA CONTROLE DE LIBERAÇÕES (ID = tab-liberacoes) -->
+            <!-- ABA CONTROLE DE LIBERAÇÕES -->
             <div class="tab-content" id="tab-liberacoes">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1318,7 +1320,7 @@
                 </div>
             </div>
 
-            <!-- ABA RELATÓRIOS (ID = tab-relatorios) -->
+            <!-- ABA RELATÓRIOS -->
             <div class="tab-content" id="tab-relatorios">
                 <div class="form-card">
                     <h3><i class="fas fa-chart-line"></i> Relatórios e Estatísticas</h3>
@@ -1361,7 +1363,7 @@
                 </div>
             </div>
 
-            <!-- ABA CONFIGURAÇÕES (ID = tab-config) -->
+            <!-- ABA CONFIGURAÇÕES -->
             <div class="tab-content" id="tab-config">
                 <div class="form-card">
                     <h3><i class="fas fa-cog"></i> Configurações do Sistema</h3>
@@ -1398,7 +1400,7 @@
                 </div>
             </div>
 
-            <!-- ABA BACKUP (ID = tab-backup) -->
+            <!-- ABA BACKUP -->
             <div class="tab-content" id="tab-backup">
                 <div class="form-card">
                     <h3><i class="fas fa-database"></i> Backup e Restauração</h3>
@@ -1442,7 +1444,7 @@
 
         <div class="footer">
             <p><strong>Sistema de Controle de Demandas</strong> · LMC & Speed · Gestão CFOP</p>
-            <p>AutoSystem & Prodac · Versão 3.0 · © 2026 · Desenvolvido por Waldeci Ramos</p>
+            <p>AutoSystem & Prodac · Versão 3.1 · © 2026 · Desenvolvido por Waldeci Ramos</p>
         </div>
     </div>
 
@@ -1570,8 +1572,51 @@
         </div>
     </div>
 
+    <!-- MODAL DE EDIÇÃO DE SOLICITAÇÃO (NOVO) -->
+    <div class="modal" id="modalEditarSolicitacao">
+        <div class="modal-content">
+            <button class="modal-close" onclick="app.closeModal('modalEditarSolicitacao')">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Solicitação</h3>
+            </div>
+            
+            <input type="hidden" id="editSolicitacaoId">
+            <input type="hidden" id="editOrigemProblema">
+            
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> Status</label>
+                <select id="editStatus">
+                    <option value="aberto">Em Aberto</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="solucionado">Solucionado</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-paper-plane"></i> Data de Envio</label>
+                <input type="date" id="editDataEnvio">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-check-circle"></i> Data de Solução</label>
+                <input type="date" id="editDataSolucao">
+            </div>
+            
+            <div class="form-group" id="editEmailRespGroup">
+                <label><i class="fas fa-envelope"></i> Email de quem resolveu (apenas Prodac)</label>
+                <input type="email" id="editEmailResp" placeholder="email@exemplo.com">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="app.salvarEdicaoSolicitacao()">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // BANCO DE POSTOS FIXOS (COMPLETO - 104 POSTOS)
+        // BANCO DE POSTOS FIXOS (COMPLETO)
         const POSTOS_FIXOS = [
             { id: '2', nome: 'DP 1', cidade: 'ESTIVA', estado: 'MG', cnpj: '20.415.295/0001-74' },
             { id: '3', nome: 'DP ITATIAIUCU', cidade: 'ITATIAIUCU', estado: 'MG', cnpj: '20.415.295/0009-21' },
@@ -1660,10 +1705,10 @@
         // ========== CLASSE DATABASE ==========
         class Database {
             constructor() {
-                this.STORAGE_KEY = 'cfop_v3';
-                this.LIBERACOES_KEY = 'cfop_liberacoes_v3';
-                this.CONFIG_KEY = 'cfop_config_v3';
-                this.BACKUP_KEY = 'cfop_backup_history_v3';
+                this.STORAGE_KEY = 'cfop_v31';
+                this.LIBERACOES_KEY = 'cfop_liberacoes_v31';
+                this.CONFIG_KEY = 'cfop_config_v31';
+                this.BACKUP_KEY = 'cfop_backup_history_v31';
                 this.POSTOS = POSTOS_FIXOS;
                 this.init();
             }
@@ -1802,7 +1847,7 @@
             
             exportBackup() {
                 return {
-                    version: '3.0',
+                    version: '3.1',
                     timestamp: new Date().toISOString(),
                     data: {
                         solicitacoes: this.getSolicitacoes(),
@@ -2345,14 +2390,18 @@
                 }
                 
                 if (solicitacoes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Nenhuma solicitação encontrada</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">Nenhuma solicitação encontrada</td></tr>';
                     return;
                 }
                 
                 tbody.innerHTML = solicitacoes.map(s => {
                     const [year, month] = s.mesReferencia.split('-');
                     const mesAno = `${month}/${year}`;
-                    const dataCriacao = new Date(s.dataCriacao).toLocaleDateString('pt-BR');
+                    const dataCriacao = s.dataCriacao ? new Date(s.dataCriacao).toLocaleDateString('pt-BR') : '-';
+                    const dataEnvio = s.dataEnvio ? new Date(s.dataEnvio).toLocaleDateString('pt-BR') : '-';
+                    const dataSolucao = s.dataSolucao ? new Date(s.dataSolucao).toLocaleDateString('pt-BR') : '-';
+                    const destinatario = s.destinatario || '-';
+                    const emailResp = (s.origemProblema === 'prodac' && s.emailResponsavel) ? s.emailResponsavel : '-';
                     
                     return `
                         <tr>
@@ -2362,11 +2411,13 @@
                             <td>${mesAno}</td>
                             <td>${s.origemProblema === 'prodac' ? 'Prodac' : 'AutoSystem'}</td>
                             <td><span class="status-badge status-${s.status}">${this.getStatusText(s.status)}</span></td>
-                            <td>${s.destinatario || '-'}</td>
+                            <td>${dataEnvio}</td>
+                            <td>${dataSolucao}</td>
+                            <td>${destinatario}<br><small style="color: var(--gray-500);">${emailResp}</small></td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="action-btn edit" onclick="app.mudarStatus(${s.id})">
-                                        <i class="fas fa-sync"></i>
+                                    <button class="action-btn edit" onclick="app.editarSolicitacao(${s.id})">
+                                        <i class="fas fa-edit"></i>
                                     </button>
                                     <button class="action-btn delete" onclick="app.deleteSolicitacao(${s.id})">
                                         <i class="fas fa-trash"></i>
@@ -2376,6 +2427,55 @@
                         </tr>
                     `;
                 }).join('');
+            }
+            
+            editarSolicitacao(id) {
+                const solicitacoes = this.db.getSolicitacoes();
+                const sol = solicitacoes.find(s => s.id === id);
+                
+                if (!sol) return;
+                
+                document.getElementById('editSolicitacaoId').value = sol.id;
+                document.getElementById('editOrigemProblema').value = sol.origemProblema;
+                document.getElementById('editStatus').value = sol.status;
+                document.getElementById('editDataEnvio').value = sol.dataEnvio ? sol.dataEnvio.split('T')[0] : '';
+                document.getElementById('editDataSolucao').value = sol.dataSolucao ? sol.dataSolucao.split('T')[0] : '';
+                document.getElementById('editEmailResp').value = sol.emailResponsavel || '';
+                
+                // Mostrar campo de email apenas se for Prodac
+                const emailGroup = document.getElementById('editEmailRespGroup');
+                if (sol.origemProblema === 'prodac') {
+                    emailGroup.style.display = 'block';
+                } else {
+                    emailGroup.style.display = 'none';
+                }
+                
+                this.showModal('modalEditarSolicitacao');
+            }
+            
+            salvarEdicaoSolicitacao() {
+                const id = parseInt(document.getElementById('editSolicitacaoId').value);
+                const origem = document.getElementById('editOrigemProblema').value;
+                const status = document.getElementById('editStatus').value;
+                const dataEnvio = document.getElementById('editDataEnvio').value;
+                const dataSolucao = document.getElementById('editDataSolucao').value;
+                const emailResp = document.getElementById('editEmailResp').value;
+                
+                const updates = { status };
+                
+                if (dataEnvio) updates.dataEnvio = new Date(dataEnvio).toISOString();
+                if (dataSolucao) updates.dataSolucao = new Date(dataSolucao).toISOString();
+                
+                // Só salva email se for Prodac
+                if (origem === 'prodac' && emailResp) {
+                    updates.emailResponsavel = emailResp;
+                }
+                
+                this.db.updateSolicitacao(id, updates);
+                this.showNotification('Solicitação atualizada!', 'success');
+                this.closeModal('modalEditarSolicitacao');
+                this.carregarFluxo();
+                this.updateStats();
             }
             
             mudarStatus(id) {
@@ -2732,7 +2832,7 @@
             }
             
             convertToCSV(solicitacoes) {
-                const headers = ['ID', 'Data', 'Posto', 'Cidade', 'Estado', 'Mês/Ano', 'Origem', 'Status', 'Destinatário'];
+                const headers = ['ID', 'Data Criação', 'Posto', 'Cidade', 'Estado', 'Mês/Ano', 'Origem', 'Status', 'Data Envio', 'Data Solução', 'Destinatário', 'Email Responsável'];
                 const rows = solicitacoes.map(s => {
                     const [year, month] = s.mesReferencia.split('-');
                     return [
@@ -2744,7 +2844,10 @@
                         `${month}/${year}`,
                         s.origemProblema === 'prodac' ? 'Prodac' : 'AutoSystem',
                         this.getStatusText(s.status),
-                        s.destinatario || ''
+                        s.dataEnvio ? new Date(s.dataEnvio).toLocaleDateString('pt-BR') : '',
+                        s.dataSolucao ? new Date(s.dataSolucao).toLocaleDateString('pt-BR') : '',
+                        s.destinatario || '',
+                        s.emailResponsavel || ''
                     ];
                 });
                 return [headers, ...rows].map(row => row.join(';')).join('\n');
@@ -2969,4 +3072,4 @@
         window.app = app;
     </script>
 </body>
-</html>
+</html>	
