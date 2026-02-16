@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Dom Pedro - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a4d2e;
+            --secondary: #2d6a4f;
+            --accent: #40916c;
+            --light-green: #52b788;
+            --bg-dark: #ffffff;
+            --bg-medium: #f8f9fa;
+            --bg-light: #e9ecef;
+            --text-light: #212529;
+            --text-medium: #6c757d;
+            --text-dark: #adb5bd;
+            --border: #dee2e6;
+            --hover: #e9ecef;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+            height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Tema Escuro */
+        body.dark-mode {
+            --bg-dark: #0f1419;
+            --bg-medium: #1a1f26;
+            --bg-light: #252d38;
+            --text-light: #e8eaed;
+            --text-medium: #9aa0a6;
+            --text-dark: #5f6368;
+            --border: #3c4043;
+            --hover: #2d3748;
+        }
+
+        /* Proteção */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Container Principal */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 100;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .sidebar {
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header da Sidebar */
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-light);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            box-shadow: 0 4px 12px rgba(64, 145, 108, 0.3);
+        }
+
+        .logo-text {
+            flex: 1;
+        }
+
+        .logo-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--light-green) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2px;
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--text-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(64, 145, 108, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(64, 145, 108, 0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--light-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--text-medium);
+        }
+
+        /* Alternador de Tema */
+        .theme-toggle-container {
+            margin-top: 15px;
+        }
+
+        .theme-toggle {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(64, 145, 108, 0.2);
+        }
+
+        .theme-icon {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(20deg);
+        }
+
+        .theme-text {
+            flex: 1;
+        }
+
+        /* Menu de Navegação */
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .nav-menu::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-dark);
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: var(--text-medium);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            margin: 2px 10px;
+            border-radius: 8px;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: linear-gradient(180deg, var(--light-green), var(--accent));
+            border-radius: 0 3px 3px 0;
+            transition: height 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background: var(--hover);
+            color: var(--text-light);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(64, 145, 108, 0.15), transparent);
+            color: var(--light-green);
+            font-weight: 500;
+        }
+
+        .nav-item.active::before {
+            height: 70%;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .nav-badge {
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Rodapé da Sidebar */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-light);
+        }
+
+        .footer-info {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .footer-credit {
+            font-weight: 600;
+            color: var(--accent);
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Área de Conteúdo */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        /* Header do Conteúdo */
+        .content-header {
+            background: var(--bg-medium);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .content-header {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* Calendário */
+        .calendar-widget {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 18px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            min-width: 180px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding-right: 15px;
+            border-right: 1px solid var(--border);
+        }
+
+        .calendar-day-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--accent), var(--light-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .calendar-day-name {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dark);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .calendar-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .calendar-weekday {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .calendar-month-year {
+            font-size: 13px;
+            color: var(--text-medium);
+        }
+
+        .calendar-time {
+            font-size: 12px;
+            color: var(--text-dark);
+            font-family: 'Libre Baskerville', serif;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-dark);
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--light-green));
+            color: white;
+            box-shadow: 0 4px 12px rgba(64, 145, 108, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(64, 145, 108, 0.35);
+        }
+
+        body.dark-mode .btn-primary {
+            box-shadow: 0 4px 12px rgba(64, 145, 108, 0.3);
+        }
+
+        body.dark-mode .btn-primary:hover {
+            box-shadow: 0 6px 16px rgba(64, 145, 108, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-light);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--hover);
+        }
+
+        /* Iframe Container */
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-dark);
+        }
+
+        .iframe-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: var(--text-medium);
+            font-size: 14px;
+        }
+
+        #content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: block;
+        }
+
+        /* Responsivo */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .calendar-widget {
+                min-width: 160px;
+            }
+
+            .calendar-day-number {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.mobile-open {
+                left: 0;
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .calendar-widget {
+                width: 100%;
+            }
+
+            .content-header {
+                padding: 15px 20px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-item {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Proteção Visual */
+        .protected {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+<body class="protected">
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="pedrinho.png" alt="Dom Pedro" class="logo-img" onerror="this.style.display='none'">
+                    <div class="logo-text">
+                        <div class="logo-title">Dom Pedro</div>
+                        <div class="logo-subtitle">Sistema Integrado</div>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar">WR</div>
+                    <div class="user-details">
+                        <div class="user-name">Waldeci Ramos</div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                
+                <!-- Alternador de Tema -->
+                <div class="theme-toggle-container">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
+                        <span class="theme-icon sun-icon">☀️</span>
+                        <span class="theme-icon moon-icon" style="display: none;">🌙</span>
+                        <span class="theme-text" id="theme-text">Modo Escuro</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Controles</div>
+                    <div class="nav-item active" onclick="loadPage('https://dompedroprojeos.github.io/pagina/tarefas.html', 'Controle de E-mails', this)">
+                        <span class="nav-icon">✉️</span>
+                        <span class="nav-text">E-mails e Liberações</span>
+                        <span class="nav-badge">NEW</span>
+                    </div>
+                    <div class="nav-item" onclick="loadPage('https://dompedroprojeos.github.io/pagina/sistema_libera.html', 'Liberação de Funcionários', this)">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Liberação Funcionários</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Financeiro</div>
+                    <div class="nav-item" onclick="loadPage('https://dompedroprojeos.github.io/pagina/comparar_saldocredor.html', 'Saldo Credor', this)">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Saldo Credor</span>
+                    </div>
+                    <div class="nav-item" onclick="loadPage('https://dompedroprojeos.github.io/pagina/saldocredor.html', 'PDF Saldo Credor', this)">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">PDF Saldo Credor</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistemas</div>
+                    <div class="nav-item" onclick="loadPage('https://dompedroprojeos.github.io/pagina/diferenca_prodac_autosystem_Atual.html', 'Diferenças Prodac', this)">
+                        <span class="nav-icon">🔄</span>
+                        <span class="nav-text">Prodac vs Autosystem</span>
+                    </div>
+                    <div class="nav-item" onclick="loadPage('https://dompedroprojeos.github.io/pagina/postosliberados.html', 'Cópia Prodac', this)">
+                        <span class="nav-icon">📁</span>
+                        <span class="nav-text">Cópia Prodac</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="footer-info">
+                    © 2026 Sistema Dom Pedro
+                    <span class="footer-credit">@waldeciramos</span>
+                    Todos os direitos reservados
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área de Conteúdo -->
+        <main class="content-area">
+            <header class="content-header">
+                <div class="header-left">
+                    <!-- Calendário -->
+                    <div class="calendar-widget">
+                        <div class="calendar-day">
+                            <div class="calendar-day-number" id="day-number">16</div>
+                            <div class="calendar-day-name" id="day-name-short">FEV</div>
+                        </div>
+                        <div class="calendar-info">
+                            <div class="calendar-weekday" id="weekday">Segunda-feira</div>
+                            <div class="calendar-month-year" id="month-year">Fevereiro de 2026</div>
+                            <div class="calendar-time" id="current-time">00:00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Breadcrumb e Título -->
+                    <div>
+                        <div class="breadcrumb">
+                            <span class="breadcrumb-item">
+                                <span>🏠</span>
+                                <span id="breadcrumb-text">Sistema</span>
+                            </span>
+                        </div>
+                        <h1 class="page-title" id="page-title">Selecione um módulo</h1>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="refreshPage()">
+                        <span>🔄</span>
+                        <span>Atualizar</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="iframe-container">
+                <div class="iframe-loader" id="loader" style="display: none;">
+                    <div class="loader-spinner"></div>
+                    <div class="loader-text">Carregando...</div>
+                </div>
+
+                <iframe id="content-frame"></iframe>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay Mobile -->
+    <div class="mobile-overlay" id="mobile-overlay"></div>
+
+    <script>
+        // ===== PROTEÇÃO DO SISTEMA =====
+        
+        // Desabilita F12
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+J
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+U
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+S
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Desabilita botão direito
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Desabilita seleção de texto
+        document.onselectstart = function() {
+            return false;
+        };
+
+        // Detecta abertura do DevTools
+        const devtools = /./;
+        devtools.toString = function() {
+            this.opened = true;
+        }
+        console.log('%c', devtools);
+        setInterval(function() {
+            if (devtools.opened) {
+                window.location.reload();
+            }
+        }, 1000);
+
+        // ===== SISTEMA DE NAVEGAÇÃO =====
+
+        // Verificar tema salvo
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            updateThemeButton();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            updateThemeButton();
+            
+            // Salvar preferência
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        function updateThemeButton() {
+            const isDark = document.body.classList.contains('dark-mode');
+            const sunIcon = document.querySelector('.sun-icon');
+            const moonIcon = document.querySelector('.moon-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (isDark) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'flex';
+                themeText.textContent = 'Modo Claro';
+            } else {
+                sunIcon.style.display = 'flex';
+                moonIcon.style.display = 'none';
+                themeText.textContent = 'Modo Escuro';
+            }
+        }
+
+        // ===== CALENDÁRIO E RELÓGIO =====
+        
+        function updateCalendar() {
+            const now = new Date();
+            
+            // Dias da semana
+            const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const weekdaysShort = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+            
+            // Meses
+            const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const monthsShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 
+                               'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+            
+            // Atualiza elementos
+            document.getElementById('day-number').textContent = now.getDate();
+            document.getElementById('day-name-short').textContent = monthsShort[now.getMonth()];
+            document.getElementById('weekday').textContent = weekdays[now.getDay()];
+            document.getElementById('month-year').textContent = months[now.getMonth()] + ' de ' + now.getFullYear();
+            
+            // Atualiza relógio
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Atualiza calendário a cada segundo
+        updateCalendar();
+        setInterval(updateCalendar, 1000);
+
+        const iframe = document.getElementById('content-frame');
+        const loader = document.getElementById('loader');
+        const pageTitle = document.getElementById('page-title');
+        const breadcrumb = document.getElementById('breadcrumb-text');
+
+        function loadPage(url, title, element) {
+            // Remove active de todos os itens
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Adiciona active ao item clicado
+            if (element) {
+                element.classList.add('active');
+            }
+
+            // Atualiza título e breadcrumb
+            pageTitle.textContent = title;
+            breadcrumb.textContent = title;
+
+            // Mostra loader
+            loader.style.display = 'block';
+            iframe.style.display = 'none';
+
+            // Carrega a página
+            iframe.src = url;
+        }
+
+        function refreshPage() {
+            if (iframe.src) {
+                loader.style.display = 'block';
+                iframe.style.display = 'none';
+                iframe.src = iframe.src;
+            }
+        }
+
+        // Quando o iframe carregar
+        iframe.addEventListener('load', function() {
+            loader.style.display = 'none';
+            if (iframe.src) {
+                iframe.style.display = 'block';
+            }
+        });
+
+        // Carrega primeira página automaticamente
+        window.addEventListener('load', function() {
+            // Carrega a primeira página automaticamente
+            const firstNavItem = document.querySelector('.nav-item');
+            if (firstNavItem) {
+                firstNavItem.click();
+            }
+        });
+
+        // Mobile menu
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+
+        document.getElementById('mobile-overlay').addEventListener('click', toggleMobileMenu);
+
+        // Previne zoom
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Previne gestos de zoom em touch
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Mensagem de boas-vindas no console (para desenvolvedores autorizados)
+        console.log('%c🌿 Sistema Dom Pedro', 'color: #52b788; font-size: 24px; font-weight: bold;');
+        console.log('%c@waldeciramos - Todos os direitos reservados', 'color: #9aa0a6; font-size: 12px;');
+    </script>
+</body>
+</html>
