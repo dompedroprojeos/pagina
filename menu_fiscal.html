@@ -150,6 +150,7 @@
             justify-content: center;
             font-size: 14px;
             font-weight: 600;
+            color: white;
         }
 
         .user-details {
@@ -445,11 +446,6 @@
             font-weight: 600;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 12px;
-        }
-
         /* Iframe Container */
         .iframe-container {
             flex: 1;
@@ -458,28 +454,51 @@
             background: white;
         }
 
-        /* Barra de progresso de carregamento */
-        .loading-bar {
+        /* Loader melhorado */
+        .iframe-loader {
             position: absolute;
             top: 0;
             left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent), var(--light-green));
-            width: 0%;
-            transition: width 0.3s ease;
-            z-index: 100;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .iframe-loader.hidden {
             opacity: 0;
+            pointer-events: none;
         }
 
-        .loading-bar.active {
-            opacity: 1;
-            animation: loading 2s ease-in-out infinite;
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
 
-        @keyframes loading {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; opacity: 0; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: var(--text-medium);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .loader-subtext {
+            color: var(--text-dark);
+            font-size: 14px;
+            margin-top: 10px;
         }
 
         #content-frame {
@@ -574,9 +593,39 @@
             -moz-user-select: none;
             -ms-user-select: none;
         }
+
+        /* Menu mobile button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(64, 145, 108, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .content-header {
+                padding-left: 70px;
+            }
+        }
     </style>
 </head>
 <body class="protected">
+    <!-- Menu mobile button -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+
     <div class="main-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -685,42 +734,28 @@
             </header>
 
             <div class="iframe-container">
-                <div class="loading-bar" id="loading-bar"></div>
+                <div class="iframe-loader" id="iframe-loader">
+                    <div class="loader-spinner"></div>
+                    <div class="loader-text">Carregando módulo...</div>
+                    <div class="loader-subtext" id="loader-subtext"></div>
+                </div>
                 <iframe id="content-frame"></iframe>
             </div>
         </main>
     </div>
 
     <!-- Overlay Mobile -->
-    <div class="mobile-overlay" id="mobile-overlay"></div>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
     <script>
         // ===== PROTEÇÃO DO SISTEMA =====
         
-        // Desabilita F12
+        // Desabilita F12 e atalhos
         document.addEventListener('keydown', function(e) {
-            // F12
-            if (e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+I
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+J
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+U
-            if (e.ctrlKey && e.keyCode === 85) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+S
-            if (e.ctrlKey && e.keyCode === 83) {
+            // Lista de teclas proibidas
+            const forbiddenKeys = [123, 73, 74, 85, 83]; // F12, I, J, U, S
+            
+            if (forbiddenKeys.includes(e.keyCode) && (e.ctrlKey || e.shiftKey || e.keyCode === 123)) {
                 e.preventDefault();
                 return false;
             }
@@ -732,24 +767,14 @@
             return false;
         });
 
-        // Desabilita seleção de texto
-        document.onselectstart = function() {
-            return false;
-        };
-
-        // Detecta abertura do DevTools
-        const devtools = /./;
-        devtools.toString = function() {
-            this.opened = true;
-        }
-        console.log('%c', devtools);
-        setInterval(function() {
-            if (devtools.opened) {
-                window.location.reload();
-            }
-        }, 1000);
-
         // ===== SISTEMA DE NAVEGAÇÃO =====
+
+        // Elementos principais
+        const iframe = document.getElementById('content-frame');
+        const loader = document.getElementById('iframe-loader');
+        const pageTitle = document.getElementById('page-title');
+        const breadcrumb = document.getElementById('breadcrumb-text');
+        const loaderSubtext = document.getElementById('loader-subtext');
 
         // Verificar tema salvo
         const savedTheme = localStorage.getItem('theme');
@@ -789,23 +814,17 @@
         function updateCalendar() {
             const now = new Date();
             
-            // Dias da semana
             const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-            const weekdaysShort = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-            
-            // Meses
             const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
             const monthsShort = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 
                                'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
             
-            // Atualiza elementos
             document.getElementById('day-number').textContent = now.getDate();
             document.getElementById('day-name-short').textContent = monthsShort[now.getMonth()];
             document.getElementById('weekday').textContent = weekdays[now.getDay()];
             document.getElementById('month-year').textContent = months[now.getMonth()] + ' de ' + now.getFullYear();
             
-            // Atualiza relógio
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -816,31 +835,7 @@
         updateCalendar();
         setInterval(updateCalendar, 1000);
 
-        const iframe = document.getElementById('content-frame');
-        const loadingBar = document.getElementById('loading-bar');
-        const pageTitle = document.getElementById('page-title');
-        const breadcrumb = document.getElementById('breadcrumb-text');
-
-        // Quando começar a carregar
-        iframe.addEventListener('loadstart', function() {
-            loadingBar.classList.add('active');
-        });
-
-        // Quando terminar de carregar
-        iframe.addEventListener('load', function() {
-            setTimeout(() => {
-                loadingBar.classList.remove('active');
-            }, 500);
-        });
-
-        // Detectar erros de carregamento
-        iframe.addEventListener('error', function() {
-            console.error('Erro ao carregar página no iframe');
-            loadingBar.classList.remove('active');
-            pageTitle.textContent = 'Erro ao carregar';
-            breadcrumb.textContent = 'Erro';
-        });
-
+        // Função para carregar páginas no iframe
         function loadPage(url, title, element) {
             // Remove active de todos os itens
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -855,25 +850,66 @@
             // Atualiza título e breadcrumb
             pageTitle.textContent = title;
             breadcrumb.textContent = title;
+            loaderSubtext.textContent = title;
 
-            // Mostra barra de carregamento
-            loadingBar.classList.add('active');
+            // Mostra loader
+            loader.classList.remove('hidden');
 
-            // Carrega a página diretamente
-            try {
-                iframe.src = url;
-            } catch (error) {
-                console.error('Erro ao definir src do iframe:', error);
-                pageTitle.textContent = 'Erro ao carregar página';
-                loadingBar.classList.remove('active');
+            // Se for uma URL válida
+            if (url && url.trim() !== '') {
+                // Adiciona um timestamp para evitar cache
+                const cacheBuster = url.includes('?') ? '&_t=' : '?_t=';
+                iframe.src = url + cacheBuster + Date.now();
+            } else {
+                // Se não tiver URL, mostra mensagem
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    iframe.srcdoc = `
+                        <html>
+                            <body style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Inter', sans-serif; background: #f5f5f5; margin: 0;">
+                                <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <h2 style="color: #40916c; margin-bottom: 10px;">${title}</h2>
+                                    <p style="color: #666;">Módulo em desenvolvimento</p>
+                                </div>
+                            </body>
+                        </html>
+                    `;
+                }, 500);
             }
         }
+
+        // Quando o iframe começar a carregar
+        iframe.addEventListener('load', function() {
+            // Esconde o loader após um pequeno delay
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 500);
+        });
+
+        // Detectar erros de carregamento
+        iframe.addEventListener('error', function() {
+            loader.classList.add('hidden');
+            pageTitle.textContent = 'Erro ao carregar';
+            breadcrumb.textContent = 'Erro';
+            
+            // Mostra mensagem de erro amigável
+            iframe.srcdoc = `
+                <html>
+                    <body style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Inter', sans-serif; background: #f5f5f5; margin: 0;">
+                        <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Erro de Conexão</h2>
+                            <p style="color: #666;">Não foi possível carregar o módulo</p>
+                            <button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #40916c; color: white; border: none; border-radius: 6px; cursor: pointer;">Tentar novamente</button>
+                        </div>
+                    </body>
+                </html>
+            `;
+        });
 
         // Carrega primeira página automaticamente
         window.addEventListener('load', function() {
             const firstNavItem = document.querySelector('.nav-item');
             if (firstNavItem) {
-                // Pequeno delay para garantir que tudo está carregado
                 setTimeout(() => {
                     firstNavItem.click();
                 }, 100);
@@ -888,7 +924,14 @@
             overlay.classList.toggle('active');
         }
 
-        document.getElementById('mobile-overlay').addEventListener('click', toggleMobileMenu);
+        // Fecha o menu mobile se clicar em um item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
 
         // Previne zoom
         document.addEventListener('wheel', function(e) {
@@ -907,7 +950,7 @@
             lastTouchEnd = now;
         }, false);
 
-        // Mensagem de boas-vindas no console (para desenvolvedores autorizados)
+        // Mensagem de boas-vindas
         console.log('%c🌿 Sistema Dom Pedro', 'color: #52b788; font-size: 24px; font-weight: bold;');
         console.log('%c@waldeciramos - Todos os direitos reservados', 'color: #9aa0a6; font-size: 12px;');
     </script>
