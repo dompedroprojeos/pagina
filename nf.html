@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -563,49 +564,187 @@ DADOS ADICIONAIS</textarea>
 
 <script>
 // ============================================
-// BANCO DE DADOS COMPLETO (resumido para performance)
+// BANCO DE DADOS DE REGRAS (BASEADO NA PLANILHA)
 // ============================================
-const TABELA_CFOP = {
-    "5102": { descricao: "Venda de mercadoria adquirida ou recebida de terceiros", tipo: "Saída" },
-    "5101": { descricao: "Venda de produção do estabelecimento", tipo: "Saída" },
-    "5405": { descricao: "Venda de mercadoria em operação com substituição tributária", tipo: "Saída" },
-    "5656": { descricao: "Venda de combustível a consumidor final", tipo: "Saída" },
-    "5929": { descricao: "Lançamento em decorrência de emissão de NF também registrada em ECF", tipo: "Saída" }
-};
 
-// ============================================
-// REGRAS DE LANÇAMENTO
-// ============================================
-const REGRAS = {
-    "CONSUMO": {
-        cfops: ["5101", "5102", "5929"],
-        cstPermitido: ["000", "020", "040", "041", "090"],
-        conta: { "5": "1.556", "6": "2.556" },
-        cstLanc: "090",
-        natureza: "USO/CONSUMO"
-    },
-    "ATIVO_SEM_ICMS": {
-        cfops: ["5405"],
-        cstPermitido: ["060", "110", "160"],
-        conta: { "5": "1.406", "6": "2.406" },
-        cstLanc: "060",
-        natureza: "ATIVO IMOBILIZADO (sem ICMS)"
-    },
-    "ATIVO_COM_ICMS": {
-        cfops: ["5102"],
-        cstPermitido: ["000", "020", "040", "041", "090"],
-        conta: { "5": "1.551", "6": "2.551" },
-        cstLanc: "090",
-        natureza: "ATIVO IMOBILIZADO (com ICMS)"
-    },
-    "COMBUSTIVEL": {
-        cfops: ["5656", "5929"],
-        cstPermitido: ["060", "061"],
-        conta: { "5": "1.653", "6": "2.653" },
-        cstLanc: "061",
-        natureza: "CONSUMO COMBUSTÍVEL"
-    }
-};
+// Função auxiliar para verificar se um CST pertence a um grupo
+function cstPertenceAoGrupo(cst, grupo) {
+    // Remove pontuação e garante que seja string de 3 dígitos
+    const cstStr = String(cst).replace(/[^\d]/g, '').padStart(3, '0');
+    const grupoValores = grupo.map(g => String(g).replace(/[^\d]/g, '').padStart(3, '0'));
+
+    // Grupos especiais da planilha
+    const grupoConsumo = ['000', '020', '040', '041', '090'];
+    const grupoAtivoPadrao = ['010', '060', '110', '160', '510', '560'];
+    const grupoAtivoCombustivel = ['060', '061']; // Específico para 5.656/6.656
+    const grupoRevenda = ['000']; // Para revenda, parece ser apenas 000
+    const grupoCstDiferente = ['020', '040', '041', '090']; // Para o caso "SE O CST VIER COM 020 UTILIZAR O 020 NO LANÇAMENTO"
+    const grupoCst010 = ['010', '110', '510'];
+    const grupoCst030 = ['030', '130', '530'];
+    const grupoCst060 = ['060', '160', '560'];
+
+    if (grupo === 'consumo') return grupoConsumo.includes(cstStr);
+    if (grupo === 'ativo_padrao') return grupoAtivoPadrao.includes(cstStr);
+    if (grupo === 'ativo_combustivel') return grupoAtivoCombustivel.includes(cstStr);
+    if (grupo === 'revenda') return grupoRevenda.includes(cstStr);
+    if (grupo === 'cst_diferente_020') return grupoCstDiferente.includes(cstStr);
+    if (grupo === 'cst_010') return grupoCst010.includes(cstStr);
+    if (grupo === 'cst_030') return grupoCst030.includes(cstStr);
+    if (grupo === 'cst_060') return grupoCst060.includes(cstStr);
+
+    // Fallback para grupos passados como array (para regras específicas)
+    return grupoValores.includes(cstStr);
+}
+
+// Estrutura principal de regras
+const REGRAS_COMPLETAS = [
+    // ========== USO / CONSUMO ==========
+    { cfops: ['5101', '5102', '5108', '6101', '6102', '6108'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.556' : '2.556',
+        cstLanc: '090',
+        natureza: 'USO/CONSUMO'
+    })},
+
+    // ========== ATIVO (com decisão do usuário) ==========
+    // Estes CFOPs podem ser Ativo ou Consumo, dependendo da natureza do item.
+    { cfops: ['5403', '5404', '5405', '6403', '6404', '6405'], grupoCst: 'ativo_padrao', fn: (cfop, cst, primeiroDigito) => {
+        // A PLANILHA DIZ: "VERIFICAR SE A NOTA SERÁ ATIVO CASO SIM LANÇAR NO 1.551 – 2.551 OU 1.406 – 2.406"
+        // Vamos perguntar ao usuário. Como não podemos perguntar por produto em um alerta simples,
+        // faremos uma pergunta geral para a nota. Em um sistema real, isso seria um campo na interface.
+        // Para simplificar, vamos assumir que a resposta é a mesma para todos os produtos deste tipo na nota.
+        // Esta lógica será aplicada na função `aplicarRegras` de forma mais global.
+        // Por enquanto, retornamos um objeto marcando que precisa de decisão.
+        return { precisaDecisaoAtivo: true, cstOrigem: cst, primeiroDigito };
+    }},
+
+    // ========== CONSUMO COMBUSTÍVEL ==========
+    { cfops: ['5656', '6656', '5929', '6929'], grupoCst: 'ativo_combustivel', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.653' : '2.653',
+        cstLanc: '061',
+        natureza: 'CONSUMO COMBUSTÍVEL'
+    })},
+
+    // ========== REVENDA ==========
+    { cfops: ['5101', '5102', '6101', '6102'], grupoCst: 'revenda', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.102' : '2.102',
+        cstLanc: cst, // Mantém o CST original (000)
+        natureza: 'REVENDA'
+    })},
+
+    // ========== CFOP 5.405 / 6.405 com CST específico ==========
+    { cfops: ['5405', '6405'], grupoCst: 'cst_060', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.403' : '2.403',
+        cstLanc: '060',
+        natureza: 'CFOP 5.405 COM CST 060/160/560'
+    })},
+
+    // ========== CFOP 5.929 / 6.929 (já tratado no combustível, mas aqui a regra é diferente) ==========
+    // A planilha tem duas entradas para 5929: uma no consumo e uma no combustível. A ordem de avaliação importa.
+    // Vamos criar uma regra específica para 5929 que não seja combustível, baseada no CST.
+    { cfops: ['5929', '6929'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.556' : '2.556',
+        cstLanc: '090',
+        natureza: 'USO/CONSUMO (CFOP 5929)'
+    })},
+    { cfops: ['5929', '6929'], grupoCst: 'ativo_padrao', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.407' : '2.407',
+        cstLanc: '060',
+        natureza: 'CONSUMO (padrão) (CFOP 5929)'
+    })},
+
+    // ========== CFOP 5.949 / 6.949 ==========
+    { cfops: ['5949', '6949'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.949' : '2.949', // Nota: "NÃO TEM CONTAS A PAGAR"
+        cstLanc: '090',
+        natureza: 'CFOP 5.949 (sem contas a pagar)'
+    })},
+    { cfops: ['5949', '6949'], grupoCst: 'ativo_padrao', fn: (cfop, cst, primeiroDigito) => ({
+        conta: '', // A planilha não especifica a conta para este caso, apenas o CST 060. Vamos deixar vazio.
+        cstLanc: '060',
+        natureza: 'CFOP 5.949 (CST 060, verificar conta)'
+    })},
+
+    // ========== CFOP 5.908 / 6.908 ==========
+    { cfops: ['5908', '6908'], grupoCst: ['040', '041'], fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.908' : '2.908',
+        cstLanc: '090',
+        natureza: 'CFOP 5.908'
+    })},
+
+    // ========== CFOP 5.910 / 6.910 ==========
+    { cfops: ['5910', '6910'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.910' : '2.910',
+        cstLanc: '090',
+        natureza: 'CFOP 5.910'
+    })},
+
+    // ========== CFOP 5.916 / 6.916 ==========
+    { cfops: ['5916', '6916'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.916' : '2.916',
+        cstLanc: '090',
+        natureza: 'CFOP 5.916'
+    })},
+
+    // ========== CFOP 5.922 / 6.922 ==========
+    { cfops: ['5922', '6922'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.922' : '2.922',
+        cstLanc: '090',
+        natureza: 'CFOP 5.922'
+    })},
+
+    // ========== CFOP 5.117 / 6.117 ==========
+    { cfops: ['5117', '6117'], grupoCst: 'consumo', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.556' : '2.556',
+        cstLanc: '090',
+        natureza: 'CFOP 5.117 (USO/CONSUMO)'
+    })},
+    { cfops: ['5117', '6117'], grupoCst: 'ativo_padrao', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.407' : '2.407',
+        cstLanc: '060',
+        natureza: 'CFOP 5.117 (CONSUMO PADRÃO)'
+    })},
+
+    // ========== TRANSFERÊNCIA ARLA ==========
+    { cfops: ['5152', '6152'], grupoCst: ['000'], fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.152' : '2.152',
+        cstLanc: '000',
+        natureza: 'TRANSFERÊNCIA ARLA'
+    })},
+
+    // ========== TRANSFERÊNCIA LUBRIFICANTE ==========
+    { cfops: ['5659', '6659'], grupoCst: ['060'], fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.659' : '2.659',
+        cstLanc: '060',
+        natureza: 'TRANSFERÊNCIA LUBRIFICANTE'
+    })},
+
+    // ========== NOTAS RV (5.949 / 6.949 com CST 090) ==========
+    { cfops: ['5949', '6949'], grupoCst: ['090'], fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.102' : '2.102',
+        cstLanc: '090',
+        natureza: 'NOTAS RV (REVENDA)'
+    })},
+
+    // ========== CFOP 5.655 / 5.656 / 6.655 / 6.656 (OUTROS) ==========
+    // "SE O CST VIER COM 010 110 510... UTILIZAR O 010 NO LANÇAMENTO"
+    { cfops: ['5655', '5656', '6655', '6656'], grupoCst: 'cst_010', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.652' : '2.652',
+        cstLanc: '010',
+        natureza: 'COMBUSTÍVEL (CST 010)'
+    })},
+    // "SE O CST VIER COM 030 130 530... UTILIZAR O 030 NO LANÇAMENTO"
+    { cfops: ['5655', '5656', '6655', '6656'], grupoCst: 'cst_030', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.652' : '2.652',
+        cstLanc: '030',
+        natureza: 'COMBUSTÍVEL (CST 030)'
+    })},
+    // "SE O CST VIER COM 060 160 560... UTILIZAR O 060 NO LANÇAMENTO"
+    { cfops: ['5655', '5656', '6655', '6656'], grupoCst: 'cst_060', fn: (cfop, cst, primeiroDigito) => ({
+        conta: primeiroDigito === '5' ? '1.652' : '2.652',
+        cstLanc: '060',
+        natureza: 'COMBUSTÍVEL (CST 060)'
+    })}
+];
 
 function analisarNF() {
     const textoNF = document.getElementById('inputNF').value;
@@ -620,7 +759,7 @@ function analisarNF() {
     
     // Processar produtos
     const produtos = extrairProdutos(textoNF);
-    const produtosAnalisados = aplicarRegras(produtos);
+    const produtosAnalisados = aplicarRegrasCompletas(produtos);
     
     // Atualizar totais com os valores extraídos
     const totais = {
@@ -646,6 +785,7 @@ function analisarNF() {
     document.getElementById('areaResultados').scrollIntoView({ behavior: 'smooth' });
 }
 
+// Função de extração (igual à sua, mantida para compatibilidade)
 function extrairNFCompleta(texto) {
     const linhas = texto.split('\n');
     const dados = {
@@ -754,52 +894,105 @@ function extrairProdutos(texto) {
     return produtos;
 }
 
-function aplicarRegras(produtos) {
+// NOVA FUNÇÃO: Aplicar as regras completas
+function aplicarRegrasCompletas(produtos) {
+    // Primeiro, vamos verificar se algum produto exige a decisão "É ATIVO?"
+    // Para simplificar, faremos uma única pergunta para a nota toda.
+    const produtosComRegraAtivo = produtos.filter(prod => {
+        for (const regra of REGRAS_COMPLETAS) {
+            if (regra.cfops.includes(prod.cfop) && cstPertenceAoGrupo(prod.cst, regra.grupoCst)) {
+                return regra.fn(prod.cfop, prod.cst, prod.cfop.charAt(0)).precisaDecisaoAtivo === true;
+            }
+        }
+        return false;
+    });
+
+    let decisaoAtivo = false;
+    if (produtosComRegraAtivo.length > 0) {
+        // Pergunta ao usuário (em um sistema real, isso seria um elemento na tela)
+        decisaoAtivo = confirm('A nota possui produtos que podem ser classificados como ATIVO IMOBILIZADO.\n\nDeseja lançá-los como ATIVO?\n\nOK = Sim (contas 1.551/2.551)\nCancelar = Não (contas 1.556/2.556)');
+    }
+
     return produtos.map(prod => {
         const primeiroDigito = prod.cfop.charAt(0);
         let regraAplicada = null;
-        let conta = '';
-        let cstLanc = '';
-        let natureza = '';
-        
-        for (const [key, regra] of Object.entries(REGRAS)) {
-            if (regra.cfops && regra.cfops.includes(prod.cfop)) {
-                if (regra.cstPermitido && regra.cstPermitido.includes(prod.cst)) {
-                    conta = regra.conta[primeiroDigito] || regra.conta[Object.keys(regra.conta)[0]];
-                    cstLanc = regra.cstLanc;
-                    natureza = regra.natureza;
-                    regraAplicada = key;
-                    break;
+        let resultado = null;
+
+        // Itera sobre as regras na ordem definida
+        for (const regra of REGRAS_COMPLETAS) {
+            // Verifica se o CFOP do produto está na lista da regra
+            if (regra.cfops.includes(prod.cfop)) {
+                // Verifica se o CST do produto pertence ao grupo da regra
+                if (cstPertenceAoGrupo(prod.cst, regra.grupoCst)) {
+                    // Aplica a função da regra para obter o resultado
+                    resultado = regra.fn(prod.cfop, prod.cst, primeiroDigito);
+                    
+                    // Se o resultado não for nulo, encontramos uma regra
+                    if (resultado) {
+                        // Caso especial: regra que precisa de decisão de ativo
+                        if (resultado.precisaDecisaoAtivo) {
+                            if (decisaoAtivo) {
+                                // Se o usuário disse SIM para ATIVO, usa contas de ativo com ICMS
+                                resultado.conta = primeiroDigito === '5' ? '1.551' : '2.551';
+                                resultado.cstLanc = resultado.cstOrigem; // Mantém CST de origem? A planilha não especifica, vamos manter o original
+                                resultado.natureza = 'ATIVO IMOBILIZADO (com ICMS)';
+                            } else {
+                                // Se o usuário disse NÃO, usa as contas de consumo padrão
+                                resultado.conta = primeiroDigito === '5' ? '1.556' : '2.556';
+                                resultado.cstLanc = '090';
+                                resultado.natureza = 'USO/CONSUMO (padrão)';
+                            }
+                            // Remove as propriedades temporárias
+                            delete resultado.precisaDecisaoAtivo;
+                            delete resultado.cstOrigem;
+                            delete resultado.primeiroDigito;
+                        }
+                        
+                        regraAplicada = regra;
+                        break; // Encontrou a primeira regra aplicável
+                    }
                 }
             }
         }
-        
+
+        // Se nenhuma regra foi encontrada, aplica a lógica padrão (fallback)
         if (!regraAplicada) {
+            console.warn(`Nenhuma regra específica encontrada para CFOP ${prod.cfop} e CST ${prod.cst}. Aplicando regra padrão.`);
             if (primeiroDigito === '5' || primeiroDigito === '6') {
                 if (['000', '020', '040', '041', '090'].includes(prod.cst)) {
-                    conta = primeiroDigito === '5' ? '1.556' : '2.556';
-                    cstLanc = '090';
-                    natureza = 'USO/CONSUMO (padrão)';
+                    resultado = {
+                        conta: primeiroDigito === '5' ? '1.556' : '2.556',
+                        cstLanc: '090',
+                        natureza: 'USO/CONSUMO (padrão)'
+                    };
                 } else {
-                    conta = primeiroDigito === '5' ? '1.407' : '2.407';
-                    cstLanc = '060';
-                    natureza = 'CONSUMO (padrão)';
+                    resultado = {
+                        conta: primeiroDigito === '5' ? '1.407' : '2.407',
+                        cstLanc: '060',
+                        natureza: 'CONSUMO (padrão)'
+                    };
                 }
             } else {
-                conta = 'NÃO MAPEADO';
-                natureza = 'Não classificado';
+                resultado = {
+                    conta: 'NÃO MAPEADO',
+                    cstLanc: prod.cst,
+                    natureza: 'Não classificado'
+                };
             }
         }
         
         return {
             ...prod,
-            contaSugerida: conta || 'NÃO MAPEADO',
-            cstLancamento: cstLanc || prod.cst,
-            natureza: natureza,
-            regra: regraAplicada || 'Regra padrão'
+            contaSugerida: resultado.conta || 'ERRO',
+            cstLancamento: resultado.cstLanc || prod.cst,
+            natureza: resultado.natureza,
+            regra: regraAplicada ? `Regra para CFOP ${prod.cfop}` : 'Regra padrão'
         };
     });
 }
+
+// As funções de visualização (reconstruirNF, gerarTabelaProdutos, etc.) permanecem IGUAIS às suas.
+// Cole-as aqui novamente para garantir que o script completo funcione.
 
 function reconstruirNF(dados, produtos) {
     let nfHTML = `
@@ -920,6 +1113,7 @@ function gerarTabelaProdutos(produtos) {
         if (prod.natureza.includes('ATIVO COM ICMS')) corLinha = 'style="background: #dcfce7;"';
         else if (prod.natureza.includes('ATIVO')) corLinha = 'style="background: #fed7aa;"';
         else if (prod.natureza.includes('COMBUSTÍVEL')) corLinha = 'style="background: #f3e8ff;"';
+        else if (prod.natureza.includes('REVENDA')) corLinha = 'style="background: #dbeafe;"';
         else if (prod.natureza.includes('CONSUMO')) corLinha = 'style="background: #fff3cd;"';
         
         html += `
@@ -968,6 +1162,7 @@ function gerarResumoContabil(produtos) {
         if (item.natureza.includes('ATIVO COM ICMS')) corClasse = 'ativo-com-icms';
         else if (item.natureza.includes('ATIVO')) corClasse = 'ativo-sem-icms';
         else if (item.natureza.includes('COMBUSTÍVEL')) corClasse = 'combustivel';
+        else if (item.natureza.includes('REVENDA')) corClasse = 'revenda';
         else if (item.natureza.includes('CONSUMO')) corClasse = 'consumo';
         
         html += `
@@ -1038,6 +1233,8 @@ function gerarRegrasAplicadas(produtos) {
 function gerarAlertas(produtos) {
     const temAtivoComIcms = produtos.some(p => p.natureza.includes('ATIVO COM ICMS'));
     const temCombustivel = produtos.some(p => p.natureza.includes('COMBUSTÍVEL'));
+    const temRevenda = produtos.some(p => p.natureza.includes('REVENDA'));
+    const temContasNaoMapeadas = produtos.some(p => p.contaSugerida === 'NÃO MAPEADO');
     
     let alertas = '';
     
@@ -1046,8 +1243,8 @@ function gerarAlertas(produtos) {
             <div class="alerta">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div>
-                    <strong>ATENÇÃO:</strong> Esta NF possui produtos com CFOP de ATIVO IMOBILIZADO com ICMS (CST 000).
-                    Lançar na conta <strong style="font-size: 1.1rem;">1.551</strong> (crédito de ICMS de ativo), NÃO na 1.406!
+                    <strong>ATENÇÃO:</strong> Esta NF possui produtos classificados como ATIVO IMOBILIZADO com ICMS.
+                    Lançar na conta <strong style="font-size: 1.1rem;">1.551 / 2.551</strong> (crédito de ICMS de ativo).
                 </div>
             </div>
         `;
@@ -1064,24 +1261,63 @@ function gerarAlertas(produtos) {
         `;
     }
     
+    if (temRevenda) {
+        alertas += `
+            <div class="alerta" style="background: linear-gradient(145deg, #dbeafe, #bfdbfe); border-left-color: #2563eb;">
+                <i class="fas fa-store" style="color: #2563eb;"></i>
+                <div>
+                    <strong>REVENDA:</strong> Produtos para revenda lançados na conta <strong>1.102/2.102</strong>.
+                </div>
+            </div>
+        `;
+    }
+
+    if (temContasNaoMapeadas) {
+        alertas += `
+            <div class="alerta" style="background: linear-gradient(145deg, #fee2e2, #fecaca); border-left-color: #dc2626;">
+                <i class="fas fa-times-circle" style="color: #dc2626;"></i>
+                <div>
+                    <strong>ERRO:</strong> Existem produtos com conta <strong>NÃO MAPEADO</strong>. Verifique os CFOPs/CSTs.
+                </div>
+            </div>
+        `;
+    }
+    
     return alertas;
 }
 
 function gerarTabelaReferencia() {
-    const cfopsImportantes = ["5102", "5101", "5405", "5656", "5929"];
+    const cfopsImportantes = [
+        "5101", "5102", "5108", "5403", "5404", "5405", "5656", "5929", "5949",
+        "5908", "5910", "5916", "5922", "5117", "5152", "5659"
+    ];
     
     let html = '';
     cfopsImportantes.forEach(cfop => {
-        const info = TABELA_CFOP[cfop] || { descricao: 'CFOP não encontrado' };
-        const regra = Object.values(REGRAS).find(r => r.cfops && r.cfops.includes(cfop));
-        const conta = regra ? (regra.conta[cfop.charAt(0)] || 'Ver regra') : 'Verificar';
+        // Tenta encontrar uma regra de exemplo para o CFOP
+        let contaExemplo = 'Verificar';
+        let naturezaExemplo = 'Geral';
+        for (const regra of REGRAS_COMPLETAS) {
+            if (regra.cfops.includes(cfop)) {
+                // Aplica a regra para um CST comum para ver a conta
+                const resultadoExemplo = regra.fn(cfop, '000', cfop.charAt(0));
+                if (resultadoExemplo && !resultadoExemplo.precisaDecisaoAtivo) {
+                    contaExemplo = resultadoExemplo.conta || 'Ver regra';
+                    naturezaExemplo = resultadoExemplo.natureza || regra.natureza;
+                    break;
+                } else if (resultadoExemplo && resultadoExemplo.precisaDecisaoAtivo) {
+                    contaExemplo = '1.551 / 1.556 (depende)';
+                    naturezaExemplo = 'Ativo / Consumo';
+                }
+            }
+        }
         
         html += `
             <tr>
                 <td><strong>${cfop.replace(/(\d)(\d{3})/, '$1.$2')}</strong></td>
-                <td>${info.descricao}</td>
-                <td><span class="conta-sugerida" style="background: #2563eb;">${conta}</span></td>
-                <td>${regra?.natureza || 'Geral'}</td>
+                <td>${TABELA_CFOP[cfop]?.descricao || 'CFOP da planilha'}</td>
+                <td><span class="conta-sugerida" style="background: #2563eb;">${contaExemplo}</span></td>
+                <td>${naturezaExemplo}</td>
             </tr>
         `;
     });
@@ -1094,7 +1330,17 @@ function novaConsulta() {
     document.getElementById('areaColagem').classList.remove('hidden');
     document.getElementById('areaResultados').classList.add('hidden');
 }
-</script>
 
+// Mantendo a TABELA_CFOP para referência (pode ser expandida)
+const TABELA_CFOP = {
+    "5101": { descricao: "Venda de produção do estabelecimento", tipo: "Saída" },
+    "5102": { descricao: "Venda de mercadoria adquirida ou recebida de terceiros", tipo: "Saída" },
+    "5108": { descricao: "Venda de mercadoria recebida em consignação mercantil", tipo: "Saída" },
+    "5403": { descricao: "Venda de mercadoria sujeita ao regime de substituição tributária", tipo: "Saída" },
+    "5405": { descricao: "Venda de mercadoria em operação com substituição tributária", tipo: "Saída" },
+    "5656": { descricao: "Venda de combustível a consumidor final", tipo: "Saída" },
+    "5929": { descricao: "Lançamento em decorrência de emissão de NF também registrada em ECF", tipo: "Saída" }
+};
+</script>
 </body>
 </html>
