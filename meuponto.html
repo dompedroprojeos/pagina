@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ponto Eletrônico - Waldeci Ramos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --border: #e2e8f0;
+    --shadow: rgba(0, 0, 0, 0.05);
+    --radius: 20px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --calendar-dot: #3b82f6;
+    --calendar-dot-incomplete: #f59e0b;
+    --calendar-dot-complete: #10b981;
+}
+
+.dark-theme {
+    --bg-primary: #0b1120;
+    --bg-secondary: #1e293b;
+    --bg-card: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --border: #334155;
+    --shadow: rgba(0, 0, 0, 0.4);
+    --calendar-dot: #3b82f6;
+    --calendar-dot-incomplete: #f59e0b;
+    --calendar-dot-complete: #10b981;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: var(--transition);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* HEADER IPHONE STYLE */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.dark-theme .header {
+    background: rgba(30, 41, 59, 0.8);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), #2563eb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: var(--bg-primary);
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    font-size: 0.95rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.clock-display {
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-weight: 500;
+    background: var(--bg-primary);
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.theme-toggle {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* CONTAINER */
+.container {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+/* CARDS */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.card-header i {
+    font-size: 1.3rem;
+    color: var(--accent);
+}
+
+.card-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    flex: 1;
+}
+
+/* TODAY PREVIEW (IPHONE WIDGET STYLE) */
+.today-preview .card {
+    background: linear-gradient(145deg, var(--bg-card), var(--bg-primary));
+    border: none;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+}
+
+.today-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.today-item {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s;
+}
+
+.today-item:hover {
+    transform: translateY(-2px);
+}
+
+.today-item i {
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.today-item-content {
+    flex: 1;
+}
+
+.today-item-label {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.today-item-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* QUICK ACTIONS (IPHONE TOGGLE STYLE) */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+.action-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 1rem 0.5rem;
+    border-radius: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.action-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.action-btn:hover i {
+    color: white;
+}
+
+.action-btn.entrada i { color: var(--success); }
+.action-btn.saida-intervalo i { color: var(--warning); }
+.action-btn.retorno i { color: var(--accent); }
+.action-btn.saida-final i { color: var(--danger); }
+
+.action-btn.registrado {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+.action-btn.registrado i {
+    color: white;
+}
+
+/* CALENDAR STYLE - IPHONE LIKE */
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0 0.25rem;
+}
+
+.calendar-day-name {
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.calendar-day {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    font-weight: 500;
+    min-height: 48px;
+}
+
+.calendar-day.today {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    font-weight: 600;
+}
+
+.calendar-day.completo {
+    border-color: var(--success);
+    border-width: 2px;
+}
+
+.calendar-day.incompleto {
+    border-color: var(--warning);
+    border-width: 2px;
+}
+
+.calendar-day .day-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 4px;
+    background: transparent;
+    margin-top: 2px;
+}
+
+.calendar-day.completo .day-dot {
+    background: var(--success);
+}
+
+.calendar-day.incompleto .day-dot {
+    background: var(--warning);
+}
+
+.calendar-day.today .day-dot {
+    background: white;
+}
+
+/* STATS GRID */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.stat-box {
+    background: var(--bg-primary);
+    padding: 1.25rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+}
+
+.stat-box:nth-child(2) .stat-value { color: var(--warning); }
+.stat-box:nth-child(3) .stat-value { color: var(--success); }
+.stat-box:nth-child(4) .stat-value { color: var(--danger); }
+
+/* PROGRESS BAR */
+.progress-container {
+    width: 100%;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--accent);
+    border-radius: 8px;
+    transition: width 0.5s ease;
+}
+
+/* REGISTROS LIST */
+.registros-container {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.registro-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+}
+
+.registro-item:last-child {
+    border-bottom: none;
+}
+
+.registro-tipo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.registro-tipo i {
+    width: 20px;
+    color: var(--text-secondary);
+}
+
+.registro-hora {
+    font-family: 'SF Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* TOOLS GRID */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+}
+
+.tool-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.75rem;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    transition: var(--transition);
+}
+
+.tool-btn i {
+    font-size: 1.2rem;
+    color: var(--accent);
+}
+
+.tool-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.tool-btn:hover i {
+    color: white;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border-radius: 28px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 40px var(--shadow);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: var(--bg-primary);
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+/* NOTIFICATION */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 30px;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.notification.success { background: rgba(16, 185, 129, 0.95); }
+.notification.error { background: rgba(239, 68, 68, 0.95); }
+.notification.warning { background: rgba(245, 158, 11, 0.95); }
+.notification.info { background: rgba(59, 130, 246, 0.95); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .today-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tools-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* PRINT */
+@media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+}
+
+.print-area { display: none; }
+
+/* PREVISÃO BANNER */
+.previsao-banner {
+    background: var(--accent);
+    color: white;
+    padding: 1rem;
+    border-radius: 30px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    animation: pulse 2s infinite;
+}
+
+.close-banner {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
+    100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+
+/* DELETE BUTTON */
+.delete-registro {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--danger);
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.delete-registro:hover {
+    background: rgba(239,68,68,0.1);
+}
+
+/* EDIT ICON */
+.edit-icon {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.edit-icon:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+</style>
+</head>
+<body class="dark-theme"> <!-- default claro, mas para manter coerência vamos iniciar com classe vazia e js define claro -->
+
+<!-- HEADER -->
+<header class="header">
+<div class="header-content">
+    <div class="header-left">
+        <h1><i class="fas fa-clock"></i> Waldeci Ramos</h1>
+    </div>
+    <div class="header-right">
+        <div class="user-profile">
+            <i class="fas fa-user"></i>
+            <span>Waldeci Ramos</span>
+        </div>
+        <div class="clock-display" id="clock"></div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+    </div>
+</div>
+</header>
+
+<!-- MAIN -->
+<div class="container">
+
+<!-- PREVISÃO BANNER -->
+<div id="previsaoBanner" class="previsao-banner" style="display: none;">
+    <i class="fas fa-hourglass-half"></i>
+    <div class="previsao-banner-content">
+        <h3>Previsão de Saída</h3>
+        <p id="previsaoTexto"></p>
+    </div>
+    <button class="close-banner" onclick="fecharBannerPrevisao()"><i class="fas fa-times"></i></button>
+</div>
+
+<!-- TODAY PREVIEW -->
+<div class="today-preview">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-calendar-day"></i>
+            <h2>Hoje · <span id="dataHoje"></span></h2>
+            <button class="edit-icon" onclick="abrirModalManual()"><i class="fas fa-edit"></i></button>
+        </div>
+        <div class="today-grid">
+            <div class="today-item">
+                <i class="fas fa-user-clock"></i>
+                <div class="today-item-content">
+                    <div class="today-item-label">Status</div>
+                    <div class="today-item-value" id="statusDia">Não iniciado</div>
+                </div>
+            </div>
+            <div class="today-item">
+                <i class="fas fa-clock"></i>
+                <div class="today-item-content">
+                    <div class="today-item-label">Horas hoje</div>
+                    <div class="today-item-value" id="horasHoje">0h 0min</div>
+                </div>
+            </div>
+            <div class="today-item">
+                <i class="fas fa-hourglass-end"></i>
+                <div class="today-item-content">
+                    <div class="today-item-label">Previsão</div>
+                    <div class="today-item-value" id="previsaoHoje">--:--</div>
+                </div>
+            </div>
+            <div class="today-item">
+                <i class="fas fa-calendar-check"></i>
+                <div class="today-item-content">
+                    <div class="today-item-label">Dias mês</div>
+                    <div class="today-item-value" id="diasTrabalhados">0</div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                <span style="color: var(--text-secondary);">Progresso diário</span>
+                <span style="color: var(--accent); font-weight: 600;" id="progressoDiario">0%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressoDiarioBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-bolt"></i>
+        <h2>Registro rápido</h2>
+    </div>
+    <div class="quick-actions">
+        <button class="action-btn entrada" onclick="registrarPonto('entrada')" id="btnEntrada">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Entrada</span>
+        </button>
+        <button class="action-btn saida-intervalo" onclick="registrarPonto('saidaIntervalo')" id="btnSaidaIntervalo">
+            <i class="fas fa-coffee"></i>
+            <span>Intervalo</span>
+        </button>
+        <button class="action-btn retorno" onclick="registrarPonto('retornoIntervalo')" id="btnRetorno">
+            <i class="fas fa-undo-alt"></i>
+            <span>Retorno</span>
+        </button>
+        <button class="action-btn saida-final" onclick="registrarPonto('saidaFinal')" id="btnSaidaFinal">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Saída</span>
+        </button>
+    </div>
+</div>
+
+<!-- CALENDAR IPHONE STYLE -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-calendar-alt"></i>
+        <h2><span id="mesAtual"></span></h2>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="edit-icon" onclick="mudarMes(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="edit-icon" onclick="mudarMes(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+    <div class="calendar-header">
+        <div class="calendar-day-name">DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SÁB</div>
+    </div>
+    <div class="calendar-grid" id="calendar"></div>
+</div>
+
+<!-- MENSAL STATS -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-chart-line"></i>
+        <h2>Resumo mensal</h2>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-box"><div class="stat-label">Horas</div><div class="stat-value" id="totalMes">0h</div></div>
+        <div class="stat-box"><div class="stat-label">Faltam</div><div class="stat-value" id="faltamMes">130h</div></div>
+        <div class="stat-box"><div class="stat-label">Valor</div><div class="stat-value" id="valorMes">R$0</div></div>
+        <div class="stat-box"><div class="stat-label">Progresso</div><div class="stat-value" id="progressoMes">0%</div></div>
+    </div>
+    <div style="margin-top: 1rem;">
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-secondary);">Meta mensal</span>
+            <span style="color: var(--accent);" id="textoProgressoMensal">0/130h</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="progressoMensalBar" style="width:0%"></div></div>
+    </div>
+</div>
+
+<!-- HISTÓRICO -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-history"></i>
+        <h2>Registros</h2>
+        <button class="edit-icon" onclick="filtrarRegistros('mes')"><i class="fas fa-filter"></i></button>
+    </div>
+    <div class="registros-container">
+        <ul class="registros-list" id="relatorioDetalhado">
+            <li class="registro-item"><div class="registro-tipo"><span>Nenhum registro</span></div></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TOOLS -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-tools"></i>
+        <h2>Ferramentas</h2>
+    </div>
+    <div class="tools-grid">
+        <button class="tool-btn" onclick="abrirModalManual()"><i class="fas fa-plus"></i> Manual</button>
+        <button class="tool-btn" onclick="gerarRelatorio()"><i class="fas fa-print"></i> Imprimir</button>
+        <button class="tool-btn" onclick="exportarDados()"><i class="fas fa-download"></i> Exportar</button>
+        <button class="tool-btn" onclick="abrirConfiguracoes()"><i class="fas fa-cog"></i> Config</button>
+        <button class="tool-btn" onclick="fazerBackup()"><i class="fas fa-database"></i> Backup</button>
+        <button class="tool-btn" onclick="limparDados()"><i class="fas fa-trash"></i> Limpar</button>
+    </div>
+</div>
+
+<!-- REGISTROS DE HOJE (oculto mas usado para lista) -->
+<div style="display: none;" id="registrosHoje"></div>
+
+<!-- MODAIS -->
+<div class="modal" id="modalManual">
+<div class="modal-content">
+    <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> <span id="modalManualTitulo">Registro manual</span></h3>
+        <button class="close-btn" onclick="fecharModalManual()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="input-group"><label>Data</label><input type="date" id="dataManual"></div>
+    <div class="input-group"><label>Entrada</label><input type="time" id="entradaManual"></div>
+    <div class="input-group"><label>Saída intervalo</label><input type="time" id="saidaIntervaloManual"></div>
+    <div class="input-group"><label>Retorno</label><input type="time" id="retornoIntervaloManual"></div>
+    <div class="input-group"><label>Saída final</label><input type="time" id="saidaFinalManual"></div>
+    <div class="modal-actions">
+        <button class="btn btn-primary" onclick="salvarRegistroManual()"><i class="fas fa-save"></i>Salvar</button>
+        <button class="btn btn-secondary" onclick="fecharModalManual()">Cancelar</button>
+        <button class="btn btn-danger" id="btnExcluirDia" onclick="excluirDia()"><i class="fas fa-trash"></i>Excluir dia</button>
+    </div>
+</div>
+</div>
+
+<div class="modal" id="modalConfig">
+<div class="modal-content">
+    <div class="modal-header"><h3><i class="fas fa-cog"></i> Configurações</h3><button class="close-btn" onclick="fecharModalConfig()"><i class="fas fa-times"></i></button></div>
+    <div class="input-group"><label>Jornada (h)</label><input type="number" id="jornadaDiaria" step="0.5" value="6.5"></div>
+    <div class="input-group"><label>Intervalo (min)</label><input type="number" id="intervaloMin" value="20"></div>
+    <div class="input-group"><label>Valor hora (R$)</label><input type="number" id="valorHora" step="0.01" value="8.18"></div>
+    <div class="input-group"><label>Meta mensal (h)</label><input type="number" id="metaMensal" value="130"></div>
+    <div class="modal-actions">
+        <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+        <button class="btn btn-secondary" onclick="fecharModalConfig()">Cancelar</button>
+    </div>
+</div>
+</div>
+
+<div class="modal" id="modalBackup">
+<div class="modal-content">
+    <div class="modal-header"><h3>Backup</h3><button class="close-btn" onclick="fecharModalBackup()"><i class="fas fa-times"></i></button></div>
+    <div class="input-group"><button class="btn btn-primary" onclick="exportarBackup()"><i class="fas fa-download"></i> Exportar backup</button></div>
+    <div class="input-group"><input type="file" id="fileRestore" accept=".json"></div>
+    <div class="input-group"><button class="btn btn-warning" onclick="restaurarBackup()"><i class="fas fa-upload"></i> Restaurar</button></div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="fecharModalBackup()">Fechar</button></div>
+</div>
+</div>
+
+<!-- PRINT AREA -->
+<div class="print-area" id="printArea"></div>
+
+<script>
+// Dados e config
+let dados = {};
+let config = {
+    jornadaDiaria: 6.5,
+    intervaloMin: 20,
+    valorHora: 8.18,
+    metaMensal: 130,
+    notificacoesAtivas: true,
+    somNotificacoes: true
+};
+let theme = localStorage.getItem("theme") || "light"; // padrão claro
+let dataEditando = null;
+let mesCalendarioAtual = new Date().getMonth();
+let anoCalendarioAtual = new Date().getFullYear();
+let filtroRegistros = 'mes';
+
+document.addEventListener('DOMContentLoaded', () => {
+    carregarDados();
+    carregarConfiguracoes();
+    aplicarTema();
+    atualizarInterface();
+    setInterval(atualizarRelogio, 1000);
+    setInterval(atualizarInterface, 30000);
+});
+
+function carregarDados() { 
+    dados = JSON.parse(localStorage.getItem("pontos_waldeci")) || {}; 
+}
+function carregarConfiguracoes() { 
+    const c = localStorage.getItem("config_ponto");
+    if (c) config = { ...config, ...JSON.parse(c) };
+}
+function salvarDados() { localStorage.setItem("pontos_waldeci", JSON.stringify(dados)); }
+function salvarConfiguracoes() { 
+    config.jornadaDiaria = parseFloat(document.getElementById('jornadaDiaria').value) || 6.5;
+    config.intervaloMin = parseInt(document.getElementById('intervaloMin').value) || 20;
+    config.valorHora = parseFloat(document.getElementById('valorHora').value) || 8.18;
+    config.metaMensal = parseInt(document.getElementById('metaMensal').value) || 130;
+    localStorage.setItem("config_ponto", JSON.stringify(config));
+    fecharModalConfig();
+    mostrarNotificacao("Configurações salvas", "success");
+    atualizarInterface();
+}
+
+function aplicarTema() {
+    document.body.classList.toggle("dark-theme", theme === "dark");
+    document.getElementById("themeIcon").className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+    localStorage.setItem("theme", theme);
+}
+function toggleTheme() { theme = theme === "dark" ? "light" : "dark"; aplicarTema(); }
+
+function hoje() { return new Date().toISOString().split("T")[0]; }
+function horaAtual() { return new Date().toISOString().substr(11, 8); }
+function formatarHora(iso) { return iso ? iso.substr(11,5) : "--:--"; }
+
+function calcularHorasDia(data) {
+    const d = dados[data];
+    if (!d) return 0;
+    let total = 0;
+    if (d.entrada && d.saidaIntervalo) total += (new Date(d.saidaIntervalo) - new Date(d.entrada)) / 3600000;
+    if (d.retornoIntervalo && d.saidaFinal) total += (new Date(d.saidaFinal) - new Date(d.retornoIntervalo)) / 3600000;
+    if (d.saidaIntervalo && d.retornoIntervalo) {
+        const intervalo = (new Date(d.retornoIntervalo) - new Date(d.saidaIntervalo)) / 60000;
+        if (intervalo > config.intervaloMin) total -= (intervalo - config.intervaloMin) / 60;
+    }
+    return Math.min(config.jornadaDiaria, Math.max(0, total));
+}
+
+function verificarStatusDia(data) {
+    const d = dados[data];
+    if (!d) return "nao_iniciado";
+    if (d.saidaFinal) return (calcularHorasDia(data) >= config.jornadaDiaria) ? "completo" : "incompleto";
+    if (d.entrada) return "iniciado";
+    return "nao_iniciado";
+}
+
+function registrarPonto(tipo) {
+    const data = hoje();
+    if (!dados[data]) dados[data] = {};
+    dados[data][tipo] = `${data}T${horaAtual()}`;
+    salvarDados();
+    atualizarInterface();
+    mostrarNotificacao(`${tipo} registrado`, "success");
+    if (tipo === 'entrada') {
+        const previsao = new Date(new Date(dados[data].entrada).getTime() + config.jornadaDiaria*3600000 + config.intervaloMin*60000);
+        document.getElementById('previsaoTexto').innerText = `Saída prevista: ${previsao.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
+        document.getElementById('previsaoBanner').style.display = 'flex';
+    }
+}
+
+function atualizarInterface() {
+    const h = hoje();
+    document.getElementById('dataHoje').innerText = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+    const horas = calcularHorasDia(h);
+    const statusMap = { nao_iniciado:'Não iniciado', iniciado:'Iniciado', em_andamento:'Em andamento', completo:'Completo', incompleto:'Incompleto' };
+    document.getElementById('statusDia').innerText = statusMap[verificarStatusDia(h)];
+    document.getElementById('horasHoje').innerText = `${Math.floor(horas)}h ${Math.floor((horas*60)%60)}min`;
+    const prev = dados[h]?.entrada ? new Date(new Date(dados[h].entrada).getTime() + config.jornadaDiaria*3600000 + config.intervaloMin*60000) : null;
+    document.getElementById('previsaoHoje').innerText = prev ? prev.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '--:--';
+    const progresso = (horas / config.jornadaDiaria) * 100;
+    document.getElementById('progressoDiario').innerText = Math.round(progresso) + '%';
+    document.getElementById('progressoDiarioBar').style.width = Math.min(100, progresso) + '%';
+    
+    atualizarCalendario();
+    atualizarEstatisticasMensais();
+    atualizarRelatorioDetalhado();
+}
+
+function atualizarCalendario() {
+    const cal = document.getElementById('calendar');
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    document.getElementById('mesAtual').innerText = `${meses[mesCalendarioAtual]} ${anoCalendarioAtual}`;
+    cal.innerHTML = '';
+    const primeiro = new Date(anoCalendarioAtual, mesCalendarioAtual, 1).getDay();
+    const ultimo = new Date(anoCalendarioAtual, mesCalendarioAtual+1, 0).getDate();
+    const hojeObj = new Date();
+    for (let i=0; i<primeiro; i++) cal.appendChild(document.createElement('div'));
+    for (let d=1; d<=ultimo; d++) {
+        const data = `${anoCalendarioAtual}-${String(mesCalendarioAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const div = document.createElement('div');
+        div.className = 'calendar-day';
+        if (hojeObj.getDate()===d && hojeObj.getMonth()===mesCalendarioAtual && hojeObj.getFullYear()===anoCalendarioAtual) div.classList.add('today');
+        const status = verificarStatusDia(data);
+        if (status === 'completo') div.classList.add('completo');
+        else if (status === 'incompleto') div.classList.add('incompleto');
+        div.innerHTML = `<div>${d}</div><div class="day-dot"></div>`;
+        div.onclick = () => abrirModalManual(data);
+        cal.appendChild(div);
+    }
+}
+
+function mudarMes(delta) {
+    mesCalendarioAtual += delta;
+    if (mesCalendarioAtual<0) { mesCalendarioAtual=11; anoCalendarioAtual--; }
+    else if (mesCalendarioAtual>11) { mesCalendarioAtual=0; anoCalendarioAtual++; }
+    atualizarCalendario();
+}
+
+function atualizarEstatisticasMensais() {
+    const hojeObj = new Date();
+    const ano = hojeObj.getFullYear();
+    const mes = hojeObj.getMonth();
+    const dia = hojeObj.getDate();
+    let inicio, fim;
+    if (dia < 26) { inicio = new Date(ano, mes-1, 26); fim = new Date(ano, mes, 25); }
+    else { inicio = new Date(ano, mes, 26); fim = new Date(ano, mes+1, 25); }
+    let total = 0, diasTrab = 0;
+    for (const data in dados) {
+        const d = new Date(data);
+        if (d >= inicio && d <= fim) {
+            const hrs = calcularHorasDia(data);
+            if (hrs > 0) { total += hrs; diasTrab++; }
+        }
+    }
+    document.getElementById('totalMes').innerText = total.toFixed(1)+'h';
+    document.getElementById('faltamMes').innerText = Math.max(0, config.metaMensal - total).toFixed(1)+'h';
+    document.getElementById('valorMes').innerText = 'R$' + (total * config.valorHora).toFixed(2);
+    const prog = (total / config.metaMensal) * 100;
+    document.getElementById('progressoMes').innerText = prog.toFixed(1)+'%';
+    document.getElementById('textoProgressoMensal').innerText = `${total.toFixed(1)}/${config.metaMensal}h`;
+    document.getElementById('progressoMensalBar').style.width = Math.min(100, prog) + '%';
+    document.getElementById('diasTrabalhados').innerText = diasTrab;
+}
+
+function atualizarRelatorioDetalhado() {
+    const rel = document.getElementById('relatorioDetalhado');
+    let datas = Object.keys(dados).sort((a,b)=>new Date(b)-new Date(a));
+    if (filtroRegistros === 'mes') {
+        const limite = new Date(); limite.setDate(limite.getDate()-30);
+        datas = datas.filter(d=>new Date(d)>=limite);
+    }
+    if (!datas.length) { rel.innerHTML = '<li class="registro-item"><div class="registro-tipo"><span>Nenhum registro</span></div></li>'; return; }
+    let html = '';
+    datas.forEach(data => {
+        const dia = dados[data];
+        const hrs = calcularHorasDia(data);
+        html += `<li class="registro-item">
+            <div class="registro-tipo"><i class="fas fa-calendar-day"></i> ${new Date(data).toLocaleDateString('pt-BR')}</div>
+            <div style="display:flex; gap:0.5rem;">
+                <span class="registro-hora">${hrs.toFixed(1)}h</span>
+                <button class="edit-icon" onclick="abrirModalManual('${data}')"><i class="fas fa-edit"></i></button>
+            </div>
+        </li>`;
+    });
+    rel.innerHTML = html;
+}
+
+function abrirModalManual(data = null) {
+    dataEditando = data || hoje();
+    const d = dados[dataEditando] || {};
+    document.getElementById('dataManual').value = dataEditando;
+    document.getElementById('entradaManual').value = d.entrada ? d.entrada.substr(11,5) : '';
+    document.getElementById('saidaIntervaloManual').value = d.saidaIntervalo ? d.saidaIntervalo.substr(11,5) : '';
+    document.getElementById('retornoIntervaloManual').value = d.retornoIntervalo ? d.retornoIntervalo.substr(11,5) : '';
+    document.getElementById('saidaFinalManual').value = d.saidaFinal ? d.saidaFinal.substr(11,5) : '';
+    document.getElementById('btnExcluirDia').style.display = dados[dataEditando] ? 'inline-block' : 'none';
+    document.getElementById('modalManual').style.display = 'flex';
+}
+function fecharModalManual() { document.getElementById('modalManual').style.display = 'none'; }
+function salvarRegistroManual() {
+    const data = document.getElementById('dataManual').value;
+    if (!data) return;
+    if (!dados[data]) dados[data] = {};
+    if (document.getElementById('entradaManual').value) dados[data].entrada = `${data}T${document.getElementById('entradaManual').value}:00`;
+    if (document.getElementById('saidaIntervaloManual').value) dados[data].saidaIntervalo = `${data}T${document.getElementById('saidaIntervaloManual').value}:00`;
+    if (document.getElementById('retornoIntervaloManual').value) dados[data].retornoIntervalo = `${data}T${document.getElementById('retornoIntervaloManual').value}:00`;
+    if (document.getElementById('saidaFinalManual').value) dados[data].saidaFinal = `${data}T${document.getElementById('saidaFinalManual').value}:00`;
+    salvarDados();
+    atualizarInterface();
+    fecharModalManual();
+    mostrarNotificacao("Registro salvo", "success");
+}
+function excluirDia() {
+    if (!dataEditando || !confirm(`Excluir ${dataEditando}?`)) return;
+    delete dados[dataEditando];
+    salvarDados();
+    atualizarInterface();
+    fecharModalManual();
+}
+
+function mostrarNotificacao(msg, tipo) {
+    const n = document.createElement('div');
+    n.className = `notification ${tipo}`;
+    n.innerHTML = `<i class="fas fa-${tipo==='success'?'check-circle':'info-circle'}"></i> ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(()=>n.remove(), 3000);
+}
+
+function filtrarRegistros(t) { filtroRegistros = t; atualizarRelatorioDetalhado(); }
+function fecharBannerPrevisao() { document.getElementById('previsaoBanner').style.display = 'none'; }
+
+function gerarRelatorio() {
+    let html = '<div style="padding:20px"><h2>Relatório</h2><table border=1><tr><th>Data</th><th>Entrada</th><th>Saída Int</th><th>Retorno</th><th>Saída</th><th>Horas</th></tr>';
+    Object.keys(dados).sort().forEach(data=>{
+        const d=dados[data];
+        html+=`<tr><td>${data}</td><td>${formatarHora(d.entrada)}</td><td>${formatarHora(d.saidaIntervalo)}</td><td>${formatarHora(d.retornoIntervalo)}</td><td>${formatarHora(d.saidaFinal)}</td><td>${calcularHorasDia(data).toFixed(2)}</td></tr>`;
+    });
+    html+='</table></div>';
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+}
+function exportarDados() {
+    const blob = new Blob([JSON.stringify({pontos:dados, config})], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup_${hoje()}.json`;
+    a.click();
+}
+function abrirConfiguracoes() {
+    document.getElementById('jornadaDiaria').value = config.jornadaDiaria;
+    document.getElementById('intervaloMin').value = config.intervaloMin;
+    document.getElementById('valorHora').value = config.valorHora;
+    document.getElementById('metaMensal').value = config.metaMensal;
+    document.getElementById('modalConfig').style.display = 'flex';
+}
+function fecharModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
+function fazerBackup() { document.getElementById('modalBackup').style.display = 'flex'; }
+function fecharModalBackup() { document.getElementById('modalBackup').style.display = 'none'; }
+function exportarBackup() { exportarDados(); fecharModalBackup(); }
+function restaurarBackup() {
+    const file = document.getElementById('fileRestore').files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const b = JSON.parse(e.target.result);
+        dados = b.pontos || {};
+        config = {...config, ...b.config};
+        salvarDados(); salvarConfiguracoes();
+        atualizarInterface();
+        fecharModalBackup();
+    };
+    reader.readAsText(file);
+}
+function limparDados() { if(confirm('Limpar tudo?')) { dados={}; salvarDados(); atualizarInterface(); } }
+function atualizarRelogio() { document.getElementById('clock').innerText = new Date().toLocaleString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+</script>
+</body>
+</html>
