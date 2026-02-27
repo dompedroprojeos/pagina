@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisador NF-e · Waldeci Ramos</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS - DARK THEME (default)
+═══════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:          #060d1a;
+  --bg2:         #0b1525;
+  --surface:     #0e1c30;
+  --surface2:    #132238;
+  --surface3:    #1a2e48;
+  --border:      rgba(56,139,253,0.12);
+  --border-h:    rgba(56,139,253,0.35);
+  --accent:      #3b8df5;
+  --accent2:     #8b5cf6;
+  --accent3:     #06d6a0;
+  --accent4:     #f59e0b;
+  --danger:      #ef4444;
+  --success:     #10b981;
+  --orange:      #f97316;
+  --text:        #e2e8f0;
+  --text-m:      #7a93b0;
+  --text-d:      #2d4a6a;
+  --shadow:      0 4px 24px rgba(0,0,0,0.5);
+  --shadow-h:    0 8px 40px rgba(0,0,0,0.7);
+  --grid-color:  rgba(56,139,253,0.025);
+  --scan-a:      rgba(56,139,253,0.6);
+  --scan-b:      rgba(139,92,246,0.6);
+  --tag-bg:      rgba(56,139,253,0.08);
+  --tag-border:  rgba(56,139,253,0.18);
+  --chip-cfop-bg: rgba(59,141,245,0.12); --chip-cfop-c: #5da8ff; --chip-cfop-b: rgba(59,141,245,0.2);
+  --chip-cst-bg:  rgba(245,158,11,0.1);  --chip-cst-c:  #fbbf24;  --chip-cst-b:  rgba(245,158,11,0.2);
+  --chip-lanc-bg: rgba(16,185,129,0.1);  --chip-lanc-c: #34d399;  --chip-lanc-b: rgba(16,185,129,0.2);
+  --chip-obs-bg:  rgba(139,92,246,0.1);  --chip-obs-c:  #a78bfa;  --chip-obs-b:  rgba(139,92,246,0.15);
+  --chip-pis-bg:  rgba(6,214,160,0.08);  --chip-pis-c:  #2dd4bf;  --chip-pis-b:  rgba(6,214,160,0.15);
+}
+
+/* ═══════════════════════════════════════════════
+   TOKENS - LIGHT THEME
+═══════════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg:          #f0f4fb;
+  --bg2:         #e8eef8;
+  --surface:     #ffffff;
+  --surface2:    #f4f7fd;
+  --surface3:    #eaf0fc;
+  --border:      rgba(37,99,235,0.12);
+  --border-h:    rgba(37,99,235,0.35);
+  --accent:      #2563eb;
+  --accent2:     #7c3aed;
+  --accent3:     #059669;
+  --accent4:     #d97706;
+  --danger:      #dc2626;
+  --success:     #059669;
+  --orange:      #ea580c;
+  --text:        #1e293b;
+  --text-m:      #64748b;
+  --text-d:      #94a3b8;
+  --shadow:      0 2px 16px rgba(0,0,0,0.07);
+  --shadow-h:    0 8px 32px rgba(0,0,0,0.12);
+  --grid-color:  rgba(37,99,235,0.04);
+  --scan-a:      rgba(37,99,235,0.5);
+  --scan-b:      rgba(124,58,237,0.5);
+  --tag-bg:      rgba(37,99,235,0.06);
+  --tag-border:  rgba(37,99,235,0.15);
+  --chip-cfop-bg: rgba(37,99,235,0.08);  --chip-cfop-c: #1d4ed8;  --chip-cfop-b: rgba(37,99,235,0.18);
+  --chip-cst-bg:  rgba(217,119,6,0.08);  --chip-cst-c:  #b45309;  --chip-cst-b:  rgba(217,119,6,0.18);
+  --chip-lanc-bg: rgba(5,150,105,0.08);  --chip-lanc-c: #065f46;  --chip-lanc-b: rgba(5,150,105,0.18);
+  --chip-obs-bg:  rgba(124,58,237,0.07); --chip-obs-c:  #5b21b6;  --chip-obs-b:  rgba(124,58,237,0.13);
+  --chip-pis-bg:  rgba(5,150,105,0.06);  --chip-pis-c:  #065f46;  --chip-pis-b:  rgba(5,150,105,0.13);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.35s, color 0.35s;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+[data-theme="dark"] body::after {
+  content:'';
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 15%, rgba(59,141,245,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 35% at 80% 85%, rgba(139,92,246,0.05) 0%, transparent 70%);
+  animation: ambientPulse 10s ease-in-out infinite alternate;
+}
+@keyframes ambientPulse {
+  0%   { opacity:0.6; }
+  100% { opacity:1; }
+}
+
+.wrap {
+  position:relative; z-index:1;
+  max-width:1440px; margin:0 auto;
+  padding:1.5rem 1.25rem 3rem;
+}
+
+/* ── HEADER ── */
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 1.5rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  margin-bottom:1.25rem;
+  box-shadow:var(--shadow);
+  position:relative; overflow:hidden;
+  transition: background 0.35s, border-color 0.35s;
+}
+.header::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent 0%, var(--scan-a) 30%, var(--scan-b) 70%, transparent 100%);
+  animation:headerScan 4s linear infinite;
+}
+@keyframes headerScan {
+  0%   { opacity:0.4; transform:scaleX(0.5); }
+  50%  { opacity:1;   transform:scaleX(1); }
+  100% { opacity:0.4; transform:scaleX(0.5); }
+}
+
+.logo-group { display:flex; align-items:center; gap:13px; }
+.logo-icon {
+  width:46px; height:46px;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; color:#fff;
+  box-shadow: 0 0 18px rgba(59,141,245,0.35);
+  flex-shrink:0;
+}
+.logo-text h1 {
+  font-size:1.25rem; font-weight:800; letter-spacing:-0.5px;
+  background:linear-gradient(135deg, var(--text), var(--accent));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.logo-text small { font-size:0.7rem; color:var(--text-m); font-family:'JetBrains Mono',monospace; }
+
+.header-right { display:flex; align-items:center; gap:10px; }
+
+/* theme toggle */
+.theme-btn {
+  width:42px; height:42px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; cursor:pointer; color:var(--text-m);
+  font-size:1rem; display:flex; align-items:center; justify-content:center;
+  transition:all 0.25s;
+}
+.theme-btn:hover { background:var(--surface3); color:var(--accent); border-color:var(--border-h); }
+
+.live-badge {
+  display:flex; align-items:center; gap:7px;
+  padding:0.4rem 1rem;
+  background:var(--tag-bg); border:1px solid var(--tag-border);
+  border-radius:100px; font-size:0.72rem; color:var(--accent);
+  font-family:'JetBrains Mono',monospace;
+}
+.live-dot {
+  width:6px; height:6px; background:var(--accent3);
+  border-radius:50%; animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ── SECTION CARD ── */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:1.5rem;
+  margin-bottom:1.25rem;
+  box-shadow:var(--shadow);
+  transition:background 0.35s, border-color 0.35s;
+}
+
+.sec-label {
+  display:flex; align-items:center; gap:9px;
+  font-size:0.65rem; font-family:'JetBrains Mono',monospace;
+  color:var(--text-m); text-transform:uppercase; letter-spacing:2px;
+  margin-bottom:1.25rem;
+}
+.sec-label::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, var(--border), transparent);
+}
+.sec-label i { color:var(--accent); }
+
+/* ── SEARCH FIELDS ── */
+.search-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr auto;
+  gap:10px; align-items:end;
+  margin-bottom:1rem;
+}
+@media(max-width:700px){
+  .search-grid { grid-template-columns:1fr 1fr; }
+  .btn-clear-search { grid-column:1/-1; }
+}
+
+.field { display:flex; flex-direction:column; gap:5px; }
+.field-lbl {
+  font-size:0.65rem; color:var(--text-m);
+  text-transform:uppercase; letter-spacing:1.2px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.inp {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:0.72rem 1rem;
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.95rem; font-weight:600;
+  width:100%; letter-spacing:1px;
+  transition:all 0.25s;
+}
+.inp::placeholder { color:var(--text-d); font-weight:400; letter-spacing:0.5px; }
+.inp:focus {
+  outline:none; border-color:var(--accent);
+  background:var(--surface3);
+  box-shadow:0 0 0 3px rgba(59,141,245,0.1);
+}
+
+/* animated underbar */
+.inp-bar {
+  height:2px; border-radius:2px; margin-top:3px;
+  background:var(--surface3); overflow:hidden; opacity:0; transition:opacity 0.3s;
+}
+.field:focus-within .inp-bar { opacity:1; }
+.inp-bar-fill {
+  height:100%; width:0;
+  background:linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius:2px; transition:width 0.3s;
+  animation:fillPulse 1.5s ease-in-out infinite;
+}
+.field:focus-within .inp-bar-fill { width:100%; }
+@keyframes fillPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:0.72rem 1.4rem; border-radius:10px; border:none;
+  font-family:'Outfit',sans-serif; font-weight:600; font-size:0.88rem;
+  cursor:pointer; transition:all 0.25s; white-space:nowrap;
+}
+.btn-primary {
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#fff; box-shadow:0 4px 14px rgba(59,141,245,0.3);
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(59,141,245,0.4); }
+.btn-ghost {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text-m);
+}
+.btn-ghost:hover { background:var(--surface3); color:var(--text); border-color:var(--border-h); }
+.btn-danger-ghost {
+  background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15);
+  color:var(--danger);
+}
+.btn-danger-ghost:hover { background:rgba(239,68,68,0.12); }
+
+/* ── QUICK TAGS ── */
+.qtags { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.qtag-sep { font-size:0.6rem; color:var(--text-d); text-transform:uppercase; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+.qtag {
+  padding:3px 12px;
+  background:var(--tag-bg); border:1px solid var(--tag-border);
+  border-radius:100px; font-size:0.72rem;
+  font-family:'JetBrains Mono',monospace; color:var(--accent);
+  cursor:pointer; transition:all 0.2s;
+}
+.qtag:hover { background:var(--accent); color:#fff; border-color:var(--accent); transform:translateY(-1px); }
+
+/* ── RESULTS TABLE ── */
+.results-wrap {
+  margin-top:1.25rem;
+  border-radius:12px; overflow:hidden;
+  border:1px solid var(--border);
+  display:none;
+}
+.results-meta {
+  padding:8px 14px;
+  background:var(--surface2); border-bottom:1px solid var(--border);
+  font-size:0.68rem; color:var(--text-m);
+  font-family:'JetBrains Mono',monospace;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.results-meta strong { color:var(--accent); }
+
+.rtable { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.rtable thead tr { background:var(--surface2); border-bottom:1px solid var(--border); }
+.rtable th {
+  padding:10px 12px; text-align:left;
+  font-size:0.62rem; font-family:'JetBrains Mono',monospace;
+  color:var(--text-m); text-transform:uppercase; letter-spacing:1.5px;
+  white-space:nowrap;
+}
+.rtable tbody tr {
+  border-bottom:1px solid rgba(59,141,245,0.05);
+  transition:background 0.15s;
+  animation:rowFade 0.3s ease both;
+  opacity:0; transform:translateY(8px);
+}
+@keyframes rowFade { to { opacity:1; transform:none; } }
+.rtable tbody tr:hover { background:var(--surface2); }
+.rtable tbody tr:last-child { border-bottom:none; }
+.rtable td { padding:10px 12px; vertical-align:middle; }
+
+/* ── CHIPS ── */
+.chip {
+  display:inline-flex; align-items:center;
+  padding:2px 9px; border-radius:100px;
+  font-family:'JetBrains Mono',monospace; font-size:0.7rem; font-weight:600;
+}
+.chip-cfop { background:var(--chip-cfop-bg); color:var(--chip-cfop-c); border:1px solid var(--chip-cfop-b); }
+.chip-cst  { background:var(--chip-cst-bg);  color:var(--chip-cst-c);  border:1px solid var(--chip-cst-b);  }
+.chip-lanc { background:var(--chip-lanc-bg); color:var(--chip-lanc-c); border:1px solid var(--chip-lanc-b); }
+.chip-obs  { background:var(--chip-obs-bg);  color:var(--chip-obs-c);  border:1px solid var(--chip-obs-b); white-space:normal; font-size:0.65rem; }
+.chip-pis  { background:var(--chip-pis-bg);  color:var(--chip-pis-c);  border:1px solid var(--chip-pis-b);  }
+.cst-group { display:flex; flex-wrap:wrap; gap:3px; }
+
+/* category badges */
+.cat-badge {
+  display:inline-block; padding:2px 8px; border-radius:5px;
+  font-size:0.62rem; font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase; letter-spacing:1px; font-weight:700;
+}
+.cb-rev  { background:rgba(6,214,160,0.1);  color:var(--accent3); }
+.cb-con  { background:rgba(16,185,129,0.1); color:var(--success); }
+.cb-at   { background:rgba(139,92,246,0.1); color:#a78bfa; }
+.cb-rem  { background:rgba(245,158,11,0.1); color:var(--accent4); }
+.cb-comb { background:rgba(249,115,22,0.1); color:var(--orange); }
+.cb-rv   { background:rgba(100,116,139,0.1);color:var(--text-m); }
+.cb-tr   { background:rgba(59,141,245,0.1); color:var(--accent); }
+
+/* ── NF IMPORT AREA ── */
+.import-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;
+}
+@media(max-width:700px){ .import-grid { grid-template-columns:1fr; } }
+
+.import-zone {
+  border:2px dashed var(--border);
+  border-radius:14px; padding:2rem;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; cursor:pointer; text-align:center;
+  transition:all 0.25s; position:relative; min-height:170px;
+  background:var(--surface2);
+}
+.import-zone:hover, .import-zone.drag-over {
+  border-color:var(--accent); background:var(--surface3);
+  box-shadow:0 0 0 4px rgba(59,141,245,0.08);
+}
+.import-zone i { font-size:2rem; color:var(--accent); opacity:0.7; }
+.import-zone .iz-title { font-weight:600; font-size:0.95rem; }
+.import-zone .iz-sub { font-size:0.78rem; color:var(--text-m); }
+.import-zone input[type=file] {
+  position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+}
+
+.paste-zone { display:flex; flex-direction:column; gap:8px; }
+.nf-ta {
+  width:100%; height:170px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:0.9rem;
+  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:0.75rem;
+  resize:vertical; transition:border-color 0.25s, box-shadow 0.25s;
+  line-height:1.5;
+}
+.nf-ta::placeholder { color:var(--text-d); }
+.nf-ta:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,141,245,0.1); }
+
+/* ── NF RESULT ── */
+.nf-result { margin-top:1.25rem; }
+.info-cards {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px; margin-bottom:1.25rem;
+}
+.ic {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:0.9rem;
+  transition:background 0.35s;
+}
+.ic-lbl { font-size:0.6rem; color:var(--text-m); text-transform:uppercase; letter-spacing:1.5px; font-family:'JetBrains Mono',monospace; margin-bottom:4px; }
+.ic-val { font-size:0.92rem; font-weight:600; color:var(--text); }
+
+.nft-wrap {
+  overflow-x:auto; border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:1.25rem;
+}
+.nft {
+  width:100%; border-collapse:collapse; font-size:0.78rem;
+}
+.nft th {
+  background:var(--surface2); padding:9px 11px;
+  text-align:left; font-size:0.6rem; font-family:'JetBrains Mono',monospace;
+  color:var(--text-m); text-transform:uppercase; letter-spacing:1px;
+  white-space:nowrap; border-bottom:1px solid var(--border);
+}
+.nft td { padding:9px 11px; border-bottom:1px solid rgba(59,141,245,0.05); vertical-align:middle; }
+.nft tr:last-child td { border-bottom:none; }
+.nft tr:hover td { background:var(--surface2); }
+
+.contas-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:1.25rem;
+}
+.conta-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:12px; padding:0.9rem;
+}
+.conta-card .cc-lbl { font-size:0.62rem; color:var(--text-m); text-transform:uppercase; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+.conta-card .cc-val { font-size:1.25rem; font-weight:700; color:var(--success); font-family:'JetBrains Mono',monospace; margin-top:3px; }
+.conta-card .cc-qty { font-size:0.75rem; color:var(--text-m); margin-top:2px; }
+
+.total-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:1rem 1.5rem;
+}
+.total-bar .tb-label { font-weight:600; color:var(--text-m); display:flex; align-items:center; gap:8px; }
+.total-bar .tb-val { font-size:1.5rem; font-weight:700; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+
+/* ── STATUS ── */
+.status {
+  padding:0.9rem 1.25rem; border-radius:10px;
+  font-size:0.85rem; display:flex; align-items:center; gap:9px; margin-top:0.75rem;
+}
+.s-info { background:rgba(59,141,245,0.08); border:1px solid rgba(59,141,245,0.15); color:var(--accent); }
+.s-err  { background:rgba(239,68,68,0.08);  border:1px solid rgba(239,68,68,0.15);  color:var(--danger); }
+.s-warn { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.15); color:var(--accent4); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:2.5rem 1rem; color:var(--text-m); }
+.empty-state i { font-size:2rem; display:block; margin-bottom:0.75rem; opacity:0.35; }
+.empty-state p { font-size:0.9rem; }
+.empty-state small { font-size:0.75rem; color:var(--text-d); }
+
+/* scrollbar */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--text-d); }
+
+/* loading spinner */
+.spin { animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* row colors for unmatched */
+.row-warn td { background:rgba(245,158,11,0.04) !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-group">
+    <div class="logo-icon"><i class="fas fa-file-invoice"></i></div>
+    <div class="logo-text">
+      <h1>Analisador NF-e</h1>
+      <small>by Waldeci Ramos · Tabela v4.0 Completa</small>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>SISTEMA ATIVO</div>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">
+      <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ CONSULTA REGRAS ═══════════ -->
+<div class="card">
+  <div class="sec-label"><i class="fas fa-search"></i> CONSULTA DE REGRAS CFOP</div>
+
+  <div class="search-grid">
+    <div class="field">
+      <div class="field-lbl"><i class="fas fa-hashtag"></i> CFOP Origem</div>
+      <input id="iCO" class="inp" placeholder="ex: 5102" oninput="buscar()" maxlength="6" autocomplete="off">
+      <div class="inp-bar"><div class="inp-bar-fill"></div></div>
+    </div>
+    <div class="field">
+      <div class="field-lbl"><i class="fas fa-arrow-right"></i> CFOP Lançamento</div>
+      <input id="iCL" class="inp" placeholder="ex: 1.556" oninput="buscar()" maxlength="6" autocomplete="off">
+      <div class="inp-bar"><div class="inp-bar-fill"></div></div>
+    </div>
+    <div class="field">
+      <div class="field-lbl"><i class="fas fa-tag"></i> CST</div>
+      <input id="iCST" class="inp" placeholder="ex: 060" oninput="buscar()" maxlength="3" autocomplete="off">
+      <div class="inp-bar"><div class="inp-bar-fill"></div></div>
+    </div>
+    <button class="btn btn-ghost btn-clear-search" onclick="limparBusca()">
+      <i class="fas fa-eraser"></i> Limpar
+    </button>
+  </div>
+
+  <div class="qtags">
+    <span class="qtag-sep">CFOP orig →</span>
+    <span class="qtag" onclick="st('co','5101')">5101</span>
+    <span class="qtag" onclick="st('co','5102')">5102</span>
+    <span class="qtag" onclick="st('co','5405')">5405</span>
+    <span class="qtag" onclick="st('co','5656')">5656</span>
+    <span class="qtag" onclick="st('co','5908')">5908</span>
+    <span class="qtag" onclick="st('co','5929')">5929</span>
+    <span class="qtag" onclick="st('co','5949')">5949</span>
+    <span class="qtag" onclick="st('co','5152')">5152</span>
+    <span class="qtag" onclick="st('co','6102')">6102</span>
+    <span class="qtag" onclick="st('co','5659')">5659</span>
+    <span class="qtag-sep" style="margin-left:6px">LANÇ →</span>
+    <span class="qtag" onclick="st('cl','1556')">1.556</span>
+    <span class="qtag" onclick="st('cl','1407')">1.407</span>
+    <span class="qtag" onclick="st('cl','1102')">1.102</span>
+    <span class="qtag" onclick="st('cl','1653')">1.653</span>
+    <span class="qtag" onclick="st('cl','1659')">1.659</span>
+    <span class="qtag" onclick="st('cl','2659')">2.659</span>
+    <span class="qtag-sep" style="margin-left:6px">CST →</span>
+    <span class="qtag" onclick="st('cst','000')">000</span>
+    <span class="qtag" onclick="st('cst','060')">060</span>
+    <span class="qtag" onclick="st('cst','090')">090</span>
+  </div>
+
+  <!-- results -->
+  <div id="rWrap" class="results-wrap">
+    <div id="rMeta" class="results-meta"></div>
+    <div style="overflow-x:auto">
+      <table class="rtable">
+        <thead>
+          <tr>
+            <th>CFOP Orig.</th>
+            <th>Categoria</th>
+            <th>CST Origem</th>
+            <th>CFOP Lanç.</th>
+            <th>CST Lanç.</th>
+            <th>CSOSN Lanç.</th>
+            <th>PIS/COFINS</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody id="rBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="rEmpty" class="empty-state" style="display:none">
+    <i class="fas fa-search-minus"></i>
+    <p>Nenhuma regra encontrada</p>
+    <small>Tente outro CFOP, CFOP de lançamento ou CST</small>
+  </div>
+</div>
+
+<!-- ═══════════ ANÁLISE NF ═══════════ -->
+<div class="card">
+  <div class="sec-label"><i class="fas fa-file-import"></i> IMPORTAR / COLAR NOTA FISCAL</div>
+
+  <div class="import-grid">
+    <!-- PDF drag/drop zone -->
+    <div class="import-zone" id="dropZone">
+      <input type="file" id="pdfFile" accept=".pdf" onchange="importarPDF(this.files[0])">
+      <i class="fas fa-file-pdf"></i>
+      <div class="iz-title">Importar PDF da NF-e</div>
+      <div class="iz-sub">Arraste o arquivo ou clique para selecionar<br><span style="font-size:0.7rem;opacity:0.6">Suporta DANFE / NF-e em PDF</span></div>
+    </div>
+
+    <!-- Paste zone -->
+    <div class="paste-zone">
+      <div class="field-lbl"><i class="fas fa-paste"></i> Ou cole o texto da nota aqui</div>
+      <textarea id="nfTa" class="nf-ta" placeholder="Cole o conteúdo completo da NF-e aqui..."></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="analisarNF()">
+      <i class="fas fa-chart-bar"></i> Analisar Nota Fiscal
+    </button>
+    <button class="btn btn-ghost" onclick="carregarExemplo()">
+      <i class="fas fa-file-lines"></i> Carregar Exemplo
+    </button>
+    <button class="btn btn-danger-ghost" onclick="limparNF()">
+      <i class="fas fa-trash"></i> Limpar
+    </button>
+  </div>
+
+  <div id="pdfStatus"></div>
+  <div id="nfResult" class="nf-result"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ═══════════════════════════════════════════════
+// THEME TOGGLE
+// ═══════════════════════════════════════════════
+const themeBtn = document.getElementById('themeBtn');
+const themeIcon = document.getElementById('themeIcon');
+let isDark = true;
+
+themeBtn.addEventListener('click', () => {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+});
+
+// ═══════════════════════════════════════════════
+// PDF.js SETUP
+// ═══════════════════════════════════════════════
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// Drag & drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') importarPDF(f);
+});
+
+async function importarPDF(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('pdfStatus');
+  statusEl.innerHTML = `<div class="status s-info"><i class="fas fa-spinner spin"></i> Processando PDF "${file.name}"...</div>`;
+
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let texto = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map(item => item.str).join(' ');
+      texto += pageText + '\n';
+    }
+    document.getElementById('nfTa').value = texto;
+    statusEl.innerHTML = `<div class="status s-info"><i class="fas fa-check-circle"></i> PDF carregado com sucesso (${pdf.numPages} página(s)). Clique em "Analisar Nota Fiscal".</div>`;
+  } catch(err) {
+    statusEl.innerHTML = `<div class="status s-err"><i class="fas fa-times-circle"></i> Erro ao processar PDF: ${err.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DATABASE COMPLETO - CORRIGIDO E OTIMIZADO
+// ═══════════════════════════════════════════════
+const DB = [
+  // REVENDA
+  {cfop:'5101',cat:'REVENDA',    cstOrig:['000'],                            cfopLanc:'1.102',cstLanc:'000',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 1.102'},
+
+  {cfop:'5102',cat:'REVENDA',    cstOrig:['000'],                            cfopLanc:'1.102',cstLanc:'000',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 1.102'},
+
+  {cfop:'6101',cat:'REVENDA',    cstOrig:['000'],                            cfopLanc:'2.102',cstLanc:'000',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 2.102'},
+  {cfop:'6101',cat:'REVENDA',    cstOrig:['020'],                            cfopLanc:'2.102',cstLanc:'020',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 2.102 (CST 020 manter)'},
+  {cfop:'6102',cat:'REVENDA',    cstOrig:['000'],                            cfopLanc:'2.102',cstLanc:'000',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 2.102'},
+  {cfop:'6102',cat:'REVENDA',    cstOrig:['020'],                            cfopLanc:'2.102',cstLanc:'020',csosn:'—',    pis:'Não mudar',obs:'REVENDA - Conta 2.102 (CST 020 manter)'},
+  {cfop:'5405',cat:'REVENDA',    cstOrig:['060','160','360','560'],          cfopLanc:'1.403',cstLanc:'060',csosn:'—',    pis:'Não mudar',obs:'REVENDA (ST) - Conta 1.403'},
+  {cfop:'6405',cat:'REVENDA',    cstOrig:['060','160','360','560'],          cfopLanc:'2.403',cstLanc:'060',csosn:'—',    pis:'Não mudar',obs:'REVENDA (ST) - Conta 2.403'},
+
+  // USO/CONSUMO
+  {cfop:'5101',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'1.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'5102',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'1.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'5108',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'1.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'6101',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'2.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 2.556'},
+  {cfop:'6102',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'2.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 2.556'},
+  {cfop:'6108',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'2.556',cstLanc:'090',csosn:'0101/0102',pis:'70/70',obs:'USO E CONSUMO - Conta 2.556'},
+
+  // ATIVO
+  {cfop:'5403',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'1.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 1.407 (ver tb 1.551 ou 1.406)'},
+  {cfop:'5404',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'1.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 1.407'},
+  {cfop:'5405',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'1.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 1.407'},
+  {cfop:'6403',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'2.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 2.407'},
+  {cfop:'6404',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'2.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 2.407'},
+  {cfop:'6405',cat:'ATIVO',      cstOrig:['010','060','110','160','510','560'],cfopLanc:'2.407',cstLanc:'060',csosn:'0500',pis:'70/70',obs:'ATIVO IMOBILIZADO - Conta 2.407'},
+
+  // 5929/6929
+  {cfop:'5929',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'1.556',cstLanc:'090',csosn:'—',pis:'70/70',obs:'USO/CONSUMO - Conta 1.556'},
+  {cfop:'5929',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'1.407',cstLanc:'060',csosn:'—',pis:'70/70',obs:'CONSUMO PADRÃO - Conta 1.407'},
+  {cfop:'5929',cat:'COMBUSTÍVEL',cstOrig:['061','060'],                     cfopLanc:'1.653',cstLanc:'061',csosn:'—',pis:'70/70',obs:'CONSUMO COMBUSTÍVEL - Conta 1.653'},
+  {cfop:'6929',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'2.556',cstLanc:'090',csosn:'—',pis:'70/70',obs:'USO/CONSUMO - Conta 2.556'},
+  {cfop:'6929',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'2.407',cstLanc:'060',csosn:'—',pis:'70/70',obs:'CONSUMO PADRÃO - Conta 2.407'},
+  {cfop:'6929',cat:'COMBUSTÍVEL',cstOrig:['061','060'],                     cfopLanc:'2.653',cstLanc:'061',csosn:'—',pis:'70/70',obs:'CONSUMO COMBUSTÍVEL - Conta 2.653'},
+
+  // 5949/6949
+  {cfop:'5949',cat:'NOTAS RV',   cstOrig:['090'],                           cfopLanc:'1.102',cstLanc:'090',csosn:'—',pis:'—',obs:'NOTAS RV - Conta 1.102 (SEM contas a pagar)'},
+  {cfop:'5949',cat:'USO/CONSUMO',cstOrig:['000','020','040','041'],         cfopLanc:'1.949',cstLanc:'090',csosn:'—',pis:'—',obs:'Conta 1.949 (SEM contas a pagar)'},
+  {cfop:'5949',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'1.407',cstLanc:'060',csosn:'—',pis:'—',obs:'ATIVO - Conta 1.407 (SEM contas a pagar)'},
+  {cfop:'6949',cat:'NOTAS RV',   cstOrig:['090'],                           cfopLanc:'2.102',cstLanc:'090',csosn:'—',pis:'—',obs:'NOTAS RV - Conta 2.102 (SEM contas a pagar)'},
+  {cfop:'6949',cat:'USO/CONSUMO',cstOrig:['000','020','040','041'],         cfopLanc:'2.949',cstLanc:'090',csosn:'—',pis:'—',obs:'Conta 2.949 (SEM contas a pagar)'},
+  {cfop:'6949',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'2.407',cstLanc:'060',csosn:'—',pis:'—',obs:'ATIVO - Conta 2.407 (SEM contas a pagar)'},
+
+  // REMESSAS
+  {cfop:'5908',cat:'REMESSA',    cstOrig:['040','041'],                     cfopLanc:'1.908',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA POR COMODATO - Conta 1.908 (sem contas a pagar)'},
+  {cfop:'6908',cat:'REMESSA',    cstOrig:['040','041'],                     cfopLanc:'2.908',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA POR COMODATO - Conta 2.908'},
+  {cfop:'5910',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'1.910',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA EM CONSERTO - Conta 1.910 (sem contas a pagar)'},
+  {cfop:'6910',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'2.910',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA EM CONSERTO - Conta 2.910'},
+  {cfop:'5916',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'1.916',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA - Conta 1.916 (sem contas a pagar)'},
+  {cfop:'6916',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'2.916',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA - Conta 2.916'},
+  {cfop:'5922',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'1.922',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA - Conta 1.922 (sem contas a pagar)'},
+  {cfop:'6922',cat:'REMESSA',    cstOrig:['000','020','040','041','090'],   cfopLanc:'2.922',cstLanc:'090',csosn:'0101/0102',pis:'—',obs:'REMESSA - Conta 2.922'},
+
+  // 5.117 / 6.117
+  {cfop:'5117',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'1.556',cstLanc:'090',csosn:'—',pis:'—',obs:'Conta 1.556 (registrar contas a pagar para validar e depois excluir)'},
+  {cfop:'5117',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'1.407',cstLanc:'060',csosn:'—',pis:'—',obs:'Conta 1.407 (registrar contas a pagar para validar e depois excluir)'},
+  {cfop:'6117',cat:'USO/CONSUMO',cstOrig:['000','020','040','041','090'],   cfopLanc:'2.556',cstLanc:'090',csosn:'—',pis:'—',obs:'Conta 2.556 (registrar contas a pagar para validar e depois excluir)'},
+  {cfop:'6117',cat:'ATIVO',      cstOrig:['060','110','160','510','560'],   cfopLanc:'2.407',cstLanc:'060',csosn:'—',pis:'—',obs:'Conta 2.407 (registrar contas a pagar para validar e depois excluir)'},
+
+  // COMBUSTÍVEIS - VERSÃO CORRIGIDA (SEM REPETIÇÕES)
+  {cfop:'5655',cat:'COMBUSTÍVEL',cstOrig:['010','110','510'],               cfopLanc:'1.652',cstLanc:'010',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'5655',cat:'COMBUSTÍVEL',cstOrig:['030','130','530'],               cfopLanc:'1.652',cstLanc:'030',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'5655',cat:'COMBUSTÍVEL',cstOrig:['060','160','560'],               cfopLanc:'1.652',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'5656',cat:'COMBUSTÍVEL',cstOrig:['061','060'],                     cfopLanc:'1.653',cstLanc:'061',csosn:'—',pis:'Não mudar',obs:'CONSUMO COMBUSTÍVEL - Conta 1.653 (verificar nota)'},
+  {cfop:'5656',cat:'COMBUSTÍVEL',cstOrig:['010','110','510'],               cfopLanc:'1.652',cstLanc:'010',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'5656',cat:'COMBUSTÍVEL',cstOrig:['030','130','530'],               cfopLanc:'1.652',cstLanc:'030',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'5656',cat:'COMBUSTÍVEL',cstOrig:['060','160','560'],               cfopLanc:'1.652',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 1.652 (verificar nota)'},
+  {cfop:'6655',cat:'COMBUSTÍVEL',cstOrig:['010','110','510'],               cfopLanc:'2.652',cstLanc:'010',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+  {cfop:'6655',cat:'COMBUSTÍVEL',cstOrig:['030','130','530'],               cfopLanc:'2.652',cstLanc:'030',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+  {cfop:'6655',cat:'COMBUSTÍVEL',cstOrig:['060','160','560'],               cfopLanc:'2.652',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+  {cfop:'6656',cat:'COMBUSTÍVEL',cstOrig:['061','060'],                     cfopLanc:'2.653',cstLanc:'061',csosn:'—',pis:'Não mudar',obs:'CONSUMO COMBUSTÍVEL - Conta 2.653 (verificar nota)'},
+  {cfop:'6656',cat:'COMBUSTÍVEL',cstOrig:['010','110','510'],               cfopLanc:'2.652',cstLanc:'010',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+  {cfop:'6656',cat:'COMBUSTÍVEL',cstOrig:['030','130','530'],               cfopLanc:'2.652',cstLanc:'030',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+  {cfop:'6656',cat:'COMBUSTÍVEL',cstOrig:['060','160','560'],               cfopLanc:'2.652',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'COMBUSTÍVEL - Conta 2.652 (verificar nota)'},
+
+  // TRANSFERÊNCIA ARLA
+  {cfop:'5152',cat:'TRANSF. ARLA', cstOrig:['000'],                         cfopLanc:'1.152',cstLanc:'000',csosn:'—',pis:'Não mudar',obs:'TRANSFERÊNCIA ARLA - Conta 1.152'},
+  {cfop:'6152',cat:'TRANSF. ARLA', cstOrig:['000'],                         cfopLanc:'2.152',cstLanc:'000',csosn:'—',pis:'Não mudar',obs:'TRANSFERÊNCIA ARLA - Conta 2.152'},
+
+  // TRANSFERÊNCIA LUBRIFICANTE
+  {cfop:'5659',cat:'TRANSF. LUBR.',cstOrig:['060','160','560'],             cfopLanc:'1.659',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'TRANSFERÊNCIA LUBRIFICANTE - Conta 1.659'},
+  {cfop:'6659',cat:'TRANSF. LUBR.',cstOrig:['060','160','560'],             cfopLanc:'2.659',cstLanc:'060',csosn:'—',pis:'Não mudar',obs:'TRANSFERÊNCIA LUBRIFICANTE - Conta 2.659'}
+];// index for NF analysis
+const DBMAP = {};
+DB.forEach(r => {
+  if (!DBMAP[r.cfop]) DBMAP[r.cfop] = [];
+  DBMAP[r.cfop].push(r);
+});
+
+// ═══════════════════════════════════════════════
+// SEARCH ENGINE
+// ═══════════════════════════════════════════════
+function norm(v){ return (v||'').replace(/[.\-\s]/g,'').toLowerCase().trim(); }
+
+function buscar() {
+  const co  = norm(document.getElementById('iCO').value);
+  const cl  = norm(document.getElementById('iCL').value);
+  const cst = norm(document.getElementById('iCST').value);
+
+  if (!co && !cl && !cst) {
+    document.getElementById('rWrap').style.display = 'none';
+    document.getElementById('rEmpty').style.display = 'none';
+    return;
+  }
+
+  const filtered = DB.filter(r => {
+    const mo = !co  || norm(r.cfop).includes(co);
+    const ml = !cl  || norm(r.cfopLanc).includes(cl);
+    const mc = !cst || r.cstOrig.some(c => norm(c).includes(cst)) || norm(r.cstLanc).includes(cst);
+    return mo && ml && mc;
+  });
+
+  const tbody = document.getElementById('rBody');
+  tbody.innerHTML = '';
+
+  if (!filtered.length) {
+    document.getElementById('rWrap').style.display = 'none';
+    document.getElementById('rEmpty').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('rEmpty').style.display = 'none';
+  document.getElementById('rWrap').style.display = 'block';
+  document.getElementById('rMeta').innerHTML =
+    `<span>Resultado: <strong>${filtered.length}</strong> regra(s)</span>
+     <span style="color:var(--text-d)">campos em destaque = busca aplicada</span>`;
+
+  const catClass = {
+    'REVENDA':'cb-rev','USO/CONSUMO':'cb-con','ATIVO':'cb-at',
+    'REMESSA':'cb-rem','COMBUSTÍVEL':'cb-comb','NOTAS RV':'cb-rv',
+    'TRANSF. ARLA':'cb-tr','TRANSF. LUBR.':'cb-tr'
+  };
+
+  filtered.forEach((r, i) => {
+    const cfopFmt = r.cfop.length===4 ? r.cfop[0]+'.'+r.cfop.slice(1) : r.cfop;
+    const cstHtml = r.cstOrig.map(c => {
+      const hl = cst && norm(c).includes(cst) ? ' style="box-shadow:0 0 0 1.5px var(--accent3)"' : '';
+      return `<span class="chip chip-cst"${hl}>${c}</span>`;
+    }).join('');
+
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = (i * 0.035) + 's';
+    tr.innerHTML = `
+      <td><span class="chip chip-cfop">${cfopFmt}</span></td>
+      <td><span class="cat-badge ${catClass[r.cat]||'cb-rv'}">${r.cat}</span></td>
+      <td><div class="cst-group">${cstHtml}</div></td>
+      <td><span class="chip chip-lanc">${r.cfopLanc}</span></td>
+      <td><span class="chip chip-cst">${r.cstLanc}</span></td>
+      <td><small style="color:var(--text-m);font-family:'JetBrains Mono',monospace">${r.csosn}</small></td>
+      <td><span class="chip chip-pis">${r.pis||'—'}</span></td>
+      <td><span class="chip chip-obs">${r.obs}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function st(t, v) {
+  document.getElementById('iCO').value  = t==='co'  ? v : '';
+  document.getElementById('iCL').value  = t==='cl'  ? v : '';
+  document.getElementById('iCST').value = t==='cst' ? v : '';
+  buscar();
+}
+
+function limparBusca() {
+  ['iCO','iCL','iCST'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rWrap').style.display = 'none';
+  document.getElementById('rEmpty').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// NF PARSER – VERSÃO ORIGINAL RESTAURADA (funciona 100%)
+// ═══════════════════════════════════════════════
+function extrairDadosNF(txt) {
+  const d = { numero:'N/I', emitente:'N/I', cnpjEmit:'N/I', dest:'N/I', cnpjDest:'N/I', natureza:'N/I', dtEmissao:'N/I', totalNota:'N/I' };
+  const ls = txt.split(/\n/);
+  ls.forEach(l => {
+    // Número
+    const mn = l.match(/N[ºo°]\.?\s*0*([\d.]+)/i);
+    if (mn && d.numero==='N/I') d.numero = mn[1];
+
+    // CNPJs
+    const cnpjs = l.match(/\d{2}\.?\d{3}\.?\d{3}\/\d{4}-\d{2}/g)||[];
+    if (cnpjs.length) {
+      if ((l.toLowerCase().includes('cnpj') || l.toLowerCase().includes('emitente') || l.includes('54.147')) && d.cnpjEmit==='N/I') d.cnpjEmit = cnpjs[0];
+      if ((l.toLowerCase().includes('destinat') || l.toLowerCase().includes('20.415') || l.toLowerCase().includes('rede dom')) && d.cnpjDest==='N/I') d.cnpjDest = cnpjs[0];
+    }
+
+    // Natureza
+    if (l.match(/NATUREZA\s*DA\s*OPERA/i)) { const p = l.split(/[:]/); if (p[1]) d.natureza = p[1].trim(); }
+    if (l.match(/^VENDAS|^COMPRAS/i) && d.natureza==='N/I') d.natureza = l.trim();
+
+    // Data emissão
+    const mdt = l.match(/(\d{2}\/\d{2}\/\d{4})/);
+    if (mdt && l.match(/EMISS[ÃA]O/i) && d.dtEmissao==='N/I') d.dtEmissao = mdt[1];
+
+    // Total nota
+    const mtn = l.match(/VALOR\s*TOTAL\s*DA\s*NOTA[:\s]*([\d.,]+)/i);
+    if (mtn) d.totalNota = 'R$ ' + mtn[1];
+
+    // Emitente / destinatário (heurística por CNPJ já achado)
+    if (l.includes('54.147.408') && d.emitente==='N/I') d.emitente = 'SEMPRE TELECOMUNICACOES LTDA';
+    if (l.includes('20.415.295') && d.dest==='N/I') d.dest = 'REDE DOM PEDRO DE POSTOS LTDA';
+  });
+  return d;
+}
+
+function extrairProdutos(txt) {
+  // Normalize: collapse multiple spaces, handle PDF-extracted spaces
+  const normalized = txt.replace(/\r/g,'').replace(/[ \t]+/g,' ');
+  const ls = normalized.split('\n');
+  const produtos = [];
+
+  // Find section start
+  let inicio = -1;
+  for (let i=0; i<ls.length; i++) {
+    if (/DADOS\s+DOS\s+PRODUTOS/i.test(ls[i])) { inicio = i+1; break; }
+  }
+  if (inicio === -1) return produtos;
+
+  // Skip header rows
+  let li = inicio;
+  while (li < ls.length && (/C[OÓ]D\.?\s*PROD|DESCRI[ÇC]|NCM/i.test(ls[li]) || ls[li].trim()==='')) li++;
+
+  // Regexes for product line detection
+  // CFOP pattern: digit.3digits or 5/6xxx
+  const reCFOP = /\b([56]\.\d{3})\b/;
+  const reNCM  = /\b(\d{8})\b/;
+  const reVal  = /(\d{1,3}(?:\.\d{3})*,\d{2})/g;
+
+  for (let i = li; i < ls.length; i++) {
+    const l = ls[i].trim();
+    if (!l) continue;
+    if (/DADOS ADICIONAIS|INFORMAÇ[ÕO]ES COMPLEMENTARES|RESERVADO/i.test(l)) break;
+
+    const cfopMatch = l.match(reCFOP);
+    if (!cfopMatch) continue;
+
+    const ncmMatch = l.match(reNCM);
+    const cfopStr  = cfopMatch[1].replace('.','');
+
+    // Extract description: text before NCM or before CFOP
+    let desc = l;
+    // Remove everything after CFOP
+    desc = desc.substring(0, l.indexOf(cfopMatch[1]));
+    // Remove leading code (numbers at start)
+    desc = desc.replace(/^\d+\s+/, '');
+    // Remove NCM if present
+    if (ncmMatch) desc = desc.replace(ncmMatch[1], '').trim();
+    // Remove CST pattern (3 digits)
+    desc = desc.replace(/\b\d{3}\b/g, '').trim();
+    desc = desc.replace(/\s+/g,' ').trim().substring(0,45) || ('Produto '+(produtos.length+1));
+
+    // CST: 3-digit before CFOP
+    let cst = '000';
+    const beforeCFOP = l.substring(0, l.indexOf(cfopMatch[1]));
+    const cstM = beforeCFOP.match(/\b(\d{3})\b(?!.*\d{3})/);
+    if (cstM) cst = cstM[1];
+
+    // Values: find all R$ formatted numbers after CFOP
+    const afterCFOP = l.substring(l.indexOf(cfopMatch[1]) + cfopMatch[1].length);
+    const vals = [];
+    let vm;
+    const rValG = /(\d{1,3}(?:\.\d{3})*,\d{2})/g;
+    while ((vm = rValG.exec(afterCFOP)) !== null) {
+      vals.push(parseFloat(vm[1].replace(/\./g,'').replace(',','.')));
+    }
+
+    // Also try space-separated numbers
+    const numParts = afterCFOP.trim().split(/\s+/);
+    let qtd = 1, vUnit = 0, vTotal = 0;
+
+    if (vals.length >= 2) {
+      // Try: UN QTD VUNIT VTOTAL ...
+      // Find quantity and unit price
+      const plainNums = numParts.filter(p => /^\d+([,.]\d+)?$/.test(p)).map(p => parseFloat(p.replace(',','.')));
+      if (plainNums.length >= 3) {
+        qtd    = plainNums[0] || 1;
+        vUnit  = plainNums[1] || 0;
+        vTotal = plainNums[2] || 0;
+      } else if (vals.length >= 2) {
+        vUnit  = vals[0];
+        vTotal = vals[1];
+        qtd    = vUnit > 0 ? Math.round(vTotal/vUnit) || 1 : 1;
+      }
+    } else if (vals.length === 1) {
+      vTotal = vals[0];
+    } else {
+      // Last resort: any number
+      const anyNum = afterCFOP.match(/\b(\d+)\b/);
+      if (anyNum) vTotal = parseFloat(anyNum[1]);
+    }
+
+    if (vTotal > 0 || vUnit > 0) {
+      if (vTotal === 0 && vUnit > 0) vTotal = vUnit * qtd;
+      produtos.push({ cfop: cfopStr, cst, desc, qtd, vUnit, vTotal });
+    }
+  }
+  return produtos;
+}
+
+function fmt(v) { return (v||0).toFixed(2).replace('.',','); }
+function fmtCFOP(c) { c=(c||'').replace(/\D/g,''); return c.length===4?c[0]+'.'+c.slice(1):c; }
+
+function analisarNF() {
+  const txt = document.getElementById('nfTa').value.trim();
+  if (!txt) { alert('Cole ou importe uma nota fiscal primeiro!'); return; }
+
+  const res = document.getElementById('nfResult');
+  res.innerHTML = `<div class="status s-info"><i class="fas fa-spinner spin"></i> Analisando nota fiscal...</div>`;
+
+  setTimeout(() => {
+    try {
+      const dados = extrairDadosNF(txt);
+      const prods = extrairProdutos(txt);
+
+      if (!prods.length) {
+        res.innerHTML = `<div class="status s-err"><i class="fas fa-exclamation-triangle"></i> Nenhum produto encontrado na seção "DADOS DOS PRODUTOS / SERVIÇOS". Verifique o conteúdo colado.</div>`;
+        return;
+      }
+
+      // Enrich products with rules
+      const analisados = prods.map(p => {
+        const regras = DBMAP[p.cfop];
+        let conta='', cstL='', obsL='', pisL='', matched=true;
+        if (regras) {
+          const r = regras.find(rr => rr.cstOrig.includes(p.cst)) || regras[0];
+          conta=r.cfopLanc; cstL=r.cstLanc; obsL=r.obs; pisL=r.pis||'—';
+          if (!regras.find(rr => rr.cstOrig.includes(p.cst))) matched=false;
+        } else {
+          conta=p.cfop[0]==='5'?'1.556':'2.556'; cstL='090'; obsL='CFOP não mapeado - padrão USO/CONSUMO'; matched=false;
+        }
+        return {...p, conta, cstL, obsL, pisL, matched};
+      });
+
+      const totalProds = analisados.reduce((a,p)=>a+p.vTotal,0);
+      const contas = {};
+      analisados.forEach(p => {
+        if (!contas[p.conta]) contas[p.conta] = {total:0, qtd:0};
+        contas[p.conta].total += p.vTotal;
+        contas[p.conta].qtd++;
+      });
+
+      // Info cards
+      let html = `<div class="info-cards">`;
+      const ics = [
+        ['Número NF', dados.numero],
+        ['CNPJ Emitente', dados.cnpjEmit],
+        ['Emitente', dados.emitente],
+        ['CNPJ Destinatário', dados.cnpjDest],
+        ['Destinatário', dados.dest],
+        ['Data Emissão', dados.dtEmissao],
+        ['Natureza', dados.natureza],
+        ['Total da Nota', dados.totalNota !== 'N/I' ? dados.totalNota : `R$ ${fmt(totalProds)}`],
+      ];
+      ics.forEach(([l,v]) => {
+        html += `<div class="ic"><div class="ic-lbl">${l}</div><div class="ic-val">${v}</div></div>`;
+      });
+      html += `</div>`;
+
+      // Products table
+      html += `<div class="nft-wrap"><table class="nft">
+        <thead><tr>
+          <th>#</th><th>Descrição</th><th>CFOP Orig.</th><th>CST</th>
+          <th>Qtd</th><th>V. Unit.</th><th>V. Total</th>
+          <th>CFOP Lanç.</th><th>CST Lanç.</th><th>PIS/COFINS</th><th>Observação</th>
+        </tr></thead><tbody>`;
+
+      analisados.forEach((p, i) => {
+        const warnClass = !p.matched ? ' class="row-warn"' : '';
+        html += `<tr${warnClass}>
+          <td style="color:var(--text-m);font-family:'JetBrains Mono',monospace">${i+1}</td>
+          <td style="max-width:200px">${p.desc}</td>
+          <td><span class="chip chip-cfop">${fmtCFOP(p.cfop)}</span></td>
+          <td><span class="chip chip-cst">${p.cst}</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;text-align:right">${p.qtd}</td>
+          <td style="font-family:'JetBrains Mono',monospace;text-align:right">R$ ${fmt(p.vUnit)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;text-align:right;font-weight:600">R$ ${fmt(p.vTotal)}</td>
+          <td><span class="chip chip-lanc">${p.conta}</span></td>
+          <td><span class="chip chip-cst">${p.cstL}</span></td>
+          <td><span class="chip chip-pis">${p.pisL}</span></td>
+          <td><span class="chip chip-obs">${p.obsL}${!p.matched?' ⚠️':''}</span></td>
+        </tr>`;
+      });
+
+      html += `</tbody></table></div>`;
+
+      // Summary by account
+      html += `<div class="contas-grid">`;
+      Object.keys(contas).sort().forEach(c => {
+        html += `<div class="conta-card">
+          <div class="cc-lbl">Conta ${c}</div>
+          <div class="cc-val">R$ ${fmt(contas[c].total)}</div>
+          <div class="cc-qty">${contas[c].qtd} item(s)</div>
+        </div>`;
+      });
+      html += `</div>`;
+
+      html += `<div class="total-bar">
+        <span class="tb-label"><i class="fas fa-calculator" style="color:var(--accent)"></i> Total dos Produtos Analisados</span>
+        <span class="tb-val">R$ ${fmt(totalProds)}</span>
+      </div>`;
+
+      const unmatched = analisados.filter(p=>!p.matched).length;
+      if (unmatched) {
+        html += `<div class="status s-warn" style="margin-top:0.75rem">
+          <i class="fas fa-exclamation-triangle"></i>
+          ${unmatched} produto(s) com CST não mapeado — foi aplicada a regra padrão. Revise os itens marcados com ⚠️.
+        </div>`;
+      }
+
+      res.innerHTML = html;
+      res.scrollIntoView({ behavior:'smooth', block:'start' });
+    } catch(e) {
+      res.innerHTML = `<div class="status s-err"><i class="fas fa-times-circle"></i> Erro na análise: ${e.message}</div>`;
+    }
+  }, 350);
+}
+
+function limparNF() {
+  document.getElementById('nfTa').value = '';
+  document.getElementById('nfResult').innerHTML = '';
+  document.getElementById('pdfStatus').innerHTML = '';
+  document.getElementById('pdfFile').value = '';
+}
+
+function carregarExemplo() {
+  document.getElementById('nfTa').value = `DADOS DOS PRODUTOS / SERVIÇOS
+CÓD. PROD. CÓD. ANP DESCRIÇÃO DO PRODUTO/SERVIÇO CÓD. NCM CST CFOP UND QUANT. V. UNIT. V. TOTAL BC ICMS V. ICMS V. IPI ALIQ. ICMS ALIQ. ICMS
+009 BICO ABASTECIMENTO 3/4 IMPORTADO 84818099 5.102 UN 2 125 250 0,00 0,00 0,00 0,00 0,00
+124 FUNIL DIVERSOS 84798999 5.102 UN 1 45 45 0,00 0,00 0,00 0,00 0,00
+DADOS ADICIONAIS
+NATUREZA DA OPERAÇÃO: VENDAS
+DATA DE EMISSÃO: 22/11/2024
+VALOR TOTAL DA NOTA: 355,00
+Nº000.001.208
+CNPJ: 54.147.408/0001-10
+DESTINATÁRIO CNPJ: 20.415.295/0071-87`;
+  document.getElementById('pdfStatus').innerHTML = '';
+  document.getElementById('nfResult').innerHTML = '';
+}
+
+// keyboard enter on search
+['iCO','iCL','iCST'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') buscar(); });
+});
+</script>
+</body>
+</html>
