@@ -1,1168 +1,1147 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedrinho - Sistema de Rotinas</title>
+<title>Pedrinho — Sistema de Rotinas</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --primary: #1a2b4a;
-    --accent: #f97316;
-    --accent2: #0ea5e9;
-    --accent3: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --bg: #0f172a;
-    --card: #1e293b;
-    --card2: #263352;
-    --border: #334155;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --success: #22c55e;
-    --header-h: 70px;
-    --footer-h: 45px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+/* ===== LIGHT (DEFAULT) ===== */
+:root {
+  --accent:    #f97316;
+  --accent2:   #0ea5e9;
+  --accent3:   #10b981;
+  --danger:    #ef4444;
+  --warn:      #f59e0b;
+  --purple:    #8b5cf6;
+  --bg:        #f1f5f9;
+  --card:      #ffffff;
+  --card2:     #f8fafc;
+  --border:    #e2e8f0;
+  --text:      #0f172a;
+  --muted:     #64748b;
+  --header-bg: #ffffff;
+  --header-h:  68px;
+  --footer-h:  44px;
+  --shadow:    0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--card2:#263352;--border:#334155;
+  --text:#e2e8f0;--muted:#94a3b8;--header-bg:#1e293b;
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.3);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-  /* HEADER */
-  header {
-    height:var(--header-h); background:linear-gradient(135deg,#1a2b4a 0%,#0c1a36 100%);
-    border-bottom:2px solid var(--accent); display:flex; align-items:center;
-    justify-content:space-between; padding:0 28px; position:sticky; top:0; z-index:100;
-    box-shadow:0 4px 30px rgba(0,0,0,0.5);
-  }
-  .logo { display:flex; align-items:center; gap:12px; }
-  .logo-icon {
-    width:44px; height:44px; background:linear-gradient(135deg,var(--accent),#fb923c);
-    border-radius:12px; display:flex; align-items:center; justify-content:center;
-    font-size:22px; font-weight:800; color:#fff; box-shadow:0 0 20px rgba(249,115,22,0.4);
-  }
-  .logo-text { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
-  .logo-text span { color:var(--accent); }
-  .header-right { display:flex; align-items:center; gap:16px; }
-  #clock { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent2);
-    background:rgba(14,165,233,0.1); padding:6px 12px; border-radius:8px; border:1px solid rgba(14,165,233,0.2); }
-  #greeting-badge { font-size:12px; color:var(--accent3); background:rgba(16,185,129,0.1);
-    padding:6px 12px; border-radius:8px; border:1px solid rgba(16,185,129,0.2); font-weight:500; }
-  .header-btn { background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.3);
-    color:var(--accent); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:12px;
-    font-family:'Sora',sans-serif; font-weight:600; transition:all .2s; }
-  .header-btn:hover { background:var(--accent); color:#fff; }
+/* HEADER */
+header{height:var(--header-h);background:var(--header-bg);border-bottom:3px solid var(--accent);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  position:sticky;top:0;z-index:200;box-shadow:var(--shadow);transition:background .3s;}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none;}
+.logo img{width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:0 2px 10px rgba(249,115,22,.35);}
+.logo-fb{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#fb923c);
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;
+  box-shadow:0 2px 10px rgba(249,115,22,.35);}
+.logo-name{font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--text);}
+.logo-name span{color:var(--accent);}
+.logo-sub{font-size:10px;color:var(--muted);font-weight:500;margin-top:1px;}
+.header-nav{display:flex;gap:0;}
+.nav-tab{padding:10px 15px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;user-select:none;white-space:nowrap;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+#greeting-badge{font-size:11px;font-weight:600;color:var(--accent3);background:rgba(16,185,129,.1);
+  padding:5px 11px;border-radius:20px;border:1px solid rgba(16,185,129,.25);}
+#clock{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent2);
+  background:rgba(14,165,233,.08);padding:5px 11px;border-radius:20px;border:1px solid rgba(14,165,233,.2);}
+.theme-toggle{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);
+  background:var(--card2);cursor:pointer;font-size:15px;display:flex;align-items:center;
+  justify-content:center;transition:all .2s;}
+.theme-toggle:hover{border-color:var(--accent);}
 
-  /* MAIN LAYOUT */
-  main { flex:1; display:grid; grid-template-columns:320px 1fr; gap:0; overflow:hidden; }
-  
-  /* SIDEBAR */
-  .sidebar { background:var(--card); border-right:1px solid var(--border); display:flex;
-    flex-direction:column; overflow-y:auto; height:calc(100vh - var(--header-h) - var(--footer-h)); }
-  .sidebar-section { padding:18px; border-bottom:1px solid var(--border); }
-  .sidebar-title { font-size:11px; text-transform:uppercase; letter-spacing:1.5px;
-    color:var(--muted); font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-  .sidebar-title::after { content:''; flex:1; height:1px; background:var(--border); }
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:280px 1fr;flex:1;overflow:hidden;}
 
-  /* MINI CALENDAR */
-  .mini-cal-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  .mini-cal-nav button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:18px; padding:2px 8px; border-radius:6px; transition:all .2s; }
-  .mini-cal-nav button:hover { background:var(--card2); color:var(--text); }
-  .mini-cal-month { font-weight:700; font-size:14px; }
-  .mini-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-  .mini-cal-day-header { text-align:center; font-size:10px; color:var(--muted); padding:4px 0; font-weight:600; }
-  .mini-cal-day { text-align:center; padding:5px 2px; border-radius:6px; cursor:pointer;
-    font-size:12px; transition:all .2s; position:relative; }
-  .mini-cal-day:hover { background:var(--card2); }
-  .mini-cal-day.today { background:var(--accent); color:#fff; font-weight:700; }
-  .mini-cal-day.selected { background:var(--accent2); color:#fff; font-weight:700; }
-  .mini-cal-day.has-task::after { content:''; position:absolute; bottom:2px; left:50%;
-    transform:translateX(-50%); width:4px; height:4px; background:var(--accent3); border-radius:50%; }
-  .mini-cal-day.has-pending::after { background:var(--danger); }
-  .mini-cal-day.other-month { color:var(--border); }
+/* SIDEBAR */
+.sidebar{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;
+  overflow-y:auto;height:calc(100vh - var(--header-h) - var(--footer-h));transition:background .3s;}
+.sb-sec{padding:14px 16px;border-bottom:1px solid var(--border);}
+.sb-title{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.sb-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-  /* ALERTS */
-  .alert-card { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3);
-    border-radius:10px; padding:12px; margin-bottom:8px; cursor:pointer; transition:all .2s; }
-  .alert-card:hover { background:rgba(239,68,68,0.15); }
-  .alert-card .alert-title { font-size:12px; font-weight:600; color:#fca5a5; margin-bottom:4px; }
-  .alert-card .alert-info { font-size:11px; color:var(--muted); }
-  .alert-badge { background:var(--danger); color:#fff; border-radius:50%; width:20px; height:20px;
-    display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+/* Mini Cal */
+.mini-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.mini-nav button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;
+  width:26px;height:26px;border-radius:6px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.mini-nav button:hover{background:var(--bg);color:var(--text);}
+.mini-month{font-weight:700;font-size:12px;}
+.mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.mini-dh{text-align:center;font-size:9px;color:var(--muted);padding:3px 0;font-weight:700;}
+.mini-d{text-align:center;padding:4px 2px;border-radius:5px;cursor:pointer;font-size:11px;transition:all .15s;position:relative;}
+.mini-d:hover{background:var(--bg);}
+.mini-d.today{background:var(--accent);color:#fff;font-weight:700;}
+.mini-d.selected{background:var(--accent2);color:#fff;font-weight:700;}
+.mini-d.has-pending::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+  width:3px;height:3px;background:var(--danger);border-radius:50%;}
+.mini-d.has-task:not(.has-pending)::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+  width:3px;height:3px;background:var(--accent3);border-radius:50%;}
+.mini-d.other-month{color:var(--border);}
 
-  /* STATS */
-  .stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-  .stat-box { background:var(--card2); border-radius:10px; padding:10px; text-align:center; }
-  .stat-box .num { font-size:22px; font-weight:800; }
-  .stat-box .lbl { font-size:10px; color:var(--muted); margin-top:2px; }
-  .stat-box.open .num { color:var(--warn); }
-  .stat-box.done .num { color:var(--accent3); }
-  .stat-box.email .num { color:var(--accent2); }
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.stat-box{background:var(--bg);border-radius:9px;padding:9px 11px;border:1px solid var(--border);}
+.stat-num{font-size:22px;font-weight:800;line-height:1;}
+.stat-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:600;}
+.s-open .stat-num{color:var(--danger);}
+.s-done .stat-num{color:var(--accent3);}
+.s-email .stat-num{color:var(--accent2);}
+.s-all .stat-num{color:var(--accent);}
 
-  /* CONTENT AREA */
-  .content { display:flex; flex-direction:column; overflow:hidden; }
-  .content-tabs { display:flex; gap:0; border-bottom:2px solid var(--border); background:var(--card); }
-  .tab { padding:14px 22px; cursor:pointer; font-size:13px; font-weight:600; color:var(--muted);
-    border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; user-select:none; }
-  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-  .tab:hover { color:var(--text); }
+/* Alerts */
+.alert-card{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-left:3px solid var(--danger);
+  border-radius:7px;padding:9px 11px;margin-bottom:5px;cursor:pointer;transition:all .2s;}
+.alert-card:hover{background:rgba(239,68,68,.1);}
+.alert-title{font-size:11px;font-weight:600;color:var(--danger);margin-bottom:2px;}
+.alert-meta{font-size:10px;color:var(--muted);}
+.alert-badge{background:var(--danger);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;}
 
-  .tab-content { display:none; flex:1; overflow-y:auto; padding:24px; }
-  .tab-content.active { display:block; }
+/* CONTENT */
+.content{display:flex;flex-direction:column;overflow:hidden;}
+.tab-content{display:none;flex:1;overflow-y:auto;padding:22px;height:calc(100vh - var(--header-h) - var(--footer-h));}
+.tab-content.active{display:block;}
 
-  /* CALENDAR VIEW */
-  .cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-  .cal-header h2 { font-size:20px; font-weight:700; }
-  .cal-nav { display:flex; gap:8px; align-items:center; }
-  .cal-nav button { background:var(--card); border:1px solid var(--border); color:var(--text);
-    padding:8px 14px; border-radius:8px; cursor:pointer; font-size:14px; transition:all .2s; }
-  .cal-nav button:hover { background:var(--card2); border-color:var(--accent); }
-  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--border); border-radius:12px; overflow:hidden; }
-  .cal-day-header { background:var(--card); padding:10px 8px; text-align:center; font-size:11px;
-    font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-  .cal-day-header:nth-child(1) { color:#ef4444; } /* seg */
-  .cal-day-header:nth-child(2) { color:#3b82f6; }
-  .cal-day-header:nth-child(3) { color:#8b5cf6; }
-  .cal-day-header:nth-child(4) { color:#f97316; }
-  .cal-day-header:nth-child(5) { color:#10b981; }
-  .cal-day-header:nth-child(6) { color:#64748b; }
-  .cal-day-header:nth-child(7) { color:#64748b; }
-  
-  .cal-cell { background:var(--card); min-height:100px; padding:8px; cursor:pointer;
-    transition:all .2s; position:relative; }
-  .cal-cell:hover { background:var(--card2); }
-  .cal-cell.today { background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.3); }
-  .cal-cell.other-month { opacity:.4; }
-  .cal-cell.selected { background:rgba(14,165,233,0.1); border:1px solid rgba(14,165,233,0.4); }
-  .cal-day-num { font-size:13px; font-weight:700; margin-bottom:6px; }
-  .cal-cell.today .cal-day-num { color:var(--accent); }
-  .cal-task-chip { border-radius:5px; padding:2px 6px; font-size:10px; font-weight:600;
-    margin-bottom:2px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .chip-open { background:rgba(239,68,68,0.2); color:#fca5a5; border-left:2px solid #ef4444; }
-  .chip-done { background:rgba(34,197,94,0.15); color:#86efac; border-left:2px solid #22c55e; }
-  .chip-email { background:rgba(14,165,233,0.15); color:#7dd3fc; border-left:2px solid #0ea5e9; }
-  .more-badge { font-size:10px; color:var(--muted); padding:2px 6px; }
+/* Page header */
+.pg-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.pg-hdr h2{font-size:17px;font-weight:700;}
 
-  /* TASK LIST */
-  .task-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-  .task-header h3 { font-size:16px; font-weight:700; }
-  .btn-primary { background:linear-gradient(135deg,var(--accent),#fb923c); color:#fff;
-    border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:13px;
-    font-family:'Sora',sans-serif; font-weight:600; transition:all .2s; box-shadow:0 4px 15px rgba(249,115,22,0.3); }
-  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(249,115,22,0.4); }
-  .btn-secondary { background:var(--card); border:1px solid var(--border); color:var(--text);
-    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:12px; font-family:'Sora',sans-serif;
-    font-weight:600; transition:all .2s; }
-  .btn-secondary:hover { background:var(--card2); border-color:var(--accent2); }
+/* Buttons */
+.btn{padding:8px 16px;border-radius:9px;cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;
+  font-weight:600;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#fb923c);color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.3);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(249,115,22,.4);}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent2);background:var(--bg);}
+.btn-danger{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:var(--danger);}
+.btn-danger:hover{background:rgba(239,68,68,.15);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--card2);
+  color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .2s;}
+.icon-btn:hover{border-color:var(--accent2);color:var(--text);}
+.ib-ok:hover{border-color:var(--accent3)!important;background:rgba(16,185,129,.1)!important;color:var(--accent3)!important;}
+.ib-del:hover{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important;}
+.ib-mail:hover{border-color:var(--accent2)!important;background:rgba(14,165,233,.1)!important;color:var(--accent2)!important;}
 
-  .task-card { background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:16px; margin-bottom:10px; transition:all .2s; position:relative; overflow:hidden; }
-  .task-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
-  .task-card.open::before { background:var(--danger); }
-  .task-card.done::before { background:var(--accent3); }
-  .task-card.email-type::before { background:var(--accent2); }
-  .task-card:hover { border-color:var(--accent2); transform:translateX(2px); }
-  .task-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-  .task-info { flex:1; }
-  .task-title { font-weight:600; font-size:14px; margin-bottom:4px; }
-  .task-meta { display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--muted); }
-  .task-tag { background:var(--card2); padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; }
-  .tag-open { color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
-  .tag-done { color:var(--accent3); border:1px solid rgba(34,197,94,0.3); }
-  .tag-email { color:var(--accent2); border:1px solid rgba(14,165,233,0.3); }
-  .task-actions { display:flex; gap:6px; flex-shrink:0; }
-  .icon-btn { background:var(--card2); border:1px solid var(--border); color:var(--muted);
-    width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; font-size:14px; transition:all .2s; border:none; }
-  .icon-btn:hover { background:var(--card); color:var(--text); }
-  .icon-btn.close-btn:hover { background:rgba(34,197,94,0.2); color:var(--accent3); }
-  .icon-btn.del-btn:hover { background:rgba(239,68,68,0.2); color:var(--danger); }
-  .icon-btn.email-btn:hover { background:rgba(14,165,233,0.2); color:var(--accent2); }
-  .email-link { color:var(--accent2); text-decoration:none; font-size:12px; }
-  .email-link:hover { text-decoration:underline; }
+/* Filter */
+.filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.fb{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;
+  border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;}
+.fb:hover{border-color:var(--accent2);color:var(--text);}
+.fb.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-  /* EMAIL COMPOSE */
-  .compose-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
-  .form-row { margin-bottom:16px; }
-  .form-label { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
-  .form-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
-    padding:10px 14px; border-radius:8px; font-family:'Sora',sans-serif; font-size:13px; transition:all .2s; }
-  .form-input:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(14,165,233,0.1); }
-  .form-textarea { min-height:140px; resize:vertical; }
-  .form-select { appearance:none; cursor:pointer; }
-  .compose-actions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
-  .greeting-btns { display:flex; gap:8px; margin-bottom:8px; }
-  .greeting-btn { background:var(--card2); border:1px solid var(--border); color:var(--muted);
-    padding:5px 12px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600;
-    transition:all .2s; font-family:'Sora',sans-serif; }
-  .greeting-btn:hover { border-color:var(--accent); color:var(--accent); }
-  .greeting-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(249,115,22,0.1); }
+/* CALENDAR */
+.cal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.cal-top h2{font-size:16px;font-weight:700;}
+.cal-nav-btns button{background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;margin-left:5px;}
+.cal-nav-btns button:hover{border-color:var(--accent);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);
+  border-radius:11px;overflow:hidden;border:1px solid var(--border);}
+.cal-dh{background:var(--card2);padding:9px 6px;text-align:center;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.cal-dh:nth-child(6),.cal-dh:nth-child(7){color:var(--danger);}
+.cal-cell{background:var(--card);min-height:85px;padding:6px;cursor:pointer;transition:background .15s;}
+.cal-cell:hover{background:var(--bg);}
+.cal-cell.today{background:rgba(249,115,22,.05);}
+.cal-cell.today .cal-dn{color:var(--accent);}
+.cal-cell.selected{background:rgba(14,165,233,.06);}
+.cal-cell.other-month{opacity:.4;}
+.cal-dn{font-size:11px;font-weight:700;margin-bottom:4px;}
+.chip{border-radius:4px;padding:2px 4px;font-size:9px;font-weight:700;margin-bottom:2px;
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chip-open{background:rgba(239,68,68,.1);color:#dc2626;border-left:2px solid var(--danger);}
+.chip-done{background:rgba(16,185,129,.1);color:#059669;border-left:2px solid var(--accent3);}
+.chip-email{background:rgba(14,165,233,.1);color:#0284c7;border-left:2px solid var(--accent2);}
+.chip-more{font-size:9px;color:var(--muted);padding:1px 4px;}
 
-  /* MODALS */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000;
-    display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-  .modal-overlay.open { display:flex; }
-  .modal { background:var(--card); border:1px solid var(--border); border-radius:16px;
-    padding:28px; width:90%; max-width:560px; max-height:85vh; overflow-y:auto;
-    box-shadow:0 25px 80px rgba(0,0,0,0.6); animation:slideUp .3s ease; }
-  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
-  .modal-title { font-size:18px; font-weight:700; }
-  .modal-close { background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer;
-    width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:all .2s; }
-  .modal-close:hover { background:var(--card2); color:var(--text); }
+/* TASK CARDS */
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:11px;
+  padding:13px 15px;margin-bottom:8px;transition:all .2s;position:relative;overflow:hidden;}
+.task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.tc-open::before{background:var(--danger);}
+.tc-done::before{background:var(--accent3);}
+.tc-email::before{background:var(--accent2);}
+.task-card:hover{box-shadow:var(--shadow);transform:translateX(1px);}
+.task-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.task-info{flex:1;min-width:0;}
+.task-title{font-weight:600;font-size:13px;margin-bottom:4px;}
+.task-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag-open{background:rgba(239,68,68,.08);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+.tag-done{background:rgba(16,185,129,.08);color:var(--accent3);border:1px solid rgba(16,185,129,.2);}
+.tag-cat{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
+.task-desc{font-size:11px;color:var(--muted);margin-top:4px;}
+.task-actions{display:flex;gap:4px;flex-shrink:0;}
+.email-link{color:var(--accent2);text-decoration:none;font-size:11px;}
+.email-link:hover{text-decoration:underline;}
+.overdue-badge{background:rgba(239,68,68,.1);color:var(--danger);font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:20px;border:1px solid rgba(239,68,68,.25);}
 
-  /* REPORT */
-  .report-section { background:var(--bg); border-radius:10px; padding:16px; margin-bottom:14px; }
-  .report-section h4 { font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:12px; }
-  .report-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
-  .report-item:last-child { border-bottom:none; }
+/* FORMS */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px;}
+.form-row{margin-bottom:13px;}
+.form-label{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block;
+  text-transform:uppercase;letter-spacing:.5px;}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;transition:all .2s;}
+.form-input:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(14,165,233,.1);}
+.form-textarea{min-height:110px;resize:vertical;}
+.form-select{appearance:none;cursor:pointer;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.gb-row{display:flex;gap:6px;margin-bottom:6px;}
+.gb{background:var(--bg);border:1px solid var(--border);color:var(--muted);padding:5px 11px;
+  border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;}
+.gb:hover,.gb.active{border-color:var(--accent);color:var(--accent);background:rgba(249,115,22,.07);}
+.compose-foot{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px;}
 
-  /* BACKUP */
-  .backup-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
-  .backup-btns { display:flex; gap:10px; flex-wrap:wrap; }
-  .backup-info { background:var(--bg); border-radius:8px; padding:12px; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:14px; }
+/* DASHBOARD */
+.dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;
+  position:relative;overflow:hidden;}
+.kpi::after{content:attr(data-icon);position:absolute;right:12px;bottom:6px;font-size:34px;opacity:.1;}
+.kpi-val{font-size:30px;font-weight:800;line-height:1;}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--muted);margin-top:3px;}
+.kpi-open .kpi-val{color:var(--danger);}
+.kpi-done .kpi-val{color:var(--accent3);}
+.kpi-email .kpi-val{color:var(--accent2);}
+.kpi-rate .kpi-val{color:var(--purple);}
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:20px;}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;}
+.chart-card h3{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:12px;}
+.chart-wrap{position:relative;height:165px;}
+.prog-item{margin-bottom:9px;}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px;}
+.prog-bar{height:6px;background:var(--bg);border-radius:20px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:20px;transition:width .5s ease;}
+.act-item{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
-  /* TOAST */
-  #toast { position:fixed; bottom:60px; right:20px; background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:12px 18px; font-size:13px; font-weight:500; z-index:9999;
-    display:none; box-shadow:0 8px 30px rgba(0,0,0,0.4); max-width:300px; }
-  #toast.show { display:flex; gap:10px; align-items:center; animation:slideUp .3s ease; }
-  #toast.success { border-left:3px solid var(--accent3); }
-  #toast.error { border-left:3px solid var(--danger); }
-  #toast.info { border-left:3px solid var(--accent2); }
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:24px;
+  width:90%;max-width:530px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .25s ease;}
+.modal.modal-lg{max-width:650px;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:7px;transition:all .2s;}
+.modal-close:hover{background:var(--bg);color:var(--text);}
+.modal-foot{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
 
-  /* FOOTER */
-  footer { height:var(--footer-h); background:var(--card); border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between; padding:0 24px; font-size:11px; color:var(--muted); }
-  .footer-center { color:var(--accent); font-weight:600; }
+/* Report */
+.rep-section{background:var(--bg);border-radius:9px;padding:13px;margin-bottom:11px;border:1px solid var(--border);}
+.rep-section h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:9px;}
+.rep-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.rep-row:last-child{border:none;}
 
-  /* EMPTY STATE */
-  .empty-state { text-align:center; padding:40px; color:var(--muted); }
-  .empty-state .icon { font-size:40px; margin-bottom:12px; }
-  .empty-state p { font-size:14px; }
+/* Backup */
+.backup-info{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px;
+  font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:12px;line-height:1.8;white-space:pre-wrap;}
 
-  /* FILTER BAR */
-  .filter-bar { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
-  .filter-btn { background:var(--card); border:1px solid var(--border); color:var(--muted);
-    padding:6px 14px; border-radius:20px; cursor:pointer; font-size:11px; font-weight:600;
-    transition:all .2s; font-family:'Sora',sans-serif; }
-  .filter-btn:hover { border-color:var(--accent2); color:var(--text); }
-  .filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+/* Toast */
+#toast{position:fixed;bottom:52px;right:16px;background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:10px 15px;font-size:12px;font-weight:600;z-index:9999;
+  display:none;gap:8px;align-items:center;box-shadow:var(--shadow-lg);max-width:270px;}
+#toast.show{display:flex;animation:slideUp .25s ease;}
+#toast.t-success{border-left:3px solid var(--accent3);}
+#toast.t-error{border-left:3px solid var(--danger);}
+#toast.t-info{border-left:3px solid var(--accent2);}
 
-  ::-webkit-scrollbar { width:5px; height:5px; }
-  ::-webkit-scrollbar-track { background:var(--bg); }
-  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  ::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+/* Empty */
+.empty-state{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty-state .ei{font-size:40px;margin-bottom:10px;}
+.empty-state p{font-size:13px;}
 
-  @media(max-width:768px) {
-    main { grid-template-columns:1fr; }
-    .sidebar { height:auto; max-height:300px; }
-  }
+/* Footer */
+footer{height:var(--footer-h);background:var(--card);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  font-size:11px;color:var(--muted);transition:background .3s;}
+.footer-brand{color:var(--accent);font-weight:700;}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header>
-  <div class="logo">
-    <div class="logo-icon">P</div>
-    <div class="logo-text"><span>Pedrinho</span> — Rotinas</div>
-  </div>
+  <a class="logo" href="#" onclick="showTab('dashboard');return false;">
+    <img src="pedrinho.png" alt="Pedrinho" id="logoImg" onerror="this.style.display='none';document.getElementById('logoFB').style.display='flex'">
+    <div class="logo-fb" id="logoFB" style="display:none">P</div>
+    <div>
+      <div class="logo-name"><span>Pedrinho</span> Rotinas</div>
+      <div class="logo-sub">Acompanhamento de Rotinas Diárias</div>
+    </div>
+  </a>
+
+  <nav class="header-nav">
+    <div class="nav-tab active" onclick="showTab('dashboard')" id="nt-dashboard">🏠 Painel</div>
+    <div class="nav-tab" onclick="showTab('calendar')" id="nt-calendar">📅 Calendário</div>
+    <div class="nav-tab" onclick="showTab('tasks')" id="nt-tasks">✅ Tarefas</div>
+    <div class="nav-tab" onclick="showTab('emails')" id="nt-emails">📧 E-mails</div>
+    <div class="nav-tab" onclick="showTab('compose')" id="nt-compose">✉️ Redigir</div>
+    <div class="nav-tab" onclick="showTab('charts')" id="nt-charts">📊 Gráficos</div>
+    <div class="nav-tab" onclick="showTab('backup')" id="nt-backup">💾 Backup</div>
+  </nav>
+
   <div class="header-right">
     <span id="greeting-badge">☀️ Bom dia!</span>
-    <span id="clock">00:00:00</span>
-    <button class="header-btn" onclick="openReport()">📊 Relatório</button>
-    <button class="header-btn" onclick="showTab('backup')">💾 Backup</button>
+    <span id="clock">--:--:--</span>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
 
-<main>
+<div class="layout">
+
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-title">Calendário</div>
-      <div class="mini-cal-nav">
-        <button onclick="miniCalPrev()">‹</button>
-        <span class="mini-cal-month" id="miniCalTitle"></span>
-        <button onclick="miniCalNext()">›</button>
+    <div class="sb-sec">
+      <div class="sb-title">Calendário Rápido</div>
+      <div class="mini-nav">
+        <button onclick="miniPrev()">‹</button>
+        <span class="mini-month" id="miniTitle"></span>
+        <button onclick="miniNext()">›</button>
       </div>
-      <div class="mini-cal-grid" id="miniCalGrid"></div>
+      <div class="mini-grid" id="miniGrid"></div>
     </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-title">Alertas Pendentes <span class="alert-badge" id="alertCount">0</span></div>
+    <div class="sb-sec">
+      <div class="sb-title">Resumo do Mês</div>
+      <div class="stats-grid">
+        <div class="stat-box s-open"><div class="stat-num" id="st-open">0</div><div class="stat-lbl">⚡ Em Aberto</div></div>
+        <div class="stat-box s-done"><div class="stat-num" id="st-done">0</div><div class="stat-lbl">✅ Fechadas</div></div>
+        <div class="stat-box s-email"><div class="stat-num" id="st-email">0</div><div class="stat-lbl">📧 Pendentes</div></div>
+        <div class="stat-box s-all"><div class="stat-num" id="st-all">0</div><div class="stat-lbl">📋 Total</div></div>
+      </div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-title">⚠️ Alertas <span class="alert-badge" id="alertBadge">0</span></div>
       <div id="alertList"></div>
     </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-title">Resumo do Mês</div>
-      <div class="stats-row">
-        <div class="stat-box open"><div class="num" id="statOpen">0</div><div class="lbl">Em Aberto</div></div>
-        <div class="stat-box done"><div class="num" id="statDone">0</div><div class="lbl">Fechadas</div></div>
-        <div class="stat-box email"><div class="num" id="statEmail">0</div><div class="lbl">E-mails</div></div>
+    <div class="sb-sec">
+      <div class="sb-title">Atalhos Rápidos</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <button class="btn btn-primary btn-sm" onclick="openAddTask()" style="width:100%;justify-content:center;">+ Nova Tarefa</button>
+        <button class="btn btn-secondary btn-sm" onclick="showTab('compose')" style="width:100%;justify-content:center;">✉️ Redigir E-mail</button>
+        <button class="btn btn-secondary btn-sm" onclick="openReport()" style="width:100%;justify-content:center;">📊 Relatório</button>
       </div>
     </div>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
-    <div class="content-tabs">
-      <div class="tab active" onclick="showTab('calendar')" id="tab-calendar">📅 Calendário</div>
-      <div class="tab" onclick="showTab('tasks')" id="tab-tasks">✅ Tarefas</div>
-      <div class="tab" onclick="showTab('emails')" id="tab-emails">📧 E-mails</div>
-      <div class="tab" onclick="showTab('compose')" id="tab-compose">✉️ Redigir</div>
-      <div class="tab" onclick="showTab('backup')" id="tab-backup">💾 Backup</div>
+
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="tc-dashboard">
+      <div class="pg-hdr">
+        <h2>🏠 Painel de Controle</h2>
+        <button class="btn btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
+      </div>
+      <div class="dash-kpis">
+        <div class="kpi kpi-open" data-icon="⚡"><div class="kpi-val" id="kpi-open">0</div><div class="kpi-lbl">Tarefas Em Aberto</div></div>
+        <div class="kpi kpi-done" data-icon="✅"><div class="kpi-val" id="kpi-done">0</div><div class="kpi-lbl">Tarefas Fechadas</div></div>
+        <div class="kpi kpi-email" data-icon="📧"><div class="kpi-val" id="kpi-email">0</div><div class="kpi-lbl">E-mails Pendentes</div></div>
+        <div class="kpi kpi-rate" data-icon="🎯"><div class="kpi-val" id="kpi-rate">0%</div><div class="kpi-lbl">Taxa de Resolução</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><h3>Status das Tarefas</h3><div class="chart-wrap"><canvas id="cDonut"></canvas></div></div>
+        <div class="chart-card"><h3>Por Categoria (em aberto)</h3><div style="padding-top:4px" id="progList"></div></div>
+        <div class="chart-card"><h3>Atividade Recente</h3><div id="actList" style="max-height:190px;overflow-y:auto;"></div></div>
+      </div>
+      <div class="sb-title" style="margin-bottom:12px;">⚠️ Tarefas Vencidas / Hoje</div>
+      <div id="dashOverdue"></div>
     </div>
 
-    <!-- TAB: CALENDAR -->
-    <div class="tab-content active" id="content-calendar">
-      <div class="cal-header">
-        <h2 id="calTitle">Dezembro 2024</h2>
-        <div class="cal-nav">
-          <button onclick="calPrev()">‹ Anterior</button>
-          <button onclick="calToday()">Hoje</button>
-          <button onclick="calNext()">Próximo ›</button>
-          <button class="btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
+    <!-- CALENDAR -->
+    <div class="tab-content" id="tc-calendar">
+      <div class="cal-top">
+        <h2 id="calTitle">—</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="cal-nav-btns">
+            <button onclick="calPrev()">‹</button>
+            <button onclick="calToday()">Hoje</button>
+            <button onclick="calNext()">›</button>
+          </div>
+          <button class="btn btn-primary" onclick="openAddTask()">+ Tarefa</button>
         </div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
     </div>
 
-    <!-- TAB: TASKS -->
-    <div class="tab-content" id="content-tasks">
-      <div class="task-header">
-        <h3 id="taskListTitle">Todas as Tarefas</h3>
-        <button class="btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
+    <!-- TASKS -->
+    <div class="tab-content" id="tc-tasks">
+      <div class="pg-hdr">
+        <h2>✅ Tarefas</h2>
+        <button class="btn btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
       </div>
       <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterTasks('all',this)">Todas</button>
-        <button class="filter-btn" onclick="filterTasks('open',this)">Em Aberto</button>
-        <button class="filter-btn" onclick="filterTasks('done',this)">Fechadas</button>
-        <button class="filter-btn" onclick="filterTasks('email',this)">Com E-mail</button>
+        <button class="fb active" onclick="filterTasks('all',this)">Todas</button>
+        <button class="fb" onclick="filterTasks('open',this)">⚡ Em Aberto</button>
+        <button class="fb" onclick="filterTasks('done',this)">✅ Fechadas</button>
+        <button class="fb" onclick="filterTasks('overdue',this)">🔴 Vencidas</button>
+        <button class="fb" onclick="filterTasks('email',this)">📧 Com E-mail</button>
+        <button class="fb" onclick="filterTasks('alta',this)">🔴 Alta Prioridade</button>
       </div>
       <div id="taskList"></div>
     </div>
 
-    <!-- TAB: EMAILS -->
-    <div class="tab-content" id="content-emails">
-      <div class="task-header">
-        <h3>E-mails Registrados</h3>
-        <button class="btn-primary" onclick="showTab('compose')">+ Redigir E-mail</button>
+    <!-- EMAILS -->
+    <div class="tab-content" id="tc-emails">
+      <div class="pg-hdr">
+        <h2>📧 E-mails Registrados</h2>
+        <button class="btn btn-primary" onclick="showTab('compose')">✉️ Redigir</button>
       </div>
       <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterEmails('all',this)">Todos</button>
-        <button class="filter-btn" onclick="filterEmails('pending',this)">Aguardando Resposta</button>
-        <button class="filter-btn" onclick="filterEmails('resolved',this)">Resolvidos</button>
+        <button class="fb active" onclick="filterEmails('all',this)">Todos</button>
+        <button class="fb" onclick="filterEmails('pending',this)">⏳ Aguardando</button>
+        <button class="fb" onclick="filterEmails('resolved',this)">✅ Resolvidos</button>
       </div>
       <div id="emailList"></div>
     </div>
 
-    <!-- TAB: COMPOSE -->
-    <div class="tab-content" id="content-compose">
-      <div class="task-header">
-        <h3>✉️ Redigir E-mail</h3>
-      </div>
-      <div class="compose-card">
+    <!-- COMPOSE -->
+    <div class="tab-content" id="tc-compose">
+      <div class="pg-hdr"><h2>✉️ Redigir E-mail</h2></div>
+      <div class="form-card">
         <div class="form-row">
-          <label class="form-label">Saudação</label>
-          <div class="greeting-btns">
-            <button class="greeting-btn" onclick="insertGreeting('Bom dia')">☀️ Bom dia</button>
-            <button class="greeting-btn" onclick="insertGreeting('Boa tarde')">🌤️ Boa tarde</button>
-            <button class="greeting-btn" onclick="insertGreeting('Boa noite')">🌙 Boa noite</button>
+          <label class="form-label">Saudação automática</label>
+          <div class="gb-row">
+            <button class="gb" onclick="insertGreeting('Bom dia',this)">☀️ Bom dia</button>
+            <button class="gb" onclick="insertGreeting('Boa tarde',this)">🌤️ Boa tarde</button>
+            <button class="gb" onclick="insertGreeting('Boa noite',this)">🌙 Boa noite</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Para (e-mail) *</label>
+            <input type="email" class="form-input" id="cTo" placeholder="destinatario@empresa.com">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Categoria</label>
+            <select class="form-input form-select" id="cCat">
+              <option value="nf">Lançamento de NF</option>
+              <option value="periodo">Abertura de Período</option>
+              <option value="fornecedor">Fornecedor</option>
+              <option value="financeiro">Financeiro</option>
+              <option value="rh">RH</option>
+              <option value="outros">Outros</option>
+            </select>
           </div>
         </div>
         <div class="form-row">
-          <label class="form-label">Para (e-mail)</label>
-          <input type="email" class="form-input" id="emailTo" placeholder="destinatario@empresa.com">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Assunto</label>
-          <input type="text" class="form-input" id="emailSubject" placeholder="Ex: Solicitação de abertura de período para lançamento de NF">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Categoria</label>
-          <select class="form-input form-select" id="emailCategory">
-            <option value="nf">Lançamento de NF</option>
-            <option value="periodo">Abertura de Período</option>
-            <option value="fornecedor">Fornecedor</option>
-            <option value="financeiro">Financeiro</option>
-            <option value="outros">Outros</option>
-          </select>
+          <label class="form-label">Assunto *</label>
+          <input type="text" class="form-input" id="cSubj" placeholder="Ex: Solicitação de abertura de período para lançamento de NF">
         </div>
         <div class="form-row">
           <label class="form-label">Corpo do E-mail</label>
-          <textarea class="form-input form-textarea" id="emailBody" placeholder="Escreva o corpo do e-mail aqui..."></textarea>
+          <textarea class="form-input form-textarea" id="cBody" placeholder="Escreva o conteúdo do e-mail aqui..."></textarea>
         </div>
-        <div class="form-row">
-          <label class="form-label">Data de Envio</label>
-          <input type="date" class="form-input" id="emailDate">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Data de Envio</label>
+            <input type="date" class="form-input" id="cDate">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Criar tarefa vinculada?</label>
+            <select class="form-input form-select" id="cTask">
+              <option value="yes">✅ Sim — acompanhar resposta</option>
+              <option value="no">Não</option>
+            </select>
+          </div>
         </div>
-        <div class="form-row">
-          <label class="form-label">Criar tarefa vinculada ao e-mail?</label>
-          <select class="form-input form-select" id="createTaskWithEmail">
-            <option value="yes">Sim — Criar tarefa para acompanhar resposta</option>
-            <option value="no">Não</option>
-          </select>
-        </div>
-        <div class="compose-actions">
-          <button class="btn-secondary" onclick="clearCompose()">🗑️ Limpar</button>
-          <button class="btn-secondary" onclick="copyEmailBody()">📋 Copiar corpo</button>
-          <button class="btn-primary" onclick="openEmailClient()">📤 Abrir no cliente de e-mail</button>
-          <button class="btn-primary" onclick="saveEmail()">💾 Salvar registro</button>
+        <div class="compose-foot">
+          <button class="btn btn-secondary" onclick="clearCompose()">🗑️ Limpar</button>
+          <button class="btn btn-secondary" onclick="copyBody()">📋 Copiar corpo</button>
+          <button class="btn btn-secondary" onclick="openMailClient()">📤 Abrir no cliente</button>
+          <button class="btn btn-primary" onclick="saveEmail()">💾 Salvar registro</button>
         </div>
       </div>
     </div>
 
-    <!-- TAB: BACKUP -->
-    <div class="tab-content" id="content-backup">
-      <div class="task-header">
-        <h3>💾 Backup e Restauração</h3>
+    <!-- CHARTS -->
+    <div class="tab-content" id="tc-charts">
+      <div class="pg-hdr"><h2>📊 Gráficos & Análise</h2></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="chart-card"><h3>Tarefas — Aberto vs Fechado</h3><div class="chart-wrap"><canvas id="cBar"></canvas></div></div>
+        <div class="chart-card"><h3>Distribuição por Categoria</h3><div class="chart-wrap"><canvas id="cPie"></canvas></div></div>
       </div>
-      <div class="backup-card">
-        <p style="color:var(--muted);font-size:13px;margin-bottom:18px;">Todos os dados são salvos automaticamente no armazenamento local do navegador (JSON). Exporte para manter um backup externo.</p>
-        <div class="backup-btns">
-          <button class="btn-primary" onclick="doBackup()">⬇️ Exportar Backup (JSON)</button>
-          <button class="btn-secondary" onclick="document.getElementById('restoreFile').click()">⬆️ Restaurar Backup</button>
-          <button class="btn-secondary" onclick="clearAllData()" style="border-color:rgba(239,68,68,0.4);color:#fca5a5;">🗑️ Limpar Tudo</button>
-        </div>
-        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(event)">
-        <div class="backup-info" id="backupInfo">Carregando informações de armazenamento...</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="chart-card"><h3>E-mails — Pendentes vs Resolvidos</h3><div class="chart-wrap"><canvas id="cEmailBar"></canvas></div></div>
+        <div class="chart-card"><h3>Evolução Mensal (tarefas criadas)</h3><div class="chart-wrap"><canvas id="cLine"></canvas></div></div>
       </div>
     </div>
+
+    <!-- BACKUP -->
+    <div class="tab-content" id="tc-backup">
+      <div class="pg-hdr"><h2>💾 Backup & Restauração</h2></div>
+      <div class="form-card">
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Dados salvos automaticamente no <strong>localStorage</strong> (JSON). Exporte para manter cópias seguras.</p>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="doBackup()">⬇️ Exportar Backup</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">⬆️ Restaurar Backup</button>
+          <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar Todos os Dados</button>
+        </div>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(event)">
+        <div class="backup-info" id="backupInfo">Carregando...</div>
+      </div>
+    </div>
+
   </div>
-</main>
+</div>
 
 <!-- FOOTER -->
 <footer>
   <span>🗓️ Sistema de Acompanhamento de Rotinas Diárias</span>
-  <span class="footer-center">⚡ Pedrinho Rotinas v2.0</span>
-  <span id="footerDate">Carregando...</span>
+  <span class="footer-brand">⚡ Pedrinho Rotinas v3.0</span>
+  <span id="footerDate">—</span>
 </footer>
 
-<!-- MODAL: ADD/EDIT TASK -->
-<div class="modal-overlay" id="taskModal">
+<!-- MODAL TASK -->
+<div class="modal-overlay" id="modalTask">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="taskModalTitle">➕ Nova Tarefa</div>
-      <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTaskTitle">➕ Nova Tarefa</div>
+      <button class="modal-close" onclick="closeModal('modalTask')">✕</button>
     </div>
-    <div class="form-row">
-      <label class="form-label">Título da Tarefa *</label>
-      <input type="text" class="form-input" id="taskTitle" placeholder="Ex: Solicitar abertura de período para NF">
+    <div class="form-row"><label class="form-label">Título *</label>
+      <input type="text" class="form-input" id="tTitle" placeholder="Ex: Verificar NF pendente"></div>
+    <div class="form-row"><label class="form-label">Descrição</label>
+      <textarea class="form-input" style="min-height:65px;resize:vertical" id="tDesc" placeholder="Detalhes..."></textarea></div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">Data *</label>
+        <input type="date" class="form-input" id="tDate"></div>
+      <div class="form-row"><label class="form-label">Prioridade</label>
+        <select class="form-input form-select" id="tPrio">
+          <option value="media">🟡 Média</option>
+          <option value="alta">🔴 Alta</option>
+          <option value="baixa">🟢 Baixa</option>
+        </select></div>
     </div>
-    <div class="form-row">
-      <label class="form-label">Descrição</label>
-      <textarea class="form-input" style="min-height:80px;resize:vertical" id="taskDesc" placeholder="Detalhes da tarefa..."></textarea>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">Categoria</label>
+        <select class="form-input form-select" id="tCat">
+          <option value="geral">Geral</option>
+          <option value="nf">Lançamento de NF</option>
+          <option value="financeiro">Financeiro</option>
+          <option value="fornecedor">Fornecedor</option>
+          <option value="email">Acompanhar E-mail</option>
+          <option value="rh">RH</option>
+          <option value="outros">Outros</option>
+        </select></div>
+      <div class="form-row"><label class="form-label">E-mail vinculado</label>
+        <input type="email" class="form-input" id="tEmail" placeholder="email@empresa.com"></div>
     </div>
-    <div class="form-row">
-      <label class="form-label">Data</label>
-      <input type="date" class="form-input" id="taskDate">
-    </div>
-    <div class="form-row">
-      <label class="form-label">Categoria</label>
-      <select class="form-input form-select" id="taskCategory">
-        <option value="geral">Geral</option>
-        <option value="nf">Lançamento de NF</option>
-        <option value="financeiro">Financeiro</option>
-        <option value="fornecedor">Fornecedor</option>
-        <option value="email">Acompanhar E-mail</option>
-        <option value="outros">Outros</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label class="form-label">E-mail vinculado (destinatário)</label>
-      <input type="email" class="form-input" id="taskEmail" placeholder="email@empresa.com (opcional)">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
-      <button class="btn-secondary" onclick="closeModal('taskModal')">Cancelar</button>
-      <button class="btn-primary" onclick="saveTask()">💾 Salvar Tarefa</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: DAY DETAIL -->
-<div class="modal-overlay" id="dayModal">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-header">
-      <div class="modal-title" id="dayModalTitle">Tarefas do Dia</div>
-      <button class="modal-close" onclick="closeModal('dayModal')">✕</button>
-    </div>
-    <div id="dayModalContent"></div>
-    <div style="margin-top:16px;text-align:right">
-      <button class="btn-primary" onclick="openAddTaskForDay()">+ Adicionar Tarefa Neste Dia</button>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('modalTask')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">💾 Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: REPORT -->
-<div class="modal-overlay" id="reportModal">
-  <div class="modal" style="max-width:600px">
-    <div class="modal-header">
+<!-- MODAL DAY -->
+<div class="modal-overlay" id="modalDay">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalDayTitle">Tarefas do Dia</div>
+      <button class="modal-close" onclick="closeModal('modalDay')">✕</button>
+    </div>
+    <div id="modalDayBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="addTaskDay()">+ Adicionar Neste Dia</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REPORT -->
+<div class="modal-overlay" id="modalReport">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
       <div class="modal-title">📊 Relatório de Pendências</div>
-      <button class="modal-close" onclick="closeModal('reportModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('modalReport')">✕</button>
     </div>
-    <div id="reportContent"></div>
-    <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn-secondary" onclick="copyReport()">📋 Copiar Relatório</button>
-      <button class="btn-primary" onclick="closeModal('reportModal')">Fechar</button>
+    <div id="modalReportBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="copyReport()">📋 Copiar</button>
+      <button class="btn btn-primary" onclick="closeModal('modalReport')">Fechar</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ===================== STORAGE =====================
-const STORAGE_KEY = 'pedrinho_data';
+// ── DATA ──────────────────────────────────────
+const KEY='pedrinho_v3';
+let D=(()=>{try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{tasks:[],emails:[],lastBackup:null};}catch{return{tasks:[],emails:[],lastBackup:null};}})();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch{toast('Erro ao salvar.','error');}}
 
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return { tasks: [], emails: [], lastBackup: null };
-}
+// ── STATE ─────────────────────────────────────
+const n0=new Date();
+let calY=n0.getFullYear(),calM=n0.getMonth();
+let mY=n0.getFullYear(),mM=n0.getMonth();
+let selDay=null,editId=null,dayForTask=null;
+let taskFilter='all',emailFilter='all';
+let charts={};
 
-function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-  } catch(e) { showToast('Erro ao salvar dados locais.','error'); }
-}
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DSHORT=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 
-let appData = loadData();
-let calYear, calMonth, miniCalYear, miniCalMonth;
-let selectedDayStr = null;
-let currentFilter = 'all';
-let editingTaskId = null;
-let editingDayForTask = null;
-
-// ===================== INIT =====================
-function init() {
-  const now = new Date();
-  calYear = now.getFullYear();
-  calMonth = now.getMonth();
-  miniCalYear = now.getFullYear();
-  miniCalMonth = now.getMonth();
-  document.getElementById('emailDate').value = now.toISOString().split('T')[0];
-  document.getElementById('taskDate').value = now.toISOString().split('T')[0];
+// ── INIT ──────────────────────────────────────
+function init(){
+  document.getElementById('cDate').value=ds(n0);
+  document.getElementById('tDate').value=ds(n0);
+  const theme=localStorage.getItem('pedrinho_theme')||'light';
+  applyTheme(theme);
   renderAll();
-  startClock();
+  tick();setInterval(tick,1000);
   updateBackupInfo();
 }
 
-function renderAll() {
-  renderCal();
-  renderMiniCal();
-  renderTaskList();
-  renderEmailList();
-  renderAlerts();
-  updateStats();
+function renderAll(){renderCal();renderMini();renderTaskList();renderEmailList();renderAlerts();renderStats();renderDashboard();}
+
+// ── THEME ─────────────────────────────────────
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themeBtn').textContent=t==='dark'?'☀️':'🌙';
+  localStorage.setItem('pedrinho_theme',t);
+  setTimeout(renderCharts,80);
+}
+function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+
+// ── CLOCK ─────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('pt-BR');
+  const h=n.getHours();
+  const[gr,ic]=h<12?['Bom dia!','☀️']:h<18?['Boa tarde!','🌤️']:['Boa noite!','🌙'];
+  document.getElementById('greeting-badge').textContent=ic+' '+gr;
+  const days=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const months=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('footerDate').textContent=`${days[n.getDay()]}, ${n.getDate()} de ${months[n.getMonth()]} de ${n.getFullYear()}`;
 }
 
-// ===================== CLOCK & GREETING =====================
-function startClock() {
-  function tick() {
-    const now = new Date();
-    document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR');
-    const h = now.getHours();
-    let gr, ic;
-    if (h < 12) { gr = 'Bom dia!'; ic = '☀️'; }
-    else if (h < 18) { gr = 'Boa tarde!'; ic = '🌤️'; }
-    else { gr = 'Boa noite!'; ic = '🌙'; }
-    document.getElementById('greeting-badge').textContent = ic + ' ' + gr;
-    const days = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-    const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-    document.getElementById('footerDate').textContent = `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
-  }
-  tick();
-  setInterval(tick, 1000);
-}
+// ── HELPERS ───────────────────────────────────
+function ds(d){return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function p(n){return String(n).padStart(2,'0');}
+function fmtD(s){return s?new Date(s+'T12:00').toLocaleDateString('pt-BR'):'';}
+function isOD(s){return s&&new Date(s+'T23:59:59')<new Date();}
+function isToday(s){return s===ds(new Date());}
+function byDay(s){return D.tasks.filter(t=>t.date===s);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function gv(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Bom dia';
-  if (h < 18) return 'Boa tarde';
-  return 'Boa noite';
-}
-
-// ===================== CALENDAR =====================
-const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DAYS_SHORT = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-
-function renderCal() {
-  document.getElementById('calTitle').textContent = `${MONTHS[calMonth]} ${calYear}`;
-  const grid = document.getElementById('calGrid');
-  const now = new Date();
-  
-  // Headers
-  let html = DAYS_SHORT.map(d => `<div class="cal-day-header">${d}</div>`).join('');
-  
-  // First day of month (0=Sun,1=Mon...)
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const adjust = (firstDay === 0) ? 6 : firstDay - 1; // Monday=0
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
-  
-  const todayStr = dateStr(now);
-  
-  let day = 1;
-  let nextDay = 1;
-  for (let i = 0; i < 42; i++) {
-    let d, month, year, cls = 'cal-cell', isOther = false;
-    if (i < adjust) {
-      d = daysInPrev - adjust + i + 1;
-      month = calMonth - 1; year = calYear;
-      if (month < 0) { month = 11; year--; }
-      isOther = true;
-    } else if (day <= daysInMonth) {
-      d = day++; month = calMonth; year = calYear;
-    } else {
-      d = nextDay++; month = calMonth + 1; year = calYear;
-      if (month > 11) { month = 0; year++; }
-      isOther = true;
-    }
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    if (isOther) cls += ' other-month';
-    if (ds === todayStr) cls += ' today';
-    if (ds === selectedDayStr) cls += ' selected';
-    
-    const dayTasks = getTasksForDay(ds);
-    const taskChips = dayTasks.slice(0,3).map(t => {
-      const c = t.status === 'done' ? 'chip-done' : (t.emailTo ? 'chip-email' : 'chip-open');
-      return `<span class="cal-task-chip ${c}">${t.title}</span>`;
+// ── CALENDAR ──────────────────────────────────
+function renderCal(){
+  document.getElementById('calTitle').textContent=`${MONTHS[calM]} ${calY}`;
+  const g=document.getElementById('calGrid');
+  const td=ds(new Date());
+  let html=DSHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+  const fd=new Date(calY,calM,1).getDay(),adj=fd===0?6:fd-1;
+  const dim=new Date(calY,calM+1,0).getDate(),dip=new Date(calY,calM,0).getDate();
+  let d=1,nd=1;
+  for(let i=0;i<42;i++){
+    let dy,mo,yr,oth=false;
+    if(i<adj){dy=dip-adj+i+1;mo=calM-1;yr=calY;if(mo<0){mo=11;yr--;}oth=true;}
+    else if(d<=dim){dy=d++;mo=calM;yr=calY;}
+    else{dy=nd++;mo=calM+1;yr=calY;if(mo>11){mo=0;yr++;}oth=true;}
+    const s=`${yr}-${p(mo+1)}-${p(dy)}`;
+    let cls='cal-cell';
+    if(oth)cls+=' other-month';
+    if(s===td)cls+=' today';
+    if(s===selDay)cls+=' selected';
+    const ts=byDay(s);
+    const chips=ts.slice(0,3).map(t=>{
+      const c=t.status==='done'?'chip-done':t.emailTo?'chip-email':'chip-open';
+      return`<span class="chip ${c}">${t.title}</span>`;
     }).join('');
-    const more = dayTasks.length > 3 ? `<span class="more-badge">+${dayTasks.length-3} mais</span>` : '';
-    
-    html += `<div class="${cls}" onclick="openDay('${ds}')">
-      <div class="cal-day-num">${d}</div>
-      ${taskChips}${more}
-    </div>`;
+    const more=ts.length>3?`<span class="chip-more">+${ts.length-3}</span>`:'';
+    html+=`<div class="${cls}" onclick="openDay('${s}')"><div class="cal-dn">${dy}</div>${chips}${more}</div>`;
   }
-  grid.innerHTML = html;
+  g.innerHTML=html;
 }
+function calPrev(){calM--;if(calM<0){calM=11;calY--;}renderCal();}
+function calNext(){calM++;if(calM>11){calM=0;calY++;}renderCal();}
+function calToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();renderCal();}
 
-function getTasksForDay(ds) {
-  return appData.tasks.filter(t => t.date === ds);
-}
-
-function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
-function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
-function calToday() { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); renderCal(); }
-
-// ===================== MINI CALENDAR =====================
-function renderMiniCal() {
-  document.getElementById('miniCalTitle').textContent = `${MONTHS[miniCalMonth].substring(0,3)} ${miniCalYear}`;
-  const grid = document.getElementById('miniCalGrid');
-  const now = new Date();
-  const todayStr = dateStr(now);
-  
-  let html = DAYS_SHORT.map(d => `<div class="mini-cal-day-header">${d[0]}</div>`).join('');
-  
-  const firstDay = new Date(miniCalYear, miniCalMonth, 1).getDay();
-  const adjust = (firstDay === 0) ? 6 : firstDay - 1;
-  const daysInMonth = new Date(miniCalYear, miniCalMonth + 1, 0).getDate();
-  const daysInPrev = new Date(miniCalYear, miniCalMonth, 0).getDate();
-  
-  let day = 1, nextDay = 1;
-  for (let i = 0; i < 35; i++) {
-    let d, month, year, isOther = false;
-    if (i < adjust) {
-      d = daysInPrev - adjust + i + 1; month = miniCalMonth - 1; year = miniCalYear;
-      if (month < 0) { month = 11; year--; }
-      isOther = true;
-    } else if (day <= daysInMonth) {
-      d = day++; month = miniCalMonth; year = miniCalYear;
-    } else {
-      d = nextDay++; month = miniCalMonth + 1; year = miniCalYear;
-      if (month > 11) { month = 0; year++; }
-      isOther = true;
-    }
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTasks = getTasksForDay(ds);
-    const hasPending = dayTasks.some(t => t.status === 'open');
-    const hasTask = dayTasks.length > 0;
-    
-    let cls = 'mini-cal-day';
-    if (isOther) cls += ' other-month';
-    if (ds === todayStr) cls += ' today';
-    if (ds === selectedDayStr) cls += ' selected';
-    if (hasPending) cls += ' has-pending';
-    else if (hasTask) cls += ' has-task';
-    
-    html += `<div class="${cls}" onclick="miniDayClick('${ds}')">${d}</div>`;
+// ── MINI CAL ──────────────────────────────────
+function renderMini(){
+  document.getElementById('miniTitle').textContent=MONTHS[mM].substring(0,3)+' '+mY;
+  const g=document.getElementById('miniGrid');
+  const td=ds(new Date());
+  let html=DSHORT.map(d=>`<div class="mini-dh">${d[0]}</div>`).join('');
+  const fd=new Date(mY,mM,1).getDay(),adj=fd===0?6:fd-1;
+  const dim=new Date(mY,mM+1,0).getDate(),dip=new Date(mY,mM,0).getDate();
+  let d=1,nd=1;
+  for(let i=0;i<35;i++){
+    let dy,mo,yr,oth=false;
+    if(i<adj){dy=dip-adj+i+1;mo=mM-1;yr=mY;if(mo<0){mo=11;yr--;}oth=true;}
+    else if(d<=dim){dy=d++;mo=mM;yr=mY;}
+    else{dy=nd++;mo=mM+1;yr=mY;if(mo>11){mo=0;yr++;}oth=true;}
+    const s=`${yr}-${p(mo+1)}-${p(dy)}`;
+    const ts=byDay(s);const hp=ts.some(t=>t.status==='open');
+    let cls='mini-d';
+    if(oth)cls+=' other-month';
+    if(s===td)cls+=' today';
+    if(s===selDay)cls+=' selected';
+    if(hp)cls+=' has-pending';else if(ts.length)cls+=' has-task';
+    html+=`<div class="${cls}" onclick="miniClick('${s}')">${dy}</div>`;
   }
-  grid.innerHTML = html;
+  g.innerHTML=html;
 }
+function miniPrev(){mM--;if(mM<0){mM=11;mY--;}renderMini();}
+function miniNext(){mM++;if(mM>11){mM=0;mY++;}renderMini();}
+function miniClick(s){selDay=s;const[y,m]=s.split('-').map(Number);calY=y;calM=m-1;renderCal();renderMini();openDay(s);}
 
-function miniCalPrev() { miniCalMonth--; if(miniCalMonth<0){miniCalMonth=11;miniCalYear--;} renderMiniCal(); }
-function miniCalNext() { miniCalMonth++; if(miniCalMonth>11){miniCalMonth=0;miniCalYear++;} renderMiniCal(); }
-function miniDayClick(ds) {
-  selectedDayStr = ds;
-  const [y,m] = ds.split('-').map(Number);
-  calYear = y; calMonth = m - 1;
-  renderCal(); renderMiniCal();
-  openDay(ds);
-}
-
-// ===================== DAY MODAL =====================
-function openDay(ds) {
-  selectedDayStr = ds;
-  const [y,m,d] = ds.split('-').map(Number);
-  const dateObj = new Date(y, m-1, d);
-  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
-  document.getElementById('dayModalTitle').textContent = '📅 ' + dateObj.toLocaleDateString('pt-BR', opts);
-  
-  const tasks = getTasksForDay(ds);
-  let html = '';
-  if (!tasks.length) {
-    html = '<div class="empty-state"><div class="icon">📭</div><p>Nenhuma tarefa neste dia.</p></div>';
-  } else {
-    tasks.forEach(t => {
-      const statusTag = t.status === 'done' 
-        ? '<span class="task-tag tag-done">✓ Fechada</span>'
-        : '<span class="task-tag tag-open">⚡ Em Aberto</span>';
-      const emailInfo = t.emailTo 
-        ? `<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>` : '';
-      html += `<div class="task-card ${t.status === 'done' ? 'done' : 'open'} ${t.emailTo ? 'email-type' : ''}" style="margin-bottom:10px;">
-        <div class="task-row">
-          <div class="task-info">
-            <div class="task-title">${t.title}</div>
-            <div class="task-meta">${statusTag} <span class="task-tag">${t.category}</span> ${emailInfo}</div>
-            ${t.desc ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;">${t.desc}</div>` : ''}
-          </div>
-          <div class="task-actions">
-            ${t.status === 'open' ? `<button class="icon-btn close-btn" title="Fechar tarefa" onclick="closeTask('${t.id}')">✓</button>` : ''}
-            <button class="icon-btn del-btn" title="Excluir" onclick="deleteTask('${t.id}')">🗑️</button>
-          </div>
-        </div>
-      </div>`;
-    });
-  }
-  document.getElementById('dayModalContent').innerHTML = html;
-  editingDayForTask = ds;
-  openModal('dayModal');
-  renderCal(); renderMiniCal();
-}
-
-function openAddTaskForDay() {
-  closeModal('dayModal');
-  openAddTask(editingDayForTask);
-}
-
-// ===================== TASKS =====================
-function openAddTask(dateVal) {
-  editingTaskId = null;
-  document.getElementById('taskModalTitle').textContent = '➕ Nova Tarefa';
-  document.getElementById('taskTitle').value = '';
-  document.getElementById('taskDesc').value = '';
-  document.getElementById('taskEmail').value = '';
-  document.getElementById('taskCategory').value = 'geral';
-  document.getElementById('taskDate').value = dateVal || new Date().toISOString().split('T')[0];
-  openModal('taskModal');
-}
-
-function saveTask() {
-  const title = document.getElementById('taskTitle').value.trim();
-  if (!title) { showToast('Informe o título da tarefa.','error'); return; }
-  
-  const task = {
-    id: editingTaskId || Date.now().toString(),
-    title,
-    desc: document.getElementById('taskDesc').value.trim(),
-    date: document.getElementById('taskDate').value,
-    category: document.getElementById('taskCategory').value,
-    emailTo: document.getElementById('taskEmail').value.trim(),
-    status: 'open',
-    createdAt: new Date().toISOString()
-  };
-  
-  if (editingTaskId) {
-    const idx = appData.tasks.findIndex(t => t.id === editingTaskId);
-    if (idx !== -1) { task.status = appData.tasks[idx].status; appData.tasks[idx] = task; }
-  } else {
-    appData.tasks.unshift(task);
-  }
-  
-  saveData(); renderAll();
-  closeModal('taskModal');
-  showToast('Tarefa salva com sucesso!','success');
-}
-
-function closeTask(id) {
-  const t = appData.tasks.find(x => x.id === id);
-  if (t) { t.status = 'done'; t.closedAt = new Date().toISOString(); saveData(); renderAll(); showToast('Tarefa fechada!','success'); }
-  // refresh day modal
-  if (selectedDayStr) openDay(selectedDayStr);
-}
-
-function deleteTask(id) {
-  appData.tasks = appData.tasks.filter(x => x.id !== id);
-  saveData(); renderAll();
-  showToast('Tarefa excluída.','info');
-  if (selectedDayStr) setTimeout(() => openDay(selectedDayStr), 50);
-}
-
-function renderTaskList(filter) {
-  filter = filter || currentFilter;
-  const list = document.getElementById('taskList');
-  let tasks = [...appData.tasks];
-  
-  // Sort by date
-  tasks.sort((a,b) => new Date(a.date) - new Date(b.date));
-  
-  if (filter === 'open') tasks = tasks.filter(t => t.status === 'open');
-  else if (filter === 'done') tasks = tasks.filter(t => t.status === 'done');
-  else if (filter === 'email') tasks = tasks.filter(t => t.emailTo);
-  
-  if (!tasks.length) {
-    list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>Nenhuma tarefa encontrada.</p></div>';
-    return;
-  }
-  
-  list.innerHTML = tasks.map(t => {
-    const statusTag = t.status === 'done'
-      ? '<span class="task-tag tag-done">✓ Fechada</span>'
-      : '<span class="task-tag tag-open">⚡ Em Aberto</span>';
-    const emailBtn = t.emailTo ? `<button class="icon-btn email-btn" title="Enviar e-mail" onclick="window.location.href='mailto:${t.emailTo}'">📧</button>` : '';
-    const closeBtn = t.status === 'open' ? `<button class="icon-btn close-btn" title="Fechar tarefa" onclick="closeTaskList('${t.id}')">✓</button>` : '';
-    const dateDisp = t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : '';
-    return `<div class="task-card ${t.status === 'done' ? 'done' : 'open'} ${t.emailTo ? 'email-type' : ''}">
+// ── DAY MODAL ─────────────────────────────────
+function openDay(s){
+  selDay=s;
+  const[y,m,d]=s.split('-').map(Number);
+  document.getElementById('modalDayTitle').textContent='📅 '+new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const ts=byDay(s);
+  let html='';
+  if(!ts.length)html='<div class="empty-state"><div class="ei">📭</div><p>Nenhuma tarefa neste dia.</p></div>';
+  else ts.forEach(t=>{
+    const st=t.status==='done'?'<span class="tag tag-done">✓ Fechada</span>':'<span class="tag tag-open">⚡ Aberta</span>';
+    const em=t.emailTo?`<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>`:'';
+    html+=`<div class="task-card ${t.status==='done'?'tc-done':t.emailTo?'tc-email':'tc-open'}" style="margin-bottom:7px;">
       <div class="task-row">
         <div class="task-info">
           <div class="task-title">${t.title}</div>
-          <div class="task-meta">${statusTag} <span class="task-tag">${t.category}</span> ${dateDisp ? `<span>📅 ${dateDisp}</span>` : ''} ${t.emailTo ? `<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>` : ''}</div>
-          ${t.desc ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;">${t.desc}</div>` : ''}
+          <div class="task-meta">${st}<span class="tag tag-cat">${t.category}</span>${em}</div>
+          ${t.desc?`<div class="task-desc">${t.desc}</div>`:''}
         </div>
         <div class="task-actions">
-          ${closeBtn}${emailBtn}
-          <button class="icon-btn del-btn" title="Excluir" onclick="deleteTaskFromList('${t.id}')">🗑️</button>
+          ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTask('${t.id}');openDay('${s}')">✓</button>`:''}
+          <button class="icon-btn ib-del" onclick="delTask('${t.id}');openDay('${s}')">🗑️</button>
         </div>
+      </div></div>`;
+  });
+  document.getElementById('modalDayBody').innerHTML=html;
+  dayForTask=s;openModal('modalDay');renderCal();renderMini();
+}
+function addTaskDay(){closeModal('modalDay');openAddTask(dayForTask);}
+
+// ── TASKS ─────────────────────────────────────
+function openAddTask(dateVal){
+  editId=null;
+  document.getElementById('modalTaskTitle').textContent='➕ Nova Tarefa';
+  ['tTitle','tDesc','tEmail'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('tCat').value='geral';
+  document.getElementById('tPrio').value='media';
+  document.getElementById('tDate').value=dateVal||ds(new Date());
+  openModal('modalTask');
+}
+function saveTask(){
+  const title=document.getElementById('tTitle').value.trim();
+  if(!title){toast('Informe o título.','error');return;}
+  const task={id:editId||uid(),title,
+    desc:document.getElementById('tDesc').value.trim(),
+    date:document.getElementById('tDate').value,
+    category:document.getElementById('tCat').value,
+    priority:document.getElementById('tPrio').value,
+    emailTo:document.getElementById('tEmail').value.trim(),
+    status:'open',createdAt:new Date().toISOString()};
+  if(editId){const i=D.tasks.findIndex(t=>t.id===editId);if(i>=0){task.status=D.tasks[i].status;D.tasks[i]=task;}}
+  else D.tasks.unshift(task);
+  save();renderAll();closeModal('modalTask');toast('Tarefa salva!','success');
+}
+function closeTask(id){
+  const t=D.tasks.find(x=>x.id===id);
+  if(t){t.status='done';t.closedAt=new Date().toISOString();save();renderAll();toast('Tarefa fechada! ✅','success');}
+}
+function delTask(id){D.tasks=D.tasks.filter(x=>x.id!==id);save();renderAll();toast('Excluída.','info');}
+
+function renderTaskList(filter){
+  filter=filter||taskFilter;
+  const list=document.getElementById('taskList');
+  let ts=[...D.tasks].sort((a,b)=>{
+    if(a.status==='open'&&b.status==='done')return -1;
+    if(a.status==='done'&&b.status==='open')return 1;
+    return new Date(a.date)-new Date(b.date);
+  });
+  if(filter==='open')ts=ts.filter(t=>t.status==='open');
+  else if(filter==='done')ts=ts.filter(t=>t.status==='done');
+  else if(filter==='overdue')ts=ts.filter(t=>t.status==='open'&&isOD(t.date));
+  else if(filter==='email')ts=ts.filter(t=>t.emailTo);
+  else if(filter==='alta')ts=ts.filter(t=>t.priority==='alta'&&t.status==='open');
+  if(!ts.length){list.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>Nenhuma tarefa encontrada.</p></div>';return;}
+  list.innerHTML=ts.map(t=>{
+    const st=t.status==='done'?'<span class="tag tag-done">✓ Fechada</span>':'<span class="tag tag-open">⚡ Aberta</span>';
+    const ov=t.status==='open'&&isOD(t.date)?'<span class="overdue-badge">VENCIDA</span>':'';
+    const em=t.emailTo?`<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>`:'';
+    const prioMap={'alta':'🔴 Alta','media':'🟡 Média','baixa':'🟢 Baixa'};
+    const cls='task-card '+(t.status==='done'?'tc-done':t.emailTo?'tc-email':'tc-open');
+    return`<div class="${cls}"><div class="task-row">
+      <div class="task-info">
+        <div class="task-title">${t.title} ${ov}</div>
+        <div class="task-meta">${st}<span class="tag tag-cat">${t.category}</span>
+          <span class="tag tag-cat">${prioMap[t.priority||'media']}</span>
+          ${t.date?`<span style="font-size:11px;color:var(--muted)">📅 ${fmtD(t.date)}</span>`:''}${em}</div>
+        ${t.desc?`<div class="task-desc">${t.desc}</div>`:''}
       </div>
-    </div>`;
+      <div class="task-actions">
+        ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTaskL('${t.id}')">✓</button>`:''}
+        ${t.emailTo?`<button class="icon-btn ib-mail" onclick="window.location.href='mailto:${t.emailTo}'">📧</button>`:''}
+        <button class="icon-btn ib-del" onclick="delTaskL('${t.id}')">🗑️</button>
+      </div>
+    </div></div>`;
   }).join('');
 }
-
-function closeTaskList(id) {
-  const t = appData.tasks.find(x => x.id === id);
-  if (t) { t.status = 'done'; t.closedAt = new Date().toISOString(); saveData(); renderAll(); showToast('Tarefa fechada!','success'); }
+function closeTaskL(id){closeTask(id);renderTaskList();}
+function delTaskL(id){delTask(id);renderTaskList();}
+function filterTasks(f,btn){
+  taskFilter=f;
+  document.querySelectorAll('#tc-tasks .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderTaskList(f);
 }
 
-function deleteTaskFromList(id) {
-  appData.tasks = appData.tasks.filter(x => x.id !== id);
-  saveData(); renderAll();
-  showToast('Tarefa excluída.','info');
+// ── EMAILS ────────────────────────────────────
+function saveEmail(){
+  const to=document.getElementById('cTo').value.trim();
+  const subj=document.getElementById('cSubj').value.trim();
+  if(!to||!subj){toast('Preencha destinatário e assunto.','error');return;}
+  const email={id:uid(),to,subject:subj,
+    body:document.getElementById('cBody').value.trim(),
+    date:document.getElementById('cDate').value,
+    category:document.getElementById('cCat').value,
+    status:'pending',createdAt:new Date().toISOString()};
+  D.emails.unshift(email);
+  if(document.getElementById('cTask').value==='yes')
+    D.tasks.unshift({id:uid(),title:`⏳ Aguardar resposta: ${subj}`,
+      desc:`E-mail enviado para ${to}`,date:document.getElementById('cDate').value,
+      category:'email',priority:'media',emailTo:to,status:'open',createdAt:new Date().toISOString()});
+  save();renderAll();clearCompose();showTab('emails');toast('E-mail salvo!','success');
 }
-
-function filterTasks(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('#content-tasks .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTaskList(f);
-}
-
-// ===================== EMAILS =====================
-function saveEmail() {
-  const to = document.getElementById('emailTo').value.trim();
-  const subj = document.getElementById('emailSubject').value.trim();
-  const body = document.getElementById('emailBody').value.trim();
-  const date = document.getElementById('emailDate').value;
-  const cat = document.getElementById('emailCategory').value;
-  
-  if (!to || !subj) { showToast('Preencha o destinatário e o assunto.','error'); return; }
-  
-  const email = {
-    id: Date.now().toString(),
-    to, subject: subj, body, date, category: cat,
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
-  appData.emails.unshift(email);
-  
-  // Create linked task
-  if (document.getElementById('createTaskWithEmail').value === 'yes') {
-    const task = {
-      id: (Date.now()+1).toString(),
-      title: `Aguardar resposta: ${subj}`,
-      desc: `E-mail enviado para ${to}`,
-      date, category: 'email',
-      emailTo: to,
-      status: 'open',
-      createdAt: new Date().toISOString()
-    };
-    appData.tasks.unshift(task);
-  }
-  
-  saveData(); renderAll();
-  showToast('E-mail salvo e tarefa criada!','success');
-  clearCompose();
-  showTab('emails');
-}
-
-function renderEmailList(filter) {
-  const list = document.getElementById('emailList');
-  let emails = [...appData.emails];
-  
-  if (filter === 'pending') emails = emails.filter(e => e.status === 'pending');
-  else if (filter === 'resolved') emails = emails.filter(e => e.status === 'resolved');
-  
-  if (!emails.length) {
-    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nenhum e-mail registrado.</p></div>';
-    return;
-  }
-  
-  list.innerHTML = emails.map(e => {
-    const statusTag = e.status === 'resolved'
-      ? '<span class="task-tag tag-done">✓ Resolvido</span>'
-      : '<span class="task-tag tag-open">⏳ Aguardando</span>';
-    const dateDisp = e.date ? new Date(e.date + 'T12:00:00').toLocaleDateString('pt-BR') : '';
-    const resolveBtn = e.status === 'pending' ? `<button class="icon-btn close-btn" title="Marcar como resolvido" onclick="resolveEmail('${e.id}')">✓</button>` : '';
-    return `<div class="task-card ${e.status === 'resolved' ? 'done' : 'open'} email-type">
-      <div class="task-row">
-        <div class="task-info">
-          <div class="task-title">📧 ${e.subject}</div>
-          <div class="task-meta">${statusTag} <span class="task-tag">${e.category}</span>
-            <a href="mailto:${e.to}" class="email-link">✉️ ${e.to}</a>
-            ${dateDisp ? `<span>📅 ${dateDisp}</span>` : ''}
-          </div>
-          ${e.body ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px;">${e.body.substring(0,100)}${e.body.length>100?'...':''}</div>` : ''}
+function renderEmailList(filter){
+  filter=filter||emailFilter;
+  const list=document.getElementById('emailList');
+  let es=[...D.emails];
+  if(filter==='pending')es=es.filter(e=>e.status==='pending');
+  else if(filter==='resolved')es=es.filter(e=>e.status==='resolved');
+  if(!es.length){list.innerHTML='<div class="empty-state"><div class="ei">📭</div><p>Nenhum e-mail encontrado.</p></div>';return;}
+  list.innerHTML=es.map(e=>{
+    const st=e.status==='resolved'?'<span class="tag tag-done">✓ Resolvido</span>':'<span class="tag tag-open">⏳ Aguardando</span>';
+    const cls='task-card '+(e.status==='resolved'?'tc-done':'tc-email');
+    return`<div class="${cls}"><div class="task-row">
+      <div class="task-info">
+        <div class="task-title">📧 ${e.subject}</div>
+        <div class="task-meta">${st}<span class="tag tag-cat">${e.category}</span>
+          <a href="mailto:${e.to}" class="email-link">✉️ ${e.to}</a>
+          ${e.date?`<span style="font-size:11px;color:var(--muted)">📅 ${fmtD(e.date)}</span>`:''}
         </div>
-        <div class="task-actions">
-          ${resolveBtn}
-          <button class="icon-btn email-btn" title="Abrir cliente de e-mail" onclick="window.location.href='mailto:${e.to}?subject=Re: ${encodeURIComponent(e.subject)}'">📧</button>
-          <button class="icon-btn del-btn" title="Excluir" onclick="deleteEmail('${e.id}')">🗑️</button>
-        </div>
+        ${e.body?`<div class="task-desc">${e.body.substring(0,100)}${e.body.length>100?'...':''}</div>`:''}
       </div>
-    </div>`;
+      <div class="task-actions">
+        ${e.status==='pending'?`<button class="icon-btn ib-ok" onclick="resolveEmail('${e.id}')">✓</button>`:''}
+        <button class="icon-btn ib-mail" onclick="window.location.href='mailto:${e.to}?subject=Re: ${encodeURIComponent(e.subject)}'">📧</button>
+        <button class="icon-btn ib-del" onclick="delEmail('${e.id}')">🗑️</button>
+      </div>
+    </div></div>`;
   }).join('');
 }
-
-function resolveEmail(id) {
-  const e = appData.emails.find(x => x.id === id);
-  if (e) { e.status = 'resolved'; e.resolvedAt = new Date().toISOString(); saveData(); renderAll(); showToast('E-mail marcado como resolvido!','success'); }
+function resolveEmail(id){
+  const e=D.emails.find(x=>x.id===id);
+  if(e){e.status='resolved';e.resolvedAt=new Date().toISOString();save();renderAll();toast('Resolvido! ✅','success');}
+}
+function delEmail(id){D.emails=D.emails.filter(x=>x.id!==id);save();renderAll();toast('Excluído.','info');}
+function filterEmails(f,btn){
+  emailFilter=f;
+  document.querySelectorAll('#tc-emails .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderEmailList(f);
 }
 
-function deleteEmail(id) {
-  appData.emails = appData.emails.filter(x => x.id !== id);
-  saveData(); renderAll();
-  showToast('E-mail excluído.','info');
-}
-
-function filterEmails(f, btn) {
-  document.querySelectorAll('#content-emails .filter-btn').forEach(b => b.classList.remove('active'));
+// ── COMPOSE ───────────────────────────────────
+function insertGreeting(g,btn){
+  const b=document.getElementById('cBody');
+  b.value=`${g},\n\n${b.value.replace(/^(Bom dia|Boa tarde|Boa noite)[,!.]?\s*/i,'')}`;
+  document.querySelectorAll('.gb').forEach(x=>x.classList.remove('active'));
   btn.classList.add('active');
-  renderEmailList(f);
+}
+function clearCompose(){
+  ['cTo','cSubj','cBody'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('cDate').value=ds(new Date());
+  document.querySelectorAll('.gb').forEach(b=>b.classList.remove('active'));
+}
+function copyBody(){navigator.clipboard.writeText(document.getElementById('cBody').value).then(()=>toast('Copiado!','success'));}
+function openMailClient(){
+  const to=document.getElementById('cTo').value;
+  if(!to){toast('Informe o destinatário.','error');return;}
+  window.location.href=`mailto:${to}?subject=${encodeURIComponent(document.getElementById('cSubj').value)}&body=${encodeURIComponent(document.getElementById('cBody').value)}`;
 }
 
-// ===================== COMPOSE =====================
-function insertGreeting(g) {
-  const body = document.getElementById('emailBody');
-  const existing = body.value;
-  // Remove any existing greeting from start
-  const cleaned = existing.replace(/^(Bom dia|Boa tarde|Boa noite)[,!.]?\s*/i,'');
-  body.value = `${g},\n\n${cleaned}`;
-  
-  // Active state
-  document.querySelectorAll('.greeting-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-function clearCompose() {
-  document.getElementById('emailTo').value = '';
-  document.getElementById('emailSubject').value = '';
-  document.getElementById('emailBody').value = '';
-  document.getElementById('emailDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('emailCategory').value = 'nf';
-  document.querySelectorAll('.greeting-btn').forEach(b => b.classList.remove('active'));
-}
-
-function copyEmailBody() {
-  const body = document.getElementById('emailBody').value;
-  navigator.clipboard.writeText(body).then(() => showToast('Corpo copiado!','success'));
-}
-
-function openEmailClient() {
-  const to = document.getElementById('emailTo').value;
-  const subj = document.getElementById('emailSubject').value;
-  const body = document.getElementById('emailBody').value;
-  if (!to) { showToast('Informe o destinatário.','error'); return; }
-  window.location.href = `mailto:${to}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-}
-
-// ===================== ALERTS =====================
-function renderAlerts() {
-  const list = document.getElementById('alertList');
-  const pending = appData.tasks.filter(t => t.status === 'open' && isPastOrToday(t.date));
-  document.getElementById('alertCount').textContent = pending.length;
-  
-  if (!pending.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px;">✅ Nenhuma pendência!</div>';
-    return;
-  }
-  
-  list.innerHTML = pending.slice(0,5).map(t => {
-    const dateDisp = t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : '';
-    return `<div class="alert-card" onclick="openDay('${t.date}')">
+// ── ALERTS ────────────────────────────────────
+function renderAlerts(){
+  const list=document.getElementById('alertList');
+  const ps=D.tasks.filter(t=>t.status==='open'&&(isOD(t.date)||isToday(t.date)));
+  document.getElementById('alertBadge').textContent=ps.length;
+  if(!ps.length){list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:8px;">✅ Tudo em dia!</div>';return;}
+  list.innerHTML=ps.slice(0,4).map(t=>`
+    <div class="alert-card" onclick="openDay('${t.date}')">
       <div class="alert-title">⚠️ ${t.title}</div>
-      <div class="alert-info">${dateDisp} · ${t.category} ${t.emailTo ? '· 📧 '+t.emailTo : ''}</div>
+      <div class="alert-meta">${fmtD(t.date)} · ${t.category}</div>
+    </div>`).join('');
+  if(ps.length>4)list.innerHTML+=`<div style="font-size:10px;color:var(--muted);text-align:center;padding:4px;">+${ps.length-4} mais</div>`;
+}
+
+// ── STATS ─────────────────────────────────────
+function renderStats(){
+  const n=new Date(),my=`${n.getFullYear()}-${p(n.getMonth()+1)}`;
+  const mt=D.tasks.filter(t=>t.date&&t.date.startsWith(my));
+  document.getElementById('st-open').textContent=mt.filter(t=>t.status==='open').length;
+  document.getElementById('st-done').textContent=mt.filter(t=>t.status==='done').length;
+  document.getElementById('st-email').textContent=D.emails.filter(e=>e.status==='pending').length;
+  document.getElementById('st-all').textContent=mt.length;
+}
+
+// ── DASHBOARD ─────────────────────────────────
+function renderDashboard(){
+  const open=D.tasks.filter(t=>t.status==='open').length;
+  const done=D.tasks.filter(t=>t.status==='done').length;
+  const epend=D.emails.filter(e=>e.status==='pending').length;
+  const total=open+done;
+  const rate=total?Math.round(done/total*100):0;
+  document.getElementById('kpi-open').textContent=open;
+  document.getElementById('kpi-done').textContent=done;
+  document.getElementById('kpi-email').textContent=epend;
+  document.getElementById('kpi-rate').textContent=rate+'%';
+
+  // Mini donut in dashboard
+  renderDonut();
+
+  // Progress by category
+  const cats=['nf','financeiro','fornecedor','email','geral','rh','outros'];
+  const cLabels={nf:'NF',financeiro:'Financeiro',fornecedor:'Fornecedor',email:'E-mail',geral:'Geral',rh:'RH',outros:'Outros'};
+  const cColors={nf:gv('--danger'),financeiro:gv('--accent2'),fornecedor:gv('--accent3'),email:gv('--purple'),geral:gv('--accent'),rh:gv('--warn'),outros:gv('--muted')};
+  const openT=D.tasks.filter(t=>t.status==='open');
+  const catC={};openT.forEach(t=>{catC[t.category]=(catC[t.category]||0)+1;});
+  const max=Math.max(1,...Object.values(catC));
+  const top=cats.filter(c=>catC[c]).sort((a,b)=>(catC[b]||0)-(catC[a]||0)).slice(0,5);
+  const pl=document.getElementById('progList');
+  pl.innerHTML=top.length?top.map(c=>`
+    <div class="prog-item">
+      <div class="prog-label"><span>${cLabels[c]}</span><span>${catC[c]}</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${catC[c]/max*100}%;background:${cColors[c]}"></div></div>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px;">Sem tarefas em aberto</div>';
+
+  // Activity
+  const recent=[...D.tasks,...D.emails].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,8);
+  const al=document.getElementById('actList');
+  al.innerHTML=recent.length?recent.map(r=>{
+    const isE=r.subject!==undefined;
+    const col=isE?gv('--accent2'):r.status==='done'?gv('--accent3'):gv('--danger');
+    const label=isE?`📧 ${r.subject}`:r.title;
+    const dt=r.createdAt?new Date(r.createdAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
+    return`<div class="act-item"><div class="act-dot" style="background:${col}"></div>
+      <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</div>
+      <div style="color:var(--muted);font-size:10px;flex-shrink:0">${dt}</div></div>`;
+  }).join(''):'<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px;">Sem atividade</div>';
+
+  // Overdue
+  const ov=D.tasks.filter(t=>t.status==='open'&&(isOD(t.date)||isToday(t.date)));
+  const dod=document.getElementById('dashOverdue');
+  if(!ov.length){dod.innerHTML='<div class="empty-state" style="padding:18px;"><div class="ei">🎉</div><p>Nenhuma tarefa vencida!</p></div>';return;}
+  dod.innerHTML=ov.slice(0,5).map(t=>`
+    <div class="task-card tc-open" style="margin-bottom:7px;"><div class="task-row">
+      <div class="task-info">
+        <div class="task-title">${t.title} ${isOD(t.date)?'<span class="overdue-badge">VENCIDA</span>':'<span class="tag tag-open">Hoje</span>'}</div>
+        <div class="task-meta"><span class="tag tag-cat">${t.category}</span><span style="font-size:11px;color:var(--muted)">📅 ${fmtD(t.date)}</span></div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn ib-ok" onclick="closeTask('${t.id}')">✓</button>
+        <button class="icon-btn ib-del" onclick="delTask('${t.id}')">🗑️</button>
+      </div>
+    </div></div>`).join('');
+}
+
+// ── CHARTS ────────────────────────────────────
+function renderDonut(){
+  const open=D.tasks.filter(t=>t.status==='open').length;
+  const done=D.tasks.filter(t=>t.status==='done').length;
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const tc=isDark?'#94a3b8':'#64748b';
+  if(charts.donut){charts.donut.destroy();}
+  const ctx=document.getElementById('cDonut');
+  if(!ctx)return;
+  charts.donut=new Chart(ctx,{type:'doughnut',
+    data:{labels:['Em Aberto','Fechadas'],datasets:[{data:[open,done],backgroundColor:['#ef4444','#10b981'],borderWidth:0,hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{color:tc,font:{family:'Sora',size:10},padding:12}}}}});
+}
+
+function renderCharts(){
+  renderDonut();
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.05)';
+  const tc=isDark?'#94a3b8':'#64748b';
+  const opts=(extra={})=>({responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:tc,font:{family:'Sora',size:10},padding:10}}},
+    scales:{y:{grid:{color:gc},ticks:{color:tc,font:{family:'Sora',size:10}}},
+      x:{grid:{display:false},ticks:{color:tc,font:{family:'Sora',size:10}}}}, ...extra});
+
+  const open=D.tasks.filter(t=>t.status==='open').length;
+  const done=D.tasks.filter(t=>t.status==='done').length;
+  const epend=D.emails.filter(e=>e.status==='pending').length;
+  const eresolved=D.emails.filter(e=>e.status==='resolved').length;
+
+  // Bar tasks
+  if(charts.bar){charts.bar.destroy();}
+  const bCtx=document.getElementById('cBar');
+  if(bCtx) charts.bar=new Chart(bCtx,{type:'bar',
+    data:{labels:['Tarefas'],datasets:[
+      {label:'Em Aberto',data:[open],backgroundColor:'#ef4444',borderRadius:6},
+      {label:'Fechadas',data:[done],backgroundColor:'#10b981',borderRadius:6}]},
+    options:opts()});
+
+  // Pie categories
+  if(charts.pie){charts.pie.destroy();}
+  const pCtx=document.getElementById('cPie');
+  if(pCtx){
+    const cm={};D.tasks.forEach(t=>{cm[t.category]=(cm[t.category]||0)+1;});
+    const cl=Object.keys(cm),cv=Object.values(cm);
+    const pal=['#f97316','#0ea5e9','#10b981','#8b5cf6','#f59e0b','#ef4444','#64748b'];
+    charts.pie=new Chart(pCtx,{type:'pie',
+      data:{labels:cl,datasets:[{data:cv,backgroundColor:pal.slice(0,cl.length),borderWidth:0,hoverOffset:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:tc,font:{family:'Sora',size:10},padding:8}}}}});
+  }
+
+  // Email bar
+  if(charts.emailBar){charts.emailBar.destroy();}
+  const eCtx=document.getElementById('cEmailBar');
+  if(eCtx) charts.emailBar=new Chart(eCtx,{type:'bar',
+    data:{labels:['E-mails'],datasets:[
+      {label:'Pendentes',data:[epend],backgroundColor:'#f59e0b',borderRadius:6},
+      {label:'Resolvidos',data:[eresolved],backgroundColor:'#0ea5e9',borderRadius:6}]},
+    options:opts()});
+
+  // Line monthly
+  if(charts.line){charts.line.destroy();}
+  const lCtx=document.getElementById('cLine');
+  if(lCtx){
+    const labels=[],counts=[];const n=new Date();
+    for(let i=5;i>=0;i--){
+      const d=new Date(n.getFullYear(),n.getMonth()-i,1);
+      const key=`${d.getFullYear()}-${p(d.getMonth()+1)}`;
+      labels.push(MONTHS[d.getMonth()].substring(0,3));
+      counts.push(D.tasks.filter(t=>t.date&&t.date.startsWith(key)).length);
+    }
+    charts.line=new Chart(lCtx,{type:'line',
+      data:{labels,datasets:[{label:'Tarefas criadas',data:counts,
+        borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',
+        borderWidth:2,pointBackgroundColor:'#f97316',tension:.4,fill:true}]},
+      options:opts()});
+  }
+}
+
+// ── REPORT ────────────────────────────────────
+function openReport(){
+  const open=D.tasks.filter(t=>t.status==='open');
+  const done=D.tasks.filter(t=>t.status==='done');
+  const epend=D.emails.filter(e=>e.status==='pending');
+  const rate=D.tasks.length?Math.round(done.length/D.tasks.length*100):0;
+  let html=`<div style="color:var(--muted);font-size:11px;margin-bottom:12px;">Gerado em ${new Date().toLocaleDateString('pt-BR',{dateStyle:'full'})}</div>
+    <div class="rep-section"><h4>📊 Resumo</h4>
+      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
+      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${open.length}</strong></div>
+      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${done.length}</strong></div>
+      <div class="rep-row"><span>Taxa de Resolução</span><strong style="color:var(--purple)">${rate}%</strong></div>
+      <div class="rep-row"><span>E-mails Pendentes</span><strong style="color:var(--warn)">${epend.length}</strong></div>
     </div>`;
-  }).join('');
-  
-  if (pending.length > 5) list.innerHTML += `<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">+${pending.length-5} mais pendências</div>`;
-}
-
-function isPastOrToday(dateStr) {
-  if (!dateStr) return false;
-  const d = new Date(dateStr + 'T23:59:59');
-  return d <= new Date();
-}
-
-// ===================== STATS =====================
-function updateStats() {
-  const open = appData.tasks.filter(t => t.status === 'open').length;
-  const done = appData.tasks.filter(t => t.status === 'done').length;
-  const emailCount = appData.emails.length;
-  document.getElementById('statOpen').textContent = open;
-  document.getElementById('statDone').textContent = done;
-  document.getElementById('statEmail').textContent = emailCount;
-}
-
-// ===================== REPORT =====================
-function openReport() {
-  const open = appData.tasks.filter(t => t.status === 'open');
-  const done = appData.tasks.filter(t => t.status === 'done');
-  const pendingEmails = appData.emails.filter(e => e.status === 'pending');
-  const now = new Date().toLocaleDateString('pt-BR', { dateStyle:'full' });
-  
-  let html = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Gerado em ${now}</div>
-    <div class="report-section">
-      <h4>📊 Resumo Geral</h4>
-      <div class="report-item"><span>Total de Tarefas</span><strong>${appData.tasks.length}</strong></div>
-      <div class="report-item"><span>Em Aberto</span><strong style="color:var(--danger)">${open.length}</strong></div>
-      <div class="report-item"><span>Fechadas</span><strong style="color:var(--accent3)">${done.length}</strong></div>
-      <div class="report-item"><span>E-mails Registrados</span><strong style="color:var(--accent2)">${appData.emails.length}</strong></div>
-      <div class="report-item"><span>E-mails Aguardando Resposta</span><strong style="color:var(--warn)">${pendingEmails.length}</strong></div>
-    </div>`;
-  
-  if (open.length) {
-    html += `<div class="report-section"><h4>⚡ Tarefas em Aberto</h4>`;
-    open.slice(0,10).forEach(t => {
-      const date = t.date ? new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR') : '';
-      html += `<div class="report-item"><span>${t.title}</span><span style="color:var(--muted)">${date}</span></div>`;
-    });
-    if (open.length > 10) html += `<div style="font-size:11px;color:var(--muted);padding:8px 0;">...e mais ${open.length-10} tarefa(s)</div>`;
-    html += '</div>';
+  if(open.length){
+    html+=`<div class="rep-section"><h4>⚡ Em Aberto</h4>`;
+    open.slice(0,10).forEach(t=>{html+=`<div class="rep-row"><span>${t.title}</span><span style="color:var(--muted)">${fmtD(t.date)}</span></div>`;});
+    if(open.length>10)html+=`<div style="font-size:10px;color:var(--muted);padding:5px 0">...e mais ${open.length-10}</div>`;
+    html+=`</div>`;
   }
-  
-  if (pendingEmails.length) {
-    html += `<div class="report-section"><h4>📧 E-mails Aguardando Resposta</h4>`;
-    pendingEmails.forEach(e => {
-      html += `<div class="report-item"><span>${e.subject}</span><a href="mailto:${e.to}" class="email-link">${e.to}</a></div>`;
-    });
-    html += '</div>';
+  if(epend.length){
+    html+=`<div class="rep-section"><h4>📧 E-mails Aguardando</h4>`;
+    epend.forEach(e=>{html+=`<div class="rep-row"><span>${e.subject}</span><a href="mailto:${e.to}" class="email-link">${e.to}</a></div>`;});
+    html+=`</div>`;
   }
-  
-  document.getElementById('reportContent').innerHTML = html;
-  openModal('reportModal');
+  document.getElementById('modalReportBody').innerHTML=html;
+  openModal('modalReport');
+}
+function copyReport(){
+  const open=D.tasks.filter(t=>t.status==='open');
+  const epend=D.emails.filter(e=>e.status==='pending');
+  let txt=`📊 RELATÓRIO — ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+  txt+=`Total: ${D.tasks.length} | Aberto: ${open.length} | Fechadas: ${D.tasks.filter(t=>t.status==='done').length}\n`;
+  txt+=`E-mails pendentes: ${epend.length}\n\n`;
+  if(open.length){txt+='TAREFAS EM ABERTO:\n';open.forEach(t=>{txt+=`  • ${t.title} (${fmtD(t.date)||'sem data'})\n`;});}
+  if(epend.length){txt+='\nE-MAILS AGUARDANDO:\n';epend.forEach(e=>{txt+=`  • ${e.subject} → ${e.to}\n`;});}
+  navigator.clipboard.writeText(txt).then(()=>toast('Copiado!','success'));
 }
 
-function copyReport() {
-  const open = appData.tasks.filter(t => t.status === 'open');
-  const pendingEmails = appData.emails.filter(e => e.status === 'pending');
-  let text = `📊 RELATÓRIO DE PENDÊNCIAS — ${new Date().toLocaleDateString('pt-BR')}\n\n`;
-  text += `RESUMO: ${appData.tasks.length} tarefas | ${open.length} em aberto | ${pendingEmails.length} e-mails pendentes\n\n`;
-  if (open.length) {
-    text += `TAREFAS EM ABERTO:\n`;
-    open.forEach(t => text += `  • ${t.title} (${t.date||'sem data'})\n`);
-  }
-  if (pendingEmails.length) {
-    text += `\nE-MAILS AGUARDANDO RESPOSTA:\n`;
-    pendingEmails.forEach(e => text += `  • ${e.subject} → ${e.to}\n`);
-  }
-  navigator.clipboard.writeText(text).then(() => showToast('Relatório copiado!','success'));
+// ── BACKUP ────────────────────────────────────
+function doBackup(){
+  D.lastBackup=new Date().toISOString();save();
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`pedrinho_backup_${ds(new Date())}.json`;a.click();
+  URL.revokeObjectURL(url);toast('Backup exportado!','success');updateBackupInfo();
+}
+function doRestore(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{const data=JSON.parse(e.target.result);
+      if(data.tasks&&data.emails){D=data;save();renderAll();toast(`Restaurado! ${data.tasks.length} tarefas.`,'success');updateBackupInfo();}
+      else toast('Arquivo inválido.','error');
+    }catch{toast('Erro ao restaurar.','error');}
+  };r.readAsText(f);ev.target.value='';
+}
+function clearAll(){
+  if(!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita!'))return;
+  D={tasks:[],emails:[],lastBackup:null};save();renderAll();toast('Dados apagados.','info');updateBackupInfo();
+}
+function updateBackupInfo(){
+  const sz=(JSON.stringify(D).length/1024).toFixed(1);
+  const lb=D.lastBackup?new Date(D.lastBackup).toLocaleString('pt-BR'):'Nunca';
+  document.getElementById('backupInfo').textContent=
+    `📋 Tarefas: ${D.tasks.length}\n📧 E-mails: ${D.emails.length}\n💾 Tamanho: ~${sz} KB\n🕐 Último backup: ${lb}`;
 }
 
-// ===================== BACKUP =====================
-function doBackup() {
-  appData.lastBackup = new Date().toISOString();
-  saveData();
-  const json = JSON.stringify(appData, null, 2);
-  const blob = new Blob([json], { type:'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pedrinho_backup_${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Backup exportado com sucesso!','success');
-  updateBackupInfo();
+// ── UI ────────────────────────────────────────
+function showTab(name){
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const tc=document.getElementById('tc-'+name);
+  const nt=document.getElementById('nt-'+name);
+  if(tc)tc.classList.add('active');
+  if(nt)nt.classList.add('active');
+  if(name==='charts')setTimeout(renderCharts,80);
+  if(name==='backup')updateBackupInfo();
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  const icons={success:'✅',error:'❌',info:'ℹ️'};
+  t.className=`show t-${type}`;t.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='',3200);
 }
 
-function doRestore(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data.tasks && data.emails) {
-        appData = data;
-        saveData(); renderAll();
-        showToast(`Backup restaurado! ${data.tasks.length} tarefas, ${data.emails.length} e-mails.`,'success');
-        updateBackupInfo();
-      } else { showToast('Arquivo inválido.','error'); }
-    } catch { showToast('Erro ao restaurar backup.','error'); }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-function clearAllData() {
-  if (!confirm('Tem certeza? Todos os dados serão apagados!')) return;
-  appData = { tasks: [], emails: [], lastBackup: null };
-  saveData(); renderAll();
-  showToast('Dados apagados.','info');
-  updateBackupInfo();
-}
-
-function updateBackupInfo() {
-  const size = (JSON.stringify(appData).length / 1024).toFixed(1);
-  const last = appData.lastBackup ? new Date(appData.lastBackup).toLocaleString('pt-BR') : 'Nunca';
-  document.getElementById('backupInfo').textContent = 
-    `Tarefas: ${appData.tasks.length} | E-mails: ${appData.emails.length} | Tamanho: ~${size}KB | Último backup: ${last}`;
-}
-
-// ===================== UI HELPERS =====================
-function showTab(name) {
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('content-'+name).classList.add('active');
-  const tabEl = document.getElementById('tab-'+name);
-  if (tabEl) tabEl.classList.add('active');
-  if (name === 'backup') updateBackupInfo();
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
-
-function showToast(msg, type='info') {
-  const t = document.getElementById('toast');
-  const icons = { success:'✅', error:'❌', info:'ℹ️' };
-  t.className = `show ${type}`;
-  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.className = '', 3000);
-}
-
-function dateStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-// ===================== START =====================
+// START
 init();
 </script>
 </body>
