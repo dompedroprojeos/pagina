@@ -139,6 +139,7 @@ header{height:var(--header-h);background:var(--header-bg);border-bottom:3px soli
 .ib-ok:hover{border-color:var(--accent3)!important;background:rgba(16,185,129,.1)!important;color:var(--accent3)!important;}
 .ib-del:hover{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important;}
 .ib-mail:hover{border-color:var(--accent2)!important;background:rgba(14,165,233,.1)!important;color:var(--accent2)!important;}
+.ib-edit:hover{border-color:var(--purple)!important;background:rgba(139,92,246,.1)!important;color:var(--purple)!important;}
 
 /* Filter */
 .filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
@@ -302,6 +303,7 @@ footer{height:var(--footer-h);background:var(--card);border-top:1px solid var(--
     <div class="nav-tab" onclick="showTab('emails')" id="nt-emails">📧 E-mails</div>
     <div class="nav-tab" onclick="showTab('compose')" id="nt-compose">✉️ Redigir</div>
     <div class="nav-tab" onclick="showTab('charts')" id="nt-charts">📊 Gráficos</div>
+    <div class="nav-tab" onclick="showTab('reports')" id="nt-reports">📑 Relatórios</div>
     <div class="nav-tab" onclick="showTab('backup')" id="nt-backup">💾 Backup</div>
   </nav>
 
@@ -343,7 +345,7 @@ footer{height:var(--footer-h);background:var(--card);border-top:1px solid var(--
       <div style="display:flex;flex-direction:column;gap:5px;">
         <button class="btn btn-primary btn-sm" onclick="openAddTask()" style="width:100%;justify-content:center;">+ Nova Tarefa</button>
         <button class="btn btn-secondary btn-sm" onclick="showTab('compose')" style="width:100%;justify-content:center;">✉️ Redigir E-mail</button>
-        <button class="btn btn-secondary btn-sm" onclick="openReport()" style="width:100%;justify-content:center;">📊 Relatório</button>
+        <button class="btn btn-secondary btn-sm" onclick="openReportModal()" style="width:100%;justify-content:center;">📊 Relatório</button>
       </div>
     </div>
   </div>
@@ -491,6 +493,27 @@ footer{height:var(--footer-h);background:var(--card);border-top:1px solid var(--
       </div>
     </div>
 
+    <!-- REPORTS -->
+    <div class="tab-content" id="tc-reports">
+      <div class="pg-hdr">
+        <h2>📑 Relatórios</h2>
+        <button class="btn btn-primary" onclick="generateCompleteReport()">📊 Gerar Relatório Completo</button>
+      </div>
+      
+      <div class="filter-bar" style="margin-bottom:16px;">
+        <button class="fb active" onclick="filterReport('tasks',this)">✅ Tarefas</button>
+        <button class="fb" onclick="filterReport('emails',this)">📧 E-mails</button>
+        <button class="fb" onclick="filterReport('performance',this)">📈 Performance</button>
+      </div>
+      
+      <div id="reportContent" class="form-card" style="padding:16px;">
+        <div style="text-align:center; color:var(--muted); padding:30px;">
+          <div class="ei">📊</div>
+          <p>Selecione um relatório para visualizar</p>
+        </div>
+      </div>
+    </div>
+
     <!-- BACKUP -->
     <div class="tab-content" id="tc-backup">
       <div class="pg-hdr"><h2>💾 Backup & Restauração</h2></div>
@@ -600,7 +623,7 @@ const n0=new Date();
 let calY=n0.getFullYear(),calM=n0.getMonth();
 let mY=n0.getFullYear(),mM=n0.getMonth();
 let selDay=null,editId=null,dayForTask=null;
-let taskFilter='all',emailFilter='all';
+let taskFilter='all',emailFilter='all',reportFilter='tasks';
 let charts={};
 
 const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -732,6 +755,7 @@ function openDay(s){
         </div>
         <div class="task-actions">
           ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTask('${t.id}');openDay('${s}')">✓</button>`:''}
+          <button class="icon-btn ib-edit" onclick="editTask('${t.id}');closeModal('modalDay')">✎</button>
           <button class="icon-btn ib-del" onclick="delTask('${t.id}');openDay('${s}')">🗑️</button>
         </div>
       </div></div>`;
@@ -751,6 +775,21 @@ function openAddTask(dateVal){
   document.getElementById('tDate').value=dateVal||ds(new Date());
   openModal('modalTask');
 }
+
+function editTask(id){
+  const task=D.tasks.find(t=>t.id===id);
+  if(!task)return;
+  editId=task.id;
+  document.getElementById('modalTaskTitle').textContent='✎ Editar Tarefa';
+  document.getElementById('tTitle').value=task.title||'';
+  document.getElementById('tDesc').value=task.desc||'';
+  document.getElementById('tDate').value=task.date||ds(new Date());
+  document.getElementById('tPrio').value=task.priority||'media';
+  document.getElementById('tCat').value=task.category||'geral';
+  document.getElementById('tEmail').value=task.emailTo||'';
+  openModal('modalTask');
+}
+
 function saveTask(){
   const title=document.getElementById('tTitle').value.trim();
   if(!title){toast('Informe o título.','error');return;}
@@ -761,9 +800,19 @@ function saveTask(){
     priority:document.getElementById('tPrio').value,
     emailTo:document.getElementById('tEmail').value.trim(),
     status:'open',createdAt:new Date().toISOString()};
-  if(editId){const i=D.tasks.findIndex(t=>t.id===editId);if(i>=0){task.status=D.tasks[i].status;D.tasks[i]=task;}}
-  else D.tasks.unshift(task);
-  save();renderAll();closeModal('modalTask');toast('Tarefa salva!','success');
+  if(editId){
+    const i=D.tasks.findIndex(t=>t.id===editId);
+    if(i>=0){
+      task.status=D.tasks[i].status;
+      task.createdAt=D.tasks[i].createdAt;
+      D.tasks[i]=task;
+      toast('Tarefa atualizada!','success');
+    }
+  } else {
+    D.tasks.unshift(task);
+    toast('Tarefa salva!','success');
+  }
+  save();renderAll();closeModal('modalTask');
 }
 function closeTask(id){
   const t=D.tasks.find(x=>x.id===id);
@@ -801,6 +850,7 @@ function renderTaskList(filter){
       </div>
       <div class="task-actions">
         ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTaskL('${t.id}')">✓</button>`:''}
+        <button class="icon-btn ib-edit" onclick="editTask('${t.id}')">✎</button>
         ${t.emailTo?`<button class="icon-btn ib-mail" onclick="window.location.href='mailto:${t.emailTo}'">📧</button>`:''}
         <button class="icon-btn ib-del" onclick="delTaskL('${t.id}')">🗑️</button>
       </div>
@@ -968,6 +1018,7 @@ function renderDashboard(){
       </div>
       <div class="task-actions">
         <button class="icon-btn ib-ok" onclick="closeTask('${t.id}')">✓</button>
+        <button class="icon-btn ib-edit" onclick="editTask('${t.id}')">✎</button>
         <button class="icon-btn ib-del" onclick="delTask('${t.id}')">🗑️</button>
       </div>
     </div></div>`).join('');
@@ -1052,8 +1103,180 @@ function renderCharts(){
   }
 }
 
-// ── REPORT ────────────────────────────────────
-function openReport(){
+// ── REPORTS ────────────────────────────────────
+function generateCompleteReport() {
+  const openTasks = D.tasks.filter(t => t.status === 'open');
+  const doneTasks = D.tasks.filter(t => t.status === 'done');
+  const pendingEmails = D.emails.filter(e => e.status === 'pending');
+  const resolvedEmails = D.emails.filter(e => e.status === 'resolved');
+  
+  let html = `
+    <div class="rep-section">
+      <h4>📊 RESUMO GERAL</h4>
+      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
+      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${openTasks.length}</strong></div>
+      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${doneTasks.length}</strong></div>
+      <div class="rep-row"><span>Total de E-mails</span><strong>${D.emails.length}</strong></div>
+      <div class="rep-row"><span>E-mails Pendentes</span><strong style="color:var(--warn)">${pendingEmails.length}</strong></div>
+      <div class="rep-row"><span>E-mails Resolvidos</span><strong style="color:var(--accent3)">${resolvedEmails.length}</strong></div>
+    </div>
+  `;
+
+  // Tarefas por prioridade
+  const prioridadeCount = {alta:0, media:0, baixa:0};
+  openTasks.forEach(t => prioridadeCount[t.priority || 'media']++);
+  html += `
+    <div class="rep-section">
+      <h4>⚡ TAREFAS EM ABERTO POR PRIORIDADE</h4>
+      <div class="rep-row"><span>🔴 Alta</span><strong>${prioridadeCount.alta}</strong></div>
+      <div class="rep-row"><span>🟡 Média</span><strong>${prioridadeCount.media}</strong></div>
+      <div class="rep-row"><span>🟢 Baixa</span><strong>${prioridadeCount.baixa}</strong></div>
+    </div>
+  `;
+
+  // Tarefas por categoria
+  const catCount = {};
+  openTasks.forEach(t => catCount[t.category || 'geral'] = (catCount[t.category || 'geral'] || 0) + 1);
+  html += `<div class="rep-section"><h4>📋 TAREFAS EM ABERTO POR CATEGORIA</h4>`;
+  Object.entries(catCount).sort((a,b)=>b[1]-a[1]).forEach(([cat,count]) => {
+    html += `<div class="rep-row"><span>${cat}</span><strong>${count}</strong></div>`;
+  });
+  html += `</div>`;
+
+  // Vencidas
+  const overdue = openTasks.filter(t => isOD(t.date));
+  html += `
+    <div class="rep-section">
+      <h4>⚠️ TAREFAS VENCIDAS</h4>
+      ${overdue.length ? overdue.slice(0,5).map(t => 
+        `<div class="rep-row"><span>${t.title}</span><span style="color:var(--danger)">${fmtD(t.date)}</span></div>`
+      ).join('') : '<div style="color:var(--muted)">Nenhuma tarefa vencida</div>'}
+      ${overdue.length > 5 ? `<div style="font-size:10px;color:var(--muted);padding:5px">...e mais ${overdue.length-5}</div>` : ''}
+    </div>
+  `;
+
+  // Próximas tarefas
+  const upcoming = openTasks
+    .filter(t => t.date && new Date(t.date) > new Date())
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .slice(0,5);
+  html += `
+    <div class="rep-section">
+      <h4>📅 PRÓXIMAS TAREFAS</h4>
+      ${upcoming.length ? upcoming.map(t => 
+        `<div class="rep-row"><span>${t.title}</span><span style="color:var(--accent2)">${fmtD(t.date)}</span></div>`
+      ).join('') : '<div style="color:var(--muted)">Nenhuma tarefa futura</div>'}
+    </div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = html;
+  toast('Relatório gerado!', 'success');
+}
+
+function filterReport(filter, btn) {
+  reportFilter = filter;
+  document.querySelectorAll('#tc-reports .fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  if (filter === 'tasks') generateTaskReport();
+  else if (filter === 'emails') generateEmailReport();
+  else if (filter === 'performance') generatePerformanceReport();
+}
+
+function generateTaskReport() {
+  const openTasks = D.tasks.filter(t => t.status === 'open');
+  const doneTasks = D.tasks.filter(t => t.status === 'done');
+  const overdue = openTasks.filter(t => isOD(t.date));
+  
+  let html = `
+    <div class="rep-section">
+      <h4>✅ RELATÓRIO DE TAREFAS</h4>
+      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
+      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${openTasks.length}</strong></div>
+      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${doneTasks.length}</strong></div>
+      <div class="rep-row"><span>Vencidas</span><strong style="color:var(--danger)">${overdue.length}</strong></div>
+    </div>
+  `;
+
+  // Lista de tarefas em aberto
+  if (openTasks.length) {
+    html += `<div class="rep-section"><h4>⚡ TAREFAS EM ABERTO</h4>`;
+    openTasks.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
+      const status = isOD(t.date) ? '🔴' : '⚡';
+      html += `<div class="rep-row"><span>${status} ${t.title}</span><span>${fmtD(t.date)}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+function generateEmailReport() {
+  const pending = D.emails.filter(e => e.status === 'pending');
+  const resolved = D.emails.filter(e => e.status === 'resolved');
+  
+  let html = `
+    <div class="rep-section">
+      <h4>📧 RELATÓRIO DE E-MAILS</h4>
+      <div class="rep-row"><span>Total de E-mails</span><strong>${D.emails.length}</strong></div>
+      <div class="rep-row"><span>Pendentes</span><strong style="color:var(--warn)">${pending.length}</strong></div>
+      <div class="rep-row"><span>Resolvidos</span><strong style="color:var(--accent3)">${resolved.length}</strong></div>
+    </div>
+  `;
+
+  if (pending.length) {
+    html += `<div class="rep-section"><h4>⏳ E-MAILS AGUARDANDO RESPOSTA</h4>`;
+    pending.forEach(e => {
+      html += `<div class="rep-row"><span>${e.subject}</span><a href="mailto:${e.to}" class="email-link">${e.to}</a></div>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+function generatePerformanceReport() {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
+  const lastMonth = `${now.getFullYear()}-${p(now.getMonth())}`;
+  
+  const tasksThisMonth = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
+  const tasksLastMonth = D.tasks.filter(t => t.date && t.date.startsWith(lastMonth));
+  
+  const doneThisMonth = tasksThisMonth.filter(t => t.status === 'done').length;
+  const totalThisMonth = tasksThisMonth.length;
+  const rateThisMonth = totalThisMonth ? Math.round(doneThisMonth/totalThisMonth*100) : 0;
+  
+  const doneLastMonth = tasksLastMonth.filter(t => t.status === 'done').length;
+  const totalLastMonth = tasksLastMonth.length;
+  const rateLastMonth = totalLastMonth ? Math.round(doneLastMonth/totalLastMonth*100) : 0;
+  
+  let html = `
+    <div class="rep-section">
+      <h4>📈 RELATÓRIO DE PERFORMANCE</h4>
+      <div class="rep-row"><span>Taxa de Resolução (Este mês)</span><strong style="color:var(--purple)">${rateThisMonth}%</strong></div>
+      <div class="rep-row"><span>Taxa de Resolução (Mês anterior)</span><strong>${rateLastMonth}%</strong></div>
+      <div class="rep-row"><span>Variação</span><strong style="color:${rateThisMonth >= rateLastMonth ? 'var(--accent3)' : 'var(--danger)'}">
+        ${rateThisMonth - rateLastMonth}%
+      </strong></div>
+    </div>
+  `;
+
+  // Média por dia
+  const daysWithTasks = [...new Set(D.tasks.map(t => t.date))].filter(d => d);
+  const avgPerDay = daysWithTasks.length ? (D.tasks.length / daysWithTasks.length).toFixed(1) : 0;
+  html += `
+    <div class="rep-section">
+      <h4>📊 MÉTRICAS</h4>
+      <div class="rep-row"><span>Média de tarefas por dia</span><strong>${avgPerDay}</strong></div>
+      <div class="rep-row"><span>Tempo médio de conclusão</span><strong>Em desenvolvimento</strong></div>
+    </div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+function openReportModal(){
   const open=D.tasks.filter(t=>t.status==='open');
   const done=D.tasks.filter(t=>t.status==='done');
   const epend=D.emails.filter(e=>e.status==='pending');
@@ -1130,6 +1353,7 @@ function showTab(name){
   if(nt)nt.classList.add('active');
   if(name==='charts')setTimeout(renderCharts,80);
   if(name==='backup')updateBackupInfo();
+  if(name==='reports')generateCompleteReport();
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
