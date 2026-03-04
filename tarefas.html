@@ -1,2101 +1,741 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Pedrinho Gestão — Demandas e Rotinas</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Pedrinho Gestão v9.0</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--a:#f97316;--a2:#0ea5e9;--a3:#10b981;--danger:#ef4444;--warn:#f59e0b;--purple:#8b5cf6;--pink:#ec4899;--bg:#07101f;--card:rgba(13,22,45,.85);--card2:rgba(18,30,60,.9);--border:rgba(255,255,255,.07);--tbl:rgba(255,255,255,.055);--text:#f1f5f9;--muted:#94a3b8;--hh:62px;--sh:42px;--glass:rgba(13,22,45,.75);--gbl:blur(18px);--sd:0 1px 3px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.3);--sd2:0 8px 28px rgba(0,0,0,.55);--r:13px}
-[data-theme="light"]{--bg:#f0f4f8;--card:rgba(255,255,255,.82);--card2:rgba(241,245,249,.9);--border:rgba(0,0,0,.07);--tbl:rgba(0,0,0,.055);--text:#0f172a;--muted:#64748b;--glass:rgba(255,255,255,.72);--sd:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05);--sd2:0 8px 28px rgba(0,0,0,.1)}
-html,body{height:100%;overflow:hidden}
-body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s}
-body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 12% 12%,rgba(249,115,22,.12),transparent),radial-gradient(ellipse 60% 50% at 88% 88%,rgba(14,165,233,.09),transparent)}
-[data-theme=light] body::before{background:radial-gradient(ellipse 70% 50% at 12% 12%,rgba(249,115,22,.06),transparent),radial-gradient(ellipse 60% 50% at 88% 88%,rgba(14,165,233,.05),transparent)}
-.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:44px 44px}
-[data-theme=light] .grid-bg{background-image:linear-gradient(rgba(0,0,0,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.025) 1px,transparent 1px)}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}::-webkit-scrollbar-thumb:hover{background:var(--a)}
-header{position:relative;z-index:200;height:var(--hh);background:var(--glass);backdrop-filter:var(--gbl);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:var(--sd)}
-.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.logo-i{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--a),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;box-shadow:0 6px 16px rgba(249,115,22,.4)}
-.logo-n{font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-s{font-size:9px;color:var(--muted)}
-nav{display:flex;flex:1;overflow-x:auto;scrollbar-width:none}
-nav::-webkit-scrollbar{display:none}
-.nt{padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;user-select:none}
-.nt:hover{color:var(--text)}.nt.active{color:var(--a);border-bottom-color:var(--a)}
-.hdr-r{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.cg{font-size:11px;font-weight:600;color:#10b981;background:rgba(16,185,129,.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,.2)}
-.cc{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--a2);background:rgba(14,165,233,.08);padding:4px 10px;border-radius:20px;border:1px solid rgba(14,165,233,.18)}
-.btn-th{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--glass);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.btn-th:hover{border-color:var(--a);transform:rotate(20deg)}
-.uc{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--glass);cursor:pointer;transition:all .2s}
-.uc:hover{border-color:var(--danger);color:var(--danger)}
-.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
-.main{display:flex;flex:1;overflow:hidden}
-.sb{width:252px;flex-shrink:0;background:var(--glass);backdrop-filter:var(--gbl);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
-.sb-sec{padding:12px;border-bottom:1px solid var(--border)}
-.sb-t{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.sb-t::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--tbl),transparent)}
-.mcal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
-.mcal-btn{background:var(--glass);border:1px solid var(--border);color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:5px;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:13px}
-.mcal-btn:hover{background:var(--a);color:#fff;border-color:var(--a)}
-.mcal-m{font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.mcg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
-.mcdh{text-align:center;font-size:9px;color:var(--muted);padding:3px;font-weight:700}
-.mcd{text-align:center;padding:4px 2px;border-radius:5px;cursor:pointer;font-size:10px;transition:all .15s}
-.mcd:hover{background:var(--a);color:#fff}
-.mcd.today{background:var(--a);color:#fff;font-weight:700}
-.mcd.has::after{content:"";display:block;width:3px;height:3px;background:var(--a3);border-radius:50%;margin:1px auto 0}
-.mcd.oth{opacity:.3}
-.sb-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.sb-stat{background:var(--card);border:1px solid var(--tbl);border-radius:9px;padding:8px 10px;text-align:center;transition:all .2s;cursor:pointer}
-.sb-stat:hover{border-color:var(--a);transform:translateY(-1px)}
-.sb-stat-n{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sb-stat-l{font-size:9px;color:var(--muted);font-weight:600}
-.alrt{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-left:3px solid var(--danger);border-radius:8px;padding:7px 9px;margin-bottom:5px;cursor:pointer;transition:all .2s}
-.alrt:hover{background:rgba(239,68,68,.1);transform:translateX(2px)}
-.alrt-t{font-size:11px;font-weight:600;color:var(--danger)}
-.alrt-m{font-size:10px;color:var(--muted);margin-top:1px}
-.abadge{background:var(--danger);color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700}
-.content{flex:1;overflow-y:auto;padding:18px}
-.tc{display:none;animation:fIn .25s ease}
-.tc.active{display:block}
-@keyframes fIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.pg-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
-.pg-h h2{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.btn{padding:7px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-family:Sora,sans-serif;font-weight:600;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px}
-.btn-p{background:linear-gradient(135deg,var(--a),var(--pink));color:#fff;box-shadow:0 4px 12px rgba(249,115,22,.35)}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(249,115,22,.5)}
-.btn-s{background:var(--glass);backdrop-filter:var(--gbl);border:1px solid var(--border);color:var(--text)}
-.btn-s:hover{border-color:var(--a2);color:var(--a2)}
-.btn-sm{padding:5px 11px;font-size:11px}
-.ib{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--glass);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s}
-.ib:hover{transform:scale(1.1)}
-.ib-ok:hover{border-color:#10b981!important;background:rgba(16,185,129,.1)!important;color:#10b981!important}
-.ib-del:hover{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important}
-.ib-edit:hover{border-color:var(--purple)!important;background:rgba(139,92,246,.1)!important;color:var(--purple)!important}
-.ib-print:hover{border-color:var(--a2)!important;background:rgba(14,165,233,.1)!important;color:var(--a2)!important}
-.ib-mail:hover{border-color:var(--a2)!important;background:rgba(14,165,233,.1)!important;color:var(--a2)!important}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.kpi{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--sd);cursor:pointer}
-.kpi::after{content:attr(data-ic);position:absolute;right:10px;bottom:5px;font-size:28px;opacity:.1;transition:all .3s}
-.kpi:hover{transform:translateY(-3px);box-shadow:var(--sd2)}.kpi:hover::after{opacity:.2;transform:scale(1.1) rotate(5deg)}
-.kpi-v{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.kpi-l{font-size:10px;font-weight:600;color:var(--muted);margin-top:2px}
-.kpi-bar{height:3px;border-radius:2px;margin-top:9px;background:var(--tbl);overflow:hidden}
-.kpi-bf{height:100%;border-radius:2px}
-.chs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
-.ch{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:all .25s;box-shadow:var(--sd)}
-.ch:hover{transform:translateY(-2px);box-shadow:var(--sd2)}
-.ch h3{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.ch-w{position:relative;height:138px}
-.pi{margin-bottom:7px}
-.pi-l{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px}
-.pi-b{height:4px;background:var(--card2);border-radius:10px;overflow:hidden;border:1px solid var(--tbl)}
-.pi-f{height:100%;border-radius:10px}
-.ai{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--tbl);font-size:11px}
-.ai:last-child{border:none}.ai-d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.tcc{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:7px;transition:all .2s;position:relative;box-shadow:var(--sd)}
-.tcc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
-.tcc:hover{transform:translateX(3px);box-shadow:var(--sd2);border-color:var(--a)}
-.tc-o::before{background:linear-gradient(180deg,var(--danger),#f87171)}
-.tc-d::before{background:linear-gradient(180deg,var(--a3),#34d399)}
-.tc-p::before{background:linear-gradient(180deg,var(--warn),#fbbf24)}
-.tc-w::before{background:linear-gradient(180deg,var(--purple),#a78bfa)}
-.tc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.tc-info{flex:1;min-width:0}.tc-title{font-weight:600;font-size:13px;margin-bottom:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.tc-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
-.tc-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
-.tc-acts{display:flex;gap:4px;flex-shrink:0}
-.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
-.tag-o{background:rgba(239,68,68,.08);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
-.tag-d{background:rgba(16,185,129,.08);color:var(--a3);border:1px solid rgba(16,185,129,.2)}
-.tag-p{background:rgba(245,158,11,.08);color:var(--warn);border:1px solid rgba(245,158,11,.2)}
-.tag-w{background:rgba(139,92,246,.08);color:var(--purple);border:1px solid rgba(139,92,246,.2)}
-.tag-c{background:var(--card2);color:var(--muted);border:1px solid var(--tbl)}
-.urg{background:rgba(239,68,68,.1);color:var(--danger);font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;border:1px solid rgba(239,68,68,.22);animation:pulse 2s infinite}
-.sb2{display:inline-block;background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 5px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
-.fbar{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.fb{background:var(--glass);backdrop-filter:var(--gbl);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:Sora,sans-serif;transition:all .2s}
-.fb:hover{border-color:var(--a2);color:var(--text)}
-.fb.active{background:linear-gradient(135deg,var(--a),var(--pink));border-color:transparent;color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.3)}
-.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--tbl);border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
-.cal-dh{background:var(--card2);padding:8px 5px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted)}
-.cal-c{background:var(--card);min-height:85px;padding:5px;cursor:pointer;transition:all .15s;position:relative}
-.cal-c:hover{background:var(--card2)}
-.cal-c.today{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(236,72,153,.06));border:1px solid rgba(249,115,22,.35)}
-.cal-c.today .cdn{color:var(--a);font-weight:700}
-.cal-c.other{opacity:.35}
-.cdn{font-size:11px;font-weight:700;margin-bottom:3px}
-.chip{border-radius:3px;padding:2px 4px;font-size:9px;font-weight:700;margin-bottom:2px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chip-o{background:rgba(239,68,68,.12);color:#dc2626;border-left:2px solid var(--danger)}
-.chip-d{background:rgba(16,185,129,.12);color:#059669;border-left:2px solid var(--a3)}
-.chip-p{background:rgba(14,165,233,.12);color:#0284c7;border-left:2px solid var(--a2)}
-.ecard{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;transition:all .2s;box-shadow:var(--sd)}
-.ecard:hover{transform:translateY(-2px);box-shadow:var(--sd2);border-color:var(--a)}
-.ecard-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.av{width:38px;height:38px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;box-shadow:0 4px 12px rgba(249,115,22,.3)}
-.en{font-weight:600;font-size:13px;margin-bottom:2px}
-.er{font-size:11px;color:var(--muted)}
-.estats{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--tbl)}
-.est{text-align:center;flex:1}
-.est-n{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.est-l{font-size:9px;color:var(--muted)}
-.rep-s{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
-.rep-sh{padding:10px 14px;border-bottom:1px solid var(--tbl);background:var(--card2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-.rep-r{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--tbl);font-size:12px;transition:background .15s}
-.rep-r:last-child{border:none}.rep-r:hover{background:rgba(249,115,22,.03)}
-.fi{width:100%;background:var(--card2);border:1px solid var(--tbl);color:var(--text);padding:9px 12px;border-radius:9px;font-family:Sora,sans-serif;font-size:13px;transition:all .2s;outline:none}
-.fi:focus{border-color:var(--a2);box-shadow:0 0 0 3px rgba(14,165,233,.12);background:var(--card)}
-.fi::placeholder{color:var(--muted)}
-textarea.fi{min-height:80px;resize:vertical}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fr{margin-bottom:12px}
-.fl{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-footer{height:var(--sh);background:var(--glass);backdrop-filter:var(--gbl);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:var(--muted)}
-.fb-r{background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
-.modal-overlay.open{display:flex}
-.modal{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:90%;max-width:650px;max-height:85vh;overflow-y:auto;box-shadow:var(--sd2);animation:modalIn .3s ease}
-@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
-.modal-t{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.modal-c{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .2s}
-.modal-c:hover{background:var(--card2);color:var(--text)}
-.modal-f{display:flex;gap:7px;justify-content:flex-end;margin-top:15px}
-#print-content{position:fixed;left:-9999px;top:0;width:100%;background:white;color:black;padding:20px;font-family:Sora,sans-serif;z-index:9999}
-@media print{body *{visibility:hidden}#print-content,#print-content *{visibility:visible}#print-content{position:absolute;left:0;top:0;width:100%;padding:20px;background:white;color:black}#print-content .no-print{display:none}}
-#toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:12px;font-weight:600;z-index:9999;display:none;gap:8px;align-items:center;box-shadow:var(--sd2);max-width:270px;backdrop-filter:var(--gbl)}
-#toast.show{display:flex;animation:slideUp .25s ease}
-#toast.t-success{border-left:3px solid var(--a3)}
-#toast.t-error{border-left:3px solid var(--danger)}
-#toast.t-info{border-left:3px solid var(--a2)}
-@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-</style>
 </head>
 <body>
-<div class="grid-bg"></div>
+
+<div class="bg-wrap"><div class="bg-g"></div><div class="bg-gr"></div></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="lc-wrap"><div class="lc"></div><div class="lc"></div><div class="lc"></div></div>
+  <div class="lb">
+    <div style="text-align:center;margin-bottom:18px">
+      <div class="lb-icon">P</div>
+      <div class="lb-title">Pedrinho Gestão</div>
+      <div class="lb-sub">Demandas &amp; Rotinas · v9.0</div>
+    </div>
+    <div class="lb-greet" id="loginGreet">Bom dia!</div>
+    <div class="lb-phrase" id="loginFrase">Carregando...</div>
+    <div id="loginError" class="lb-err"></div>
+    <label class="lb-lbl">Usuário</label>
+    <input class="lb-fi" type="text" id="loginUser" placeholder="seu usuário" autocomplete="username">
+    <label class="lb-lbl">Senha</label>
+    <input class="lb-fi" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    <button class="lb-btn" onclick="doLogin()">Entrar →</button>
+    <div style="text-align:center;margin-top:14px;font-size:9px;color:rgba(255,255,255,.36);font-family:var(--mono);letter-spacing:1.2px;text-transform:uppercase">Sistema seguro — acesso restrito</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
 <div class="app">
 
-<header>
-  <div class="logo">
-    <div class="logo-i">P</div>
-    <div><div class="logo-n">Pedrinho Gestão</div><div class="logo-s">Demandas e Rotinas</div></div>
-  </div>
-  <nav>
-    <div class="nt active" onclick="showTab('dashboard')">🏠 Painel</div>
-    <div class="nt" onclick="showTab('demandas')">✅ Demandas</div>
-    <div class="nt" onclick="showTab('nova')">➕ Nova Demanda</div>
-    <div class="nt" onclick="showTab('funcionarios')">👥 Funcionários</div>
-    <div class="nt" onclick="showTab('setores')">🗂 Setores</div>
-    <div class="nt" onclick="showTab('unidades')">🏢 Unidades</div>
-    <div class="nt" onclick="showTab('calendario')">📅 Calendário</div>
-    <div class="nt" onclick="showTab('relatorios')">📑 Relatórios</div>
-    <div class="nt" onclick="showTab('backup')">💾 Backup</div>
-  </nav>
-  <div class="hdr-r">
-    <span class="cg" id="greeting">☀️ Bom dia</span>
-    <span class="cc" id="clock">--:--</span>
-    <button class="btn-th" onclick="toggleTheme()" id="themeBtn">🌙</button>
-    <div class="uc" onclick="toast('Menu do usuário em desenvolvimento', 'info')">👤 Admin</div>
-  </div>
-</header>
-
-<div class="main">
-
-<!-- SIDEBAR -->
-<div class="sb">
-  <div class="sb-sec">
-    <div class="sb-t">Calendário Rápido</div>
-    <div class="mcal-nav">
-      <button class="mcal-btn" onclick="miniPrev()">‹</button>
-      <span class="mcal-m" id="miniMonth"></span>
-      <button class="mcal-btn" onclick="miniNext()">›</button>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">P</div>
+      <div>
+        <div class="logo-name">Pedrinho Gestão</div>
+        <div class="logo-sub">Demandas e Rotinas</div>
+      </div>
     </div>
-    <div class="mcg" id="miniGrid"></div>
-  </div>
-  
-  <div class="sb-sec">
-    <div class="sb-t">Resumo do Mês</div>
-    <div class="sb-stats">
-      <div class="sb-stat" onclick="abrirResumoModal('open')"><div class="sb-stat-n" id="sbOpen">0</div><div class="sb-stat-l">⚡ Em Aberto</div></div>
-      <div class="sb-stat" onclick="abrirResumoModal('done')"><div class="sb-stat-n" id="sbDone">0</div><div class="sb-stat-l">✅ Concluídas</div></div>
-      <div class="sb-stat" onclick="abrirResumoModal('pending')"><div class="sb-stat-n" id="sbPending">0</div><div class="sb-stat-l">⏳ Pendentes</div></div>
-      <div class="sb-stat" onclick="abrirResumoModal('overdue')"><div class="sb-stat-n" id="sbOverdue">0</div><div class="sb-stat-l">🔴 Vencidas</div></div>
-      <div class="sb-stat" onclick="abrirResumoModal('alta')"><div class="sb-stat-n" id="sbAlta">0</div><div class="sb-stat-l">🔴 Alta Prioridade</div></div>
-      <div class="sb-stat" onclick="abrirResumoModal('all')"><div class="sb-stat-n" id="sbTotal">0</div><div class="sb-stat-l">📋 Total</div></div>
+
+    <nav>
+      <div class="nt active" onclick="showTab('dashboard')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Painel
+      </div>
+      <div class="nt" onclick="showTab('demandas')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Demandas
+      </div>
+      <div class="nt" onclick="showTab('nova')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova
+      </div>
+      <div class="nt" onclick="showTab('funcionarios')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Funcionários
+      </div>
+      <div class="nt" onclick="showTab('setores')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Setores
+      </div>
+      <div class="nt" onclick="showTab('unidades')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Unidades
+      </div>
+      <div class="nt" onclick="showTab('calendario')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendário
+      </div>
+      <div class="nt" onclick="showTab('relatorios')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Relatórios
+      </div>
+      <div class="nt" onclick="showTab('backup')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Backup
+      </div>
+    </nav>
+
+    <div class="hdr-r">
+      <span class="hdr-greet" id="hdrGreet">☀️ Bom dia</span>
+      <span class="hdr-clock" id="clock">--:--:--</span>
+      <button class="btn-th" onclick="toggleTheme()" id="themeBtn" title="Alternar tema">🌙</button>
+      <div class="hdr-user" id="hdrUser">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+        —
+      </div>
     </div>
-  </div>
-  
-  <div class="sb-sec">
-    <div class="sb-t">⚠️ Alertas <span class="abadge" id="alertCount">0</span></div>
-    <div id="alertList"></div>
-  </div>
-  
-  <div class="sb-sec">
-    <div class="sb-t">Atalhos Rápidos</div>
-    <div style="display:flex;flex-direction:column;gap:5px">
-      <button class="btn btn-p btn-sm" onclick="openAddTask()" style="justify-content:center">➕ Nova Demanda</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioPendencias()" style="justify-content:center">⚠️ Relatório Pendências</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioGeral()" style="justify-content:center">📊 Relatório Geral</button>
-      <button class="btn btn-s btn-sm" onclick="showTab('relatorios'); gerarRelatorioGeral()" style="justify-content:center">📑 Ver Relatórios</button>
+  </header>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sb">
+      <div class="sb-sec">
+        <div class="sb-t">Calendário</div>
+        <div class="mcal-nav">
+          <button class="mcal-btn" onclick="miniPrev()">‹</button>
+          <span class="mcal-month" id="miniMonth"></span>
+          <button class="mcal-btn" onclick="miniNext()">›</button>
+        </div>
+        <div class="mcal-grid" id="miniGrid"></div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-t">Resumo do Mês</div>
+        <div class="sb-stats">
+          <div class="sb-stat" onclick="abrirResumoModal('open')"><div class="sb-stat-n" id="sbOpen">0</div><div class="sb-stat-l">Aberto</div></div>
+          <div class="sb-stat" onclick="abrirResumoModal('done')"><div class="sb-stat-n" id="sbDone">0</div><div class="sb-stat-l">Concluído</div></div>
+          <div class="sb-stat" onclick="abrirResumoModal('pending')"><div class="sb-stat-n" id="sbPending">0</div><div class="sb-stat-l">Pendente</div></div>
+          <div class="sb-stat" onclick="abrirResumoModal('overdue')"><div class="sb-stat-n" id="sbOverdue">0</div><div class="sb-stat-l">Vencida</div></div>
+          <div class="sb-stat" onclick="abrirResumoModal('alta')"><div class="sb-stat-n" id="sbAlta">0</div><div class="sb-stat-l">Alta Prior.</div></div>
+          <div class="sb-stat" onclick="abrirResumoModal('all')"><div class="sb-stat-n" id="sbTotal">0</div><div class="sb-stat-l">Total</div></div>
+        </div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-t">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m10.29 3.86-8.27 14.3A1 1 0 0 0 3 20h18a1 1 0 0 0 .86-1.52l-8.27-14.3a1 1 0 0 0-1.7 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Alertas <span class="abadge" id="alertCount">0</span>
+        </div>
+        <div id="alertList"></div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-t">Atalhos</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button class="btn btn-p btn-sm" onclick="openAddTask()" style="justify-content:center;width:100%">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Demanda
+          </button>
+          <button class="btn btn-s btn-sm" onclick="showTab('relatorios');gerarRelatorioPendencias()" style="justify-content:center;width:100%">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Ver Pendências
+          </button>
+          <button class="btn btn-s btn-sm" onclick="showBackupReminder()" style="justify-content:center;width:100%">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Backup Agora
+          </button>
+        </div>
+      </div>
+    </div><!-- /sb -->
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="tc active" id="tc-dashboard">
+        <div class="pg-h">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-4px;margin-right:7px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Painel de Controle
+          </h2>
+          <button class="btn btn-p" onclick="openAddTask()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Demanda
+          </button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpis">
+          <div class="kpi kpi-open" onclick="abrirResumoModal('open')">
+            <div class="kpi-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="kpi-v" id="kpiOpen">0</div>
+            <div class="kpi-l">Em Aberto</div>
+            <div class="kpi-bar"><div class="kpi-bf" id="kpiOpenBar" style="width:0%;background:var(--danger)"></div></div>
+          </div>
+          <div class="kpi kpi-done" onclick="abrirResumoModal('done')">
+            <div class="kpi-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="kpi-v" id="kpiDone">0</div>
+            <div class="kpi-l">Concluídas</div>
+            <div class="kpi-bar"><div class="kpi-bf" id="kpiDoneBar" style="width:0%;background:var(--success)"></div></div>
+          </div>
+          <div class="kpi kpi-pending" onclick="abrirResumoModal('pending')">
+            <div class="kpi-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="kpi-v" id="kpiPending">0</div>
+            <div class="kpi-l">Pendentes</div>
+            <div class="kpi-bar"><div class="kpi-bf" id="kpiPendingBar" style="width:0%;background:var(--warn)"></div></div>
+          </div>
+          <div class="kpi kpi-rate" onclick="abrirResumoModal('all')">
+            <div class="kpi-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+            </div>
+            <div class="kpi-v" id="kpiRate">0%</div>
+            <div class="kpi-l">Taxa de Sucesso</div>
+            <div class="kpi-bar"><div class="kpi-bf" id="kpiRateBar" style="width:0%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="chs">
+          <div class="ch">
+            <h3>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+              Status das Demandas
+            </h3>
+            <div class="ch-w"><canvas id="doughnutChart"></canvas></div>
+          </div>
+          <div class="ch">
+            <h3>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Por Categoria / Setor
+            </h3>
+            <div id="categoryList"></div>
+          </div>
+          <div class="ch">
+            <h3>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Atividade Recente
+            </h3>
+            <div id="activityList" style="max-height:175px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;font-family:var(--mono);display:flex;align-items:center;gap:8px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Urgentes &amp; Vencidas
+        </div>
+        <div id="urgentList"></div>
+      </div><!-- /dashboard -->
+
+      <!-- DEMANDAS -->
+      <div class="tc" id="tc-demandas">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Demandas
+          </h2>
+          <button class="btn btn-p" onclick="openAddTask()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova
+          </button>
+        </div>
+        <div class="fbar">
+          <button class="fb active" onclick="filterTasks('all',this)">Todas</button>
+          <button class="fb" onclick="filterTasks('open',this)">Em Aberto</button>
+          <button class="fb" onclick="filterTasks('pending',this)">Pendentes</button>
+          <button class="fb" onclick="filterTasks('done',this)">Concluídas</button>
+          <button class="fb" onclick="filterTasks('overdue',this)">Vencidas</button>
+          <button class="fb" onclick="filterTasks('alta',this)">Alta Prior.</button>
+          <button class="fb" onclick="filterTasks('hoje',this)">Hoje</button>
+        </div>
+        <div id="taskList"></div>
+      </div>
+
+      <!-- NOVA DEMANDA -->
+      <div class="tc" id="tc-nova">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Demanda
+          </h2>
+        </div>
+        <div class="ecard">
+          <div class="fg2">
+            <div class="fr"><label class="fl">Título *</label><input class="fi" id="taskTitle" placeholder="Ex: Problema no sistema de NF"></div>
+            <div class="fr"><label class="fl">Data Prazo</label><input class="fi" type="date" id="taskDate"></div>
+          </div>
+          <div class="fg2">
+            <div class="fr">
+              <label class="fl">Categoria (Setor)</label>
+              <select class="fi" id="taskCategory"></select>
+            </div>
+            <div class="fr">
+              <label class="fl">Prioridade</label>
+              <select class="fi" id="taskPriority">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg2">
+            <div class="fr">
+              <label class="fl">Responsável</label>
+              <select class="fi" id="taskResponsible" onchange="autoFillFromEmployee()"></select>
+            </div>
+            <div class="fr">
+              <label class="fl">Setor</label>
+              <select class="fi" id="taskSector"></select>
+            </div>
+          </div>
+          <div class="fr">
+            <label class="fl">E-mail do Responsável</label>
+            <input class="fi" id="taskEmail" placeholder="preenchido automaticamente ao selecionar funcionário">
+          </div>
+          <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="taskDesc" rows="4" placeholder="Descreva a demanda em detalhes..."></textarea></div>
+          <div class="fr">
+            <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;color:var(--muted)">
+              <input type="checkbox" id="taskOverdue" style="width:16px;height:16px;accent-color:var(--danger)">
+              Marcar como VENCIDA manualmente
+            </label>
+          </div>
+          <div class="modal-f">
+            <button class="btn btn-s" onclick="clearTaskForm()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Limpar
+            </button>
+            <button class="btn btn-p" onclick="saveTask()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salvar Demanda
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCIONÁRIOS -->
+      <div class="tc" id="tc-funcionarios">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Funcionários
+          </h2>
+          <button class="btn btn-p" onclick="addEmployee()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo
+          </button>
+        </div>
+
+        <!-- Busca rápida de funcionário -->
+        <div class="emp-search-box">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;gap:7px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Busca Rápida de Funcionário
+          </div>
+          <div style="display:flex;gap:9px">
+            <input class="fi" id="empSearchQuery" placeholder="Buscar por nome, setor ou chat ID..." style="flex:1" oninput="buscarFuncionario()" onkeyup="buscarFuncionario()">
+          </div>
+          <div id="empSearchResult"></div>
+        </div>
+
+        <div class="fbar">
+          <input class="fi" id="searchEmployee" placeholder="Filtrar lista..." style="width:220px;padding:7px 13px;font-size:12px" oninput="filterEmployees()">
+        </div>
+        <div id="employeeList"></div>
+      </div>
+
+      <!-- SETORES -->
+      <div class="tc" id="tc-setores">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Setores
+          </h2>
+          <button class="btn btn-p" onclick="addSector()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Setor
+          </button>
+        </div>
+        <div id="sectorList"></div>
+      </div>
+
+      <!-- UNIDADES -->
+      <div class="tc" id="tc-unidades">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Unidades
+          </h2>
+          <button class="btn btn-p" onclick="addUnit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Unidade
+          </button>
+        </div>
+        <div id="unitList"></div>
+      </div>
+
+      <!-- CALENDÁRIO -->
+      <div class="tc" id="tc-calendario">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="calTitle">Calendário</span>
+          </h2>
+          <div style="display:flex;gap:7px;align-items:center">
+            <button class="btn btn-s btn-sm" onclick="calChange(-1)">‹ Anterior</button>
+            <button class="btn btn-s btn-sm" onclick="calChange(0)">Hoje</button>
+            <button class="btn btn-s btn-sm" onclick="calChange(1)">Próximo ›</button>
+            <button class="btn btn-p btn-sm" onclick="openAddTask()">+ Demanda</button>
+          </div>
+        </div>
+        <div class="cal-g" id="calGrid"></div>
+      </div>
+
+      <!-- RELATÓRIOS -->
+      <div class="tc" id="tc-relatorios">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Relatórios
+          </h2>
+          <button class="btn btn-p btn-sm" onclick="imprimirRelatorio()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir
+          </button>
+        </div>
+        <div class="fbar">
+          <button class="fb active" onclick="filterReport('geral',this)">Geral</button>
+          <button class="fb" onclick="filterReport('pendencias',this)">Pendências</button>
+          <button class="fb" onclick="filterReport('resolvidos',this)">Resolvidos</button>
+          <button class="fb" onclick="filterReport('funcionarios',this)">Funcionários</button>
+          <button class="fb" onclick="filterReport('setores',this)">Setores</button>
+          <button class="fb" onclick="filterReport('vencidas',this)">Vencidas</button>
+          <button class="fb" onclick="filterReport('pordia',this)">Por Dia</button>
+          <button class="fb" onclick="filterReport('pormes',this)">Por Mês</button>
+        </div>
+        <div id="reportContent" style="min-height:350px">
+          <div style="text-align:center;color:var(--muted);padding:64px">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3;margin-bottom:16px;display:block;margin-inline:auto"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <p style="font-size:14px">Selecione um relatório acima</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACKUP -->
+      <div class="tc" id="tc-backup">
+        <div class="pg-h">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:7px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Backup &amp; Restauração
+          </h2>
+        </div>
+        <div class="ecard">
+          <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.7">Exporte ou importe seus dados. Recomendamos fazer backup ao final de cada expediente. O arquivo inclui data e hora automaticamente.</p>
+          <div style="display:flex;gap:11px;flex-wrap:wrap;margin-bottom:20px">
+            <button class="btn btn-p" onclick="exportBackup()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar Backup
+            </button>
+            <button class="btn btn-s" onclick="document.getElementById('restoreFile').click()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Restaurar Backup
+            </button>
+            <button class="btn btn-s" onclick="clearAllData()" style="color:var(--danger)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              Limpar Dados
+            </button>
+          </div>
+          <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
+          <pre class="ecard" style="font-family:var(--mono);font-size:12px;white-space:pre-wrap;line-height:2;background:rgba(0,0,0,.02)" id="backupInfo">Carregando...</pre>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <footer>
+    <span style="display:flex;align-items:center;gap:7px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Sistema de Gestão de Demandas
+    </span>
+    <span class="fb-r">⚡ Pedrinho Gestão v9.0</span>
+    <span id="footerDate">—</span>
+  </footer>
+
+</div><!-- /app -->
+
+<!-- ====== MODAIS ====== -->
+
+<!-- Modal Editar Tarefa -->
+<div class="modal-overlay" id="modalTask">
+  <div class="modal">
+    <div class="modal-h">
+      <div class="modal-t">✏️ Editar Demanda</div>
+      <button class="modal-c" onclick="closeModal('modalTask')">✕</button>
     </div>
-  </div>
-</div>
-
-<!-- CONTENT -->
-<div class="content">
-
-<!-- DASHBOARD -->
-<div class="tc active" id="tc-dashboard">
-  <div class="pg-h">
-    <h2>🏠 Painel de Controle</h2>
-    <button class="btn btn-p" onclick="openAddTask()">➕ Nova Demanda</button>
-  </div>
-  <div class="kpis">
-    <div class="kpi" data-ic="⚡" onclick="abrirResumoModal('open')"><div class="kpi-v" id="kpiOpen">0</div><div class="kpi-l">Em Aberto</div><div class="kpi-bar"><div class="kpi-bf" id="kpiOpenBar" style="width:0%;background:var(--danger)"></div></div></div>
-    <div class="kpi" data-ic="✅" onclick="abrirResumoModal('done')"><div class="kpi-v" id="kpiDone">0</div><div class="kpi-l">Concluídas</div><div class="kpi-bar"><div class="kpi-bf" id="kpiDoneBar" style="width:0%;background:var(--a3)"></div></div></div>
-    <div class="kpi" data-ic="⏳" onclick="abrirResumoModal('pending')"><div class="kpi-v" id="kpiPending">0</div><div class="kpi-l">Pendentes</div><div class="kpi-bar"><div class="kpi-bf" id="kpiPendingBar" style="width:0%;background:var(--warn)"></div></div></div>
-    <div class="kpi" data-ic="🎯" onclick="abrirResumoModal('overdue')"><div class="kpi-v" id="kpiRate">0%</div><div class="kpi-l">Taxa de Sucesso</div><div class="kpi-bar"><div class="kpi-bf" id="kpiRateBar" style="width:0%;background:var(--purple)"></div></div></div>
-  </div>
-  <div class="chs">
-    <div class="ch"><h3>Status das Demandas</h3><div class="ch-w"><canvas id="doughnutChart"></canvas></div></div>
-    <div class="ch"><h3>Por Categoria</h3><div id="categoryList"></div></div>
-    <div class="ch"><h3>Atividade Recente</h3><div id="activityList" style="max-height:160px;overflow-y:auto;"></div></div>
-  </div>
-  <div class="sb-t" style="margin-bottom:8px">⚠️ Urgentes & Vencidas</div>
-  <div id="urgentList"></div>
-</div>
-
-<!-- DEMANDAS -->
-<div class="tc" id="tc-demandas">
-  <div class="pg-h">
-    <h2>✅ Demandas</h2>
-    <button class="btn btn-p" onclick="openAddTask()">➕ Nova</button>
-  </div>
-  <div class="fbar">
-    <button class="fb active" onclick="filterTasks('all',this)">Todas</button>
-    <button class="fb" onclick="filterTasks('open',this)">⚡ Em Aberto</button>
-    <button class="fb" onclick="filterTasks('pending',this)">⏳ Pendentes</button>
-    <button class="fb" onclick="filterTasks('done',this)">✅ Concluídas</button>
-    <button class="fb" onclick="filterTasks('overdue',this)">🔴 Vencidas</button>
-    <button class="fb" onclick="filterTasks('alta',this)">🔴 Alta Prioridade</button>
-  </div>
-  <div id="taskList"></div>
-</div>
-
-<!-- NOVA DEMANDA -->
-<div class="tc" id="tc-nova">
-  <div class="pg-h"><h2>➕ Nova Demanda</h2></div>
-  <div class="ecard">
+    <div class="fr"><label class="fl">Título</label><input class="fi" id="editTitle"></div>
+    <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="editDesc" rows="3"></textarea></div>
     <div class="fg2">
-      <div class="fr"><label class="fl">Título *</label><input class="fi" id="taskTitle" placeholder="Ex: Problema no sistema"></div>
-      <div class="fr"><label class="fl">Data</label><input class="fi" type="date" id="taskDate" value="2026-03-04"></div>
-    </div>
-    <div class="fg2">
-      <div class="fr"><label class="fl">Categoria</label>
-        <select class="fi" id="taskCategory">
-          <option value="nf">📄 NF / Nota Fiscal</option>
-          <option value="ti">💻 TI / Sistema</option>
-          <option value="financeiro">💰 Financeiro</option>
-          <option value="rh">👥 RH</option>
-          <option value="geral">📋 Geral</option>
+      <div class="fr"><label class="fl">Data</label><input class="fi" type="date" id="editDate"></div>
+      <div class="fr"><label class="fl">Prioridade</label>
+        <select class="fi" id="editPriority">
+          <option value="baixa">Baixa</option>
+          <option value="media">Média</option>
+          <option value="alta">Alta</option>
         </select>
       </div>
-      <div class="fr"><label class="fl">Prioridade</label>
-        <select class="fi" id="taskPriority">
-          <option value="baixa">🟢 Baixa</option>
-          <option value="media" selected>🟡 Média</option>
-          <option value="alta">🔴 Alta</option>
+    </div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Categoria</label><select class="fi" id="editCategory"></select></div>
+      <div class="fr"><label class="fl">Status</label>
+        <select class="fi" id="editStatus">
+          <option value="open">Em Aberto</option>
+          <option value="pending">Pendente</option>
+          <option value="done">Concluída</option>
         </select>
       </div>
     </div>
     <div class="fg2">
       <div class="fr"><label class="fl">Responsável</label>
-        <select class="fi" id="taskResponsible">
-          <option value="João Silva">👤 João Silva (TI)</option>
-          <option value="Maria Santos">👤 Maria Santos (Financeiro)</option>
-          <option value="Ana Lima">👤 Ana Lima (RH)</option>
-          <option value="Carlos Mendes">👤 Carlos Mendes (Admin)</option>
-        </select>
+        <select class="fi" id="editResponsibleSel" onchange="autoFillEditEmployee()"></select>
       </div>
-      <div class="fr"><label class="fl">Setor</label>
-        <select class="fi" id="taskSector">
-          <option value="TI">💻 TI</option>
-          <option value="Financeiro">💰 Financeiro</option>
-          <option value="RH">👥 RH</option>
-          <option value="Administrativo">📋 Administrativo</option>
-        </select>
-      </div>
+      <div class="fr"><label class="fl">Setor</label><input class="fi" id="editSector" placeholder="Setor"></div>
     </div>
-    <div class="fr"><label class="fl">E-mail</label><input class="fi" id="taskEmail" placeholder="email@exemplo.com"></div>
-    <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="taskDesc" rows="3" placeholder="Descreva a demanda..."></textarea></div>
-    <div class="fr">
-      <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="taskOverdue"> 🔴 Marcar como VENCIDA</label>
-    </div>
-    <div class="modal-f">
-      <button class="btn btn-s" onclick="clearTaskForm()">🗑️ Limpar</button>
-      <button class="btn btn-p" onclick="saveTask()">💾 Salvar Demanda</button>
-    </div>
-  </div>
-</div>
-
-<!-- FUNCIONÁRIOS -->
-<div class="tc" id="tc-funcionarios">
-  <div class="pg-h"><h2>👥 Funcionários</h2><button class="btn btn-p" onclick="addEmployee()">➕ Novo</button></div>
-  <div class="fbar"><input class="fi" id="searchEmployee" placeholder="🔍 Buscar funcionário..." style="width:220px;padding:6px 12px;font-size:12px" oninput="filterEmployees()"></div>
-  <div id="employeeList"></div>
-</div>
-
-<!-- SETORES -->
-<div class="tc" id="tc-setores">
-  <div class="pg-h"><h2>🗂 Setores</h2><button class="btn btn-p" onclick="addSector()">➕ Novo Setor</button></div>
-  <div id="sectorList"></div>
-</div>
-
-<!-- UNIDADES -->
-<div class="tc" id="tc-unidades">
-  <div class="pg-h"><h2>🏢 Unidades</h2><button class="btn btn-p" onclick="addUnit()">➕ Nova Unidade</button></div>
-  <div id="unitList"></div>
-</div>
-
-<!-- CALENDÁRIO -->
-<div class="tc" id="tc-calendario">
-  <div class="pg-h">
-    <h2 id="calTitle">Março 2026</h2>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button class="btn btn-s btn-sm" onclick="calChange(-1)">‹</button>
-      <button class="btn btn-s btn-sm" onclick="calChange(0)">Hoje</button>
-      <button class="btn btn-s btn-sm" onclick="calChange(1)">›</button>
-      <button class="btn btn-p btn-sm" onclick="openAddTask()">➕ Demanda</button>
-    </div>
-  </div>
-  <div class="cal-g" id="calGrid"></div>
-</div>
-
-<!-- RELATÓRIOS -->
-<div class="tc" id="tc-relatorios">
-  <div class="pg-h">
-    <h2>📑 Relatórios</h2>
-    <div style="display:flex;gap:5px;flex-wrap:wrap">
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioGeral()">📊 Geral</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioPendencias()">⚠️ Pendências</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioResolvidos()">✅ Resolvidos</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioFuncionarios()">👥 Por Funcionário</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioSetores()">🗂 Por Setor</button>
-      <button class="btn btn-s btn-sm" onclick="gerarRelatorioVencidas()">🔴 Vencidas</button>
-      <button class="btn btn-p btn-sm" onclick="imprimirRelatorioAtual()">🖨️ Imprimir</button>
-    </div>
-  </div>
-  <div class="fbar">
-    <button class="fb active" onclick="filterReport('geral',this)">📊 Geral</button>
-    <button class="fb" onclick="filterReport('pendencias',this)">⚠️ Pendências</button>
-    <button class="fb" onclick="filterReport('resolvidos',this)">✅ Resolvidos</button>
-    <button class="fb" onclick="filterReport('funcionarios',this)">👥 Funcionários</button>
-    <button class="fb" onclick="filterReport('setores',this)">🗂 Setores</button>
-    <button class="fb" onclick="filterReport('vencidas',this)">🔴 Vencidas</button>
-  </div>
-  <div id="reportContent" class="ecard" style="padding:16px;min-height:300px">
-    <div style="text-align:center;color:var(--muted);padding:30px">
-      <div style="font-size:40px;margin-bottom:10px">📊</div>
-      <p>Selecione um relatório</p>
-    </div>
-  </div>
-</div>
-
-<!-- BACKUP -->
-<div class="tc" id="tc-backup">
-  <div class="pg-h"><h2>💾 Backup e Restauração</h2></div>
-  <div class="ecard">
-    <p style="color:var(--muted);font-size:13px;margin-bottom:15px">Exporte ou importe seus dados para segurança.</p>
-    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px">
-      <button class="btn btn-p" onclick="exportBackup()">⬇️ Exportar Backup</button>
-      <button class="btn btn-s" onclick="document.getElementById('restoreFile').click()">⬆️ Restaurar Backup</button>
-      <button class="btn btn-s" onclick="clearAllData()" style="color:var(--danger)">🗑️ Limpar Todos os Dados</button>
-    </div>
-    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
-    <div class="rep-s" style="margin-top:15px;padding:10px;background:var(--card2);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:pre-wrap" id="backupInfo">Carregando...</div>
-  </div>
-</div>
-
-</div>
-</div>
-
-<footer>
-  <span>🗓️ Sistema de Gestão de Demandas</span>
-  <span class="fb-r">⚡ Pedrinho Gestão v6.0</span>
-  <span id="footerDate">—</span>
-</footer>
-</div>
-
-<!-- MODAL TASK -->
-<div class="modal-overlay" id="modalTask">
-  <div class="modal">
-    <div class="modal-h">
-      <div class="modal-t" id="modalTaskTitle">✏️ Editar Demanda</div>
-      <button class="modal-c" onclick="closeModal('modalTask')">✕</button>
-    </div>
-    <div class="fr"><label class="fl">Título</label><input class="fi" id="editTitle"></div>
-    <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="editDesc" rows="2"></textarea></div>
-    <div class="fg2">
-      <div class="fr"><label class="fl">Data</label><input class="fi" type="date" id="editDate"></div>
-      <div class="fr"><label class="fl">Prioridade</label>
-        <select class="fi" id="editPriority">
-          <option value="baixa">🟢 Baixa</option>
-          <option value="media">🟡 Média</option>
-          <option value="alta">🔴 Alta</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg2">
-      <div class="fr"><label class="fl">Categoria</label>
-        <select class="fi" id="editCategory">
-          <option value="nf">📄 NF</option>
-          <option value="ti">💻 TI</option>
-          <option value="financeiro">💰 Financeiro</option>
-          <option value="rh">👥 RH</option>
-          <option value="geral">📋 Geral</option>
-        </select>
-      </div>
-      <div class="fr"><label class="fl">Status</label>
-        <select class="fi" id="editStatus">
-          <option value="open">⚡ Em Aberto</option>
-          <option value="pending">⏳ Pendente</option>
-          <option value="done">✅ Concluída</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg2">
-      <div class="fr"><label class="fl">Responsável</label><input class="fi" id="editResponsible"></div>
-      <div class="fr"><label class="fl">Setor</label><input class="fi" id="editSector"></div>
-    </div>
-    <div class="fr"><label class="fl">E-mail</label><input class="fi" id="editEmail"></div>
-    <div class="fr">
-      <label style="display:flex;align-items:center;gap:5px">
-        <input type="checkbox" id="editOverdue"> 🔴 Marcar como VENCIDA
-      </label>
-    </div>
+    <div class="fr"><label class="fl">E-mail</label><input class="fi" id="editEmail" type="email"></div>
+    <div class="fr"><label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;color:var(--muted)"><input type="checkbox" id="editOverdue" style="accent-color:var(--danger)"> Marcar como VENCIDA</label></div>
     <div class="modal-f">
       <button class="btn btn-s" onclick="closeModal('modalTask')">Cancelar</button>
-      <button class="btn btn-p" onclick="updateTask()">💾 Atualizar</button>
+      <button class="btn btn-p" onclick="updateTask()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Atualizar
+      </button>
     </div>
   </div>
 </div>
 
-<!-- MODAL RESUMO -->
+<!-- Modal Resumo -->
 <div class="modal-overlay" id="modalResumo">
-  <div class="modal" style="max-width:600px">
+  <div class="modal" style="max-width:700px">
     <div class="modal-h">
       <div class="modal-t" id="modalResumoTitle">📊 Resumo</div>
-      <div style="display:flex;gap:5px">
-        <button class="ib ib-print" onclick="printResumo()" title="Imprimir">🖨️</button>
+      <div style="display:flex;gap:7px">
+        <button class="ib ib-print" onclick="printResumo()" title="Imprimir">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </button>
         <button class="modal-c" onclick="closeModal('modalResumo')">✕</button>
       </div>
     </div>
-    <div id="modalResumoBody" style="max-height:500px;overflow-y:auto"></div>
+    <div id="modalResumoBody" style="max-height:560px;overflow-y:auto"></div>
+    <div class="modal-f"><button class="btn btn-s" onclick="closeModal('modalResumo')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Modal Funcionário (COMPLETO) -->
+<div class="modal-overlay" id="modalEmployee">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-h">
+      <div class="modal-t" id="modalEmpTitle">➕ Novo Funcionário</div>
+      <button class="modal-c" onclick="closeModal('modalEmployee')">✕</button>
+    </div>
+    <input type="hidden" id="empId">
+    <div class="fg2">
+      <div class="fr"><label class="fl">Nome *</label><input class="fi" id="empName" placeholder="Nome completo"></div>
+      <div class="fr"><label class="fl">E-mail *</label><input class="fi" id="empEmail" type="email" placeholder="email@empresa.com"></div>
+    </div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Telefone / WhatsApp</label><input class="fi" id="empPhone" placeholder="(00) 00000-0000"></div>
+      <div class="fr"><label class="fl">WhatsApp (2º número)</label><input class="fi" id="empPhone2" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="fg2">
+      <div class="fr">
+        <label class="fl">Ramal</label>
+        <input class="fi" id="empRamal" placeholder="Ex: 1234" maxlength="6">
+      </div>
+      <div class="fr">
+        <label class="fl">Client Chat</label>
+        <input class="fi" id="empClientChat" placeholder="preenchido automaticamente do e-mail">
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fr">
+        <label class="fl">Setor *</label>
+        <select class="fi" id="empSector"></select>
+      </div>
+      <div class="fr">
+        <label class="fl">Unidade</label>
+        <select class="fi" id="empUnit"></select>
+      </div>
+    </div>
     <div class="modal-f">
-      <button class="btn btn-s" onclick="closeModal('modalResumo')">Fechar</button>
+      <button class="btn btn-s" onclick="closeModal('modalEmployee')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveEmployee()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Salvar
+      </button>
     </div>
   </div>
 </div>
 
-<!-- PRINT CONTENT -->
+<!-- Modal Setor -->
+<div class="modal-overlay" id="modalSector">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-h">
+      <div class="modal-t" id="modalSecTitle">➕ Novo Setor</div>
+      <button class="modal-c" onclick="closeModal('modalSector')">✕</button>
+    </div>
+    <input type="hidden" id="secId">
+    <div class="fg2">
+      <div class="fr"><label class="fl">Nome *</label><input class="fi" id="secName" placeholder="Ex: TI, Financeiro, RH"></div>
+      <div class="fr"><label class="fl">Código</label><input class="fi" id="secCode" placeholder="Ex: TI, FIN, RH"></div>
+    </div>
+    <div class="fr"><label class="fl">Unidade</label><input class="fi" id="secUnit" placeholder="Ex: Matriz"></div>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalSector')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveSector()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Unidade -->
+<div class="modal-overlay" id="modalUnit">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-h">
+      <div class="modal-t" id="modalUnitTitle">➕ Nova Unidade</div>
+      <button class="modal-c" onclick="closeModal('modalUnit')">✕</button>
+    </div>
+    <input type="hidden" id="unitId">
+    <div class="fg2">
+      <div class="fr"><label class="fl">Nome *</label><input class="fi" id="unitName" placeholder="Ex: Matriz, Filial SP"></div>
+      <div class="fr"><label class="fl">CNPJ</label><input class="fi" id="unitCnpj" placeholder="00.000.000/0000-00"></div>
+    </div>
+    <div class="fr"><label class="fl">Endereço</label><input class="fi" id="unitAddress" placeholder="Rua, nº, Bairro, Cidade"></div>
+    <div class="fr"><label class="fl">Telefone</label><input class="fi" id="unitPhone" placeholder="(00) 0000-0000"></div>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalUnit')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveUnit()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal E-mail -->
+<div class="modal-overlay email-popup" id="modalEmail">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-h">
+      <div class="modal-t">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Enviar E-mail
+      </div>
+      <button class="modal-c" onclick="closeModal('modalEmail')">✕</button>
+    </div>
+    <div class="fr"><label class="fl">Para</label><input class="fi" id="emailTo" type="email" placeholder="destinatario@email.com"></div>
+    <div class="fr"><label class="fl">Assunto</label><input class="fi" id="emailSubject" placeholder="Assunto do e-mail"></div>
+    <div class="fr"><label class="fl">Mensagem</label><textarea class="fi" id="emailBody" rows="8" style="font-size:13px;line-height:1.65"></textarea></div>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalEmail')">Cancelar</button>
+      <button class="btn btn-p" onclick="sendEmail()" style="background:linear-gradient(135deg,var(--teal),#0369a1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Enviar via E-mail
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal WhatsApp -->
+<div class="modal-overlay wa-popup" id="modalWa">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-h">
+      <div class="modal-t" style="color:#25D366">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        WhatsApp Web
+      </div>
+      <button class="modal-c" onclick="closeModal('modalWa')">✕</button>
+    </div>
+    <input type="hidden" id="waTaskRef">
+    <div class="fr"><label class="fl">Número (com DDI)</label><input class="fi" id="waPhone" placeholder="+55 (00) 00000-0000"></div>
+    <div class="fr"><label class="fl">Mensagem</label><textarea class="fi" id="waMsg" rows="7" style="font-size:13px;line-height:1.65"></textarea></div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Será aberto no WhatsApp Web do navegador.</p>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalWa')">Cancelar</button>
+      <button class="btn btn-p" onclick="sendWa()" style="background:linear-gradient(135deg,#25D366,#128C7E)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Abrir WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup Reminder -->
+<div id="backupReminder">
+  <div class="br-box">
+    <div class="br-icon">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </div>
+    <div class="br-title">Hora do Backup!</div>
+    <div class="br-msg">Você está encerrando o expediente.<br>Recomendamos fazer o backup dos dados antes de sair.<br>O arquivo será salvo com data e hora.</div>
+    <div style="display:flex;gap:11px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="backupAndClose()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Fazer Backup
+      </button>
+      <button class="btn btn-s" onclick="closeBackupReminder()">Fechar sem salvar</button>
+    </div>
+  </div>
+</div>
+
 <div id="print-content"></div>
 <div id="toast"></div>
 
+<script src="script.js"></script>
 <script>
-// ==================== DADOS ====================
-const STORAGE_KEY = 'pedrinho_gestao_v6_final';
-let D = {
-  tasks: [
-    {
-      "id": "mmc2fei1z31",
-      "title": "dezembro 12/2024 - NF 4992 Planalto",
-      "desc": "NF 4992 Planalto e prodac com erro de valores",
-      "date": "2026-03-04",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T13:21:33.481Z"
-    },
-    {
-      "id": "mmc2e4ap7cj",
-      "title": "dezembro 12/2024 - NF 568224",
-      "desc": "nf 568224 mudar para 2551 autosystem",
-      "date": "2026-02-19",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T13:20:33.601Z"
-    },
-    {
-      "id": "mmc2c5l4i8c",
-      "title": "dezembro 12/2024 - NF 81291 Itaberaba",
-      "desc": "NF 81291 Itaberaba cfop deves ser 1551 ativo esta errado",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T13:19:01.960Z"
-    },
-    {
-      "id": "mmc29x7bkv6",
-      "title": "dezembro 12/2024 - NF 1068 Aparecida",
-      "desc": "NF 1068 Aparecida prodac 0 e AutoSystem busca base icms",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Ana Lima",
-      "sector": "RH",
-      "createdAt": "2026-03-04T13:17:17.783Z"
-    },
-    {
-      "id": "mmc28gqqm4s",
-      "title": "dezembro 12/2024 - NF 70460 Barra Sul",
-      "desc": "NF 70460 Barra Sul diferença de busca de valores",
-      "date": "2026-03-04",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "",
-      "status": "open",
-      "responsible": "Carlos Mendes",
-      "sector": "Administrativo",
-      "createdAt": "2026-03-04T13:16:09.794Z"
-    },
-    {
-      "id": "mmc26py4rc7",
-      "title": "dezembro 12/2024 - Jacareí",
-      "desc": "Jacareí diferença de 81,00 que esta como diferenca icms",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T13:14:48.412Z"
-    },
-    {
-      "id": "mmc24x2c0n5",
-      "title": "dezembro 12/2024 - NF 2410518",
-      "desc": "NF 2410518 Ativo imobilizado arrumar autosystem",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T13:13:24.324Z"
-    },
-    {
-      "id": "mmc237vxshw",
-      "title": "dezembro 12/2024 - NF 155562 Itaguara",
-      "desc": "NF 155562 Itaguara ajuste cfop autosystem",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com,fiscal.rdp@amaralcontabilidade.net",
-      "status": "open",
-      "responsible": "Ana Lima",
-      "sector": "RH",
-      "createdAt": "2026-03-04T13:12:05.037Z"
-    },
-    {
-      "id": "mmc218ena3i",
-      "title": "dezembro 12/2024 - NF 156669 Inhapim",
-      "desc": "NF 156669 Inhapim ajuste para CFOP em prodac",
-      "date": "2026-02-18",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "fiscal.rdp@amaralcontabilidade.net,julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Carlos Mendes",
-      "sector": "Administrativo",
-      "createdAt": "2026-03-04T13:10:32.400Z"
-    },
-    {
-      "id": "mmc1ycx3bxe",
-      "title": "dezembro 12/2024 - NF 1208 Lafaiete",
-      "desc": "NF 1208 Prodac Lafaiete",
-      "date": "2026-02-13",
-      "category": "nf",
-      "priority": "baixa",
-      "emailTo": "fiscal.rdp@amaralcontabilidade.net",
-      "status": "done",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T13:08:18.279Z",
-      "closedAt": "2026-03-04T13:09:05.237Z"
-    },
-    {
-      "id": "mmc1wism5ea",
-      "title": "dezembro 12/2024 - São Cristovão",
-      "desc": "São Cristovão NF 7133 é ativo ajuste auto system 1551",
-      "date": "2026-02-03",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T13:06:52.582Z"
-    },
-    {
-      "id": "mmc1ttgrogs",
-      "title": "novembro 11/2024 - Valencia",
-      "desc": "Valencia NF 3603 Ativo arrumar auto system",
-      "date": "2026-02-19",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Ana Lima",
-      "sector": "RH",
-      "createdAt": "2026-03-04T13:04:46.443Z"
-    },
-    {
-      "id": "mmc1sswhhv1",
-      "title": "novembro 11/2024 - Pouso Alegre",
-      "desc": "85957 Pouso Alegre urb 2 aparece 20,90 porem puxa 70,90",
-      "date": "2026-03-04",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T13:03:59.057Z"
-    },
-    {
-      "id": "mmc1lmxchqs",
-      "title": "novembro 11/2024 - NF 28705 Betim",
-      "desc": "NF 28705 Betim 1 CFOP origem 5152 ajuste no autosystem",
-      "date": "2026-03-02",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Carlos Mendes",
-      "sector": "Administrativo",
-      "createdAt": "2026-03-04T12:58:24.720Z"
-    },
-    {
-      "id": "mmc1jr0f3s9",
-      "title": "novembro 11/2024 - NF 7098 São Cristovão",
-      "desc": "NF 7098 São Cristovão cfop correto 1551 esta 1556",
-      "date": "2026-02-03",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T12:56:56.703Z"
-    },
-    {
-      "id": "mmc1hk6c94r",
-      "title": "outubro 10/2024 - São Jorge",
-      "desc": "São Jorge NF 8520 CFOP Prodac: 1551 CFOP AutoSystem: 1556",
-      "date": "2026-03-03",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Ana Lima",
-      "sector": "RH",
-      "createdAt": "2026-03-04T12:55:14.532Z"
-    },
-    {
-      "id": "mmc1fjwow5w",
-      "title": "outubro 10/2024 - Sales",
-      "desc": "Sales - NF 814 ajuste CFOP 2556 para 2551 auto system",
-      "date": "2026-03-02",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T12:53:40.872Z"
-    },
-    {
-      "id": "mmc1e1tutv2",
-      "title": "outubro 10/2024 - Muriaé",
-      "desc": "Muriaé NF 216009 468,30 ICMS Sub nao puxa pra ver comparativo",
-      "date": "2026-03-03",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Carlos Mendes",
-      "sector": "Administrativo",
-      "createdAt": "2026-03-04T12:52:30.786Z"
-    },
-    {
-      "id": "mmc1cekiwqo",
-      "title": "outubro 10/2024 - Luz",
-      "desc": "Luz NF 1102 Base esta no Prodac mais nao aparece AutoSystem",
-      "date": "2026-03-04",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T12:51:13.986Z"
-    },
-    {
-      "id": "mmc14emqj5r",
-      "title": "outubro 10/2024 - Luz 2",
-      "desc": "Luz - NF 1102 Base esta corerta porem ao ver pelo sistema",
-      "date": "2026-03-04",
-      "category": "nf",
-      "priority": "media",
-      "emailTo": "",
-      "status": "open",
-      "responsible": "Ana Lima",
-      "sector": "RH",
-      "createdAt": "2026-03-04T12:45:00.818Z"
-    },
-    {
-      "id": "mmc11kyurs3",
-      "title": "outubro 10/2024 - DP 1",
-      "desc": "DP 1 -NF 215145 Prodac e AutoSystem devem serem 1406 estao 1407",
-      "date": "2026-02-10",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "fiscal.rdp@amaralcontabilidade.net,julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "João Silva",
-      "sector": "TI",
-      "createdAt": "2026-03-04T12:42:49.063Z"
-    },
-    {
-      "id": "mmc10632v7p",
-      "title": "outubro 10/2024 - Divisa Alegre",
-      "desc": "Divisa Alegre 1 - NF 22698767 ativo imobilizado ajuste",
-      "date": "2026-02-10",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "fiscal.rdp@amaralcontabilidade.net",
-      "status": "open",
-      "responsible": "Carlos Mendes",
-      "sector": "Administrativo",
-      "createdAt": "2026-03-04T12:41:43.118Z"
-    },
-    {
-      "id": "mmc0xlrchi3",
-      "title": "outubro 10/2024 - Lafaiete",
-      "desc": "Lafaiete - NF 1545 deve estar 1659 no auto system esta 1652",
-      "date": "2026-02-27",
-      "category": "nf",
-      "priority": "alta",
-      "emailTo": "julliana.alves@rededompedro.com",
-      "status": "open",
-      "responsible": "Maria Santos",
-      "sector": "Financeiro",
-      "createdAt": "2026-03-04T12:39:43.464Z"
-    }
-  ],
-  employees: [
-    {id: 'emp1', name: 'João Silva', email: 'joao.silva@empresa.com', sector: 'TI', unit: 'Matriz', phone: '(11) 99999-1111'},
-    {id: 'emp2', name: 'Maria Santos', email: 'maria.santos@empresa.com', sector: 'Financeiro', unit: 'Matriz', phone: '(11) 99999-2222'},
-    {id: 'emp3', name: 'Ana Lima', email: 'ana.lima@empresa.com', sector: 'RH', unit: 'Matriz', phone: '(11) 99999-3333'},
-    {id: 'emp4', name: 'Carlos Mendes', email: 'carlos.mendes@empresa.com', sector: 'Administrativo', unit: 'Matriz', phone: '(11) 99999-4444'},
-    {id: 'emp5', name: 'Patrícia Oliveira', email: 'patricia@empresa.com', sector: 'Financeiro', unit: 'Filial SP', phone: '(11) 99999-5555'}
-  ],
-  sectors: [
-    {id: 'sec1', name: 'Tecnologia da Informação', code: 'TI', unit: 'Matriz', employees: 2},
-    {id: 'sec2', name: 'Financeiro', code: 'FIN', unit: 'Matriz', employees: 2},
-    {id: 'sec3', name: 'Recursos Humanos', code: 'RH', unit: 'Matriz', employees: 1},
-    {id: 'sec4', name: 'Administrativo', code: 'ADM', unit: 'Matriz', employees: 1},
-    {id: 'sec5', name: 'Comercial', code: 'COM', unit: 'Filial SP', employees: 1}
-  ],
-  units: [
-    {id: 'uni1', name: 'Matriz', cnpj: '12.345.678/0001-90', address: 'Av. Paulista, 1000 - São Paulo/SP', phone: '(11) 3333-4444', employees: 4},
-    {id: 'uni2', name: 'Filial SP', cnpj: '12.345.678/0002-71', address: 'Av. Francisco Glicério, 500 - Campinas/SP', phone: '(19) 3333-5555', employees: 1}
-  ],
-  lastBackup: null
-};
-
-try {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    D = {...D, ...parsed};
-  }
-} catch (e) {}
-
-function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(D));
-    D.lastBackup = new Date().toISOString();
-  } catch (e) {}
-}
-
-// ==================== HELPERS ====================
-function p(n) { return String(n).padStart(2, '0'); }
-function ds(d) { return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
-function fmtDate(s) { return s ? new Date(s+'T12:00').toLocaleDateString('pt-BR') : ''; }
-function isOverdue(date, status) { 
-  if (status === 'done') return false;
-  return new Date(date + 'T23:59:59') < new Date();
-}
-function uid() { return Date.now().toString(36) + Math.random().toString(36).substring(2,6); }
-
-// ==================== THEME ====================
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
-  setTimeout(renderCharts, 100);
-}
-
-// ==================== CLOCK ====================
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  const h = now.getHours();
-  const greeting = h < 12 ? '☀️ Bom dia' : h < 18 ? '🌤️ Boa tarde' : '🌙 Boa noite';
-  document.getElementById('greeting').textContent = greeting;
-  const days = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  document.getElementById('footerDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// ==================== RENDER ALL ====================
-function renderAll() {
-  renderStats();
-  renderTasks();
-  renderEmployees();
-  renderSectors();
-  renderUnits();
-  renderCalendar();
-  renderMiniCalendar();
-  renderAlerts();
-  renderCharts();
-}
-
-// ==================== STATS ====================
-function renderStats() {
-  const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
-  const monthTasks = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
-  
-  const open = monthTasks.filter(t => t.status === 'open').length;
-  const done = monthTasks.filter(t => t.status === 'done').length;
-  const pending = monthTasks.filter(t => t.status === 'pending').length;
-  const overdue = monthTasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status)).length;
-  const alta = monthTasks.filter(t => t.priority === 'alta' && t.status !== 'done').length;
-  const total = monthTasks.length;
-  
-  document.getElementById('sbOpen').textContent = open;
-  document.getElementById('sbDone').textContent = done;
-  document.getElementById('sbPending').textContent = pending;
-  document.getElementById('sbOverdue').textContent = overdue;
-  document.getElementById('sbAlta').textContent = alta;
-  document.getElementById('sbTotal').textContent = total;
-  
-  document.getElementById('kpiOpen').textContent = open;
-  document.getElementById('kpiDone').textContent = done;
-  document.getElementById('kpiPending').textContent = pending;
-  
-  const totalTasks = D.tasks.length;
-  const doneTasks = D.tasks.filter(t => t.status === 'done').length;
-  const rate = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
-  document.getElementById('kpiRate').textContent = rate + '%';
-  
-  const totalActive = open + pending;
-  document.getElementById('kpiOpenBar').style.width = totalActive ? (open / totalActive * 100) + '%' : '0%';
-  document.getElementById('kpiPendingBar').style.width = totalActive ? (pending / totalActive * 100) + '%' : '0%';
-  document.getElementById('kpiDoneBar').style.width = totalTasks ? (done / totalTasks * 100) + '%' : '0%';
-  document.getElementById('kpiRateBar').style.width = rate + '%';
-}
-
-// ==================== TASKS ====================
-let currentTaskFilter = 'all';
-
-function renderTasks(filter = currentTaskFilter) {
-  const list = document.getElementById('taskList');
-  let tasks = [...D.tasks].sort((a,b) => new Date(a.date) - new Date(b.date));
-  
-  if (filter === 'open') tasks = tasks.filter(t => t.status === 'open');
-  else if (filter === 'pending') tasks = tasks.filter(t => t.status === 'pending');
-  else if (filter === 'done') tasks = tasks.filter(t => t.status === 'done');
-  else if (filter === 'overdue') tasks = tasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status));
-  else if (filter === 'alta') tasks = tasks.filter(t => t.priority === 'alta' && t.status !== 'done');
-  
-  if (!tasks.length) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)"><div style="font-size:40px">📋</div><p>Nenhuma demanda encontrada</p></div>';
-    return;
-  }
-  
-  list.innerHTML = tasks.map(t => {
-    const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
-    const statusTag = t.status === 'done' ? '<span class="tag tag-d">✅ Concluída</span>' : 
-                      (t.status === 'pending' ? '<span class="tag tag-p">⏳ Pendente</span>' : 
-                      '<span class="tag tag-o">⚡ Em Aberto</span>');
-    const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
-    const priorityTag = t.priority === 'alta' ? '<span class="tag tag-o">🔴 Alta</span>' : 
-                       (t.priority === 'media' ? '<span class="tag tag-c">🟡 Média</span>' : 
-                       '<span class="tag tag-c">🟢 Baixa</span>');
-    const emailHtml = t.emailTo ? `<span class="tag tag-c">📧 ${t.emailTo}</span>` : '';
-    
-    return `
-      <div class="tcc ${statusClass}">
-        <div class="tc-row">
-          <div class="tc-info">
-            <div class="tc-title">${t.title} ${overdue}</div>
-            <div class="tc-meta">
-              ${statusTag} ${priorityTag}
-              <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
-              <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
-              <span class="tag tag-c">🗂 ${t.sector || 'Geral'}</span>
-              ${emailHtml}
-            </div>
-            ${t.desc ? `<div class="tc-desc">${t.desc}</div>` : ''}
-          </div>
-          <div class="tc-acts">
-            ${t.status !== 'done' ? `<button class="ib ib-ok" onclick="completeTask('${t.id}')">✓</button>` : ''}
-            <button class="ib ib-edit" onclick="editTask('${t.id}')">✎</button>
-            <button class="ib ib-del" onclick="deleteTask('${t.id}')">🗑</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function filterTasks(filter, btn) {
-  currentTaskFilter = filter;
-  document.querySelectorAll('#tc-demandas .fb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTasks(filter);
-}
-
-function openAddTask() {
-  document.getElementById('taskTitle').value = '';
-  document.getElementById('taskDesc').value = '';
-  document.getElementById('taskDate').value = ds(new Date());
-  document.getElementById('taskCategory').value = 'nf';
-  document.getElementById('taskPriority').value = 'media';
-  document.getElementById('taskResponsible').value = 'João Silva';
-  document.getElementById('taskSector').value = 'TI';
-  document.getElementById('taskEmail').value = '';
-  document.getElementById('taskOverdue').checked = false;
-  showTab('nova');
-}
-
-function saveTask() {
-  const title = document.getElementById('taskTitle').value.trim();
-  if (!title) { toast('Informe o título da demanda', 'error'); return; }
-  
-  const task = {
-    id: uid(),
-    title: title,
-    desc: document.getElementById('taskDesc').value.trim(),
-    date: document.getElementById('taskDate').value,
-    category: document.getElementById('taskCategory').value,
-    priority: document.getElementById('taskPriority').value,
-    responsible: document.getElementById('taskResponsible').value,
-    sector: document.getElementById('taskSector').value,
-    emailTo: document.getElementById('taskEmail').value.trim(),
-    status: 'open',
-    overdueManual: document.getElementById('taskOverdue').checked,
-    createdAt: new Date().toISOString()
-  };
-  
-  D.tasks.unshift(task);
-  saveData();
-  renderAll();
-  showTab('demandas');
-  toast('Demanda criada com sucesso!', 'success');
-}
-
-function clearTaskForm() {
-  document.getElementById('taskTitle').value = '';
-  document.getElementById('taskDesc').value = '';
-  document.getElementById('taskDate').value = ds(new Date());
-  document.getElementById('taskCategory').value = 'nf';
-  document.getElementById('taskPriority').value = 'media';
-  document.getElementById('taskResponsible').value = 'João Silva';
-  document.getElementById('taskSector').value = 'TI';
-  document.getElementById('taskEmail').value = '';
-  document.getElementById('taskOverdue').checked = false;
-}
-
-let editingTaskId = null;
-
-function editTask(id) {
-  const task = D.tasks.find(t => t.id === id);
-  if (!task) return;
-  
-  editingTaskId = id;
-  document.getElementById('editTitle').value = task.title || '';
-  document.getElementById('editDesc').value = task.desc || '';
-  document.getElementById('editDate').value = task.date || ds(new Date());
-  document.getElementById('editPriority').value = task.priority || 'media';
-  document.getElementById('editCategory').value = task.category || 'nf';
-  document.getElementById('editStatus').value = task.status || 'open';
-  document.getElementById('editResponsible').value = task.responsible || '';
-  document.getElementById('editSector').value = task.sector || '';
-  document.getElementById('editEmail').value = task.emailTo || '';
-  document.getElementById('editOverdue').checked = task.overdueManual || false;
-  
-  openModal('modalTask');
-}
-
-function updateTask() {
-  if (!editingTaskId) return;
-  
-  const index = D.tasks.findIndex(t => t.id === editingTaskId);
-  if (index === -1) return;
-  
-  D.tasks[index] = {
-    ...D.tasks[index],
-    title: document.getElementById('editTitle').value.trim(),
-    desc: document.getElementById('editDesc').value.trim(),
-    date: document.getElementById('editDate').value,
-    priority: document.getElementById('editPriority').value,
-    category: document.getElementById('editCategory').value,
-    status: document.getElementById('editStatus').value,
-    responsible: document.getElementById('editResponsible').value,
-    sector: document.getElementById('editSector').value,
-    emailTo: document.getElementById('editEmail').value.trim(),
-    overdueManual: document.getElementById('editOverdue').checked
-  };
-  
-  if (D.tasks[index].status === 'done' && !D.tasks[index].closedAt) {
-    D.tasks[index].closedAt = new Date().toISOString();
-  }
-  
-  saveData();
-  renderAll();
-  closeModal('modalTask');
-  toast('Demanda atualizada!', 'success');
-}
-
-function completeTask(id) {
-  const task = D.tasks.find(t => t.id === id);
-  if (task) {
-    task.status = 'done';
-    task.closedAt = new Date().toISOString();
-    saveData();
-    renderAll();
-    toast('Demanda concluída! ✅', 'success');
-  }
-}
-
-function deleteTask(id) {
-  if (!confirm('Tem certeza que deseja excluir esta demanda?')) return;
-  D.tasks = D.tasks.filter(t => t.id !== id);
-  saveData();
-  renderAll();
-  toast('Demanda excluída', 'info');
-}
-
-// ==================== EMPLOYEES ====================
-function renderEmployees() {
-  const list = document.getElementById('employeeList');
-  const search = document.getElementById('searchEmployee')?.value.toLowerCase() || '';
-  
-  let employees = D.employees;
-  if (search) {
-    employees = employees.filter(e => 
-      e.name.toLowerCase().includes(search) || 
-      e.email.toLowerCase().includes(search) ||
-      e.sector.toLowerCase().includes(search)
-    );
-  }
-  
-  list.innerHTML = employees.map(e => {
-    const taskCount = D.tasks.filter(t => t.responsible === e.name).length;
-    const openCount = D.tasks.filter(t => t.responsible === e.name && t.status !== 'done').length;
-    
-    return `
-      <div class="ecard">
-        <div class="ecard-h">
-          <div class="av">${e.name.charAt(0)}</div>
-          <div style="flex:1">
-            <div class="en">${e.name}</div>
-            <div class="er">${e.sector} · ${e.unit}</div>
-          </div>
-          <button class="ib ib-edit" onclick="editEmployee('${e.id}')">✎</button>
-          <button class="ib ib-del" onclick="deleteEmployee('${e.id}')">🗑</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-          <div><div style="font-size:9px;color:var(--muted)">E-mail</div><div style="font-weight:600">${e.email}</div></div>
-          <div><div style="font-size:9px;color:var(--muted)">Telefone</div><div style="font-weight:600">${e.phone || '—'}</div></div>
-        </div>
-        <div class="estats">
-          <div class="est"><div class="est-n">${openCount}</div><div class="est-l">Em aberto</div></div>
-          <div class="est"><div class="est-n">${taskCount}</div><div class="est-l">Total</div></div>
-          <div class="est"><button class="btn btn-s btn-sm" onclick="filterByEmployee('${e.name}')">Ver demandas</button></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function filterByEmployee(name) {
-  currentTaskFilter = 'all';
-  showTab('demandas');
-  setTimeout(() => {
-    const tasks = D.tasks.filter(t => t.responsible === name);
-    if (tasks.length) {
-      toast(`${name} tem ${tasks.length} demandas`, 'info');
-    }
-  }, 300);
-}
-
-function addEmployee() {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function editEmployee(id) {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function deleteEmployee(id) {
-  if (!confirm('Excluir funcionário?')) return;
-  D.employees = D.employees.filter(e => e.id !== id);
-  saveData();
-  renderEmployees();
-}
-
-function filterEmployees() {
-  renderEmployees();
-}
-
-// ==================== SECTORS ====================
-function renderSectors() {
-  const list = document.getElementById('sectorList');
-  
-  list.innerHTML = D.sectors.map(s => {
-    const employees = D.employees.filter(e => e.sector === s.name || e.sector === s.code).length;
-    const tasks = D.tasks.filter(t => t.sector === s.name || t.sector === s.code).length;
-    const openTasks = D.tasks.filter(t => (t.sector === s.name || t.sector === s.code) && t.status !== 'done').length;
-    
-    return `
-      <div class="ecard">
-        <div class="ecard-h">
-          <div class="av" style="background:linear-gradient(135deg,var(--purple),var(--a2))">🗂</div>
-          <div style="flex:1">
-            <div class="en">${s.name}</div>
-            <div class="er">Código: ${s.code} · ${s.unit}</div>
-          </div>
-          <button class="ib ib-edit" onclick="editSector('${s.id}')">✎</button>
-          <button class="ib ib-del" onclick="deleteSector('${s.id}')">🗑</button>
-        </div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--tbl)">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:6px">Funcionários (${employees})</div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px">
-            ${D.employees.filter(e => e.sector === s.name || e.sector === s.code).map(e => 
-              `<span class="tag tag-c" style="cursor:pointer" onclick="filterByEmployee('${e.name}')">👤 ${e.name}</span>`
-            ).join('') || '<span class="tag tag-c">Nenhum funcionário</span>'}
-          </div>
-          <div class="estats" style="margin-top:10px">
-            <div class="est"><div class="est-n">${openTasks}</div><div class="est-l">Em aberto</div></div>
-            <div class="est"><div class="est-n">${tasks}</div><div class="est-l">Total</div></div>
-            <div class="est"><button class="btn btn-s btn-sm" onclick="filterBySector('${s.name}')">Ver demandas</button></div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function filterBySector(sector) {
-  currentTaskFilter = 'all';
-  showTab('demandas');
-  setTimeout(() => {
-    const tasks = D.tasks.filter(t => t.sector === sector);
-    if (tasks.length) {
-      toast(`Setor ${sector} tem ${tasks.length} demandas`, 'info');
-    }
-  }, 300);
-}
-
-function addSector() {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function editSector(id) {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function deleteSector(id) {
-  if (!confirm('Excluir setor?')) return;
-  D.sectors = D.sectors.filter(s => s.id !== id);
-  saveData();
-  renderSectors();
-}
-
-// ==================== UNITS ====================
-function renderUnits() {
-  const list = document.getElementById('unitList');
-  
-  list.innerHTML = D.units.map(u => {
-    const employees = D.employees.filter(e => e.unit === u.name).length;
-    const tasks = D.tasks.filter(t => t.unit === u.name).length;
-    
-    return `
-      <div class="ecard">
-        <div class="ecard-h">
-          <div class="av" style="background:linear-gradient(135deg,var(--a2),var(--purple))">🏢</div>
-          <div style="flex:1">
-            <div class="en">${u.name}</div>
-            <div class="er">CNPJ: ${u.cnpj}</div>
-          </div>
-          <button class="ib ib-edit" onclick="editUnit('${u.id}')">✎</button>
-          <button class="ib ib-del" onclick="deleteUnit('${u.id}')">🗑</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-top:8px">
-          <div><div style="font-size:9px;color:var(--muted)">Endereço</div><div style="font-weight:600">${u.address}</div></div>
-          <div><div style="font-size:9px;color:var(--muted)">Telefone</div><div style="font-weight:600">${u.phone || '—'}</div></div>
-        </div>
-        <div class="estats">
-          <div class="est"><div class="est-n">${employees}</div><div class="est-l">Funcionários</div></div>
-          <div class="est"><div class="est-n">${tasks}</div><div class="est-l">Demandas</div></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function addUnit() {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function editUnit(id) {
-  toast('Funcionalidade em desenvolvimento', 'info');
-}
-
-function deleteUnit(id) {
-  if (!confirm('Excluir unidade?')) return;
-  D.units = D.units.filter(u => u.id !== id);
-  saveData();
-  renderUnits();
-}
-
-// ==================== CALENDAR ====================
-let calYear = 2026;
-let calMonth = 2; // março
-
-function renderCalendar() {
-  const grid = document.getElementById('calGrid');
-  document.getElementById('calTitle').textContent = 
-    ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][calMonth] + ' ' + calYear;
-  
-  const daysOfWeek = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-  let html = daysOfWeek.map(d => `<div class="cal-dh">${d}</div>`).join('');
-  
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
-  const today = ds(new Date());
-  
-  let day = 1;
-  let nextDay = 1;
-  
-  for (let i = 0; i < 42; i++) {
-    let dayNum, month, year, isOther = false;
-    
-    if (i < startOffset) {
-      dayNum = prevMonthDays - startOffset + i + 1;
-      month = calMonth - 1;
-      year = calYear;
-      if (month < 0) { month = 11; year--; }
-      isOther = true;
-    } else if (day <= daysInMonth) {
-      dayNum = day++;
-      month = calMonth;
-      year = calYear;
-    } else {
-      dayNum = nextDay++;
-      month = calMonth + 1;
-      year = calYear;
-      if (month > 11) { month = 0; year++; }
-      isOther = true;
-    }
-    
-    const dateStr = `${year}-${p(month+1)}-${p(dayNum)}`;
-    const tasks = D.tasks.filter(t => t.date === dateStr);
-    
-    let chips = '';
-    tasks.slice(0, 2).forEach(t => {
-      const chipClass = t.status === 'done' ? 'chip-d' : (t.status === 'pending' ? 'chip-p' : 'chip-o');
-      chips += `<span class="chip ${chipClass}">${t.title.substring(0, 15)}${t.title.length > 15 ? '...' : ''}</span>`;
-    });
-    if (tasks.length > 2) {
-      chips += `<span style="font-size:9px;color:var(--muted)">+${tasks.length-2}</span>`;
-    }
-    
-    const classes = `cal-c${isOther ? ' other' : ''}${dateStr === today ? ' today' : ''}`;
-    html += `<div class="${classes}" onclick="openDay('${dateStr}')"><div class="cdn">${dayNum}</div>${chips}</div>`;
-  }
-  
-  grid.innerHTML = html;
-}
-
-function calChange(dir) {
-  if (dir === 0) {
-    const now = new Date();
-    calYear = now.getFullYear();
-    calMonth = now.getMonth();
-  } else {
-    calMonth += dir;
-    if (calMonth < 0) { calMonth = 11; calYear--; }
-    if (calMonth > 11) { calMonth = 0; calYear++; }
-  }
-  renderCalendar();
-}
-
-function openDay(date) {
-  const tasks = D.tasks.filter(t => t.date === date);
-  const dayName = new Date(date + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  
-  let html = `<div style="margin-bottom:10px;font-weight:600">📅 ${dayName}</div>`;
-  
-  if (!tasks.length) {
-    html += '<div style="text-align:center;padding:20px;color:var(--muted)">Nenhuma demanda neste dia</div>';
-  } else {
-    tasks.forEach(t => {
-      const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
-      const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
-      html += `
-        <div class="tcc ${statusClass}" style="margin-bottom:5px;cursor:pointer" onclick="editTask('${t.id}')">
-          <div class="tc-row">
-            <div class="tc-info">
-              <div class="tc-title">${t.title} ${overdue}</div>
-              <div class="tc-meta">
-                <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
-                <span class="tag tag-c">${t.priority === 'alta' ? '🔴' : (t.priority === 'media' ? '🟡' : '🟢')}</span>
-                <span class="tag tag-c">${t.status === 'done' ? '✅' : (t.status === 'pending' ? '⏳' : '⚡')}</span>
-              </div>
-              ${t.desc ? `<div class="tc-desc">${t.desc.substring(0, 60)}${t.desc.length > 60 ? '...' : ''}</div>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    });
-  }
-  
-  document.getElementById('modalResumoTitle').textContent = '📅 Demandas do Dia';
-  document.getElementById('modalResumoBody').innerHTML = html;
-  openModal('modalResumo');
-}
-
-// ==================== MINI CALENDAR ====================
-let miniYear = 2026;
-let miniMonth = 2;
-
-function renderMiniCalendar() {
-  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  document.getElementById('miniMonth').textContent = monthNames[miniMonth] + ' ' + miniYear;
-  
-  const grid = document.getElementById('miniGrid');
-  const daysOfWeek = ['S','T','Q','Q','S','S','D'];
-  let html = daysOfWeek.map(d => `<div class="mcdh">${d}</div>`).join('');
-  
-  const firstDay = new Date(miniYear, miniMonth, 1).getDay();
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-  const daysInMonth = new Date(miniYear, miniMonth + 1, 0).getDate();
-  const prevMonthDays = new Date(miniYear, miniMonth, 0).getDate();
-  const today = ds(new Date());
-  
-  let day = 1;
-  let nextDay = 1;
-  
-  for (let i = 0; i < 35; i++) {
-    let dayNum, month, year, isOther = false;
-    
-    if (i < startOffset) {
-      dayNum = prevMonthDays - startOffset + i + 1;
-      month = miniMonth - 1;
-      year = miniYear;
-      if (month < 0) { month = 11; year--; }
-      isOther = true;
-    } else if (day <= daysInMonth) {
-      dayNum = day++;
-      month = miniMonth;
-      year = miniYear;
-    } else {
-      dayNum = nextDay++;
-      month = miniMonth + 1;
-      year = miniYear;
-      if (month > 11) { month = 0; year++; }
-      isOther = true;
-    }
-    
-    const dateStr = `${year}-${p(month+1)}-${p(dayNum)}`;
-    const hasTasks = D.tasks.some(t => t.date === dateStr);
-    const isToday = dateStr === today;
-    
-    const classes = `mcd${isOther ? ' oth' : ''}${isToday ? ' today' : ''}${hasTasks ? ' has' : ''}`;
-    html += `<div class="${classes}" onclick="miniGoToDate('${dateStr}')">${dayNum}</div>`;
-  }
-  
-  grid.innerHTML = html;
-}
-
-function miniPrev() {
-  miniMonth--;
-  if (miniMonth < 0) { miniMonth = 11; miniYear--; }
-  renderMiniCalendar();
-}
-
-function miniNext() {
-  miniMonth++;
-  if (miniMonth > 11) { miniMonth = 0; miniYear++; }
-  renderMiniCalendar();
-}
-
-function miniGoToDate(date) {
-  const [y,m] = date.split('-').map(Number);
-  calYear = y;
-  calMonth = m - 1;
-  renderCalendar();
-  openDay(date);
-}
-
-// ==================== ALERTS ====================
-function renderAlerts() {
-  const now = new Date();
-  const alerts = D.tasks.filter(t => 
-    t.status !== 'done' && (
-      isOverdue(t.date, t.status) || 
-      t.priority === 'alta' ||
-      t.date === ds(now)
-    )
-  ).slice(0, 5);
-  
-  document.getElementById('alertCount').textContent = alerts.length;
-  
-  const list = document.getElementById('alertList');
-  if (!alerts.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:11px;text-align:center;padding:8px">✅ Tudo em dia!</div>';
-    return;
-  }
-  
-  list.innerHTML = alerts.map(a => `
-    <div class="alrt" onclick="editTask('${a.id}')">
-      <div class="alrt-t">⚠️ ${a.title}</div>
-      <div class="alrt-m">${fmtDate(a.date)} · ${a.responsible || 'N/A'}</div>
-    </div>
-  `).join('');
-}
-
-// ==================== CHARTS ====================
-let donutChart = null;
-
-function renderCharts() {
-  if (donutChart) donutChart.destroy();
-  
-  const open = D.tasks.filter(t => t.status === 'open').length;
-  const pending = D.tasks.filter(t => t.status === 'pending').length;
-  const done = D.tasks.filter(t => t.status === 'done').length;
-  
-  const ctx = document.getElementById('doughnutChart');
-  if (!ctx) return;
-  
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const textColor = isDark ? '#94a3b8' : '#64748b';
-  
-  donutChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Em Aberto', 'Pendentes', 'Concluídas'],
-      datasets: [{
-        data: [open, pending, done],
-        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
-        borderColor: 'transparent',
-        hoverOffset: 8,
-        borderRadius: 8,
-        spacing: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '64%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: textColor, font: { family: 'Sora', size: 10 }, padding: 10, usePointStyle: true }
-        }
+// Auto-fill from employee in task form
+function autoFillFromEmployee() {
+  const sel = document.getElementById('taskResponsible');
+  const opt = sel?.options[sel.selectedIndex];
+  if (!opt) return;
+  const email = opt.getAttribute('data-email') || '';
+  const sector = opt.getAttribute('data-sector') || '';
+  const ef = document.getElementById('taskEmail');
+  if (ef && email) ef.value = email;
+  const sf = document.getElementById('taskSector');
+  if (sf) {
+    if (sector) {
+      // Try to select existing sector
+      const found = Array.from(sf.options).find(o => o.value === sector);
+      if (found) {
+        sf.value = sector;
+      } else if (sector) {
+        const o = document.createElement('option');
+        o.value = sector; o.textContent = sector + ' (sem cadastro)';
+        sf.appendChild(o); sf.value = sector;
       }
     }
-  });
-  
-  // Category list
-  const categories = {};
-  D.tasks.filter(t => t.status !== 'done').forEach(t => {
-    const cat = t.category || 'geral';
-    categories[cat] = (categories[cat] || 0) + 1;
-  });
-  
-  const catNames = { nf: '📄 NF', ti: '💻 TI', financeiro: '💰 Financeiro', rh: '👥 RH', geral: '📋 Geral' };
-  const catColors = { nf: '#ef4444', ti: '#8b5cf6', financeiro: '#0ea5e9', rh: '#ec4899', geral: '#f97316' };
-  
-  const catList = document.getElementById('categoryList');
-  const max = Math.max(1, ...Object.values(categories));
-  
-  catList.innerHTML = Object.entries(categories).map(([cat, count]) => `
-    <div class="pi">
-      <div class="pi-l"><span>${catNames[cat] || cat}</span><span>${count}</span></div>
-      <div class="pi-b"><div class="pi-f" style="width:${count/max*100}%;background:${catColors[cat] || '#f97316'}"></div></div>
-    </div>
-  `).join('') || '<div style="color:var(--muted);font-size:11px;padding:10px">Sem demandas ativas</div>';
-  
-  // Activity list
-  const activities = [...D.tasks]
-    .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 8);
-  
-  const actList = document.getElementById('activityList');
-  actList.innerHTML = activities.map(a => {
-    const color = a.status === 'done' ? '#10b981' : (a.status === 'pending' ? '#f59e0b' : '#ef4444');
-    const label = a.title || 'Demanda';
-    const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) : '';
-    return `
-      <div class="ai" onclick="editTask('${a.id}')" style="cursor:pointer">
-        <div class="ai-d" style="background:${color}"></div>
-        <div style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${label}</div>
-        <div style="color:var(--muted);font-size:10px">${date}</div>
-      </div>
-    `;
-  }).join('');
-  
-  // Urgent list
-  const urgent = D.tasks.filter(t => 
-    t.status !== 'done' && (isOverdue(t.date, t.status) || t.priority === 'alta')
-  ).slice(0, 5);
-  
-  const urgentList = document.getElementById('urgentList');
-  urgentList.innerHTML = urgent.length ? urgent.map(t => {
-    const urgentClass = isOverdue(t.date, t.status) ? 'urg' : (t.priority === 'alta' ? 'urg' : '');
-    const urgentText = isOverdue(t.date, t.status) ? 'VENCIDA' : (t.priority === 'alta' ? 'ALTA' : '');
-    return `
-      <div class="tcc tc-o" onclick="editTask('${t.id}')" style="cursor:pointer">
-        <div class="tc-row">
-          <div class="tc-info">
-            <div class="tc-title">${t.title} ${urgentText ? `<span class="${urgentClass}">${urgentText}</span>` : ''}</div>
-            <div class="tc-meta">
-              <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
-              <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('') : '<div style="text-align:center;padding:15px;color:var(--muted)">Nenhuma demanda urgente</div>';
-}
-
-// ==================== RESUMO MODAL ====================
-function abrirResumoModal(tipo) {
-  const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
-  const monthTasks = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
-  
-  let title = '';
-  let tasks = [];
-  
-  switch(tipo) {
-    case 'open':
-      title = '⚡ Demandas em Aberto';
-      tasks = monthTasks.filter(t => t.status === 'open');
-      break;
-    case 'done':
-      title = '✅ Demandas Concluídas';
-      tasks = monthTasks.filter(t => t.status === 'done');
-      break;
-    case 'pending':
-      title = '⏳ Demandas Pendentes';
-      tasks = monthTasks.filter(t => t.status === 'pending');
-      break;
-    case 'overdue':
-      title = '🔴 Demandas Vencidas';
-      tasks = monthTasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status));
-      break;
-    case 'alta':
-      title = '🔴 Demandas de Alta Prioridade';
-      tasks = monthTasks.filter(t => t.priority === 'alta' && t.status !== 'done');
-      break;
-    case 'all':
-      title = '📋 Todas as Demandas do Mês';
-      tasks = monthTasks;
-      break;
   }
-  
-  document.getElementById('modalResumoTitle').textContent = title;
-  
-  let html = `<div style="margin-bottom:10px;color:var(--muted);font-size:11px">Total: ${tasks.length} itens</div>`;
-  
-  if (!tasks.length) {
-    html += '<div style="text-align:center;padding:30px;color:var(--muted)">Nenhuma demanda encontrada</div>';
-  } else {
-    tasks.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
-      const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
-      const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
-      html += `
-        <div class="tcc ${statusClass}" style="margin-bottom:5px;cursor:pointer" onclick="editTask('${t.id}')">
-          <div class="tc-row">
-            <div class="tc-info">
-              <div class="tc-title">${t.title} ${overdue}</div>
-              <div class="tc-meta">
-                <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
-                <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
-                <span class="tag tag-c">${t.priority === 'alta' ? '🔴' : (t.priority === 'media' ? '🟡' : '🟢')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-  }
-  
-  document.getElementById('modalResumoBody').innerHTML = html;
-  openModal('modalResumo');
 }
-
-function printResumo() {
-  const title = document.getElementById('modalResumoTitle').textContent;
-  const body = document.getElementById('modalResumoBody').innerHTML;
-  const date = new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' });
-  
-  const printHtml = `
-    <div style="padding:20px;font-family:Sora;max-width:800px;margin:0 auto">
-      <h1 style="color:#f97316;font-size:24px;margin-bottom:5px">${title}</h1>
-      <p style="color:#666;font-size:12px;margin-bottom:20px">${date}</p>
-      ${body.replace(/cursor:pointer;/g, '')}
-      <p style="margin-top:30px;font-size:10px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px">
-        Relatório gerado pelo Pedrinho Gestão v6.0
-      </p>
-    </div>
-  `;
-  
-  document.getElementById('print-content').innerHTML = printHtml;
-  document.getElementById('print-content').style.display = 'block';
-  window.print();
-  document.getElementById('print-content').style.display = 'none';
+function autoFillEditEmployee() {
+  const sel = document.getElementById('editResponsibleSel');
+  const opt = sel?.options[sel.selectedIndex];
+  if (!opt) return;
+  const email = opt.getAttribute('data-email') || '';
+  const sector = opt.getAttribute('data-sector') || '';
+  const ef = document.getElementById('editEmail');
+  if (ef && email) ef.value = email;
+  const sf = document.getElementById('editSector');
+  if (sf && sector) sf.value = sector;
+  // Also update editResponsible hidden field if needed
+  const er = document.getElementById('editResponsible');
+  if (er) er.value = sel.value;
 }
-
-// ==================== REPORTS ====================
-let currentReportHTML = '';
-
-function gerarRelatorioGeral() {
-  const total = D.tasks.length;
-  const open = D.tasks.filter(t => t.status === 'open').length;
-  const pending = D.tasks.filter(t => t.status === 'pending').length;
-  const done = D.tasks.filter(t => t.status === 'done').length;
-  const overdue = D.tasks.filter(t => t.status !== 'done' && isOverdue(t.date, t.status)).length;
-  const rate = total ? Math.round(done / total * 100) : 0;
-  
-  const byCategory = {};
-  D.tasks.forEach(t => {
-    const cat = t.category || 'geral';
-    byCategory[cat] = (byCategory[cat] || 0) + 1;
-  });
-  
-  const byResponsible = {};
-  D.tasks.forEach(t => {
-    if (t.responsible) {
-      byResponsible[t.responsible] = (byResponsible[t.responsible] || 0) + 1;
-    }
-  });
-  
-  const bySector = {};
-  D.tasks.forEach(t => {
-    if (t.sector) {
-      bySector[t.sector] = (bySector[t.sector] || 0) + 1;
-    }
-  });
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  currentReportHTML = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s">
-      <div class="rep-sh">📊 RESUMO GERAL</div>
-      <div class="rep-r"><span>Total de Demandas</span><strong>${total}</strong></div>
-      <div class="rep-r"><span>Em Aberto</span><strong style="color:var(--danger)">${open}</strong></div>
-      <div class="rep-r"><span>Pendentes</span><strong style="color:var(--warn)">${pending}</strong></div>
-      <div class="rep-r"><span>Concluídas</span><strong style="color:var(--a3)">${done}</strong></div>
-      <div class="rep-r"><span>Vencidas</span><strong style="color:var(--danger)">${overdue}</strong></div>
-      <div class="rep-r"><span>Taxa de Sucesso</span><strong style="color:var(--purple)">${rate}%</strong></div>
-    </div>
-    <div class="rep-s">
-      <div class="rep-sh">📋 POR CATEGORIA</div>
-      ${Object.entries(byCategory).map(([cat, count]) => 
-        `<div class="rep-r"><span>${catNames[cat] || cat}</span><strong>${count}</strong></div>`
-      ).join('')}
-    </div>
-    <div class="rep-s">
-      <div class="rep-sh">👥 POR RESPONSÁVEL</div>
-      ${Object.entries(byResponsible).map(([resp, count]) => 
-        `<div class="rep-r"><span>${resp}</span><strong>${count}</strong></div>`
-      ).join('')}
-    </div>
-    <div class="rep-s">
-      <div class="rep-sh">🗂 POR SETOR</div>
-      ${Object.entries(bySector).map(([sector, count]) => 
-        `<div class="rep-r"><span>${sector}</span><strong>${count}</strong></div>`
-      ).join('')}
-    </div>
-  `;
-  
-  document.getElementById('reportContent').innerHTML = currentReportHTML;
-  updateActiveReportButton('geral');
-}
-
-function gerarRelatorioPendencias() {
-  const pendentes = D.tasks.filter(t => t.status !== 'done');
-  const vencidas = pendentes.filter(t => isOverdue(t.date, t.status));
-  const alta = pendentes.filter(t => t.priority === 'alta');
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  let html = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s">
-      <div class="rep-sh">⚠️ PENDÊNCIAS</div>
-      <div class="rep-r"><span>Total de Pendências</span><strong>${pendentes.length}</strong></div>
-      <div class="rep-r"><span>Vencidas</span><strong style="color:var(--danger)">${vencidas.length}</strong></div>
-      <div class="rep-r"><span>Alta Prioridade</span><strong style="color:var(--danger)">${alta.length}</strong></div>
-    </div>
-  `;
-  
-  if (pendentes.length) {
-    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE PENDÊNCIAS</div>`;
-    pendentes.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
-      const venc = isOverdue(t.date, t.status) ? '🔴' : (t.priority === 'alta' ? '🔴' : '⚡');
-      html += `<div class="rep-r"><span>${venc} ${t.title}</span><span>${fmtDate(t.date)} · ${t.responsible || 'N/A'}</span></div>`;
-    });
-    html += `</div>`;
-  }
-  
-  currentReportHTML = html;
-  document.getElementById('reportContent').innerHTML = html;
-  updateActiveReportButton('pendencias');
-}
-
-function gerarRelatorioResolvidos() {
-  const resolvidos = D.tasks.filter(t => t.status === 'done');
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  let html = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s">
-      <div class="rep-sh">✅ DEMANDAS RESOLVIDAS</div>
-      <div class="rep-r"><span>Total Resolvido</span><strong>${resolvidos.length}</strong></div>
-    </div>
-  `;
-  
-  if (resolvidos.length) {
-    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE RESOLVIDOS</div>`;
-    resolvidos.sort((a,b) => new Date(b.closedAt || b.date) - new Date(a.closedAt || a.date)).slice(0, 20).forEach(t => {
-      const dataFechamento = t.closedAt ? new Date(t.closedAt).toLocaleDateString('pt-BR') : fmtDate(t.date);
-      html += `<div class="rep-r"><span>✅ ${t.title}</span><span>${dataFechamento} · ${t.responsible || 'N/A'}</span></div>`;
-    });
-    if (resolvidos.length > 20) {
-      html += `<div style="padding:5px;font-size:10px;color:var(--muted)">...e mais ${resolvidos.length - 20} demandas</div>`;
-    }
-    html += `</div>`;
-  }
-  
-  currentReportHTML = html;
-  document.getElementById('reportContent').innerHTML = html;
-  updateActiveReportButton('resolvidos');
-}
-
-function gerarRelatorioFuncionarios() {
-  const byEmployee = {};
-  D.tasks.forEach(t => {
-    if (t.responsible) {
-      if (!byEmployee[t.responsible]) {
-        byEmployee[t.responsible] = { total: 0, done: 0, open: 0, pending: 0 };
-      }
-      byEmployee[t.responsible].total++;
-      if (t.status === 'done') byEmployee[t.responsible].done++;
-      else if (t.status === 'pending') byEmployee[t.responsible].pending++;
-      else if (t.status === 'open') byEmployee[t.responsible].open++;
-    }
-  });
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  let html = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s"><div class="rep-sh">👥 DESEMPENHO POR FUNCIONÁRIO</div>`;
-  
-  Object.entries(byEmployee).sort((a,b) => b[1].total - a[1].total).forEach(([name, stats]) => {
-    const taxa = stats.total ? Math.round(stats.done / stats.total * 100) : 0;
-    html += `
-      <div class="rep-r">
-        <span><strong>${name}</strong> (⚡${stats.open} | ⏳${stats.pending} | ✅${stats.done})</span>
-        <strong style="color:${taxa > 70 ? '#10b981' : (taxa > 40 ? '#f59e0b' : '#ef4444')}">${taxa}%</strong>
-      </div>
-    `;
-  });
-  
-  html += `</div>`;
-  
-  currentReportHTML = html;
-  document.getElementById('reportContent').innerHTML = html;
-  updateActiveReportButton('funcionarios');
-}
-
-function gerarRelatorioSetores() {
-  const bySector = {};
-  D.tasks.forEach(t => {
-    const sector = t.sector || 'Geral';
-    if (!bySector[sector]) {
-      bySector[sector] = { total: 0, done: 0, open: 0, pending: 0 };
-    }
-    bySector[sector].total++;
-    if (t.status === 'done') bySector[sector].done++;
-    else if (t.status === 'pending') bySector[sector].pending++;
-    else if (t.status === 'open') bySector[sector].open++;
-  });
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  let html = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s"><div class="rep-sh">🗂 DEMANDAS POR SETOR</div>`;
-  
-  Object.entries(bySector).sort((a,b) => b[1].total - a[1].total).forEach(([sector, stats]) => {
-    html += `
-      <div class="rep-r">
-        <span><strong>${sector}</strong> (⚡${stats.open} | ⏳${stats.pending} | ✅${stats.done})</span>
-        <strong>${stats.total}</strong>
-      </div>
-    `;
-  });
-  
-  html += `</div>`;
-  
-  currentReportHTML = html;
-  document.getElementById('reportContent').innerHTML = html;
-  updateActiveReportButton('setores');
-}
-
-function gerarRelatorioVencidas() {
-  const vencidas = D.tasks.filter(t => t.status !== 'done' && isOverdue(t.date, t.status));
-  
-  const now = new Date();
-  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
-  
-  let html = `
-    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
-    <div class="rep-s">
-      <div class="rep-sh">🔴 DEMANDAS VENCIDAS</div>
-      <div class="rep-r"><span>Total Vencidas</span><strong>${vencidas.length}</strong></div>
-    </div>
-  `;
-  
-  if (vencidas.length) {
-    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE VENCIDAS</div>`;
-    vencidas.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
-      const diasAtraso = Math.floor((new Date() - new Date(t.date + 'T23:59:59')) / (1000 * 60 * 60 * 24));
-      html += `<div class="rep-r"><span>🔴 ${t.title}</span><span>${fmtDate(t.date)} · ${diasAtraso}d atraso · ${t.responsible || 'N/A'}</span></div>`;
-    });
-    html += `</div>`;
-  }
-  
-  currentReportHTML = html;
-  document.getElementById('reportContent').innerHTML = html;
-  updateActiveReportButton('vencidas');
-}
-
-function updateActiveReportButton(type) {
-  document.querySelectorAll('#tc-relatorios .fb').forEach(b => {
-    b.classList.remove('active');
-    if (b.textContent.includes('Geral') && type === 'geral') b.classList.add('active');
-    if (b.textContent.includes('Pendências') && type === 'pendencias') b.classList.add('active');
-    if (b.textContent.includes('Resolvidos') && type === 'resolvidos') b.classList.add('active');
-    if (b.textContent.includes('Funcionários') && type === 'funcionarios') b.classList.add('active');
-    if (b.textContent.includes('Setores') && type === 'setores') b.classList.add('active');
-    if (b.textContent.includes('Vencidas') && type === 'vencidas') b.classList.add('active');
-  });
-}
-
-function filterReport(type, btn) {
-  document.querySelectorAll('#tc-relatorios .fb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  if (type === 'geral') gerarRelatorioGeral();
-  else if (type === 'pendencias') gerarRelatorioPendencias();
-  else if (type === 'resolvidos') gerarRelatorioResolvidos();
-  else if (type === 'funcionarios') gerarRelatorioFuncionarios();
-  else if (type === 'setores') gerarRelatorioSetores();
-  else if (type === 'vencidas') gerarRelatorioVencidas();
-}
-
-function imprimirRelatorioAtual() {
-  if (!currentReportHTML) {
-    toast('Gere um relatório primeiro', 'info');
-    return;
-  }
-  
-  const title = document.querySelector('#tc-relatorios .fb.active')?.textContent || 'Relatório';
-  const date = new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' });
-  
-  const printHtml = `
-    <div style="padding:20px;font-family:Sora;max-width:800px;margin:0 auto">
-      <h1 style="color:#f97316;font-size:24px;margin-bottom:5px">📊 ${title}</h1>
-      <p style="color:#666;font-size:12px;margin-bottom:20px">${date}</p>
-      ${currentReportHTML.replace(/cursor:pointer;/g, '')}
-      <p style="margin-top:30px;font-size:10px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px">
-        Relatório gerado pelo Pedrinho Gestão v6.0
-      </p>
-    </div>
-  `;
-  
-  document.getElementById('print-content').innerHTML = printHtml;
-  document.getElementById('print-content').style.display = 'block';
-  window.print();
-  document.getElementById('print-content').style.display = 'none';
-}
-
-const catNames = { nf: '📄 NF', ti: '💻 TI', financeiro: '💰 Financeiro', rh: '👥 RH', geral: '📋 Geral' };
-
-// ==================== BACKUP ====================
-function exportBackup() {
-  D.lastBackup = new Date().toISOString();
-  saveData();
-  const dataStr = JSON.stringify(D, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pedrinho_backup_${ds(new Date())}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Backup exportado!', 'success');
-  updateBackupInfo();
-}
-
-function restoreBackup(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      D = { ...D, ...data };
-      saveData();
-      renderAll();
-      toast('Backup restaurado com sucesso!', 'success');
-      updateBackupInfo();
-    } catch (err) {
-      toast('Erro ao restaurar backup', 'error');
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-function clearAllData() {
-  if (!confirm('Tem certeza que deseja apagar TODOS os dados? Esta ação não pode ser desfeita!')) return;
-  D = { tasks: [], employees: D.employees, sectors: D.sectors, units: D.units, lastBackup: null };
-  saveData();
-  renderAll();
-  toast('Todos os dados foram apagados', 'info');
-  updateBackupInfo();
-}
-
-function updateBackupInfo() {
-  const size = (JSON.stringify(D).length / 1024).toFixed(1);
-  const lastBackup = D.lastBackup ? new Date(D.lastBackup).toLocaleString('pt-BR') : 'Nunca';
-  document.getElementById('backupInfo').textContent = 
-    `📋 Tarefas: ${D.tasks.length}\n👥 Funcionários: ${D.employees.length}\n🗂 Setores: ${D.sectors.length}\n🏢 Unidades: ${D.units.length}\n💾 Tamanho: ~${size} KB\n🕐 Último backup: ${lastBackup}`;
-}
-
-// ==================== UI ====================
-function showTab(tabName) {
-  document.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.nt').forEach(n => n.classList.remove('active'));
-  
-  const tab = document.getElementById('tc-' + tabName);
-  if (tab) tab.classList.add('active');
-  
-  const navMap = {
-    'dashboard': 'Painel',
-    'demandas': 'Demandas',
-    'nova': 'Nova Demanda',
-    'funcionarios': 'Funcionários',
-    'setores': 'Setores',
-    'unidades': 'Unidades',
-    'calendario': 'Calendário',
-    'relatorios': 'Relatórios',
-    'backup': 'Backup'
-  };
-  
-  const navText = navMap[tabName];
-  document.querySelectorAll('.nt').forEach(n => {
-    if (n.textContent.includes(navText)) n.classList.add('active');
-  });
-  
-  if (tabName === 'dashboard') renderAll();
-  if (tabName === 'calendario') renderCalendar();
-  if (tabName === 'relatorios') gerarRelatorioGeral();
-  if (tabName === 'backup') updateBackupInfo();
-}
-
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => {
-    if (e.target === m) m.classList.remove('open');
-  });
-});
-
-function toast(msg, type = 'info') {
-  const toast = document.getElementById('toast');
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  toast.className = `show t-${type}`;
-  toast.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.className = '', 3000);
-}
-
-// ==================== INIT ====================
-renderAll();
 </script>
 </body>
 </html>
