@@ -1,1372 +1,2101 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedrinho — Sistema de Rotinas</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pedrinho Gestão — Demandas e Rotinas</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== LIGHT (DEFAULT) ===== */
-:root {
-  --accent:    #f97316;
-  --accent2:   #0ea5e9;
-  --accent3:   #10b981;
-  --danger:    #ef4444;
-  --warn:      #f59e0b;
-  --purple:    #8b5cf6;
-  --bg:        #f1f5f9;
-  --card:      #ffffff;
-  --card2:     #f8fafc;
-  --border:    #e2e8f0;
-  --text:      #0f172a;
-  --muted:     #64748b;
-  --header-bg: #ffffff;
-  --header-h:  68px;
-  --footer-h:  44px;
-  --shadow:    0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
-}
-[data-theme="dark"]{
-  --bg:#0f172a;--card:#1e293b;--card2:#263352;--border:#334155;
-  --text:#e2e8f0;--muted:#94a3b8;--header-bg:#1e293b;
-  --shadow:0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.3);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s;}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-/* HEADER */
-header{height:var(--header-h);background:var(--header-bg);border-bottom:3px solid var(--accent);
-  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
-  position:sticky;top:0;z-index:200;box-shadow:var(--shadow);transition:background .3s;}
-.logo{display:flex;align-items:center;gap:11px;text-decoration:none;}
-.logo img{width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:0 2px 10px rgba(249,115,22,.35);}
-.logo-fb{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#fb923c);
-  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;
-  box-shadow:0 2px 10px rgba(249,115,22,.35);}
-.logo-name{font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--text);}
-.logo-name span{color:var(--accent);}
-.logo-sub{font-size:10px;color:var(--muted);font-weight:500;margin-top:1px;}
-.header-nav{display:flex;gap:0;}
-.nav-tab{padding:10px 15px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;
-  border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;user-select:none;white-space:nowrap;}
-.nav-tab:hover{color:var(--text);}
-.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.header-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-#greeting-badge{font-size:11px;font-weight:600;color:var(--accent3);background:rgba(16,185,129,.1);
-  padding:5px 11px;border-radius:20px;border:1px solid rgba(16,185,129,.25);}
-#clock{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent2);
-  background:rgba(14,165,233,.08);padding:5px 11px;border-radius:20px;border:1px solid rgba(14,165,233,.2);}
-.theme-toggle{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);
-  background:var(--card2);cursor:pointer;font-size:15px;display:flex;align-items:center;
-  justify-content:center;transition:all .2s;}
-.theme-toggle:hover{border-color:var(--accent);}
-
-/* LAYOUT */
-.layout{display:grid;grid-template-columns:280px 1fr;flex:1;overflow:hidden;}
-
-/* SIDEBAR */
-.sidebar{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;
-  overflow-y:auto;height:calc(100vh - var(--header-h) - var(--footer-h));transition:background .3s;}
-.sb-sec{padding:14px 16px;border-bottom:1px solid var(--border);}
-.sb-title{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;
-  margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.sb-title::after{content:'';flex:1;height:1px;background:var(--border);}
-
-/* Mini Cal */
-.mini-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
-.mini-nav button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;
-  width:26px;height:26px;border-radius:6px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
-.mini-nav button:hover{background:var(--bg);color:var(--text);}
-.mini-month{font-weight:700;font-size:12px;}
-.mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
-.mini-dh{text-align:center;font-size:9px;color:var(--muted);padding:3px 0;font-weight:700;}
-.mini-d{text-align:center;padding:4px 2px;border-radius:5px;cursor:pointer;font-size:11px;transition:all .15s;position:relative;}
-.mini-d:hover{background:var(--bg);}
-.mini-d.today{background:var(--accent);color:#fff;font-weight:700;}
-.mini-d.selected{background:var(--accent2);color:#fff;font-weight:700;}
-.mini-d.has-pending::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-  width:3px;height:3px;background:var(--danger);border-radius:50%;}
-.mini-d.has-task:not(.has-pending)::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-  width:3px;height:3px;background:var(--accent3);border-radius:50%;}
-.mini-d.other-month{color:var(--border);}
-
-/* Stats */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.stat-box{background:var(--bg);border-radius:9px;padding:9px 11px;border:1px solid var(--border);}
-.stat-num{font-size:22px;font-weight:800;line-height:1;}
-.stat-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:600;}
-.s-open .stat-num{color:var(--danger);}
-.s-done .stat-num{color:var(--accent3);}
-.s-email .stat-num{color:var(--accent2);}
-.s-all .stat-num{color:var(--accent);}
-
-/* Alerts */
-.alert-card{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-left:3px solid var(--danger);
-  border-radius:7px;padding:9px 11px;margin-bottom:5px;cursor:pointer;transition:all .2s;}
-.alert-card:hover{background:rgba(239,68,68,.1);}
-.alert-title{font-size:11px;font-weight:600;color:var(--danger);margin-bottom:2px;}
-.alert-meta{font-size:10px;color:var(--muted);}
-.alert-badge{background:var(--danger);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;}
-
-/* CONTENT */
-.content{display:flex;flex-direction:column;overflow:hidden;}
-.tab-content{display:none;flex:1;overflow-y:auto;padding:22px;height:calc(100vh - var(--header-h) - var(--footer-h));}
-.tab-content.active{display:block;}
-
-/* Page header */
-.pg-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
-.pg-hdr h2{font-size:17px;font-weight:700;}
-
-/* Buttons */
-.btn{padding:8px 16px;border-radius:9px;cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;
-  font-weight:600;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px;}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#fb923c);color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.3);}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(249,115,22,.4);}
-.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text);}
-.btn-secondary:hover{border-color:var(--accent2);background:var(--bg);}
-.btn-danger{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:var(--danger);}
-.btn-danger:hover{background:rgba(239,68,68,.15);}
-.btn-sm{padding:5px 11px;font-size:11px;}
-.icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--card2);
-  color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  font-size:13px;transition:all .2s;}
-.icon-btn:hover{border-color:var(--accent2);color:var(--text);}
-.ib-ok:hover{border-color:var(--accent3)!important;background:rgba(16,185,129,.1)!important;color:var(--accent3)!important;}
-.ib-del:hover{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important;}
-.ib-mail:hover{border-color:var(--accent2)!important;background:rgba(14,165,233,.1)!important;color:var(--accent2)!important;}
-.ib-edit:hover{border-color:var(--purple)!important;background:rgba(139,92,246,.1)!important;color:var(--purple)!important;}
-
-/* Filter */
-.filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.fb{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;
-  border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;}
-.fb:hover{border-color:var(--accent2);color:var(--text);}
-.fb.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-
-/* CALENDAR */
-.cal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
-.cal-top h2{font-size:16px;font-weight:700;}
-.cal-nav-btns button{background:var(--card);border:1px solid var(--border);color:var(--text);
-  padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;margin-left:5px;}
-.cal-nav-btns button:hover{border-color:var(--accent);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);
-  border-radius:11px;overflow:hidden;border:1px solid var(--border);}
-.cal-dh{background:var(--card2);padding:9px 6px;text-align:center;font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
-.cal-dh:nth-child(6),.cal-dh:nth-child(7){color:var(--danger);}
-.cal-cell{background:var(--card);min-height:85px;padding:6px;cursor:pointer;transition:background .15s;}
-.cal-cell:hover{background:var(--bg);}
-.cal-cell.today{background:rgba(249,115,22,.05);}
-.cal-cell.today .cal-dn{color:var(--accent);}
-.cal-cell.selected{background:rgba(14,165,233,.06);}
-.cal-cell.other-month{opacity:.4;}
-.cal-dn{font-size:11px;font-weight:700;margin-bottom:4px;}
-.chip{border-radius:4px;padding:2px 4px;font-size:9px;font-weight:700;margin-bottom:2px;
-  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.chip-open{background:rgba(239,68,68,.1);color:#dc2626;border-left:2px solid var(--danger);}
-.chip-done{background:rgba(16,185,129,.1);color:#059669;border-left:2px solid var(--accent3);}
-.chip-email{background:rgba(14,165,233,.1);color:#0284c7;border-left:2px solid var(--accent2);}
-.chip-more{font-size:9px;color:var(--muted);padding:1px 4px;}
-
-/* TASK CARDS */
-.task-card{background:var(--card);border:1px solid var(--border);border-radius:11px;
-  padding:13px 15px;margin-bottom:8px;transition:all .2s;position:relative;overflow:hidden;}
-.task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
-.tc-open::before{background:var(--danger);}
-.tc-done::before{background:var(--accent3);}
-.tc-email::before{background:var(--accent2);}
-.task-card:hover{box-shadow:var(--shadow);transform:translateX(1px);}
-.task-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.task-info{flex:1;min-width:0;}
-.task-title{font-weight:600;font-size:13px;margin-bottom:4px;}
-.task-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
-.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
-.tag-open{background:rgba(239,68,68,.08);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
-.tag-done{background:rgba(16,185,129,.08);color:var(--accent3);border:1px solid rgba(16,185,129,.2);}
-.tag-cat{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
-.task-desc{font-size:11px;color:var(--muted);margin-top:4px;}
-.task-actions{display:flex;gap:4px;flex-shrink:0;}
-.email-link{color:var(--accent2);text-decoration:none;font-size:11px;}
-.email-link:hover{text-decoration:underline;}
-.overdue-badge{background:rgba(239,68,68,.1);color:var(--danger);font-size:9px;font-weight:700;
-  padding:1px 6px;border-radius:20px;border:1px solid rgba(239,68,68,.25);}
-
-/* FORMS */
-.form-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px;}
-.form-row{margin-bottom:13px;}
-.form-label{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block;
-  text-transform:uppercase;letter-spacing:.5px;}
-.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
-  padding:8px 12px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;transition:all .2s;}
-.form-input:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(14,165,233,.1);}
-.form-textarea{min-height:110px;resize:vertical;}
-.form-select{appearance:none;cursor:pointer;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.gb-row{display:flex;gap:6px;margin-bottom:6px;}
-.gb{background:var(--bg);border:1px solid var(--border);color:var(--muted);padding:5px 11px;
-  border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;font-family:'Sora',sans-serif;transition:all .2s;}
-.gb:hover,.gb.active{border-color:var(--accent);color:var(--accent);background:rgba(249,115,22,.07);}
-.compose-foot{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px;}
-
-/* DASHBOARD */
-.dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;
-  position:relative;overflow:hidden;}
-.kpi::after{content:attr(data-icon);position:absolute;right:12px;bottom:6px;font-size:34px;opacity:.1;}
-.kpi-val{font-size:30px;font-weight:800;line-height:1;}
-.kpi-lbl{font-size:10px;font-weight:600;color:var(--muted);margin-top:3px;}
-.kpi-open .kpi-val{color:var(--danger);}
-.kpi-done .kpi-val{color:var(--accent3);}
-.kpi-email .kpi-val{color:var(--accent2);}
-.kpi-rate .kpi-val{color:var(--purple);}
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:20px;}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;}
-.chart-card h3{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:1px;margin-bottom:12px;}
-.chart-wrap{position:relative;height:165px;}
-.prog-item{margin-bottom:9px;}
-.prog-label{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px;}
-.prog-bar{height:6px;background:var(--bg);border-radius:20px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:20px;transition:width .5s ease;}
-.act-item{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
-.act-item:last-child{border-bottom:none;}
-.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-
-/* MODALS */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
-  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:24px;
-  width:90%;max-width:530px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .25s ease;}
-.modal.modal-lg{max-width:650px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--a:#f97316;--a2:#0ea5e9;--a3:#10b981;--danger:#ef4444;--warn:#f59e0b;--purple:#8b5cf6;--pink:#ec4899;--bg:#07101f;--card:rgba(13,22,45,.85);--card2:rgba(18,30,60,.9);--border:rgba(255,255,255,.07);--tbl:rgba(255,255,255,.055);--text:#f1f5f9;--muted:#94a3b8;--hh:62px;--sh:42px;--glass:rgba(13,22,45,.75);--gbl:blur(18px);--sd:0 1px 3px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.3);--sd2:0 8px 28px rgba(0,0,0,.55);--r:13px}
+[data-theme="light"]{--bg:#f0f4f8;--card:rgba(255,255,255,.82);--card2:rgba(241,245,249,.9);--border:rgba(0,0,0,.07);--tbl:rgba(0,0,0,.055);--text:#0f172a;--muted:#64748b;--glass:rgba(255,255,255,.72);--sd:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05);--sd2:0 8px 28px rgba(0,0,0,.1)}
+html,body{height:100%;overflow:hidden}
+body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 12% 12%,rgba(249,115,22,.12),transparent),radial-gradient(ellipse 60% 50% at 88% 88%,rgba(14,165,233,.09),transparent)}
+[data-theme=light] body::before{background:radial-gradient(ellipse 70% 50% at 12% 12%,rgba(249,115,22,.06),transparent),radial-gradient(ellipse 60% 50% at 88% 88%,rgba(14,165,233,.05),transparent)}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:44px 44px}
+[data-theme=light] .grid-bg{background-image:linear-gradient(rgba(0,0,0,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.025) 1px,transparent 1px)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}::-webkit-scrollbar-thumb:hover{background:var(--a)}
+header{position:relative;z-index:200;height:var(--hh);background:var(--glass);backdrop-filter:var(--gbl);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:var(--sd)}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-i{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--a),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;box-shadow:0 6px 16px rgba(249,115,22,.4)}
+.logo-n{font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-s{font-size:9px;color:var(--muted)}
+nav{display:flex;flex:1;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.nt{padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.nt:hover{color:var(--text)}.nt.active{color:var(--a);border-bottom-color:var(--a)}
+.hdr-r{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.cg{font-size:11px;font-weight:600;color:#10b981;background:rgba(16,185,129,.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,.2)}
+.cc{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--a2);background:rgba(14,165,233,.08);padding:4px 10px;border-radius:20px;border:1px solid rgba(14,165,233,.18)}
+.btn-th{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--glass);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.btn-th:hover{border-color:var(--a);transform:rotate(20deg)}
+.uc{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--glass);cursor:pointer;transition:all .2s}
+.uc:hover{border-color:var(--danger);color:var(--danger)}
+.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
+.main{display:flex;flex:1;overflow:hidden}
+.sb{width:252px;flex-shrink:0;background:var(--glass);backdrop-filter:var(--gbl);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.sb-sec{padding:12px;border-bottom:1px solid var(--border)}
+.sb-t{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sb-t::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--tbl),transparent)}
+.mcal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.mcal-btn{background:var(--glass);border:1px solid var(--border);color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:5px;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:13px}
+.mcal-btn:hover{background:var(--a);color:#fff;border-color:var(--a)}
+.mcal-m{font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.mcg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.mcdh{text-align:center;font-size:9px;color:var(--muted);padding:3px;font-weight:700}
+.mcd{text-align:center;padding:4px 2px;border-radius:5px;cursor:pointer;font-size:10px;transition:all .15s}
+.mcd:hover{background:var(--a);color:#fff}
+.mcd.today{background:var(--a);color:#fff;font-weight:700}
+.mcd.has::after{content:"";display:block;width:3px;height:3px;background:var(--a3);border-radius:50%;margin:1px auto 0}
+.mcd.oth{opacity:.3}
+.sb-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.sb-stat{background:var(--card);border:1px solid var(--tbl);border-radius:9px;padding:8px 10px;text-align:center;transition:all .2s;cursor:pointer}
+.sb-stat:hover{border-color:var(--a);transform:translateY(-1px)}
+.sb-stat-n{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-stat-l{font-size:9px;color:var(--muted);font-weight:600}
+.alrt{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-left:3px solid var(--danger);border-radius:8px;padding:7px 9px;margin-bottom:5px;cursor:pointer;transition:all .2s}
+.alrt:hover{background:rgba(239,68,68,.1);transform:translateX(2px)}
+.alrt-t{font-size:11px;font-weight:600;color:var(--danger)}
+.alrt-m{font-size:10px;color:var(--muted);margin-top:1px}
+.abadge{background:var(--danger);color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700}
+.content{flex:1;overflow-y:auto;padding:18px}
+.tc{display:none;animation:fIn .25s ease}
+.tc.active{display:block}
+@keyframes fIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pg-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.pg-h h2{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.btn{padding:7px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-family:Sora,sans-serif;font-weight:600;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:linear-gradient(135deg,var(--a),var(--pink));color:#fff;box-shadow:0 4px 12px rgba(249,115,22,.35)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(249,115,22,.5)}
+.btn-s{background:var(--glass);backdrop-filter:var(--gbl);border:1px solid var(--border);color:var(--text)}
+.btn-s:hover{border-color:var(--a2);color:var(--a2)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.ib{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--glass);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s}
+.ib:hover{transform:scale(1.1)}
+.ib-ok:hover{border-color:#10b981!important;background:rgba(16,185,129,.1)!important;color:#10b981!important}
+.ib-del:hover{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important}
+.ib-edit:hover{border-color:var(--purple)!important;background:rgba(139,92,246,.1)!important;color:var(--purple)!important}
+.ib-print:hover{border-color:var(--a2)!important;background:rgba(14,165,233,.1)!important;color:var(--a2)!important}
+.ib-mail:hover{border-color:var(--a2)!important;background:rgba(14,165,233,.1)!important;color:var(--a2)!important}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:all .25s;position:relative;overflow:hidden;box-shadow:var(--sd);cursor:pointer}
+.kpi::after{content:attr(data-ic);position:absolute;right:10px;bottom:5px;font-size:28px;opacity:.1;transition:all .3s}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--sd2)}.kpi:hover::after{opacity:.2;transform:scale(1.1) rotate(5deg)}
+.kpi-v{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.kpi-l{font-size:10px;font-weight:600;color:var(--muted);margin-top:2px}
+.kpi-bar{height:3px;border-radius:2px;margin-top:9px;background:var(--tbl);overflow:hidden}
+.kpi-bf{height:100%;border-radius:2px}
+.chs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.ch{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:all .25s;box-shadow:var(--sd)}
+.ch:hover{transform:translateY(-2px);box-shadow:var(--sd2)}
+.ch h3{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.ch-w{position:relative;height:138px}
+.pi{margin-bottom:7px}
+.pi-l{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px}
+.pi-b{height:4px;background:var(--card2);border-radius:10px;overflow:hidden;border:1px solid var(--tbl)}
+.pi-f{height:100%;border-radius:10px}
+.ai{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--tbl);font-size:11px}
+.ai:last-child{border:none}.ai-d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tcc{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:7px;transition:all .2s;position:relative;box-shadow:var(--sd)}
+.tcc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.tcc:hover{transform:translateX(3px);box-shadow:var(--sd2);border-color:var(--a)}
+.tc-o::before{background:linear-gradient(180deg,var(--danger),#f87171)}
+.tc-d::before{background:linear-gradient(180deg,var(--a3),#34d399)}
+.tc-p::before{background:linear-gradient(180deg,var(--warn),#fbbf24)}
+.tc-w::before{background:linear-gradient(180deg,var(--purple),#a78bfa)}
+.tc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tc-info{flex:1;min-width:0}.tc-title{font-weight:600;font-size:13px;margin-bottom:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tc-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tc-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.tc-acts{display:flex;gap:4px;flex-shrink:0}
+.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.tag-o{background:rgba(239,68,68,.08);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+.tag-d{background:rgba(16,185,129,.08);color:var(--a3);border:1px solid rgba(16,185,129,.2)}
+.tag-p{background:rgba(245,158,11,.08);color:var(--warn);border:1px solid rgba(245,158,11,.2)}
+.tag-w{background:rgba(139,92,246,.08);color:var(--purple);border:1px solid rgba(139,92,246,.2)}
+.tag-c{background:var(--card2);color:var(--muted);border:1px solid var(--tbl)}
+.urg{background:rgba(239,68,68,.1);color:var(--danger);font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;border:1px solid rgba(239,68,68,.22);animation:pulse 2s infinite}
+.sb2{display:inline-block;background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 5px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.fbar{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.fb{background:var(--glass);backdrop-filter:var(--gbl);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:Sora,sans-serif;transition:all .2s}
+.fb:hover{border-color:var(--a2);color:var(--text)}
+.fb.active{background:linear-gradient(135deg,var(--a),var(--pink));border-color:transparent;color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.3)}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--tbl);border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.cal-dh{background:var(--card2);padding:8px 5px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted)}
+.cal-c{background:var(--card);min-height:85px;padding:5px;cursor:pointer;transition:all .15s;position:relative}
+.cal-c:hover{background:var(--card2)}
+.cal-c.today{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(236,72,153,.06));border:1px solid rgba(249,115,22,.35)}
+.cal-c.today .cdn{color:var(--a);font-weight:700}
+.cal-c.other{opacity:.35}
+.cdn{font-size:11px;font-weight:700;margin-bottom:3px}
+.chip{border-radius:3px;padding:2px 4px;font-size:9px;font-weight:700;margin-bottom:2px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-o{background:rgba(239,68,68,.12);color:#dc2626;border-left:2px solid var(--danger)}
+.chip-d{background:rgba(16,185,129,.12);color:#059669;border-left:2px solid var(--a3)}
+.chip-p{background:rgba(14,165,233,.12);color:#0284c7;border-left:2px solid var(--a2)}
+.ecard{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;transition:all .2s;box-shadow:var(--sd)}
+.ecard:hover{transform:translateY(-2px);box-shadow:var(--sd2);border-color:var(--a)}
+.ecard-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:38px;height:38px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;box-shadow:0 4px 12px rgba(249,115,22,.3)}
+.en{font-weight:600;font-size:13px;margin-bottom:2px}
+.er{font-size:11px;color:var(--muted)}
+.estats{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--tbl)}
+.est{text-align:center;flex:1}
+.est-n{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.est-l{font-size:9px;color:var(--muted)}
+.rep-s{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.rep-sh{padding:10px 14px;border-bottom:1px solid var(--tbl);background:var(--card2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.rep-r{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--tbl);font-size:12px;transition:background .15s}
+.rep-r:last-child{border:none}.rep-r:hover{background:rgba(249,115,22,.03)}
+.fi{width:100%;background:var(--card2);border:1px solid var(--tbl);color:var(--text);padding:9px 12px;border-radius:9px;font-family:Sora,sans-serif;font-size:13px;transition:all .2s;outline:none}
+.fi:focus{border-color:var(--a2);box-shadow:0 0 0 3px rgba(14,165,233,.12);background:var(--card)}
+.fi::placeholder{color:var(--muted)}
+textarea.fi{min-height:80px;resize:vertical}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr{margin-bottom:12px}
+.fl{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+footer{height:var(--sh);background:var(--glass);backdrop-filter:var(--gbl);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:var(--muted)}
+.fb-r{background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);backdrop-filter:var(--gbl);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:90%;max-width:650px;max-height:85vh;overflow-y:auto;box-shadow:var(--sd2);animation:modalIn .3s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.modal-t{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal-c{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .2s}
+.modal-c:hover{background:var(--card2);color:var(--text)}
+.modal-f{display:flex;gap:7px;justify-content:flex-end;margin-top:15px}
+#print-content{position:fixed;left:-9999px;top:0;width:100%;background:white;color:black;padding:20px;font-family:Sora,sans-serif;z-index:9999}
+@media print{body *{visibility:hidden}#print-content,#print-content *{visibility:visible}#print-content{position:absolute;left:0;top:0;width:100%;padding:20px;background:white;color:black}#print-content .no-print{display:none}}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:12px;font-weight:600;z-index:9999;display:none;gap:8px;align-items:center;box-shadow:var(--sd2);max-width:270px;backdrop-filter:var(--gbl)}
+#toast.show{display:flex;animation:slideUp .25s ease}
+#toast.t-success{border-left:3px solid var(--a3)}
+#toast.t-error{border-left:3px solid var(--danger)}
+#toast.t-info{border-left:3px solid var(--a2)}
 @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
-.modal-title{font-size:15px;font-weight:700;}
-.modal-close{background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;
-  width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:7px;transition:all .2s;}
-.modal-close:hover{background:var(--bg);color:var(--text);}
-.modal-foot{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
-
-/* Report */
-.rep-section{background:var(--bg);border-radius:9px;padding:13px;margin-bottom:11px;border:1px solid var(--border);}
-.rep-section h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:9px;}
-.rep-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.rep-row:last-child{border:none;}
-
-/* Backup */
-.backup-info{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px;
-  font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:12px;line-height:1.8;white-space:pre-wrap;}
-
-/* Toast */
-#toast{position:fixed;bottom:52px;right:16px;background:var(--card);border:1px solid var(--border);
-  border-radius:9px;padding:10px 15px;font-size:12px;font-weight:600;z-index:9999;
-  display:none;gap:8px;align-items:center;box-shadow:var(--shadow-lg);max-width:270px;}
-#toast.show{display:flex;animation:slideUp .25s ease;}
-#toast.t-success{border-left:3px solid var(--accent3);}
-#toast.t-error{border-left:3px solid var(--danger);}
-#toast.t-info{border-left:3px solid var(--accent2);}
-
-/* Empty */
-.empty-state{text-align:center;padding:44px 20px;color:var(--muted);}
-.empty-state .ei{font-size:40px;margin-bottom:10px;}
-.empty-state p{font-size:13px;}
-
-/* Footer */
-footer{height:var(--footer-h);background:var(--card);border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:0 22px;
-  font-size:11px;color:var(--muted);transition:background .3s;}
-.footer-brand{color:var(--accent);font-weight:700;}
 </style>
 </head>
 <body>
+<div class="grid-bg"></div>
+<div class="app">
 
-<!-- HEADER -->
 <header>
-  <a class="logo" href="#" onclick="showTab('dashboard');return false;">
-    <img src="pedrinho.png" alt="Pedrinho" id="logoImg" onerror="this.style.display='none';document.getElementById('logoFB').style.display='flex'">
-    <div class="logo-fb" id="logoFB" style="display:none">P</div>
-    <div>
-      <div class="logo-name"><span>Pedrinho</span> Rotinas</div>
-      <div class="logo-sub">Acompanhamento de Rotinas Diárias</div>
-    </div>
-  </a>
-
-  <nav class="header-nav">
-    <div class="nav-tab active" onclick="showTab('dashboard')" id="nt-dashboard">🏠 Painel</div>
-    <div class="nav-tab" onclick="showTab('calendar')" id="nt-calendar">📅 Calendário</div>
-    <div class="nav-tab" onclick="showTab('tasks')" id="nt-tasks">✅ Tarefas</div>
-    <div class="nav-tab" onclick="showTab('emails')" id="nt-emails">📧 E-mails</div>
-    <div class="nav-tab" onclick="showTab('compose')" id="nt-compose">✉️ Redigir</div>
-    <div class="nav-tab" onclick="showTab('charts')" id="nt-charts">📊 Gráficos</div>
-    <div class="nav-tab" onclick="showTab('reports')" id="nt-reports">📑 Relatórios</div>
-    <div class="nav-tab" onclick="showTab('backup')" id="nt-backup">💾 Backup</div>
+  <div class="logo">
+    <div class="logo-i">P</div>
+    <div><div class="logo-n">Pedrinho Gestão</div><div class="logo-s">Demandas e Rotinas</div></div>
+  </div>
+  <nav>
+    <div class="nt active" onclick="showTab('dashboard')">🏠 Painel</div>
+    <div class="nt" onclick="showTab('demandas')">✅ Demandas</div>
+    <div class="nt" onclick="showTab('nova')">➕ Nova Demanda</div>
+    <div class="nt" onclick="showTab('funcionarios')">👥 Funcionários</div>
+    <div class="nt" onclick="showTab('setores')">🗂 Setores</div>
+    <div class="nt" onclick="showTab('unidades')">🏢 Unidades</div>
+    <div class="nt" onclick="showTab('calendario')">📅 Calendário</div>
+    <div class="nt" onclick="showTab('relatorios')">📑 Relatórios</div>
+    <div class="nt" onclick="showTab('backup')">💾 Backup</div>
   </nav>
-
-  <div class="header-right">
-    <span id="greeting-badge">☀️ Bom dia!</span>
-    <span id="clock">--:--:--</span>
-    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar modo claro/escuro">🌙</button>
+  <div class="hdr-r">
+    <span class="cg" id="greeting">☀️ Bom dia</span>
+    <span class="cc" id="clock">--:--</span>
+    <button class="btn-th" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    <div class="uc" onclick="toast('Menu do usuário em desenvolvimento', 'info')">👤 Admin</div>
   </div>
 </header>
 
-<div class="layout">
+<div class="main">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sb-sec">
-      <div class="sb-title">Calendário Rápido</div>
-      <div class="mini-nav">
-        <button onclick="miniPrev()">‹</button>
-        <span class="mini-month" id="miniTitle"></span>
-        <button onclick="miniNext()">›</button>
-      </div>
-      <div class="mini-grid" id="miniGrid"></div>
+<!-- SIDEBAR -->
+<div class="sb">
+  <div class="sb-sec">
+    <div class="sb-t">Calendário Rápido</div>
+    <div class="mcal-nav">
+      <button class="mcal-btn" onclick="miniPrev()">‹</button>
+      <span class="mcal-m" id="miniMonth"></span>
+      <button class="mcal-btn" onclick="miniNext()">›</button>
     </div>
-    <div class="sb-sec">
-      <div class="sb-title">Resumo do Mês</div>
-      <div class="stats-grid">
-        <div class="stat-box s-open"><div class="stat-num" id="st-open">0</div><div class="stat-lbl">⚡ Em Aberto</div></div>
-        <div class="stat-box s-done"><div class="stat-num" id="st-done">0</div><div class="stat-lbl">✅ Fechadas</div></div>
-        <div class="stat-box s-email"><div class="stat-num" id="st-email">0</div><div class="stat-lbl">📧 Pendentes</div></div>
-        <div class="stat-box s-all"><div class="stat-num" id="st-all">0</div><div class="stat-lbl">📋 Total</div></div>
-      </div>
-    </div>
-    <div class="sb-sec">
-      <div class="sb-title">⚠️ Alertas <span class="alert-badge" id="alertBadge">0</span></div>
-      <div id="alertList"></div>
-    </div>
-    <div class="sb-sec">
-      <div class="sb-title">Atalhos Rápidos</div>
-      <div style="display:flex;flex-direction:column;gap:5px;">
-        <button class="btn btn-primary btn-sm" onclick="openAddTask()" style="width:100%;justify-content:center;">+ Nova Tarefa</button>
-        <button class="btn btn-secondary btn-sm" onclick="showTab('compose')" style="width:100%;justify-content:center;">✉️ Redigir E-mail</button>
-        <button class="btn btn-secondary btn-sm" onclick="openReportModal()" style="width:100%;justify-content:center;">📊 Relatório</button>
-      </div>
+    <div class="mcg" id="miniGrid"></div>
+  </div>
+  
+  <div class="sb-sec">
+    <div class="sb-t">Resumo do Mês</div>
+    <div class="sb-stats">
+      <div class="sb-stat" onclick="abrirResumoModal('open')"><div class="sb-stat-n" id="sbOpen">0</div><div class="sb-stat-l">⚡ Em Aberto</div></div>
+      <div class="sb-stat" onclick="abrirResumoModal('done')"><div class="sb-stat-n" id="sbDone">0</div><div class="sb-stat-l">✅ Concluídas</div></div>
+      <div class="sb-stat" onclick="abrirResumoModal('pending')"><div class="sb-stat-n" id="sbPending">0</div><div class="sb-stat-l">⏳ Pendentes</div></div>
+      <div class="sb-stat" onclick="abrirResumoModal('overdue')"><div class="sb-stat-n" id="sbOverdue">0</div><div class="sb-stat-l">🔴 Vencidas</div></div>
+      <div class="sb-stat" onclick="abrirResumoModal('alta')"><div class="sb-stat-n" id="sbAlta">0</div><div class="sb-stat-l">🔴 Alta Prioridade</div></div>
+      <div class="sb-stat" onclick="abrirResumoModal('all')"><div class="sb-stat-n" id="sbTotal">0</div><div class="sb-stat-l">📋 Total</div></div>
     </div>
   </div>
-
-  <!-- CONTENT -->
-  <div class="content">
-
-    <!-- DASHBOARD -->
-    <div class="tab-content active" id="tc-dashboard">
-      <div class="pg-hdr">
-        <h2>🏠 Painel de Controle</h2>
-        <button class="btn btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
-      </div>
-      <div class="dash-kpis">
-        <div class="kpi kpi-open" data-icon="⚡"><div class="kpi-val" id="kpi-open">0</div><div class="kpi-lbl">Tarefas Em Aberto</div></div>
-        <div class="kpi kpi-done" data-icon="✅"><div class="kpi-val" id="kpi-done">0</div><div class="kpi-lbl">Tarefas Fechadas</div></div>
-        <div class="kpi kpi-email" data-icon="📧"><div class="kpi-val" id="kpi-email">0</div><div class="kpi-lbl">E-mails Pendentes</div></div>
-        <div class="kpi kpi-rate" data-icon="🎯"><div class="kpi-val" id="kpi-rate">0%</div><div class="kpi-lbl">Taxa de Resolução</div></div>
-      </div>
-      <div class="charts-row">
-        <div class="chart-card"><h3>Status das Tarefas</h3><div class="chart-wrap"><canvas id="cDonut"></canvas></div></div>
-        <div class="chart-card"><h3>Por Categoria (em aberto)</h3><div style="padding-top:4px" id="progList"></div></div>
-        <div class="chart-card"><h3>Atividade Recente</h3><div id="actList" style="max-height:190px;overflow-y:auto;"></div></div>
-      </div>
-      <div class="sb-title" style="margin-bottom:12px;">⚠️ Tarefas Vencidas / Hoje</div>
-      <div id="dashOverdue"></div>
+  
+  <div class="sb-sec">
+    <div class="sb-t">⚠️ Alertas <span class="abadge" id="alertCount">0</span></div>
+    <div id="alertList"></div>
+  </div>
+  
+  <div class="sb-sec">
+    <div class="sb-t">Atalhos Rápidos</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <button class="btn btn-p btn-sm" onclick="openAddTask()" style="justify-content:center">➕ Nova Demanda</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioPendencias()" style="justify-content:center">⚠️ Relatório Pendências</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioGeral()" style="justify-content:center">📊 Relatório Geral</button>
+      <button class="btn btn-s btn-sm" onclick="showTab('relatorios'); gerarRelatorioGeral()" style="justify-content:center">📑 Ver Relatórios</button>
     </div>
-
-    <!-- CALENDAR -->
-    <div class="tab-content" id="tc-calendar">
-      <div class="cal-top">
-        <h2 id="calTitle">—</h2>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <div class="cal-nav-btns">
-            <button onclick="calPrev()">‹</button>
-            <button onclick="calToday()">Hoje</button>
-            <button onclick="calNext()">›</button>
-          </div>
-          <button class="btn btn-primary" onclick="openAddTask()">+ Tarefa</button>
-        </div>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-    </div>
-
-    <!-- TASKS -->
-    <div class="tab-content" id="tc-tasks">
-      <div class="pg-hdr">
-        <h2>✅ Tarefas</h2>
-        <button class="btn btn-primary" onclick="openAddTask()">+ Nova Tarefa</button>
-      </div>
-      <div class="filter-bar">
-        <button class="fb active" onclick="filterTasks('all',this)">Todas</button>
-        <button class="fb" onclick="filterTasks('open',this)">⚡ Em Aberto</button>
-        <button class="fb" onclick="filterTasks('done',this)">✅ Fechadas</button>
-        <button class="fb" onclick="filterTasks('overdue',this)">🔴 Vencidas</button>
-        <button class="fb" onclick="filterTasks('email',this)">📧 Com E-mail</button>
-        <button class="fb" onclick="filterTasks('alta',this)">🔴 Alta Prioridade</button>
-      </div>
-      <div id="taskList"></div>
-    </div>
-
-    <!-- EMAILS -->
-    <div class="tab-content" id="tc-emails">
-      <div class="pg-hdr">
-        <h2>📧 E-mails Registrados</h2>
-        <button class="btn btn-primary" onclick="showTab('compose')">✉️ Redigir</button>
-      </div>
-      <div class="filter-bar">
-        <button class="fb active" onclick="filterEmails('all',this)">Todos</button>
-        <button class="fb" onclick="filterEmails('pending',this)">⏳ Aguardando</button>
-        <button class="fb" onclick="filterEmails('resolved',this)">✅ Resolvidos</button>
-      </div>
-      <div id="emailList"></div>
-    </div>
-
-    <!-- COMPOSE -->
-    <div class="tab-content" id="tc-compose">
-      <div class="pg-hdr"><h2>✉️ Redigir E-mail</h2></div>
-      <div class="form-card">
-        <div class="form-row">
-          <label class="form-label">Saudação automática</label>
-          <div class="gb-row">
-            <button class="gb" onclick="insertGreeting('Bom dia',this)">☀️ Bom dia</button>
-            <button class="gb" onclick="insertGreeting('Boa tarde',this)">🌤️ Boa tarde</button>
-            <button class="gb" onclick="insertGreeting('Boa noite',this)">🌙 Boa noite</button>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">Para (e-mail) *</label>
-            <input type="email" class="form-input" id="cTo" placeholder="destinatario@empresa.com">
-          </div>
-          <div class="form-row">
-            <label class="form-label">Categoria</label>
-            <select class="form-input form-select" id="cCat">
-              <option value="nf">Lançamento de NF</option>
-              <option value="periodo">Abertura de Período</option>
-              <option value="fornecedor">Fornecedor</option>
-              <option value="financeiro">Financeiro</option>
-              <option value="rh">RH</option>
-              <option value="outros">Outros</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <label class="form-label">Assunto *</label>
-          <input type="text" class="form-input" id="cSubj" placeholder="Ex: Solicitação de abertura de período para lançamento de NF">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Corpo do E-mail</label>
-          <textarea class="form-input form-textarea" id="cBody" placeholder="Escreva o conteúdo do e-mail aqui..."></textarea>
-        </div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label class="form-label">Data de Envio</label>
-            <input type="date" class="form-input" id="cDate">
-          </div>
-          <div class="form-row">
-            <label class="form-label">Criar tarefa vinculada?</label>
-            <select class="form-input form-select" id="cTask">
-              <option value="yes">✅ Sim — acompanhar resposta</option>
-              <option value="no">Não</option>
-            </select>
-          </div>
-        </div>
-        <div class="compose-foot">
-          <button class="btn btn-secondary" onclick="clearCompose()">🗑️ Limpar</button>
-          <button class="btn btn-secondary" onclick="copyBody()">📋 Copiar corpo</button>
-          <button class="btn btn-secondary" onclick="openMailClient()">📤 Abrir no cliente</button>
-          <button class="btn btn-primary" onclick="saveEmail()">💾 Salvar registro</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- CHARTS -->
-    <div class="tab-content" id="tc-charts">
-      <div class="pg-hdr"><h2>📊 Gráficos & Análise</h2></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-        <div class="chart-card"><h3>Tarefas — Aberto vs Fechado</h3><div class="chart-wrap"><canvas id="cBar"></canvas></div></div>
-        <div class="chart-card"><h3>Distribuição por Categoria</h3><div class="chart-wrap"><canvas id="cPie"></canvas></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="chart-card"><h3>E-mails — Pendentes vs Resolvidos</h3><div class="chart-wrap"><canvas id="cEmailBar"></canvas></div></div>
-        <div class="chart-card"><h3>Evolução Mensal (tarefas criadas)</h3><div class="chart-wrap"><canvas id="cLine"></canvas></div></div>
-      </div>
-    </div>
-
-    <!-- REPORTS -->
-    <div class="tab-content" id="tc-reports">
-      <div class="pg-hdr">
-        <h2>📑 Relatórios</h2>
-        <button class="btn btn-primary" onclick="generateCompleteReport()">📊 Gerar Relatório Completo</button>
-      </div>
-      
-      <div class="filter-bar" style="margin-bottom:16px;">
-        <button class="fb active" onclick="filterReport('tasks',this)">✅ Tarefas</button>
-        <button class="fb" onclick="filterReport('emails',this)">📧 E-mails</button>
-        <button class="fb" onclick="filterReport('performance',this)">📈 Performance</button>
-      </div>
-      
-      <div id="reportContent" class="form-card" style="padding:16px;">
-        <div style="text-align:center; color:var(--muted); padding:30px;">
-          <div class="ei">📊</div>
-          <p>Selecione um relatório para visualizar</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- BACKUP -->
-    <div class="tab-content" id="tc-backup">
-      <div class="pg-hdr"><h2>💾 Backup & Restauração</h2></div>
-      <div class="form-card">
-        <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Dados salvos automaticamente no <strong>localStorage</strong> (JSON). Exporte para manter cópias seguras.</p>
-        <div style="display:flex;gap:9px;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="doBackup()">⬇️ Exportar Backup</button>
-          <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">⬆️ Restaurar Backup</button>
-          <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar Todos os Dados</button>
-        </div>
-        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(event)">
-        <div class="backup-info" id="backupInfo">Carregando...</div>
-      </div>
-    </div>
-
   </div>
 </div>
 
-<!-- FOOTER -->
+<!-- CONTENT -->
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="tc active" id="tc-dashboard">
+  <div class="pg-h">
+    <h2>🏠 Painel de Controle</h2>
+    <button class="btn btn-p" onclick="openAddTask()">➕ Nova Demanda</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi" data-ic="⚡" onclick="abrirResumoModal('open')"><div class="kpi-v" id="kpiOpen">0</div><div class="kpi-l">Em Aberto</div><div class="kpi-bar"><div class="kpi-bf" id="kpiOpenBar" style="width:0%;background:var(--danger)"></div></div></div>
+    <div class="kpi" data-ic="✅" onclick="abrirResumoModal('done')"><div class="kpi-v" id="kpiDone">0</div><div class="kpi-l">Concluídas</div><div class="kpi-bar"><div class="kpi-bf" id="kpiDoneBar" style="width:0%;background:var(--a3)"></div></div></div>
+    <div class="kpi" data-ic="⏳" onclick="abrirResumoModal('pending')"><div class="kpi-v" id="kpiPending">0</div><div class="kpi-l">Pendentes</div><div class="kpi-bar"><div class="kpi-bf" id="kpiPendingBar" style="width:0%;background:var(--warn)"></div></div></div>
+    <div class="kpi" data-ic="🎯" onclick="abrirResumoModal('overdue')"><div class="kpi-v" id="kpiRate">0%</div><div class="kpi-l">Taxa de Sucesso</div><div class="kpi-bar"><div class="kpi-bf" id="kpiRateBar" style="width:0%;background:var(--purple)"></div></div></div>
+  </div>
+  <div class="chs">
+    <div class="ch"><h3>Status das Demandas</h3><div class="ch-w"><canvas id="doughnutChart"></canvas></div></div>
+    <div class="ch"><h3>Por Categoria</h3><div id="categoryList"></div></div>
+    <div class="ch"><h3>Atividade Recente</h3><div id="activityList" style="max-height:160px;overflow-y:auto;"></div></div>
+  </div>
+  <div class="sb-t" style="margin-bottom:8px">⚠️ Urgentes & Vencidas</div>
+  <div id="urgentList"></div>
+</div>
+
+<!-- DEMANDAS -->
+<div class="tc" id="tc-demandas">
+  <div class="pg-h">
+    <h2>✅ Demandas</h2>
+    <button class="btn btn-p" onclick="openAddTask()">➕ Nova</button>
+  </div>
+  <div class="fbar">
+    <button class="fb active" onclick="filterTasks('all',this)">Todas</button>
+    <button class="fb" onclick="filterTasks('open',this)">⚡ Em Aberto</button>
+    <button class="fb" onclick="filterTasks('pending',this)">⏳ Pendentes</button>
+    <button class="fb" onclick="filterTasks('done',this)">✅ Concluídas</button>
+    <button class="fb" onclick="filterTasks('overdue',this)">🔴 Vencidas</button>
+    <button class="fb" onclick="filterTasks('alta',this)">🔴 Alta Prioridade</button>
+  </div>
+  <div id="taskList"></div>
+</div>
+
+<!-- NOVA DEMANDA -->
+<div class="tc" id="tc-nova">
+  <div class="pg-h"><h2>➕ Nova Demanda</h2></div>
+  <div class="ecard">
+    <div class="fg2">
+      <div class="fr"><label class="fl">Título *</label><input class="fi" id="taskTitle" placeholder="Ex: Problema no sistema"></div>
+      <div class="fr"><label class="fl">Data</label><input class="fi" type="date" id="taskDate" value="2026-03-04"></div>
+    </div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Categoria</label>
+        <select class="fi" id="taskCategory">
+          <option value="nf">📄 NF / Nota Fiscal</option>
+          <option value="ti">💻 TI / Sistema</option>
+          <option value="financeiro">💰 Financeiro</option>
+          <option value="rh">👥 RH</option>
+          <option value="geral">📋 Geral</option>
+        </select>
+      </div>
+      <div class="fr"><label class="fl">Prioridade</label>
+        <select class="fi" id="taskPriority">
+          <option value="baixa">🟢 Baixa</option>
+          <option value="media" selected>🟡 Média</option>
+          <option value="alta">🔴 Alta</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Responsável</label>
+        <select class="fi" id="taskResponsible">
+          <option value="João Silva">👤 João Silva (TI)</option>
+          <option value="Maria Santos">👤 Maria Santos (Financeiro)</option>
+          <option value="Ana Lima">👤 Ana Lima (RH)</option>
+          <option value="Carlos Mendes">👤 Carlos Mendes (Admin)</option>
+        </select>
+      </div>
+      <div class="fr"><label class="fl">Setor</label>
+        <select class="fi" id="taskSector">
+          <option value="TI">💻 TI</option>
+          <option value="Financeiro">💰 Financeiro</option>
+          <option value="RH">👥 RH</option>
+          <option value="Administrativo">📋 Administrativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr"><label class="fl">E-mail</label><input class="fi" id="taskEmail" placeholder="email@exemplo.com"></div>
+    <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="taskDesc" rows="3" placeholder="Descreva a demanda..."></textarea></div>
+    <div class="fr">
+      <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="taskOverdue"> 🔴 Marcar como VENCIDA</label>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="clearTaskForm()">🗑️ Limpar</button>
+      <button class="btn btn-p" onclick="saveTask()">💾 Salvar Demanda</button>
+    </div>
+  </div>
+</div>
+
+<!-- FUNCIONÁRIOS -->
+<div class="tc" id="tc-funcionarios">
+  <div class="pg-h"><h2>👥 Funcionários</h2><button class="btn btn-p" onclick="addEmployee()">➕ Novo</button></div>
+  <div class="fbar"><input class="fi" id="searchEmployee" placeholder="🔍 Buscar funcionário..." style="width:220px;padding:6px 12px;font-size:12px" oninput="filterEmployees()"></div>
+  <div id="employeeList"></div>
+</div>
+
+<!-- SETORES -->
+<div class="tc" id="tc-setores">
+  <div class="pg-h"><h2>🗂 Setores</h2><button class="btn btn-p" onclick="addSector()">➕ Novo Setor</button></div>
+  <div id="sectorList"></div>
+</div>
+
+<!-- UNIDADES -->
+<div class="tc" id="tc-unidades">
+  <div class="pg-h"><h2>🏢 Unidades</h2><button class="btn btn-p" onclick="addUnit()">➕ Nova Unidade</button></div>
+  <div id="unitList"></div>
+</div>
+
+<!-- CALENDÁRIO -->
+<div class="tc" id="tc-calendario">
+  <div class="pg-h">
+    <h2 id="calTitle">Março 2026</h2>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-s btn-sm" onclick="calChange(-1)">‹</button>
+      <button class="btn btn-s btn-sm" onclick="calChange(0)">Hoje</button>
+      <button class="btn btn-s btn-sm" onclick="calChange(1)">›</button>
+      <button class="btn btn-p btn-sm" onclick="openAddTask()">➕ Demanda</button>
+    </div>
+  </div>
+  <div class="cal-g" id="calGrid"></div>
+</div>
+
+<!-- RELATÓRIOS -->
+<div class="tc" id="tc-relatorios">
+  <div class="pg-h">
+    <h2>📑 Relatórios</h2>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioGeral()">📊 Geral</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioPendencias()">⚠️ Pendências</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioResolvidos()">✅ Resolvidos</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioFuncionarios()">👥 Por Funcionário</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioSetores()">🗂 Por Setor</button>
+      <button class="btn btn-s btn-sm" onclick="gerarRelatorioVencidas()">🔴 Vencidas</button>
+      <button class="btn btn-p btn-sm" onclick="imprimirRelatorioAtual()">🖨️ Imprimir</button>
+    </div>
+  </div>
+  <div class="fbar">
+    <button class="fb active" onclick="filterReport('geral',this)">📊 Geral</button>
+    <button class="fb" onclick="filterReport('pendencias',this)">⚠️ Pendências</button>
+    <button class="fb" onclick="filterReport('resolvidos',this)">✅ Resolvidos</button>
+    <button class="fb" onclick="filterReport('funcionarios',this)">👥 Funcionários</button>
+    <button class="fb" onclick="filterReport('setores',this)">🗂 Setores</button>
+    <button class="fb" onclick="filterReport('vencidas',this)">🔴 Vencidas</button>
+  </div>
+  <div id="reportContent" class="ecard" style="padding:16px;min-height:300px">
+    <div style="text-align:center;color:var(--muted);padding:30px">
+      <div style="font-size:40px;margin-bottom:10px">📊</div>
+      <p>Selecione um relatório</p>
+    </div>
+  </div>
+</div>
+
+<!-- BACKUP -->
+<div class="tc" id="tc-backup">
+  <div class="pg-h"><h2>💾 Backup e Restauração</h2></div>
+  <div class="ecard">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:15px">Exporte ou importe seus dados para segurança.</p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px">
+      <button class="btn btn-p" onclick="exportBackup()">⬇️ Exportar Backup</button>
+      <button class="btn btn-s" onclick="document.getElementById('restoreFile').click()">⬆️ Restaurar Backup</button>
+      <button class="btn btn-s" onclick="clearAllData()" style="color:var(--danger)">🗑️ Limpar Todos os Dados</button>
+    </div>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
+    <div class="rep-s" style="margin-top:15px;padding:10px;background:var(--card2);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:pre-wrap" id="backupInfo">Carregando...</div>
+  </div>
+</div>
+
+</div>
+</div>
+
 <footer>
-  <span>🗓️ Sistema de Acompanhamento de Rotinas Diárias</span>
-  <span class="footer-brand">⚡ Pedrinho Rotinas v3.0</span>
+  <span>🗓️ Sistema de Gestão de Demandas</span>
+  <span class="fb-r">⚡ Pedrinho Gestão v6.0</span>
   <span id="footerDate">—</span>
 </footer>
+</div>
 
 <!-- MODAL TASK -->
 <div class="modal-overlay" id="modalTask">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="modalTaskTitle">➕ Nova Tarefa</div>
-      <button class="modal-close" onclick="closeModal('modalTask')">✕</button>
+    <div class="modal-h">
+      <div class="modal-t" id="modalTaskTitle">✏️ Editar Demanda</div>
+      <button class="modal-c" onclick="closeModal('modalTask')">✕</button>
     </div>
-    <div class="form-row"><label class="form-label">Título *</label>
-      <input type="text" class="form-input" id="tTitle" placeholder="Ex: Verificar NF pendente"></div>
-    <div class="form-row"><label class="form-label">Descrição</label>
-      <textarea class="form-input" style="min-height:65px;resize:vertical" id="tDesc" placeholder="Detalhes..."></textarea></div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Data *</label>
-        <input type="date" class="form-input" id="tDate"></div>
-      <div class="form-row"><label class="form-label">Prioridade</label>
-        <select class="form-input form-select" id="tPrio">
+    <div class="fr"><label class="fl">Título</label><input class="fi" id="editTitle"></div>
+    <div class="fr"><label class="fl">Descrição</label><textarea class="fi" id="editDesc" rows="2"></textarea></div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Data</label><input class="fi" type="date" id="editDate"></div>
+      <div class="fr"><label class="fl">Prioridade</label>
+        <select class="fi" id="editPriority">
+          <option value="baixa">🟢 Baixa</option>
           <option value="media">🟡 Média</option>
           <option value="alta">🔴 Alta</option>
-          <option value="baixa">🟢 Baixa</option>
-        </select></div>
+        </select>
+      </div>
     </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Categoria</label>
-        <select class="form-input form-select" id="tCat">
-          <option value="geral">Geral</option>
-          <option value="nf">Lançamento de NF</option>
-          <option value="financeiro">Financeiro</option>
-          <option value="fornecedor">Fornecedor</option>
-          <option value="email">Acompanhar E-mail</option>
-          <option value="rh">RH</option>
-          <option value="outros">Outros</option>
-        </select></div>
-      <div class="form-row"><label class="form-label">E-mail vinculado</label>
-        <input type="email" class="form-input" id="tEmail" placeholder="email@empresa.com"></div>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Categoria</label>
+        <select class="fi" id="editCategory">
+          <option value="nf">📄 NF</option>
+          <option value="ti">💻 TI</option>
+          <option value="financeiro">💰 Financeiro</option>
+          <option value="rh">👥 RH</option>
+          <option value="geral">📋 Geral</option>
+        </select>
+      </div>
+      <div class="fr"><label class="fl">Status</label>
+        <select class="fi" id="editStatus">
+          <option value="open">⚡ Em Aberto</option>
+          <option value="pending">⏳ Pendente</option>
+          <option value="done">✅ Concluída</option>
+        </select>
+      </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn btn-secondary" onclick="closeModal('modalTask')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveTask()">💾 Salvar</button>
+    <div class="fg2">
+      <div class="fr"><label class="fl">Responsável</label><input class="fi" id="editResponsible"></div>
+      <div class="fr"><label class="fl">Setor</label><input class="fi" id="editSector"></div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL DAY -->
-<div class="modal-overlay" id="modalDay">
-  <div class="modal modal-lg">
-    <div class="modal-hdr">
-      <div class="modal-title" id="modalDayTitle">Tarefas do Dia</div>
-      <button class="modal-close" onclick="closeModal('modalDay')">✕</button>
+    <div class="fr"><label class="fl">E-mail</label><input class="fi" id="editEmail"></div>
+    <div class="fr">
+      <label style="display:flex;align-items:center;gap:5px">
+        <input type="checkbox" id="editOverdue"> 🔴 Marcar como VENCIDA
+      </label>
     </div>
-    <div id="modalDayBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="addTaskDay()">+ Adicionar Neste Dia</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL REPORT -->
-<div class="modal-overlay" id="modalReport">
-  <div class="modal modal-lg">
-    <div class="modal-hdr">
-      <div class="modal-title">📊 Relatório de Pendências</div>
-      <button class="modal-close" onclick="closeModal('modalReport')">✕</button>
-    </div>
-    <div id="modalReportBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-secondary" onclick="copyReport()">📋 Copiar</button>
-      <button class="btn btn-primary" onclick="closeModal('modalReport')">Fechar</button>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalTask')">Cancelar</button>
+      <button class="btn btn-p" onclick="updateTask()">💾 Atualizar</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL RESUMO -->
+<div class="modal-overlay" id="modalResumo">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-h">
+      <div class="modal-t" id="modalResumoTitle">📊 Resumo</div>
+      <div style="display:flex;gap:5px">
+        <button class="ib ib-print" onclick="printResumo()" title="Imprimir">🖨️</button>
+        <button class="modal-c" onclick="closeModal('modalResumo')">✕</button>
+      </div>
+    </div>
+    <div id="modalResumoBody" style="max-height:500px;overflow-y:auto"></div>
+    <div class="modal-f">
+      <button class="btn btn-s" onclick="closeModal('modalResumo')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT CONTENT -->
+<div id="print-content"></div>
 <div id="toast"></div>
 
 <script>
-// ── DATA ──────────────────────────────────────
-const KEY='pedrinho_v3';
-let D=(()=>{try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{tasks:[],emails:[],lastBackup:null};}catch{return{tasks:[],emails:[],lastBackup:null};}})();
-function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch{toast('Erro ao salvar.','error');}}
+// ==================== DADOS ====================
+const STORAGE_KEY = 'pedrinho_gestao_v6_final';
+let D = {
+  tasks: [
+    {
+      "id": "mmc2fei1z31",
+      "title": "dezembro 12/2024 - NF 4992 Planalto",
+      "desc": "NF 4992 Planalto e prodac com erro de valores",
+      "date": "2026-03-04",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T13:21:33.481Z"
+    },
+    {
+      "id": "mmc2e4ap7cj",
+      "title": "dezembro 12/2024 - NF 568224",
+      "desc": "nf 568224 mudar para 2551 autosystem",
+      "date": "2026-02-19",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T13:20:33.601Z"
+    },
+    {
+      "id": "mmc2c5l4i8c",
+      "title": "dezembro 12/2024 - NF 81291 Itaberaba",
+      "desc": "NF 81291 Itaberaba cfop deves ser 1551 ativo esta errado",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T13:19:01.960Z"
+    },
+    {
+      "id": "mmc29x7bkv6",
+      "title": "dezembro 12/2024 - NF 1068 Aparecida",
+      "desc": "NF 1068 Aparecida prodac 0 e AutoSystem busca base icms",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Ana Lima",
+      "sector": "RH",
+      "createdAt": "2026-03-04T13:17:17.783Z"
+    },
+    {
+      "id": "mmc28gqqm4s",
+      "title": "dezembro 12/2024 - NF 70460 Barra Sul",
+      "desc": "NF 70460 Barra Sul diferença de busca de valores",
+      "date": "2026-03-04",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "",
+      "status": "open",
+      "responsible": "Carlos Mendes",
+      "sector": "Administrativo",
+      "createdAt": "2026-03-04T13:16:09.794Z"
+    },
+    {
+      "id": "mmc26py4rc7",
+      "title": "dezembro 12/2024 - Jacareí",
+      "desc": "Jacareí diferença de 81,00 que esta como diferenca icms",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T13:14:48.412Z"
+    },
+    {
+      "id": "mmc24x2c0n5",
+      "title": "dezembro 12/2024 - NF 2410518",
+      "desc": "NF 2410518 Ativo imobilizado arrumar autosystem",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T13:13:24.324Z"
+    },
+    {
+      "id": "mmc237vxshw",
+      "title": "dezembro 12/2024 - NF 155562 Itaguara",
+      "desc": "NF 155562 Itaguara ajuste cfop autosystem",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com,fiscal.rdp@amaralcontabilidade.net",
+      "status": "open",
+      "responsible": "Ana Lima",
+      "sector": "RH",
+      "createdAt": "2026-03-04T13:12:05.037Z"
+    },
+    {
+      "id": "mmc218ena3i",
+      "title": "dezembro 12/2024 - NF 156669 Inhapim",
+      "desc": "NF 156669 Inhapim ajuste para CFOP em prodac",
+      "date": "2026-02-18",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "fiscal.rdp@amaralcontabilidade.net,julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Carlos Mendes",
+      "sector": "Administrativo",
+      "createdAt": "2026-03-04T13:10:32.400Z"
+    },
+    {
+      "id": "mmc1ycx3bxe",
+      "title": "dezembro 12/2024 - NF 1208 Lafaiete",
+      "desc": "NF 1208 Prodac Lafaiete",
+      "date": "2026-02-13",
+      "category": "nf",
+      "priority": "baixa",
+      "emailTo": "fiscal.rdp@amaralcontabilidade.net",
+      "status": "done",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T13:08:18.279Z",
+      "closedAt": "2026-03-04T13:09:05.237Z"
+    },
+    {
+      "id": "mmc1wism5ea",
+      "title": "dezembro 12/2024 - São Cristovão",
+      "desc": "São Cristovão NF 7133 é ativo ajuste auto system 1551",
+      "date": "2026-02-03",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T13:06:52.582Z"
+    },
+    {
+      "id": "mmc1ttgrogs",
+      "title": "novembro 11/2024 - Valencia",
+      "desc": "Valencia NF 3603 Ativo arrumar auto system",
+      "date": "2026-02-19",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Ana Lima",
+      "sector": "RH",
+      "createdAt": "2026-03-04T13:04:46.443Z"
+    },
+    {
+      "id": "mmc1sswhhv1",
+      "title": "novembro 11/2024 - Pouso Alegre",
+      "desc": "85957 Pouso Alegre urb 2 aparece 20,90 porem puxa 70,90",
+      "date": "2026-03-04",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T13:03:59.057Z"
+    },
+    {
+      "id": "mmc1lmxchqs",
+      "title": "novembro 11/2024 - NF 28705 Betim",
+      "desc": "NF 28705 Betim 1 CFOP origem 5152 ajuste no autosystem",
+      "date": "2026-03-02",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Carlos Mendes",
+      "sector": "Administrativo",
+      "createdAt": "2026-03-04T12:58:24.720Z"
+    },
+    {
+      "id": "mmc1jr0f3s9",
+      "title": "novembro 11/2024 - NF 7098 São Cristovão",
+      "desc": "NF 7098 São Cristovão cfop correto 1551 esta 1556",
+      "date": "2026-02-03",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T12:56:56.703Z"
+    },
+    {
+      "id": "mmc1hk6c94r",
+      "title": "outubro 10/2024 - São Jorge",
+      "desc": "São Jorge NF 8520 CFOP Prodac: 1551 CFOP AutoSystem: 1556",
+      "date": "2026-03-03",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Ana Lima",
+      "sector": "RH",
+      "createdAt": "2026-03-04T12:55:14.532Z"
+    },
+    {
+      "id": "mmc1fjwow5w",
+      "title": "outubro 10/2024 - Sales",
+      "desc": "Sales - NF 814 ajuste CFOP 2556 para 2551 auto system",
+      "date": "2026-03-02",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T12:53:40.872Z"
+    },
+    {
+      "id": "mmc1e1tutv2",
+      "title": "outubro 10/2024 - Muriaé",
+      "desc": "Muriaé NF 216009 468,30 ICMS Sub nao puxa pra ver comparativo",
+      "date": "2026-03-03",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Carlos Mendes",
+      "sector": "Administrativo",
+      "createdAt": "2026-03-04T12:52:30.786Z"
+    },
+    {
+      "id": "mmc1cekiwqo",
+      "title": "outubro 10/2024 - Luz",
+      "desc": "Luz NF 1102 Base esta no Prodac mais nao aparece AutoSystem",
+      "date": "2026-03-04",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T12:51:13.986Z"
+    },
+    {
+      "id": "mmc14emqj5r",
+      "title": "outubro 10/2024 - Luz 2",
+      "desc": "Luz - NF 1102 Base esta corerta porem ao ver pelo sistema",
+      "date": "2026-03-04",
+      "category": "nf",
+      "priority": "media",
+      "emailTo": "",
+      "status": "open",
+      "responsible": "Ana Lima",
+      "sector": "RH",
+      "createdAt": "2026-03-04T12:45:00.818Z"
+    },
+    {
+      "id": "mmc11kyurs3",
+      "title": "outubro 10/2024 - DP 1",
+      "desc": "DP 1 -NF 215145 Prodac e AutoSystem devem serem 1406 estao 1407",
+      "date": "2026-02-10",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "fiscal.rdp@amaralcontabilidade.net,julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "João Silva",
+      "sector": "TI",
+      "createdAt": "2026-03-04T12:42:49.063Z"
+    },
+    {
+      "id": "mmc10632v7p",
+      "title": "outubro 10/2024 - Divisa Alegre",
+      "desc": "Divisa Alegre 1 - NF 22698767 ativo imobilizado ajuste",
+      "date": "2026-02-10",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "fiscal.rdp@amaralcontabilidade.net",
+      "status": "open",
+      "responsible": "Carlos Mendes",
+      "sector": "Administrativo",
+      "createdAt": "2026-03-04T12:41:43.118Z"
+    },
+    {
+      "id": "mmc0xlrchi3",
+      "title": "outubro 10/2024 - Lafaiete",
+      "desc": "Lafaiete - NF 1545 deve estar 1659 no auto system esta 1652",
+      "date": "2026-02-27",
+      "category": "nf",
+      "priority": "alta",
+      "emailTo": "julliana.alves@rededompedro.com",
+      "status": "open",
+      "responsible": "Maria Santos",
+      "sector": "Financeiro",
+      "createdAt": "2026-03-04T12:39:43.464Z"
+    }
+  ],
+  employees: [
+    {id: 'emp1', name: 'João Silva', email: 'joao.silva@empresa.com', sector: 'TI', unit: 'Matriz', phone: '(11) 99999-1111'},
+    {id: 'emp2', name: 'Maria Santos', email: 'maria.santos@empresa.com', sector: 'Financeiro', unit: 'Matriz', phone: '(11) 99999-2222'},
+    {id: 'emp3', name: 'Ana Lima', email: 'ana.lima@empresa.com', sector: 'RH', unit: 'Matriz', phone: '(11) 99999-3333'},
+    {id: 'emp4', name: 'Carlos Mendes', email: 'carlos.mendes@empresa.com', sector: 'Administrativo', unit: 'Matriz', phone: '(11) 99999-4444'},
+    {id: 'emp5', name: 'Patrícia Oliveira', email: 'patricia@empresa.com', sector: 'Financeiro', unit: 'Filial SP', phone: '(11) 99999-5555'}
+  ],
+  sectors: [
+    {id: 'sec1', name: 'Tecnologia da Informação', code: 'TI', unit: 'Matriz', employees: 2},
+    {id: 'sec2', name: 'Financeiro', code: 'FIN', unit: 'Matriz', employees: 2},
+    {id: 'sec3', name: 'Recursos Humanos', code: 'RH', unit: 'Matriz', employees: 1},
+    {id: 'sec4', name: 'Administrativo', code: 'ADM', unit: 'Matriz', employees: 1},
+    {id: 'sec5', name: 'Comercial', code: 'COM', unit: 'Filial SP', employees: 1}
+  ],
+  units: [
+    {id: 'uni1', name: 'Matriz', cnpj: '12.345.678/0001-90', address: 'Av. Paulista, 1000 - São Paulo/SP', phone: '(11) 3333-4444', employees: 4},
+    {id: 'uni2', name: 'Filial SP', cnpj: '12.345.678/0002-71', address: 'Av. Francisco Glicério, 500 - Campinas/SP', phone: '(19) 3333-5555', employees: 1}
+  ],
+  lastBackup: null
+};
 
-// ── STATE ─────────────────────────────────────
-const n0=new Date();
-let calY=n0.getFullYear(),calM=n0.getMonth();
-let mY=n0.getFullYear(),mM=n0.getMonth();
-let selDay=null,editId=null,dayForTask=null;
-let taskFilter='all',emailFilter='all',reportFilter='tasks';
-let charts={};
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    D = {...D, ...parsed};
+  }
+} catch (e) {}
 
-const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DSHORT=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(D));
+    D.lastBackup = new Date().toISOString();
+  } catch (e) {}
+}
 
-// ── INIT ──────────────────────────────────────
-function init(){
-  document.getElementById('cDate').value=ds(n0);
-  document.getElementById('tDate').value=ds(n0);
-  const theme=localStorage.getItem('pedrinho_theme')||'light';
-  applyTheme(theme);
+// ==================== HELPERS ====================
+function p(n) { return String(n).padStart(2, '0'); }
+function ds(d) { return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function fmtDate(s) { return s ? new Date(s+'T12:00').toLocaleDateString('pt-BR') : ''; }
+function isOverdue(date, status) { 
+  if (status === 'done') return false;
+  return new Date(date + 'T23:59:59') < new Date();
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substring(2,6); }
+
+// ==================== THEME ====================
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  setTimeout(renderCharts, 100);
+}
+
+// ==================== CLOCK ====================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const h = now.getHours();
+  const greeting = h < 12 ? '☀️ Bom dia' : h < 18 ? '🌤️ Boa tarde' : '🌙 Boa noite';
+  document.getElementById('greeting').textContent = greeting;
+  const days = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('footerDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ==================== RENDER ALL ====================
+function renderAll() {
+  renderStats();
+  renderTasks();
+  renderEmployees();
+  renderSectors();
+  renderUnits();
+  renderCalendar();
+  renderMiniCalendar();
+  renderAlerts();
+  renderCharts();
+}
+
+// ==================== STATS ====================
+function renderStats() {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
+  const monthTasks = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
+  
+  const open = monthTasks.filter(t => t.status === 'open').length;
+  const done = monthTasks.filter(t => t.status === 'done').length;
+  const pending = monthTasks.filter(t => t.status === 'pending').length;
+  const overdue = monthTasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status)).length;
+  const alta = monthTasks.filter(t => t.priority === 'alta' && t.status !== 'done').length;
+  const total = monthTasks.length;
+  
+  document.getElementById('sbOpen').textContent = open;
+  document.getElementById('sbDone').textContent = done;
+  document.getElementById('sbPending').textContent = pending;
+  document.getElementById('sbOverdue').textContent = overdue;
+  document.getElementById('sbAlta').textContent = alta;
+  document.getElementById('sbTotal').textContent = total;
+  
+  document.getElementById('kpiOpen').textContent = open;
+  document.getElementById('kpiDone').textContent = done;
+  document.getElementById('kpiPending').textContent = pending;
+  
+  const totalTasks = D.tasks.length;
+  const doneTasks = D.tasks.filter(t => t.status === 'done').length;
+  const rate = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
+  document.getElementById('kpiRate').textContent = rate + '%';
+  
+  const totalActive = open + pending;
+  document.getElementById('kpiOpenBar').style.width = totalActive ? (open / totalActive * 100) + '%' : '0%';
+  document.getElementById('kpiPendingBar').style.width = totalActive ? (pending / totalActive * 100) + '%' : '0%';
+  document.getElementById('kpiDoneBar').style.width = totalTasks ? (done / totalTasks * 100) + '%' : '0%';
+  document.getElementById('kpiRateBar').style.width = rate + '%';
+}
+
+// ==================== TASKS ====================
+let currentTaskFilter = 'all';
+
+function renderTasks(filter = currentTaskFilter) {
+  const list = document.getElementById('taskList');
+  let tasks = [...D.tasks].sort((a,b) => new Date(a.date) - new Date(b.date));
+  
+  if (filter === 'open') tasks = tasks.filter(t => t.status === 'open');
+  else if (filter === 'pending') tasks = tasks.filter(t => t.status === 'pending');
+  else if (filter === 'done') tasks = tasks.filter(t => t.status === 'done');
+  else if (filter === 'overdue') tasks = tasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status));
+  else if (filter === 'alta') tasks = tasks.filter(t => t.priority === 'alta' && t.status !== 'done');
+  
+  if (!tasks.length) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)"><div style="font-size:40px">📋</div><p>Nenhuma demanda encontrada</p></div>';
+    return;
+  }
+  
+  list.innerHTML = tasks.map(t => {
+    const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
+    const statusTag = t.status === 'done' ? '<span class="tag tag-d">✅ Concluída</span>' : 
+                      (t.status === 'pending' ? '<span class="tag tag-p">⏳ Pendente</span>' : 
+                      '<span class="tag tag-o">⚡ Em Aberto</span>');
+    const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
+    const priorityTag = t.priority === 'alta' ? '<span class="tag tag-o">🔴 Alta</span>' : 
+                       (t.priority === 'media' ? '<span class="tag tag-c">🟡 Média</span>' : 
+                       '<span class="tag tag-c">🟢 Baixa</span>');
+    const emailHtml = t.emailTo ? `<span class="tag tag-c">📧 ${t.emailTo}</span>` : '';
+    
+    return `
+      <div class="tcc ${statusClass}">
+        <div class="tc-row">
+          <div class="tc-info">
+            <div class="tc-title">${t.title} ${overdue}</div>
+            <div class="tc-meta">
+              ${statusTag} ${priorityTag}
+              <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
+              <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
+              <span class="tag tag-c">🗂 ${t.sector || 'Geral'}</span>
+              ${emailHtml}
+            </div>
+            ${t.desc ? `<div class="tc-desc">${t.desc}</div>` : ''}
+          </div>
+          <div class="tc-acts">
+            ${t.status !== 'done' ? `<button class="ib ib-ok" onclick="completeTask('${t.id}')">✓</button>` : ''}
+            <button class="ib ib-edit" onclick="editTask('${t.id}')">✎</button>
+            <button class="ib ib-del" onclick="deleteTask('${t.id}')">🗑</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterTasks(filter, btn) {
+  currentTaskFilter = filter;
+  document.querySelectorAll('#tc-demandas .fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks(filter);
+}
+
+function openAddTask() {
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskDate').value = ds(new Date());
+  document.getElementById('taskCategory').value = 'nf';
+  document.getElementById('taskPriority').value = 'media';
+  document.getElementById('taskResponsible').value = 'João Silva';
+  document.getElementById('taskSector').value = 'TI';
+  document.getElementById('taskEmail').value = '';
+  document.getElementById('taskOverdue').checked = false;
+  showTab('nova');
+}
+
+function saveTask() {
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { toast('Informe o título da demanda', 'error'); return; }
+  
+  const task = {
+    id: uid(),
+    title: title,
+    desc: document.getElementById('taskDesc').value.trim(),
+    date: document.getElementById('taskDate').value,
+    category: document.getElementById('taskCategory').value,
+    priority: document.getElementById('taskPriority').value,
+    responsible: document.getElementById('taskResponsible').value,
+    sector: document.getElementById('taskSector').value,
+    emailTo: document.getElementById('taskEmail').value.trim(),
+    status: 'open',
+    overdueManual: document.getElementById('taskOverdue').checked,
+    createdAt: new Date().toISOString()
+  };
+  
+  D.tasks.unshift(task);
+  saveData();
   renderAll();
-  tick();setInterval(tick,1000);
+  showTab('demandas');
+  toast('Demanda criada com sucesso!', 'success');
+}
+
+function clearTaskForm() {
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskDate').value = ds(new Date());
+  document.getElementById('taskCategory').value = 'nf';
+  document.getElementById('taskPriority').value = 'media';
+  document.getElementById('taskResponsible').value = 'João Silva';
+  document.getElementById('taskSector').value = 'TI';
+  document.getElementById('taskEmail').value = '';
+  document.getElementById('taskOverdue').checked = false;
+}
+
+let editingTaskId = null;
+
+function editTask(id) {
+  const task = D.tasks.find(t => t.id === id);
+  if (!task) return;
+  
+  editingTaskId = id;
+  document.getElementById('editTitle').value = task.title || '';
+  document.getElementById('editDesc').value = task.desc || '';
+  document.getElementById('editDate').value = task.date || ds(new Date());
+  document.getElementById('editPriority').value = task.priority || 'media';
+  document.getElementById('editCategory').value = task.category || 'nf';
+  document.getElementById('editStatus').value = task.status || 'open';
+  document.getElementById('editResponsible').value = task.responsible || '';
+  document.getElementById('editSector').value = task.sector || '';
+  document.getElementById('editEmail').value = task.emailTo || '';
+  document.getElementById('editOverdue').checked = task.overdueManual || false;
+  
+  openModal('modalTask');
+}
+
+function updateTask() {
+  if (!editingTaskId) return;
+  
+  const index = D.tasks.findIndex(t => t.id === editingTaskId);
+  if (index === -1) return;
+  
+  D.tasks[index] = {
+    ...D.tasks[index],
+    title: document.getElementById('editTitle').value.trim(),
+    desc: document.getElementById('editDesc').value.trim(),
+    date: document.getElementById('editDate').value,
+    priority: document.getElementById('editPriority').value,
+    category: document.getElementById('editCategory').value,
+    status: document.getElementById('editStatus').value,
+    responsible: document.getElementById('editResponsible').value,
+    sector: document.getElementById('editSector').value,
+    emailTo: document.getElementById('editEmail').value.trim(),
+    overdueManual: document.getElementById('editOverdue').checked
+  };
+  
+  if (D.tasks[index].status === 'done' && !D.tasks[index].closedAt) {
+    D.tasks[index].closedAt = new Date().toISOString();
+  }
+  
+  saveData();
+  renderAll();
+  closeModal('modalTask');
+  toast('Demanda atualizada!', 'success');
+}
+
+function completeTask(id) {
+  const task = D.tasks.find(t => t.id === id);
+  if (task) {
+    task.status = 'done';
+    task.closedAt = new Date().toISOString();
+    saveData();
+    renderAll();
+    toast('Demanda concluída! ✅', 'success');
+  }
+}
+
+function deleteTask(id) {
+  if (!confirm('Tem certeza que deseja excluir esta demanda?')) return;
+  D.tasks = D.tasks.filter(t => t.id !== id);
+  saveData();
+  renderAll();
+  toast('Demanda excluída', 'info');
+}
+
+// ==================== EMPLOYEES ====================
+function renderEmployees() {
+  const list = document.getElementById('employeeList');
+  const search = document.getElementById('searchEmployee')?.value.toLowerCase() || '';
+  
+  let employees = D.employees;
+  if (search) {
+    employees = employees.filter(e => 
+      e.name.toLowerCase().includes(search) || 
+      e.email.toLowerCase().includes(search) ||
+      e.sector.toLowerCase().includes(search)
+    );
+  }
+  
+  list.innerHTML = employees.map(e => {
+    const taskCount = D.tasks.filter(t => t.responsible === e.name).length;
+    const openCount = D.tasks.filter(t => t.responsible === e.name && t.status !== 'done').length;
+    
+    return `
+      <div class="ecard">
+        <div class="ecard-h">
+          <div class="av">${e.name.charAt(0)}</div>
+          <div style="flex:1">
+            <div class="en">${e.name}</div>
+            <div class="er">${e.sector} · ${e.unit}</div>
+          </div>
+          <button class="ib ib-edit" onclick="editEmployee('${e.id}')">✎</button>
+          <button class="ib ib-del" onclick="deleteEmployee('${e.id}')">🗑</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+          <div><div style="font-size:9px;color:var(--muted)">E-mail</div><div style="font-weight:600">${e.email}</div></div>
+          <div><div style="font-size:9px;color:var(--muted)">Telefone</div><div style="font-weight:600">${e.phone || '—'}</div></div>
+        </div>
+        <div class="estats">
+          <div class="est"><div class="est-n">${openCount}</div><div class="est-l">Em aberto</div></div>
+          <div class="est"><div class="est-n">${taskCount}</div><div class="est-l">Total</div></div>
+          <div class="est"><button class="btn btn-s btn-sm" onclick="filterByEmployee('${e.name}')">Ver demandas</button></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterByEmployee(name) {
+  currentTaskFilter = 'all';
+  showTab('demandas');
+  setTimeout(() => {
+    const tasks = D.tasks.filter(t => t.responsible === name);
+    if (tasks.length) {
+      toast(`${name} tem ${tasks.length} demandas`, 'info');
+    }
+  }, 300);
+}
+
+function addEmployee() {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function editEmployee(id) {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function deleteEmployee(id) {
+  if (!confirm('Excluir funcionário?')) return;
+  D.employees = D.employees.filter(e => e.id !== id);
+  saveData();
+  renderEmployees();
+}
+
+function filterEmployees() {
+  renderEmployees();
+}
+
+// ==================== SECTORS ====================
+function renderSectors() {
+  const list = document.getElementById('sectorList');
+  
+  list.innerHTML = D.sectors.map(s => {
+    const employees = D.employees.filter(e => e.sector === s.name || e.sector === s.code).length;
+    const tasks = D.tasks.filter(t => t.sector === s.name || t.sector === s.code).length;
+    const openTasks = D.tasks.filter(t => (t.sector === s.name || t.sector === s.code) && t.status !== 'done').length;
+    
+    return `
+      <div class="ecard">
+        <div class="ecard-h">
+          <div class="av" style="background:linear-gradient(135deg,var(--purple),var(--a2))">🗂</div>
+          <div style="flex:1">
+            <div class="en">${s.name}</div>
+            <div class="er">Código: ${s.code} · ${s.unit}</div>
+          </div>
+          <button class="ib ib-edit" onclick="editSector('${s.id}')">✎</button>
+          <button class="ib ib-del" onclick="deleteSector('${s.id}')">🗑</button>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--tbl)">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:6px">Funcionários (${employees})</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${D.employees.filter(e => e.sector === s.name || e.sector === s.code).map(e => 
+              `<span class="tag tag-c" style="cursor:pointer" onclick="filterByEmployee('${e.name}')">👤 ${e.name}</span>`
+            ).join('') || '<span class="tag tag-c">Nenhum funcionário</span>'}
+          </div>
+          <div class="estats" style="margin-top:10px">
+            <div class="est"><div class="est-n">${openTasks}</div><div class="est-l">Em aberto</div></div>
+            <div class="est"><div class="est-n">${tasks}</div><div class="est-l">Total</div></div>
+            <div class="est"><button class="btn btn-s btn-sm" onclick="filterBySector('${s.name}')">Ver demandas</button></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterBySector(sector) {
+  currentTaskFilter = 'all';
+  showTab('demandas');
+  setTimeout(() => {
+    const tasks = D.tasks.filter(t => t.sector === sector);
+    if (tasks.length) {
+      toast(`Setor ${sector} tem ${tasks.length} demandas`, 'info');
+    }
+  }, 300);
+}
+
+function addSector() {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function editSector(id) {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function deleteSector(id) {
+  if (!confirm('Excluir setor?')) return;
+  D.sectors = D.sectors.filter(s => s.id !== id);
+  saveData();
+  renderSectors();
+}
+
+// ==================== UNITS ====================
+function renderUnits() {
+  const list = document.getElementById('unitList');
+  
+  list.innerHTML = D.units.map(u => {
+    const employees = D.employees.filter(e => e.unit === u.name).length;
+    const tasks = D.tasks.filter(t => t.unit === u.name).length;
+    
+    return `
+      <div class="ecard">
+        <div class="ecard-h">
+          <div class="av" style="background:linear-gradient(135deg,var(--a2),var(--purple))">🏢</div>
+          <div style="flex:1">
+            <div class="en">${u.name}</div>
+            <div class="er">CNPJ: ${u.cnpj}</div>
+          </div>
+          <button class="ib ib-edit" onclick="editUnit('${u.id}')">✎</button>
+          <button class="ib ib-del" onclick="deleteUnit('${u.id}')">🗑</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-top:8px">
+          <div><div style="font-size:9px;color:var(--muted)">Endereço</div><div style="font-weight:600">${u.address}</div></div>
+          <div><div style="font-size:9px;color:var(--muted)">Telefone</div><div style="font-weight:600">${u.phone || '—'}</div></div>
+        </div>
+        <div class="estats">
+          <div class="est"><div class="est-n">${employees}</div><div class="est-l">Funcionários</div></div>
+          <div class="est"><div class="est-n">${tasks}</div><div class="est-l">Demandas</div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addUnit() {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function editUnit(id) {
+  toast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function deleteUnit(id) {
+  if (!confirm('Excluir unidade?')) return;
+  D.units = D.units.filter(u => u.id !== id);
+  saveData();
+  renderUnits();
+}
+
+// ==================== CALENDAR ====================
+let calYear = 2026;
+let calMonth = 2; // março
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  document.getElementById('calTitle').textContent = 
+    ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][calMonth] + ' ' + calYear;
+  
+  const daysOfWeek = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  let html = daysOfWeek.map(d => `<div class="cal-dh">${d}</div>`).join('');
+  
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+  const today = ds(new Date());
+  
+  let day = 1;
+  let nextDay = 1;
+  
+  for (let i = 0; i < 42; i++) {
+    let dayNum, month, year, isOther = false;
+    
+    if (i < startOffset) {
+      dayNum = prevMonthDays - startOffset + i + 1;
+      month = calMonth - 1;
+      year = calYear;
+      if (month < 0) { month = 11; year--; }
+      isOther = true;
+    } else if (day <= daysInMonth) {
+      dayNum = day++;
+      month = calMonth;
+      year = calYear;
+    } else {
+      dayNum = nextDay++;
+      month = calMonth + 1;
+      year = calYear;
+      if (month > 11) { month = 0; year++; }
+      isOther = true;
+    }
+    
+    const dateStr = `${year}-${p(month+1)}-${p(dayNum)}`;
+    const tasks = D.tasks.filter(t => t.date === dateStr);
+    
+    let chips = '';
+    tasks.slice(0, 2).forEach(t => {
+      const chipClass = t.status === 'done' ? 'chip-d' : (t.status === 'pending' ? 'chip-p' : 'chip-o');
+      chips += `<span class="chip ${chipClass}">${t.title.substring(0, 15)}${t.title.length > 15 ? '...' : ''}</span>`;
+    });
+    if (tasks.length > 2) {
+      chips += `<span style="font-size:9px;color:var(--muted)">+${tasks.length-2}</span>`;
+    }
+    
+    const classes = `cal-c${isOther ? ' other' : ''}${dateStr === today ? ' today' : ''}`;
+    html += `<div class="${classes}" onclick="openDay('${dateStr}')"><div class="cdn">${dayNum}</div>${chips}</div>`;
+  }
+  
+  grid.innerHTML = html;
+}
+
+function calChange(dir) {
+  if (dir === 0) {
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+  } else {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+  }
+  renderCalendar();
+}
+
+function openDay(date) {
+  const tasks = D.tasks.filter(t => t.date === date);
+  const dayName = new Date(date + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  
+  let html = `<div style="margin-bottom:10px;font-weight:600">📅 ${dayName}</div>`;
+  
+  if (!tasks.length) {
+    html += '<div style="text-align:center;padding:20px;color:var(--muted)">Nenhuma demanda neste dia</div>';
+  } else {
+    tasks.forEach(t => {
+      const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
+      const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
+      html += `
+        <div class="tcc ${statusClass}" style="margin-bottom:5px;cursor:pointer" onclick="editTask('${t.id}')">
+          <div class="tc-row">
+            <div class="tc-info">
+              <div class="tc-title">${t.title} ${overdue}</div>
+              <div class="tc-meta">
+                <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
+                <span class="tag tag-c">${t.priority === 'alta' ? '🔴' : (t.priority === 'media' ? '🟡' : '🟢')}</span>
+                <span class="tag tag-c">${t.status === 'done' ? '✅' : (t.status === 'pending' ? '⏳' : '⚡')}</span>
+              </div>
+              ${t.desc ? `<div class="tc-desc">${t.desc.substring(0, 60)}${t.desc.length > 60 ? '...' : ''}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  document.getElementById('modalResumoTitle').textContent = '📅 Demandas do Dia';
+  document.getElementById('modalResumoBody').innerHTML = html;
+  openModal('modalResumo');
+}
+
+// ==================== MINI CALENDAR ====================
+let miniYear = 2026;
+let miniMonth = 2;
+
+function renderMiniCalendar() {
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('miniMonth').textContent = monthNames[miniMonth] + ' ' + miniYear;
+  
+  const grid = document.getElementById('miniGrid');
+  const daysOfWeek = ['S','T','Q','Q','S','S','D'];
+  let html = daysOfWeek.map(d => `<div class="mcdh">${d}</div>`).join('');
+  
+  const firstDay = new Date(miniYear, miniMonth, 1).getDay();
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(miniYear, miniMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(miniYear, miniMonth, 0).getDate();
+  const today = ds(new Date());
+  
+  let day = 1;
+  let nextDay = 1;
+  
+  for (let i = 0; i < 35; i++) {
+    let dayNum, month, year, isOther = false;
+    
+    if (i < startOffset) {
+      dayNum = prevMonthDays - startOffset + i + 1;
+      month = miniMonth - 1;
+      year = miniYear;
+      if (month < 0) { month = 11; year--; }
+      isOther = true;
+    } else if (day <= daysInMonth) {
+      dayNum = day++;
+      month = miniMonth;
+      year = miniYear;
+    } else {
+      dayNum = nextDay++;
+      month = miniMonth + 1;
+      year = miniYear;
+      if (month > 11) { month = 0; year++; }
+      isOther = true;
+    }
+    
+    const dateStr = `${year}-${p(month+1)}-${p(dayNum)}`;
+    const hasTasks = D.tasks.some(t => t.date === dateStr);
+    const isToday = dateStr === today;
+    
+    const classes = `mcd${isOther ? ' oth' : ''}${isToday ? ' today' : ''}${hasTasks ? ' has' : ''}`;
+    html += `<div class="${classes}" onclick="miniGoToDate('${dateStr}')">${dayNum}</div>`;
+  }
+  
+  grid.innerHTML = html;
+}
+
+function miniPrev() {
+  miniMonth--;
+  if (miniMonth < 0) { miniMonth = 11; miniYear--; }
+  renderMiniCalendar();
+}
+
+function miniNext() {
+  miniMonth++;
+  if (miniMonth > 11) { miniMonth = 0; miniYear++; }
+  renderMiniCalendar();
+}
+
+function miniGoToDate(date) {
+  const [y,m] = date.split('-').map(Number);
+  calYear = y;
+  calMonth = m - 1;
+  renderCalendar();
+  openDay(date);
+}
+
+// ==================== ALERTS ====================
+function renderAlerts() {
+  const now = new Date();
+  const alerts = D.tasks.filter(t => 
+    t.status !== 'done' && (
+      isOverdue(t.date, t.status) || 
+      t.priority === 'alta' ||
+      t.date === ds(now)
+    )
+  ).slice(0, 5);
+  
+  document.getElementById('alertCount').textContent = alerts.length;
+  
+  const list = document.getElementById('alertList');
+  if (!alerts.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:11px;text-align:center;padding:8px">✅ Tudo em dia!</div>';
+    return;
+  }
+  
+  list.innerHTML = alerts.map(a => `
+    <div class="alrt" onclick="editTask('${a.id}')">
+      <div class="alrt-t">⚠️ ${a.title}</div>
+      <div class="alrt-m">${fmtDate(a.date)} · ${a.responsible || 'N/A'}</div>
+    </div>
+  `).join('');
+}
+
+// ==================== CHARTS ====================
+let donutChart = null;
+
+function renderCharts() {
+  if (donutChart) donutChart.destroy();
+  
+  const open = D.tasks.filter(t => t.status === 'open').length;
+  const pending = D.tasks.filter(t => t.status === 'pending').length;
+  const done = D.tasks.filter(t => t.status === 'done').length;
+  
+  const ctx = document.getElementById('doughnutChart');
+  if (!ctx) return;
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#94a3b8' : '#64748b';
+  
+  donutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Em Aberto', 'Pendentes', 'Concluídas'],
+      datasets: [{
+        data: [open, pending, done],
+        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+        borderColor: 'transparent',
+        hoverOffset: 8,
+        borderRadius: 8,
+        spacing: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '64%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: textColor, font: { family: 'Sora', size: 10 }, padding: 10, usePointStyle: true }
+        }
+      }
+    }
+  });
+  
+  // Category list
+  const categories = {};
+  D.tasks.filter(t => t.status !== 'done').forEach(t => {
+    const cat = t.category || 'geral';
+    categories[cat] = (categories[cat] || 0) + 1;
+  });
+  
+  const catNames = { nf: '📄 NF', ti: '💻 TI', financeiro: '💰 Financeiro', rh: '👥 RH', geral: '📋 Geral' };
+  const catColors = { nf: '#ef4444', ti: '#8b5cf6', financeiro: '#0ea5e9', rh: '#ec4899', geral: '#f97316' };
+  
+  const catList = document.getElementById('categoryList');
+  const max = Math.max(1, ...Object.values(categories));
+  
+  catList.innerHTML = Object.entries(categories).map(([cat, count]) => `
+    <div class="pi">
+      <div class="pi-l"><span>${catNames[cat] || cat}</span><span>${count}</span></div>
+      <div class="pi-b"><div class="pi-f" style="width:${count/max*100}%;background:${catColors[cat] || '#f97316'}"></div></div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:11px;padding:10px">Sem demandas ativas</div>';
+  
+  // Activity list
+  const activities = [...D.tasks]
+    .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 8);
+  
+  const actList = document.getElementById('activityList');
+  actList.innerHTML = activities.map(a => {
+    const color = a.status === 'done' ? '#10b981' : (a.status === 'pending' ? '#f59e0b' : '#ef4444');
+    const label = a.title || 'Demanda';
+    const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) : '';
+    return `
+      <div class="ai" onclick="editTask('${a.id}')" style="cursor:pointer">
+        <div class="ai-d" style="background:${color}"></div>
+        <div style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${label}</div>
+        <div style="color:var(--muted);font-size:10px">${date}</div>
+      </div>
+    `;
+  }).join('');
+  
+  // Urgent list
+  const urgent = D.tasks.filter(t => 
+    t.status !== 'done' && (isOverdue(t.date, t.status) || t.priority === 'alta')
+  ).slice(0, 5);
+  
+  const urgentList = document.getElementById('urgentList');
+  urgentList.innerHTML = urgent.length ? urgent.map(t => {
+    const urgentClass = isOverdue(t.date, t.status) ? 'urg' : (t.priority === 'alta' ? 'urg' : '');
+    const urgentText = isOverdue(t.date, t.status) ? 'VENCIDA' : (t.priority === 'alta' ? 'ALTA' : '');
+    return `
+      <div class="tcc tc-o" onclick="editTask('${t.id}')" style="cursor:pointer">
+        <div class="tc-row">
+          <div class="tc-info">
+            <div class="tc-title">${t.title} ${urgentText ? `<span class="${urgentClass}">${urgentText}</span>` : ''}</div>
+            <div class="tc-meta">
+              <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
+              <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('') : '<div style="text-align:center;padding:15px;color:var(--muted)">Nenhuma demanda urgente</div>';
+}
+
+// ==================== RESUMO MODAL ====================
+function abrirResumoModal(tipo) {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
+  const monthTasks = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
+  
+  let title = '';
+  let tasks = [];
+  
+  switch(tipo) {
+    case 'open':
+      title = '⚡ Demandas em Aberto';
+      tasks = monthTasks.filter(t => t.status === 'open');
+      break;
+    case 'done':
+      title = '✅ Demandas Concluídas';
+      tasks = monthTasks.filter(t => t.status === 'done');
+      break;
+    case 'pending':
+      title = '⏳ Demandas Pendentes';
+      tasks = monthTasks.filter(t => t.status === 'pending');
+      break;
+    case 'overdue':
+      title = '🔴 Demandas Vencidas';
+      tasks = monthTasks.filter(t => t.status === 'open' && isOverdue(t.date, t.status));
+      break;
+    case 'alta':
+      title = '🔴 Demandas de Alta Prioridade';
+      tasks = monthTasks.filter(t => t.priority === 'alta' && t.status !== 'done');
+      break;
+    case 'all':
+      title = '📋 Todas as Demandas do Mês';
+      tasks = monthTasks;
+      break;
+  }
+  
+  document.getElementById('modalResumoTitle').textContent = title;
+  
+  let html = `<div style="margin-bottom:10px;color:var(--muted);font-size:11px">Total: ${tasks.length} itens</div>`;
+  
+  if (!tasks.length) {
+    html += '<div style="text-align:center;padding:30px;color:var(--muted)">Nenhuma demanda encontrada</div>';
+  } else {
+    tasks.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
+      const statusClass = t.status === 'done' ? 'tc-d' : (t.status === 'pending' ? 'tc-p' : 'tc-o');
+      const overdue = (t.status !== 'done' && isOverdue(t.date, t.status)) ? '<span class="urg">VENCIDA</span>' : '';
+      html += `
+        <div class="tcc ${statusClass}" style="margin-bottom:5px;cursor:pointer" onclick="editTask('${t.id}')">
+          <div class="tc-row">
+            <div class="tc-info">
+              <div class="tc-title">${t.title} ${overdue}</div>
+              <div class="tc-meta">
+                <span class="tag tag-c">👤 ${t.responsible || 'N/A'}</span>
+                <span class="tag tag-c">📅 ${fmtDate(t.date)}</span>
+                <span class="tag tag-c">${t.priority === 'alta' ? '🔴' : (t.priority === 'media' ? '🟡' : '🟢')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  document.getElementById('modalResumoBody').innerHTML = html;
+  openModal('modalResumo');
+}
+
+function printResumo() {
+  const title = document.getElementById('modalResumoTitle').textContent;
+  const body = document.getElementById('modalResumoBody').innerHTML;
+  const date = new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' });
+  
+  const printHtml = `
+    <div style="padding:20px;font-family:Sora;max-width:800px;margin:0 auto">
+      <h1 style="color:#f97316;font-size:24px;margin-bottom:5px">${title}</h1>
+      <p style="color:#666;font-size:12px;margin-bottom:20px">${date}</p>
+      ${body.replace(/cursor:pointer;/g, '')}
+      <p style="margin-top:30px;font-size:10px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px">
+        Relatório gerado pelo Pedrinho Gestão v6.0
+      </p>
+    </div>
+  `;
+  
+  document.getElementById('print-content').innerHTML = printHtml;
+  document.getElementById('print-content').style.display = 'block';
+  window.print();
+  document.getElementById('print-content').style.display = 'none';
+}
+
+// ==================== REPORTS ====================
+let currentReportHTML = '';
+
+function gerarRelatorioGeral() {
+  const total = D.tasks.length;
+  const open = D.tasks.filter(t => t.status === 'open').length;
+  const pending = D.tasks.filter(t => t.status === 'pending').length;
+  const done = D.tasks.filter(t => t.status === 'done').length;
+  const overdue = D.tasks.filter(t => t.status !== 'done' && isOverdue(t.date, t.status)).length;
+  const rate = total ? Math.round(done / total * 100) : 0;
+  
+  const byCategory = {};
+  D.tasks.forEach(t => {
+    const cat = t.category || 'geral';
+    byCategory[cat] = (byCategory[cat] || 0) + 1;
+  });
+  
+  const byResponsible = {};
+  D.tasks.forEach(t => {
+    if (t.responsible) {
+      byResponsible[t.responsible] = (byResponsible[t.responsible] || 0) + 1;
+    }
+  });
+  
+  const bySector = {};
+  D.tasks.forEach(t => {
+    if (t.sector) {
+      bySector[t.sector] = (bySector[t.sector] || 0) + 1;
+    }
+  });
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  currentReportHTML = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s">
+      <div class="rep-sh">📊 RESUMO GERAL</div>
+      <div class="rep-r"><span>Total de Demandas</span><strong>${total}</strong></div>
+      <div class="rep-r"><span>Em Aberto</span><strong style="color:var(--danger)">${open}</strong></div>
+      <div class="rep-r"><span>Pendentes</span><strong style="color:var(--warn)">${pending}</strong></div>
+      <div class="rep-r"><span>Concluídas</span><strong style="color:var(--a3)">${done}</strong></div>
+      <div class="rep-r"><span>Vencidas</span><strong style="color:var(--danger)">${overdue}</strong></div>
+      <div class="rep-r"><span>Taxa de Sucesso</span><strong style="color:var(--purple)">${rate}%</strong></div>
+    </div>
+    <div class="rep-s">
+      <div class="rep-sh">📋 POR CATEGORIA</div>
+      ${Object.entries(byCategory).map(([cat, count]) => 
+        `<div class="rep-r"><span>${catNames[cat] || cat}</span><strong>${count}</strong></div>`
+      ).join('')}
+    </div>
+    <div class="rep-s">
+      <div class="rep-sh">👥 POR RESPONSÁVEL</div>
+      ${Object.entries(byResponsible).map(([resp, count]) => 
+        `<div class="rep-r"><span>${resp}</span><strong>${count}</strong></div>`
+      ).join('')}
+    </div>
+    <div class="rep-s">
+      <div class="rep-sh">🗂 POR SETOR</div>
+      ${Object.entries(bySector).map(([sector, count]) => 
+        `<div class="rep-r"><span>${sector}</span><strong>${count}</strong></div>`
+      ).join('')}
+    </div>
+  `;
+  
+  document.getElementById('reportContent').innerHTML = currentReportHTML;
+  updateActiveReportButton('geral');
+}
+
+function gerarRelatorioPendencias() {
+  const pendentes = D.tasks.filter(t => t.status !== 'done');
+  const vencidas = pendentes.filter(t => isOverdue(t.date, t.status));
+  const alta = pendentes.filter(t => t.priority === 'alta');
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  let html = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s">
+      <div class="rep-sh">⚠️ PENDÊNCIAS</div>
+      <div class="rep-r"><span>Total de Pendências</span><strong>${pendentes.length}</strong></div>
+      <div class="rep-r"><span>Vencidas</span><strong style="color:var(--danger)">${vencidas.length}</strong></div>
+      <div class="rep-r"><span>Alta Prioridade</span><strong style="color:var(--danger)">${alta.length}</strong></div>
+    </div>
+  `;
+  
+  if (pendentes.length) {
+    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE PENDÊNCIAS</div>`;
+    pendentes.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
+      const venc = isOverdue(t.date, t.status) ? '🔴' : (t.priority === 'alta' ? '🔴' : '⚡');
+      html += `<div class="rep-r"><span>${venc} ${t.title}</span><span>${fmtDate(t.date)} · ${t.responsible || 'N/A'}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  
+  currentReportHTML = html;
+  document.getElementById('reportContent').innerHTML = html;
+  updateActiveReportButton('pendencias');
+}
+
+function gerarRelatorioResolvidos() {
+  const resolvidos = D.tasks.filter(t => t.status === 'done');
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  let html = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s">
+      <div class="rep-sh">✅ DEMANDAS RESOLVIDAS</div>
+      <div class="rep-r"><span>Total Resolvido</span><strong>${resolvidos.length}</strong></div>
+    </div>
+  `;
+  
+  if (resolvidos.length) {
+    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE RESOLVIDOS</div>`;
+    resolvidos.sort((a,b) => new Date(b.closedAt || b.date) - new Date(a.closedAt || a.date)).slice(0, 20).forEach(t => {
+      const dataFechamento = t.closedAt ? new Date(t.closedAt).toLocaleDateString('pt-BR') : fmtDate(t.date);
+      html += `<div class="rep-r"><span>✅ ${t.title}</span><span>${dataFechamento} · ${t.responsible || 'N/A'}</span></div>`;
+    });
+    if (resolvidos.length > 20) {
+      html += `<div style="padding:5px;font-size:10px;color:var(--muted)">...e mais ${resolvidos.length - 20} demandas</div>`;
+    }
+    html += `</div>`;
+  }
+  
+  currentReportHTML = html;
+  document.getElementById('reportContent').innerHTML = html;
+  updateActiveReportButton('resolvidos');
+}
+
+function gerarRelatorioFuncionarios() {
+  const byEmployee = {};
+  D.tasks.forEach(t => {
+    if (t.responsible) {
+      if (!byEmployee[t.responsible]) {
+        byEmployee[t.responsible] = { total: 0, done: 0, open: 0, pending: 0 };
+      }
+      byEmployee[t.responsible].total++;
+      if (t.status === 'done') byEmployee[t.responsible].done++;
+      else if (t.status === 'pending') byEmployee[t.responsible].pending++;
+      else if (t.status === 'open') byEmployee[t.responsible].open++;
+    }
+  });
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  let html = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s"><div class="rep-sh">👥 DESEMPENHO POR FUNCIONÁRIO</div>`;
+  
+  Object.entries(byEmployee).sort((a,b) => b[1].total - a[1].total).forEach(([name, stats]) => {
+    const taxa = stats.total ? Math.round(stats.done / stats.total * 100) : 0;
+    html += `
+      <div class="rep-r">
+        <span><strong>${name}</strong> (⚡${stats.open} | ⏳${stats.pending} | ✅${stats.done})</span>
+        <strong style="color:${taxa > 70 ? '#10b981' : (taxa > 40 ? '#f59e0b' : '#ef4444')}">${taxa}%</strong>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  
+  currentReportHTML = html;
+  document.getElementById('reportContent').innerHTML = html;
+  updateActiveReportButton('funcionarios');
+}
+
+function gerarRelatorioSetores() {
+  const bySector = {};
+  D.tasks.forEach(t => {
+    const sector = t.sector || 'Geral';
+    if (!bySector[sector]) {
+      bySector[sector] = { total: 0, done: 0, open: 0, pending: 0 };
+    }
+    bySector[sector].total++;
+    if (t.status === 'done') bySector[sector].done++;
+    else if (t.status === 'pending') bySector[sector].pending++;
+    else if (t.status === 'open') bySector[sector].open++;
+  });
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  let html = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s"><div class="rep-sh">🗂 DEMANDAS POR SETOR</div>`;
+  
+  Object.entries(bySector).sort((a,b) => b[1].total - a[1].total).forEach(([sector, stats]) => {
+    html += `
+      <div class="rep-r">
+        <span><strong>${sector}</strong> (⚡${stats.open} | ⏳${stats.pending} | ✅${stats.done})</span>
+        <strong>${stats.total}</strong>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  
+  currentReportHTML = html;
+  document.getElementById('reportContent').innerHTML = html;
+  updateActiveReportButton('setores');
+}
+
+function gerarRelatorioVencidas() {
+  const vencidas = D.tasks.filter(t => t.status !== 'done' && isOverdue(t.date, t.status));
+  
+  const now = new Date();
+  const dataGeracao = now.toLocaleDateString('pt-BR', { dateStyle: 'full' }) + ' às ' + now.toLocaleTimeString('pt-BR');
+  
+  let html = `
+    <div style="margin-bottom:10px;color:var(--muted);font-size:11px">Gerado em ${dataGeracao}</div>
+    <div class="rep-s">
+      <div class="rep-sh">🔴 DEMANDAS VENCIDAS</div>
+      <div class="rep-r"><span>Total Vencidas</span><strong>${vencidas.length}</strong></div>
+    </div>
+  `;
+  
+  if (vencidas.length) {
+    html += `<div class="rep-s"><div class="rep-sh">📋 LISTA DE VENCIDAS</div>`;
+    vencidas.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
+      const diasAtraso = Math.floor((new Date() - new Date(t.date + 'T23:59:59')) / (1000 * 60 * 60 * 24));
+      html += `<div class="rep-r"><span>🔴 ${t.title}</span><span>${fmtDate(t.date)} · ${diasAtraso}d atraso · ${t.responsible || 'N/A'}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  
+  currentReportHTML = html;
+  document.getElementById('reportContent').innerHTML = html;
+  updateActiveReportButton('vencidas');
+}
+
+function updateActiveReportButton(type) {
+  document.querySelectorAll('#tc-relatorios .fb').forEach(b => {
+    b.classList.remove('active');
+    if (b.textContent.includes('Geral') && type === 'geral') b.classList.add('active');
+    if (b.textContent.includes('Pendências') && type === 'pendencias') b.classList.add('active');
+    if (b.textContent.includes('Resolvidos') && type === 'resolvidos') b.classList.add('active');
+    if (b.textContent.includes('Funcionários') && type === 'funcionarios') b.classList.add('active');
+    if (b.textContent.includes('Setores') && type === 'setores') b.classList.add('active');
+    if (b.textContent.includes('Vencidas') && type === 'vencidas') b.classList.add('active');
+  });
+}
+
+function filterReport(type, btn) {
+  document.querySelectorAll('#tc-relatorios .fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  if (type === 'geral') gerarRelatorioGeral();
+  else if (type === 'pendencias') gerarRelatorioPendencias();
+  else if (type === 'resolvidos') gerarRelatorioResolvidos();
+  else if (type === 'funcionarios') gerarRelatorioFuncionarios();
+  else if (type === 'setores') gerarRelatorioSetores();
+  else if (type === 'vencidas') gerarRelatorioVencidas();
+}
+
+function imprimirRelatorioAtual() {
+  if (!currentReportHTML) {
+    toast('Gere um relatório primeiro', 'info');
+    return;
+  }
+  
+  const title = document.querySelector('#tc-relatorios .fb.active')?.textContent || 'Relatório';
+  const date = new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' });
+  
+  const printHtml = `
+    <div style="padding:20px;font-family:Sora;max-width:800px;margin:0 auto">
+      <h1 style="color:#f97316;font-size:24px;margin-bottom:5px">📊 ${title}</h1>
+      <p style="color:#666;font-size:12px;margin-bottom:20px">${date}</p>
+      ${currentReportHTML.replace(/cursor:pointer;/g, '')}
+      <p style="margin-top:30px;font-size:10px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px">
+        Relatório gerado pelo Pedrinho Gestão v6.0
+      </p>
+    </div>
+  `;
+  
+  document.getElementById('print-content').innerHTML = printHtml;
+  document.getElementById('print-content').style.display = 'block';
+  window.print();
+  document.getElementById('print-content').style.display = 'none';
+}
+
+const catNames = { nf: '📄 NF', ti: '💻 TI', financeiro: '💰 Financeiro', rh: '👥 RH', geral: '📋 Geral' };
+
+// ==================== BACKUP ====================
+function exportBackup() {
+  D.lastBackup = new Date().toISOString();
+  saveData();
+  const dataStr = JSON.stringify(D, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pedrinho_backup_${ds(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exportado!', 'success');
   updateBackupInfo();
 }
 
-function renderAll(){renderCal();renderMini();renderTaskList();renderEmailList();renderAlerts();renderStats();renderDashboard();}
-
-// ── THEME ─────────────────────────────────────
-function applyTheme(t){
-  document.documentElement.setAttribute('data-theme',t);
-  document.getElementById('themeBtn').textContent=t==='dark'?'☀️':'🌙';
-  localStorage.setItem('pedrinho_theme',t);
-  setTimeout(renderCharts,80);
-}
-function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
-
-// ── CLOCK ─────────────────────────────────────
-function tick(){
-  const n=new Date();
-  document.getElementById('clock').textContent=n.toLocaleTimeString('pt-BR');
-  const h=n.getHours();
-  const[gr,ic]=h<12?['Bom dia!','☀️']:h<18?['Boa tarde!','🌤️']:['Boa noite!','🌙'];
-  document.getElementById('greeting-badge').textContent=ic+' '+gr;
-  const days=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-  const months=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  document.getElementById('footerDate').textContent=`${days[n.getDay()]}, ${n.getDate()} de ${months[n.getMonth()]} de ${n.getFullYear()}`;
-}
-
-// ── HELPERS ───────────────────────────────────
-function ds(d){return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
-function p(n){return String(n).padStart(2,'0');}
-function fmtD(s){return s?new Date(s+'T12:00').toLocaleDateString('pt-BR'):'';}
-function isOD(s){return s&&new Date(s+'T23:59:59')<new Date();}
-function isToday(s){return s===ds(new Date());}
-function byDay(s){return D.tasks.filter(t=>t.date===s);}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
-function gv(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
-
-// ── CALENDAR ──────────────────────────────────
-function renderCal(){
-  document.getElementById('calTitle').textContent=`${MONTHS[calM]} ${calY}`;
-  const g=document.getElementById('calGrid');
-  const td=ds(new Date());
-  let html=DSHORT.map(d=>`<div class="cal-dh">${d}</div>`).join('');
-  const fd=new Date(calY,calM,1).getDay(),adj=fd===0?6:fd-1;
-  const dim=new Date(calY,calM+1,0).getDate(),dip=new Date(calY,calM,0).getDate();
-  let d=1,nd=1;
-  for(let i=0;i<42;i++){
-    let dy,mo,yr,oth=false;
-    if(i<adj){dy=dip-adj+i+1;mo=calM-1;yr=calY;if(mo<0){mo=11;yr--;}oth=true;}
-    else if(d<=dim){dy=d++;mo=calM;yr=calY;}
-    else{dy=nd++;mo=calM+1;yr=calY;if(mo>11){mo=0;yr++;}oth=true;}
-    const s=`${yr}-${p(mo+1)}-${p(dy)}`;
-    let cls='cal-cell';
-    if(oth)cls+=' other-month';
-    if(s===td)cls+=' today';
-    if(s===selDay)cls+=' selected';
-    const ts=byDay(s);
-    const chips=ts.slice(0,3).map(t=>{
-      const c=t.status==='done'?'chip-done':t.emailTo?'chip-email':'chip-open';
-      return`<span class="chip ${c}">${t.title}</span>`;
-    }).join('');
-    const more=ts.length>3?`<span class="chip-more">+${ts.length-3}</span>`:'';
-    html+=`<div class="${cls}" onclick="openDay('${s}')"><div class="cal-dn">${dy}</div>${chips}${more}</div>`;
-  }
-  g.innerHTML=html;
-}
-function calPrev(){calM--;if(calM<0){calM=11;calY--;}renderCal();}
-function calNext(){calM++;if(calM>11){calM=0;calY++;}renderCal();}
-function calToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();renderCal();}
-
-// ── MINI CAL ──────────────────────────────────
-function renderMini(){
-  document.getElementById('miniTitle').textContent=MONTHS[mM].substring(0,3)+' '+mY;
-  const g=document.getElementById('miniGrid');
-  const td=ds(new Date());
-  let html=DSHORT.map(d=>`<div class="mini-dh">${d[0]}</div>`).join('');
-  const fd=new Date(mY,mM,1).getDay(),adj=fd===0?6:fd-1;
-  const dim=new Date(mY,mM+1,0).getDate(),dip=new Date(mY,mM,0).getDate();
-  let d=1,nd=1;
-  for(let i=0;i<35;i++){
-    let dy,mo,yr,oth=false;
-    if(i<adj){dy=dip-adj+i+1;mo=mM-1;yr=mY;if(mo<0){mo=11;yr--;}oth=true;}
-    else if(d<=dim){dy=d++;mo=mM;yr=mY;}
-    else{dy=nd++;mo=mM+1;yr=mY;if(mo>11){mo=0;yr++;}oth=true;}
-    const s=`${yr}-${p(mo+1)}-${p(dy)}`;
-    const ts=byDay(s);const hp=ts.some(t=>t.status==='open');
-    let cls='mini-d';
-    if(oth)cls+=' other-month';
-    if(s===td)cls+=' today';
-    if(s===selDay)cls+=' selected';
-    if(hp)cls+=' has-pending';else if(ts.length)cls+=' has-task';
-    html+=`<div class="${cls}" onclick="miniClick('${s}')">${dy}</div>`;
-  }
-  g.innerHTML=html;
-}
-function miniPrev(){mM--;if(mM<0){mM=11;mY--;}renderMini();}
-function miniNext(){mM++;if(mM>11){mM=0;mY++;}renderMini();}
-function miniClick(s){selDay=s;const[y,m]=s.split('-').map(Number);calY=y;calM=m-1;renderCal();renderMini();openDay(s);}
-
-// ── DAY MODAL ─────────────────────────────────
-function openDay(s){
-  selDay=s;
-  const[y,m,d]=s.split('-').map(Number);
-  document.getElementById('modalDayTitle').textContent='📅 '+new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const ts=byDay(s);
-  let html='';
-  if(!ts.length)html='<div class="empty-state"><div class="ei">📭</div><p>Nenhuma tarefa neste dia.</p></div>';
-  else ts.forEach(t=>{
-    const st=t.status==='done'?'<span class="tag tag-done">✓ Fechada</span>':'<span class="tag tag-open">⚡ Aberta</span>';
-    const em=t.emailTo?`<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>`:'';
-    html+=`<div class="task-card ${t.status==='done'?'tc-done':t.emailTo?'tc-email':'tc-open'}" style="margin-bottom:7px;">
-      <div class="task-row">
-        <div class="task-info">
-          <div class="task-title">${t.title}</div>
-          <div class="task-meta">${st}<span class="tag tag-cat">${t.category}</span>${em}</div>
-          ${t.desc?`<div class="task-desc">${t.desc}</div>`:''}
-        </div>
-        <div class="task-actions">
-          ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTask('${t.id}');openDay('${s}')">✓</button>`:''}
-          <button class="icon-btn ib-edit" onclick="editTask('${t.id}');closeModal('modalDay')">✎</button>
-          <button class="icon-btn ib-del" onclick="delTask('${t.id}');openDay('${s}')">🗑️</button>
-        </div>
-      </div></div>`;
-  });
-  document.getElementById('modalDayBody').innerHTML=html;
-  dayForTask=s;openModal('modalDay');renderCal();renderMini();
-}
-function addTaskDay(){closeModal('modalDay');openAddTask(dayForTask);}
-
-// ── TASKS ─────────────────────────────────────
-function openAddTask(dateVal){
-  editId=null;
-  document.getElementById('modalTaskTitle').textContent='➕ Nova Tarefa';
-  ['tTitle','tDesc','tEmail'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('tCat').value='geral';
-  document.getElementById('tPrio').value='media';
-  document.getElementById('tDate').value=dateVal||ds(new Date());
-  openModal('modalTask');
-}
-
-function editTask(id){
-  const task=D.tasks.find(t=>t.id===id);
-  if(!task)return;
-  editId=task.id;
-  document.getElementById('modalTaskTitle').textContent='✎ Editar Tarefa';
-  document.getElementById('tTitle').value=task.title||'';
-  document.getElementById('tDesc').value=task.desc||'';
-  document.getElementById('tDate').value=task.date||ds(new Date());
-  document.getElementById('tPrio').value=task.priority||'media';
-  document.getElementById('tCat').value=task.category||'geral';
-  document.getElementById('tEmail').value=task.emailTo||'';
-  openModal('modalTask');
-}
-
-function saveTask(){
-  const title=document.getElementById('tTitle').value.trim();
-  if(!title){toast('Informe o título.','error');return;}
-  const task={id:editId||uid(),title,
-    desc:document.getElementById('tDesc').value.trim(),
-    date:document.getElementById('tDate').value,
-    category:document.getElementById('tCat').value,
-    priority:document.getElementById('tPrio').value,
-    emailTo:document.getElementById('tEmail').value.trim(),
-    status:'open',createdAt:new Date().toISOString()};
-  if(editId){
-    const i=D.tasks.findIndex(t=>t.id===editId);
-    if(i>=0){
-      task.status=D.tasks[i].status;
-      task.createdAt=D.tasks[i].createdAt;
-      D.tasks[i]=task;
-      toast('Tarefa atualizada!','success');
+function restoreBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      D = { ...D, ...data };
+      saveData();
+      renderAll();
+      toast('Backup restaurado com sucesso!', 'success');
+      updateBackupInfo();
+    } catch (err) {
+      toast('Erro ao restaurar backup', 'error');
     }
-  } else {
-    D.tasks.unshift(task);
-    toast('Tarefa salva!','success');
-  }
-  save();renderAll();closeModal('modalTask');
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
-function closeTask(id){
-  const t=D.tasks.find(x=>x.id===id);
-  if(t){t.status='done';t.closedAt=new Date().toISOString();save();renderAll();toast('Tarefa fechada! ✅','success');}
-}
-function delTask(id){D.tasks=D.tasks.filter(x=>x.id!==id);save();renderAll();toast('Excluída.','info');}
 
-function renderTaskList(filter){
-  filter=filter||taskFilter;
-  const list=document.getElementById('taskList');
-  let ts=[...D.tasks].sort((a,b)=>{
-    if(a.status==='open'&&b.status==='done')return -1;
-    if(a.status==='done'&&b.status==='open')return 1;
-    return new Date(a.date)-new Date(b.date);
+function clearAllData() {
+  if (!confirm('Tem certeza que deseja apagar TODOS os dados? Esta ação não pode ser desfeita!')) return;
+  D = { tasks: [], employees: D.employees, sectors: D.sectors, units: D.units, lastBackup: null };
+  saveData();
+  renderAll();
+  toast('Todos os dados foram apagados', 'info');
+  updateBackupInfo();
+}
+
+function updateBackupInfo() {
+  const size = (JSON.stringify(D).length / 1024).toFixed(1);
+  const lastBackup = D.lastBackup ? new Date(D.lastBackup).toLocaleString('pt-BR') : 'Nunca';
+  document.getElementById('backupInfo').textContent = 
+    `📋 Tarefas: ${D.tasks.length}\n👥 Funcionários: ${D.employees.length}\n🗂 Setores: ${D.sectors.length}\n🏢 Unidades: ${D.units.length}\n💾 Tamanho: ~${size} KB\n🕐 Último backup: ${lastBackup}`;
+}
+
+// ==================== UI ====================
+function showTab(tabName) {
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nt').forEach(n => n.classList.remove('active'));
+  
+  const tab = document.getElementById('tc-' + tabName);
+  if (tab) tab.classList.add('active');
+  
+  const navMap = {
+    'dashboard': 'Painel',
+    'demandas': 'Demandas',
+    'nova': 'Nova Demanda',
+    'funcionarios': 'Funcionários',
+    'setores': 'Setores',
+    'unidades': 'Unidades',
+    'calendario': 'Calendário',
+    'relatorios': 'Relatórios',
+    'backup': 'Backup'
+  };
+  
+  const navText = navMap[tabName];
+  document.querySelectorAll('.nt').forEach(n => {
+    if (n.textContent.includes(navText)) n.classList.add('active');
   });
-  if(filter==='open')ts=ts.filter(t=>t.status==='open');
-  else if(filter==='done')ts=ts.filter(t=>t.status==='done');
-  else if(filter==='overdue')ts=ts.filter(t=>t.status==='open'&&isOD(t.date));
-  else if(filter==='email')ts=ts.filter(t=>t.emailTo);
-  else if(filter==='alta')ts=ts.filter(t=>t.priority==='alta'&&t.status==='open');
-  if(!ts.length){list.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>Nenhuma tarefa encontrada.</p></div>';return;}
-  list.innerHTML=ts.map(t=>{
-    const st=t.status==='done'?'<span class="tag tag-done">✓ Fechada</span>':'<span class="tag tag-open">⚡ Aberta</span>';
-    const ov=t.status==='open'&&isOD(t.date)?'<span class="overdue-badge">VENCIDA</span>':'';
-    const em=t.emailTo?`<a href="mailto:${t.emailTo}" class="email-link">📧 ${t.emailTo}</a>`:'';
-    const prioMap={'alta':'🔴 Alta','media':'🟡 Média','baixa':'🟢 Baixa'};
-    const cls='task-card '+(t.status==='done'?'tc-done':t.emailTo?'tc-email':'tc-open');
-    return`<div class="${cls}"><div class="task-row">
-      <div class="task-info">
-        <div class="task-title">${t.title} ${ov}</div>
-        <div class="task-meta">${st}<span class="tag tag-cat">${t.category}</span>
-          <span class="tag tag-cat">${prioMap[t.priority||'media']}</span>
-          ${t.date?`<span style="font-size:11px;color:var(--muted)">📅 ${fmtD(t.date)}</span>`:''}${em}</div>
-        ${t.desc?`<div class="task-desc">${t.desc}</div>`:''}
-      </div>
-      <div class="task-actions">
-        ${t.status==='open'?`<button class="icon-btn ib-ok" onclick="closeTaskL('${t.id}')">✓</button>`:''}
-        <button class="icon-btn ib-edit" onclick="editTask('${t.id}')">✎</button>
-        ${t.emailTo?`<button class="icon-btn ib-mail" onclick="window.location.href='mailto:${t.emailTo}'">📧</button>`:''}
-        <button class="icon-btn ib-del" onclick="delTaskL('${t.id}')">🗑️</button>
-      </div>
-    </div></div>`;
-  }).join('');
-}
-function closeTaskL(id){closeTask(id);renderTaskList();}
-function delTaskL(id){delTask(id);renderTaskList();}
-function filterTasks(f,btn){
-  taskFilter=f;
-  document.querySelectorAll('#tc-tasks .fb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderTaskList(f);
-}
-
-// ── EMAILS ────────────────────────────────────
-function saveEmail(){
-  const to=document.getElementById('cTo').value.trim();
-  const subj=document.getElementById('cSubj').value.trim();
-  if(!to||!subj){toast('Preencha destinatário e assunto.','error');return;}
-  const email={id:uid(),to,subject:subj,
-    body:document.getElementById('cBody').value.trim(),
-    date:document.getElementById('cDate').value,
-    category:document.getElementById('cCat').value,
-    status:'pending',createdAt:new Date().toISOString()};
-  D.emails.unshift(email);
-  if(document.getElementById('cTask').value==='yes')
-    D.tasks.unshift({id:uid(),title:`⏳ Aguardar resposta: ${subj}`,
-      desc:`E-mail enviado para ${to}`,date:document.getElementById('cDate').value,
-      category:'email',priority:'media',emailTo:to,status:'open',createdAt:new Date().toISOString()});
-  save();renderAll();clearCompose();showTab('emails');toast('E-mail salvo!','success');
-}
-function renderEmailList(filter){
-  filter=filter||emailFilter;
-  const list=document.getElementById('emailList');
-  let es=[...D.emails];
-  if(filter==='pending')es=es.filter(e=>e.status==='pending');
-  else if(filter==='resolved')es=es.filter(e=>e.status==='resolved');
-  if(!es.length){list.innerHTML='<div class="empty-state"><div class="ei">📭</div><p>Nenhum e-mail encontrado.</p></div>';return;}
-  list.innerHTML=es.map(e=>{
-    const st=e.status==='resolved'?'<span class="tag tag-done">✓ Resolvido</span>':'<span class="tag tag-open">⏳ Aguardando</span>';
-    const cls='task-card '+(e.status==='resolved'?'tc-done':'tc-email');
-    return`<div class="${cls}"><div class="task-row">
-      <div class="task-info">
-        <div class="task-title">📧 ${e.subject}</div>
-        <div class="task-meta">${st}<span class="tag tag-cat">${e.category}</span>
-          <a href="mailto:${e.to}" class="email-link">✉️ ${e.to}</a>
-          ${e.date?`<span style="font-size:11px;color:var(--muted)">📅 ${fmtD(e.date)}</span>`:''}
-        </div>
-        ${e.body?`<div class="task-desc">${e.body.substring(0,100)}${e.body.length>100?'...':''}</div>`:''}
-      </div>
-      <div class="task-actions">
-        ${e.status==='pending'?`<button class="icon-btn ib-ok" onclick="resolveEmail('${e.id}')">✓</button>`:''}
-        <button class="icon-btn ib-mail" onclick="window.location.href='mailto:${e.to}?subject=Re: ${encodeURIComponent(e.subject)}'">📧</button>
-        <button class="icon-btn ib-del" onclick="delEmail('${e.id}')">🗑️</button>
-      </div>
-    </div></div>`;
-  }).join('');
-}
-function resolveEmail(id){
-  const e=D.emails.find(x=>x.id===id);
-  if(e){e.status='resolved';e.resolvedAt=new Date().toISOString();save();renderAll();toast('Resolvido! ✅','success');}
-}
-function delEmail(id){D.emails=D.emails.filter(x=>x.id!==id);save();renderAll();toast('Excluído.','info');}
-function filterEmails(f,btn){
-  emailFilter=f;
-  document.querySelectorAll('#tc-emails .fb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderEmailList(f);
-}
-
-// ── COMPOSE ───────────────────────────────────
-function insertGreeting(g,btn){
-  const b=document.getElementById('cBody');
-  b.value=`${g},\n\n${b.value.replace(/^(Bom dia|Boa tarde|Boa noite)[,!.]?\s*/i,'')}`;
-  document.querySelectorAll('.gb').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-}
-function clearCompose(){
-  ['cTo','cSubj','cBody'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('cDate').value=ds(new Date());
-  document.querySelectorAll('.gb').forEach(b=>b.classList.remove('active'));
-}
-function copyBody(){navigator.clipboard.writeText(document.getElementById('cBody').value).then(()=>toast('Copiado!','success'));}
-function openMailClient(){
-  const to=document.getElementById('cTo').value;
-  if(!to){toast('Informe o destinatário.','error');return;}
-  window.location.href=`mailto:${to}?subject=${encodeURIComponent(document.getElementById('cSubj').value)}&body=${encodeURIComponent(document.getElementById('cBody').value)}`;
-}
-
-// ── ALERTS ────────────────────────────────────
-function renderAlerts(){
-  const list=document.getElementById('alertList');
-  const ps=D.tasks.filter(t=>t.status==='open'&&(isOD(t.date)||isToday(t.date)));
-  document.getElementById('alertBadge').textContent=ps.length;
-  if(!ps.length){list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:8px;">✅ Tudo em dia!</div>';return;}
-  list.innerHTML=ps.slice(0,4).map(t=>`
-    <div class="alert-card" onclick="openDay('${t.date}')">
-      <div class="alert-title">⚠️ ${t.title}</div>
-      <div class="alert-meta">${fmtD(t.date)} · ${t.category}</div>
-    </div>`).join('');
-  if(ps.length>4)list.innerHTML+=`<div style="font-size:10px;color:var(--muted);text-align:center;padding:4px;">+${ps.length-4} mais</div>`;
-}
-
-// ── STATS ─────────────────────────────────────
-function renderStats(){
-  const n=new Date(),my=`${n.getFullYear()}-${p(n.getMonth()+1)}`;
-  const mt=D.tasks.filter(t=>t.date&&t.date.startsWith(my));
-  document.getElementById('st-open').textContent=mt.filter(t=>t.status==='open').length;
-  document.getElementById('st-done').textContent=mt.filter(t=>t.status==='done').length;
-  document.getElementById('st-email').textContent=D.emails.filter(e=>e.status==='pending').length;
-  document.getElementById('st-all').textContent=mt.length;
-}
-
-// ── DASHBOARD ─────────────────────────────────
-function renderDashboard(){
-  const open=D.tasks.filter(t=>t.status==='open').length;
-  const done=D.tasks.filter(t=>t.status==='done').length;
-  const epend=D.emails.filter(e=>e.status==='pending').length;
-  const total=open+done;
-  const rate=total?Math.round(done/total*100):0;
-  document.getElementById('kpi-open').textContent=open;
-  document.getElementById('kpi-done').textContent=done;
-  document.getElementById('kpi-email').textContent=epend;
-  document.getElementById('kpi-rate').textContent=rate+'%';
-
-  // Mini donut in dashboard
-  renderDonut();
-
-  // Progress by category
-  const cats=['nf','financeiro','fornecedor','email','geral','rh','outros'];
-  const cLabels={nf:'NF',financeiro:'Financeiro',fornecedor:'Fornecedor',email:'E-mail',geral:'Geral',rh:'RH',outros:'Outros'};
-  const cColors={nf:gv('--danger'),financeiro:gv('--accent2'),fornecedor:gv('--accent3'),email:gv('--purple'),geral:gv('--accent'),rh:gv('--warn'),outros:gv('--muted')};
-  const openT=D.tasks.filter(t=>t.status==='open');
-  const catC={};openT.forEach(t=>{catC[t.category]=(catC[t.category]||0)+1;});
-  const max=Math.max(1,...Object.values(catC));
-  const top=cats.filter(c=>catC[c]).sort((a,b)=>(catC[b]||0)-(catC[a]||0)).slice(0,5);
-  const pl=document.getElementById('progList');
-  pl.innerHTML=top.length?top.map(c=>`
-    <div class="prog-item">
-      <div class="prog-label"><span>${cLabels[c]}</span><span>${catC[c]}</span></div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${catC[c]/max*100}%;background:${cColors[c]}"></div></div>
-    </div>`).join(''):'<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px;">Sem tarefas em aberto</div>';
-
-  // Activity
-  const recent=[...D.tasks,...D.emails].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,8);
-  const al=document.getElementById('actList');
-  al.innerHTML=recent.length?recent.map(r=>{
-    const isE=r.subject!==undefined;
-    const col=isE?gv('--accent2'):r.status==='done'?gv('--accent3'):gv('--danger');
-    const label=isE?`📧 ${r.subject}`:r.title;
-    const dt=r.createdAt?new Date(r.createdAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
-    return`<div class="act-item"><div class="act-dot" style="background:${col}"></div>
-      <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</div>
-      <div style="color:var(--muted);font-size:10px;flex-shrink:0">${dt}</div></div>`;
-  }).join(''):'<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px;">Sem atividade</div>';
-
-  // Overdue
-  const ov=D.tasks.filter(t=>t.status==='open'&&(isOD(t.date)||isToday(t.date)));
-  const dod=document.getElementById('dashOverdue');
-  if(!ov.length){dod.innerHTML='<div class="empty-state" style="padding:18px;"><div class="ei">🎉</div><p>Nenhuma tarefa vencida!</p></div>';return;}
-  dod.innerHTML=ov.slice(0,5).map(t=>`
-    <div class="task-card tc-open" style="margin-bottom:7px;"><div class="task-row">
-      <div class="task-info">
-        <div class="task-title">${t.title} ${isOD(t.date)?'<span class="overdue-badge">VENCIDA</span>':'<span class="tag tag-open">Hoje</span>'}</div>
-        <div class="task-meta"><span class="tag tag-cat">${t.category}</span><span style="font-size:11px;color:var(--muted)">📅 ${fmtD(t.date)}</span></div>
-      </div>
-      <div class="task-actions">
-        <button class="icon-btn ib-ok" onclick="closeTask('${t.id}')">✓</button>
-        <button class="icon-btn ib-edit" onclick="editTask('${t.id}')">✎</button>
-        <button class="icon-btn ib-del" onclick="delTask('${t.id}')">🗑️</button>
-      </div>
-    </div></div>`).join('');
-}
-
-// ── CHARTS ────────────────────────────────────
-function renderDonut(){
-  const open=D.tasks.filter(t=>t.status==='open').length;
-  const done=D.tasks.filter(t=>t.status==='done').length;
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const tc=isDark?'#94a3b8':'#64748b';
-  if(charts.donut){charts.donut.destroy();}
-  const ctx=document.getElementById('cDonut');
-  if(!ctx)return;
-  charts.donut=new Chart(ctx,{type:'doughnut',
-    data:{labels:['Em Aberto','Fechadas'],datasets:[{data:[open,done],backgroundColor:['#ef4444','#10b981'],borderWidth:0,hoverOffset:5}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
-      plugins:{legend:{position:'bottom',labels:{color:tc,font:{family:'Sora',size:10},padding:12}}}}});
-}
-
-function renderCharts(){
-  renderDonut();
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.05)';
-  const tc=isDark?'#94a3b8':'#64748b';
-  const opts=(extra={})=>({responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{labels:{color:tc,font:{family:'Sora',size:10},padding:10}}},
-    scales:{y:{grid:{color:gc},ticks:{color:tc,font:{family:'Sora',size:10}}},
-      x:{grid:{display:false},ticks:{color:tc,font:{family:'Sora',size:10}}}}, ...extra});
-
-  const open=D.tasks.filter(t=>t.status==='open').length;
-  const done=D.tasks.filter(t=>t.status==='done').length;
-  const epend=D.emails.filter(e=>e.status==='pending').length;
-  const eresolved=D.emails.filter(e=>e.status==='resolved').length;
-
-  // Bar tasks
-  if(charts.bar){charts.bar.destroy();}
-  const bCtx=document.getElementById('cBar');
-  if(bCtx) charts.bar=new Chart(bCtx,{type:'bar',
-    data:{labels:['Tarefas'],datasets:[
-      {label:'Em Aberto',data:[open],backgroundColor:'#ef4444',borderRadius:6},
-      {label:'Fechadas',data:[done],backgroundColor:'#10b981',borderRadius:6}]},
-    options:opts()});
-
-  // Pie categories
-  if(charts.pie){charts.pie.destroy();}
-  const pCtx=document.getElementById('cPie');
-  if(pCtx){
-    const cm={};D.tasks.forEach(t=>{cm[t.category]=(cm[t.category]||0)+1;});
-    const cl=Object.keys(cm),cv=Object.values(cm);
-    const pal=['#f97316','#0ea5e9','#10b981','#8b5cf6','#f59e0b','#ef4444','#64748b'];
-    charts.pie=new Chart(pCtx,{type:'pie',
-      data:{labels:cl,datasets:[{data:cv,backgroundColor:pal.slice(0,cl.length),borderWidth:0,hoverOffset:5}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:tc,font:{family:'Sora',size:10},padding:8}}}}});
-  }
-
-  // Email bar
-  if(charts.emailBar){charts.emailBar.destroy();}
-  const eCtx=document.getElementById('cEmailBar');
-  if(eCtx) charts.emailBar=new Chart(eCtx,{type:'bar',
-    data:{labels:['E-mails'],datasets:[
-      {label:'Pendentes',data:[epend],backgroundColor:'#f59e0b',borderRadius:6},
-      {label:'Resolvidos',data:[eresolved],backgroundColor:'#0ea5e9',borderRadius:6}]},
-    options:opts()});
-
-  // Line monthly
-  if(charts.line){charts.line.destroy();}
-  const lCtx=document.getElementById('cLine');
-  if(lCtx){
-    const labels=[],counts=[];const n=new Date();
-    for(let i=5;i>=0;i--){
-      const d=new Date(n.getFullYear(),n.getMonth()-i,1);
-      const key=`${d.getFullYear()}-${p(d.getMonth()+1)}`;
-      labels.push(MONTHS[d.getMonth()].substring(0,3));
-      counts.push(D.tasks.filter(t=>t.date&&t.date.startsWith(key)).length);
-    }
-    charts.line=new Chart(lCtx,{type:'line',
-      data:{labels,datasets:[{label:'Tarefas criadas',data:counts,
-        borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',
-        borderWidth:2,pointBackgroundColor:'#f97316',tension:.4,fill:true}]},
-      options:opts()});
-  }
-}
-
-// ── REPORTS ────────────────────────────────────
-function generateCompleteReport() {
-  const openTasks = D.tasks.filter(t => t.status === 'open');
-  const doneTasks = D.tasks.filter(t => t.status === 'done');
-  const pendingEmails = D.emails.filter(e => e.status === 'pending');
-  const resolvedEmails = D.emails.filter(e => e.status === 'resolved');
   
-  let html = `
-    <div class="rep-section">
-      <h4>📊 RESUMO GERAL</h4>
-      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
-      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${openTasks.length}</strong></div>
-      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${doneTasks.length}</strong></div>
-      <div class="rep-row"><span>Total de E-mails</span><strong>${D.emails.length}</strong></div>
-      <div class="rep-row"><span>E-mails Pendentes</span><strong style="color:var(--warn)">${pendingEmails.length}</strong></div>
-      <div class="rep-row"><span>E-mails Resolvidos</span><strong style="color:var(--accent3)">${resolvedEmails.length}</strong></div>
-    </div>
-  `;
+  if (tabName === 'dashboard') renderAll();
+  if (tabName === 'calendario') renderCalendar();
+  if (tabName === 'relatorios') gerarRelatorioGeral();
+  if (tabName === 'backup') updateBackupInfo();
+}
 
-  // Tarefas por prioridade
-  const prioridadeCount = {alta:0, media:0, baixa:0};
-  openTasks.forEach(t => prioridadeCount[t.priority || 'media']++);
-  html += `
-    <div class="rep-section">
-      <h4>⚡ TAREFAS EM ABERTO POR PRIORIDADE</h4>
-      <div class="rep-row"><span>🔴 Alta</span><strong>${prioridadeCount.alta}</strong></div>
-      <div class="rep-row"><span>🟡 Média</span><strong>${prioridadeCount.media}</strong></div>
-      <div class="rep-row"><span>🟢 Baixa</span><strong>${prioridadeCount.baixa}</strong></div>
-    </div>
-  `;
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
 
-  // Tarefas por categoria
-  const catCount = {};
-  openTasks.forEach(t => catCount[t.category || 'geral'] = (catCount[t.category || 'geral'] || 0) + 1);
-  html += `<div class="rep-section"><h4>📋 TAREFAS EM ABERTO POR CATEGORIA</h4>`;
-  Object.entries(catCount).sort((a,b)=>b[1]-a[1]).forEach(([cat,count]) => {
-    html += `<div class="rep-row"><span>${cat}</span><strong>${count}</strong></div>`;
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) m.classList.remove('open');
   });
-  html += `</div>`;
+});
 
-  // Vencidas
-  const overdue = openTasks.filter(t => isOD(t.date));
-  html += `
-    <div class="rep-section">
-      <h4>⚠️ TAREFAS VENCIDAS</h4>
-      ${overdue.length ? overdue.slice(0,5).map(t => 
-        `<div class="rep-row"><span>${t.title}</span><span style="color:var(--danger)">${fmtD(t.date)}</span></div>`
-      ).join('') : '<div style="color:var(--muted)">Nenhuma tarefa vencida</div>'}
-      ${overdue.length > 5 ? `<div style="font-size:10px;color:var(--muted);padding:5px">...e mais ${overdue.length-5}</div>` : ''}
-    </div>
-  `;
-
-  // Próximas tarefas
-  const upcoming = openTasks
-    .filter(t => t.date && new Date(t.date) > new Date())
-    .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .slice(0,5);
-  html += `
-    <div class="rep-section">
-      <h4>📅 PRÓXIMAS TAREFAS</h4>
-      ${upcoming.length ? upcoming.map(t => 
-        `<div class="rep-row"><span>${t.title}</span><span style="color:var(--accent2)">${fmtD(t.date)}</span></div>`
-      ).join('') : '<div style="color:var(--muted)">Nenhuma tarefa futura</div>'}
-    </div>
-  `;
-
-  document.getElementById('reportContent').innerHTML = html;
-  toast('Relatório gerado!', 'success');
+function toast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  toast.className = `show t-${type}`;
+  toast.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.className = '', 3000);
 }
 
-function filterReport(filter, btn) {
-  reportFilter = filter;
-  document.querySelectorAll('#tc-reports .fb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  if (filter === 'tasks') generateTaskReport();
-  else if (filter === 'emails') generateEmailReport();
-  else if (filter === 'performance') generatePerformanceReport();
-}
-
-function generateTaskReport() {
-  const openTasks = D.tasks.filter(t => t.status === 'open');
-  const doneTasks = D.tasks.filter(t => t.status === 'done');
-  const overdue = openTasks.filter(t => isOD(t.date));
-  
-  let html = `
-    <div class="rep-section">
-      <h4>✅ RELATÓRIO DE TAREFAS</h4>
-      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
-      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${openTasks.length}</strong></div>
-      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${doneTasks.length}</strong></div>
-      <div class="rep-row"><span>Vencidas</span><strong style="color:var(--danger)">${overdue.length}</strong></div>
-    </div>
-  `;
-
-  // Lista de tarefas em aberto
-  if (openTasks.length) {
-    html += `<div class="rep-section"><h4>⚡ TAREFAS EM ABERTO</h4>`;
-    openTasks.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
-      const status = isOD(t.date) ? '🔴' : '⚡';
-      html += `<div class="rep-row"><span>${status} ${t.title}</span><span>${fmtD(t.date)}</span></div>`;
-    });
-    html += `</div>`;
-  }
-
-  document.getElementById('reportContent').innerHTML = html;
-}
-
-function generateEmailReport() {
-  const pending = D.emails.filter(e => e.status === 'pending');
-  const resolved = D.emails.filter(e => e.status === 'resolved');
-  
-  let html = `
-    <div class="rep-section">
-      <h4>📧 RELATÓRIO DE E-MAILS</h4>
-      <div class="rep-row"><span>Total de E-mails</span><strong>${D.emails.length}</strong></div>
-      <div class="rep-row"><span>Pendentes</span><strong style="color:var(--warn)">${pending.length}</strong></div>
-      <div class="rep-row"><span>Resolvidos</span><strong style="color:var(--accent3)">${resolved.length}</strong></div>
-    </div>
-  `;
-
-  if (pending.length) {
-    html += `<div class="rep-section"><h4>⏳ E-MAILS AGUARDANDO RESPOSTA</h4>`;
-    pending.forEach(e => {
-      html += `<div class="rep-row"><span>${e.subject}</span><a href="mailto:${e.to}" class="email-link">${e.to}</a></div>`;
-    });
-    html += `</div>`;
-  }
-
-  document.getElementById('reportContent').innerHTML = html;
-}
-
-function generatePerformanceReport() {
-  const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${p(now.getMonth()+1)}`;
-  const lastMonth = `${now.getFullYear()}-${p(now.getMonth())}`;
-  
-  const tasksThisMonth = D.tasks.filter(t => t.date && t.date.startsWith(thisMonth));
-  const tasksLastMonth = D.tasks.filter(t => t.date && t.date.startsWith(lastMonth));
-  
-  const doneThisMonth = tasksThisMonth.filter(t => t.status === 'done').length;
-  const totalThisMonth = tasksThisMonth.length;
-  const rateThisMonth = totalThisMonth ? Math.round(doneThisMonth/totalThisMonth*100) : 0;
-  
-  const doneLastMonth = tasksLastMonth.filter(t => t.status === 'done').length;
-  const totalLastMonth = tasksLastMonth.length;
-  const rateLastMonth = totalLastMonth ? Math.round(doneLastMonth/totalLastMonth*100) : 0;
-  
-  let html = `
-    <div class="rep-section">
-      <h4>📈 RELATÓRIO DE PERFORMANCE</h4>
-      <div class="rep-row"><span>Taxa de Resolução (Este mês)</span><strong style="color:var(--purple)">${rateThisMonth}%</strong></div>
-      <div class="rep-row"><span>Taxa de Resolução (Mês anterior)</span><strong>${rateLastMonth}%</strong></div>
-      <div class="rep-row"><span>Variação</span><strong style="color:${rateThisMonth >= rateLastMonth ? 'var(--accent3)' : 'var(--danger)'}">
-        ${rateThisMonth - rateLastMonth}%
-      </strong></div>
-    </div>
-  `;
-
-  // Média por dia
-  const daysWithTasks = [...new Set(D.tasks.map(t => t.date))].filter(d => d);
-  const avgPerDay = daysWithTasks.length ? (D.tasks.length / daysWithTasks.length).toFixed(1) : 0;
-  html += `
-    <div class="rep-section">
-      <h4>📊 MÉTRICAS</h4>
-      <div class="rep-row"><span>Média de tarefas por dia</span><strong>${avgPerDay}</strong></div>
-      <div class="rep-row"><span>Tempo médio de conclusão</span><strong>Em desenvolvimento</strong></div>
-    </div>
-  `;
-
-  document.getElementById('reportContent').innerHTML = html;
-}
-
-function openReportModal(){
-  const open=D.tasks.filter(t=>t.status==='open');
-  const done=D.tasks.filter(t=>t.status==='done');
-  const epend=D.emails.filter(e=>e.status==='pending');
-  const rate=D.tasks.length?Math.round(done.length/D.tasks.length*100):0;
-  let html=`<div style="color:var(--muted);font-size:11px;margin-bottom:12px;">Gerado em ${new Date().toLocaleDateString('pt-BR',{dateStyle:'full'})}</div>
-    <div class="rep-section"><h4>📊 Resumo</h4>
-      <div class="rep-row"><span>Total de Tarefas</span><strong>${D.tasks.length}</strong></div>
-      <div class="rep-row"><span>Em Aberto</span><strong style="color:var(--danger)">${open.length}</strong></div>
-      <div class="rep-row"><span>Fechadas</span><strong style="color:var(--accent3)">${done.length}</strong></div>
-      <div class="rep-row"><span>Taxa de Resolução</span><strong style="color:var(--purple)">${rate}%</strong></div>
-      <div class="rep-row"><span>E-mails Pendentes</span><strong style="color:var(--warn)">${epend.length}</strong></div>
-    </div>`;
-  if(open.length){
-    html+=`<div class="rep-section"><h4>⚡ Em Aberto</h4>`;
-    open.slice(0,10).forEach(t=>{html+=`<div class="rep-row"><span>${t.title}</span><span style="color:var(--muted)">${fmtD(t.date)}</span></div>`;});
-    if(open.length>10)html+=`<div style="font-size:10px;color:var(--muted);padding:5px 0">...e mais ${open.length-10}</div>`;
-    html+=`</div>`;
-  }
-  if(epend.length){
-    html+=`<div class="rep-section"><h4>📧 E-mails Aguardando</h4>`;
-    epend.forEach(e=>{html+=`<div class="rep-row"><span>${e.subject}</span><a href="mailto:${e.to}" class="email-link">${e.to}</a></div>`;});
-    html+=`</div>`;
-  }
-  document.getElementById('modalReportBody').innerHTML=html;
-  openModal('modalReport');
-}
-function copyReport(){
-  const open=D.tasks.filter(t=>t.status==='open');
-  const epend=D.emails.filter(e=>e.status==='pending');
-  let txt=`📊 RELATÓRIO — ${new Date().toLocaleDateString('pt-BR')}\n\n`;
-  txt+=`Total: ${D.tasks.length} | Aberto: ${open.length} | Fechadas: ${D.tasks.filter(t=>t.status==='done').length}\n`;
-  txt+=`E-mails pendentes: ${epend.length}\n\n`;
-  if(open.length){txt+='TAREFAS EM ABERTO:\n';open.forEach(t=>{txt+=`  • ${t.title} (${fmtD(t.date)||'sem data'})\n`;});}
-  if(epend.length){txt+='\nE-MAILS AGUARDANDO:\n';epend.forEach(e=>{txt+=`  • ${e.subject} → ${e.to}\n`;});}
-  navigator.clipboard.writeText(txt).then(()=>toast('Copiado!','success'));
-}
-
-// ── BACKUP ────────────────────────────────────
-function doBackup(){
-  D.lastBackup=new Date().toISOString();save();
-  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`pedrinho_backup_${ds(new Date())}.json`;a.click();
-  URL.revokeObjectURL(url);toast('Backup exportado!','success');updateBackupInfo();
-}
-function doRestore(ev){
-  const f=ev.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{const data=JSON.parse(e.target.result);
-      if(data.tasks&&data.emails){D=data;save();renderAll();toast(`Restaurado! ${data.tasks.length} tarefas.`,'success');updateBackupInfo();}
-      else toast('Arquivo inválido.','error');
-    }catch{toast('Erro ao restaurar.','error');}
-  };r.readAsText(f);ev.target.value='';
-}
-function clearAll(){
-  if(!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita!'))return;
-  D={tasks:[],emails:[],lastBackup:null};save();renderAll();toast('Dados apagados.','info');updateBackupInfo();
-}
-function updateBackupInfo(){
-  const sz=(JSON.stringify(D).length/1024).toFixed(1);
-  const lb=D.lastBackup?new Date(D.lastBackup).toLocaleString('pt-BR'):'Nunca';
-  document.getElementById('backupInfo').textContent=
-    `📋 Tarefas: ${D.tasks.length}\n📧 E-mails: ${D.emails.length}\n💾 Tamanho: ~${sz} KB\n🕐 Último backup: ${lb}`;
-}
-
-// ── UI ────────────────────────────────────────
-function showTab(name){
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  const tc=document.getElementById('tc-'+name);
-  const nt=document.getElementById('nt-'+name);
-  if(tc)tc.classList.add('active');
-  if(nt)nt.classList.add('active');
-  if(name==='charts')setTimeout(renderCharts,80);
-  if(name==='backup')updateBackupInfo();
-  if(name==='reports')generateCompleteReport();
-}
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
-function toast(msg,type='info'){
-  const t=document.getElementById('toast');
-  const icons={success:'✅',error:'❌',info:'ℹ️'};
-  t.className=`show t-${type}`;t.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;
-  clearTimeout(t._t);t._t=setTimeout(()=>t.className='',3200);
-}
-
-// START
-init();
+// ==================== INIT ====================
+renderAll();
 </script>
 </body>
 </html>
