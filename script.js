@@ -5,6 +5,7 @@
 // ===== AUTH =====
 const USERS = {
   'ana':     { pass:'RDP@2026',    name:'Ana',     role:'admin', avatar:'A' },
+ 'anderson':     { pass:'RDP@2026',    name:'Anderson',     role:'admin', avatar:'A' },
   'waldeci': { pass:'RDP@789123',  name:'Waldeci', role:'user',  avatar:'W' }
 };
 let currentUser = null;
