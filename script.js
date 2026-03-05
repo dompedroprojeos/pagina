@@ -4,9 +4,10 @@
 
 // ===== AUTH =====
 const USERS = {
-  'ana':     { pass:'RDP@2026',    name:'Ana',     role:'admin', avatar:'A' },
-  'anderson': { pass:'RDP@2026',    name:'Anderson', role:'admin', avatar:'A' },  // ← CORRIGIDO
-  'waldeci': { pass:'RDP@789123',  name:'Waldeci', role:'user',  avatar:'W' }
+  'ana':       { pass:'RDP@2026',    name:'Ana',       role:'admin', avatar:'A' },
+  'anderson':  { pass:'RDP@2026',    name:'Anderson',  role:'admin', avatar:'A' },
+  'waldeci':   { pass:'RDP@789123',  name:'Waldeci',   role:'user',  avatar:'W' },
+  'novousuario': { pass:'senha123',  name:'Nome Completo', role:'user',  avatar:'N' }  // ← NOVO USUÁRIO
 };
 let currentUser = null;
 
