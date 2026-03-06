@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner SPED - Controle de Pastas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff6b00 0%, #000000 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(255, 107, 0, 0.3);
+            overflow: hidden;
+            border: 1px solid #ff6b00;
+        }
+        
+        .app-header {
+            background: linear-gradient(90deg, #ff6b00, #000000);
+            color: white;
+            padding: 20px 30px;
+        }
+        
+        .folder-selector {
+            border: 3px dashed #ff6b00;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .folder-selector:hover {
+            background: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+            border-color: #ff8533;
+        }
+        
+        .folder-icon {
+            font-size: 4rem;
+            color: #ff6b00;
+            margin-bottom: 15px;
+        }
+        
+        .btn-scan {
+            background: linear-gradient(90deg, #ff6b00, #cc5500);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            width: 100%;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn-scan:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+        }
+        
+        .btn-scan:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ff6b00;
+            transition: all 0.2s;
+        }
+        
+        .result-item.has-file {
+            border-left: 5px solid #28a745;
+            background: #f8f9fa;
+        }
+        
+        .result-item.no-file {
+            border-left: 5px solid #ff6b00;
+            background: #fff3e6;
+        }
+        
+        .result-item.ignored {
+            border-left: 5px solid #6c757d;
+            background: #e9ecef;
+            opacity: 0.8;
+        }
+        
+        .folder-name {
+            font-weight: 600;
+            color: #000000;
+        }
+        
+        .folder-path {
+            color: #ff6b00;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+        
+        .stats-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #ff6b00;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .stats-card h6 {
+            color: #ff6b00;
+        }
+        
+        .log-entry {
+            font-size: 0.8rem;
+            font-family: monospace;
+            padding: 4px 8px;
+            border-left: 3px solid #ff6b00;
+            background: #1a1a1a;
+            margin-bottom: 3px;
+            color: #ff6b00;
+        }
+        
+        .status-tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        
+        .status-has {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-missing {
+            background: #ff6b00;
+            color: white;
+        }
+        
+        .status-ignored {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .filter-badge {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin-right: 5px;
+            transition: all 0.2s;
+            background: #333333;
+            color: white;
+            display: inline-block;
+            margin-bottom: 5px;
+            border: 1px solid #ff6b00;
+        }
+        
+        .filter-badge.active {
+            background: #ff6b00;
+            color: black;
+            border-color: white;
+            font-weight: bold;
+        }
+        
+        .folder-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 2px;
+            accent-color: #ff6b00;
+        }
+        
+        .progress-fast {
+            height: 6px;
+            background: #333333;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fast {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b00, #cc5500);
+            transition: width 0.1s ease;
+        }
+        
+        .badge-count {
+            background: #ff6b00;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .file-icon {
+            font-size: 1rem;
+            margin-right: 5px;
+            color: #ff6b00;
+        }
+
+        .file-details {
+            font-size: 0.85rem;
+            background: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            color: white;
+            border-left: 3px solid #ff6b00;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline-success {
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .btn-outline-success:hover {
+            background: #28a745;
+            color: black;
+        }
+        
+        .btn-outline-danger {
+            color: white;
+            border-color: #ff6b00;
+        }
+        
+        .btn-outline-danger:hover {
+            background: #ff6b00;
+            color: black;
+        }
+        
+        .btn-outline-secondary {
+            color: white;
+            border-color: #6c757d;
+        }
+        
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #ff6b00;
+            border: none;
+            color: black;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            border: none;
+            color: black;
+        }
+        
+        .current-path {
+            background: #1a1a1a;
+            color: #ff6b00;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+            border: 1px solid #ff6b00;
+            word-break: break-all;
+        }
+        
+        .current-path i {
+            color: white;
+            margin-right: 5px;
+        }
+        
+        .alert-info {
+            background: #1a1a1a;
+            border: 1px solid #ff6b00;
+            color: white;
+        }
+        
+        .text-muted {
+            color: #ff6b00 !important;
+        }
+        
+        .results-header {
+            color: #ff6b00;
+            border-bottom: 2px solid #ff6b00;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Cabeçalho -->
+            <div class="app-header">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-text me-2"></i>
+                    Scanner SPED - Controle de Pastas
+                </h1>
+                <small>Busca em todas as subpastas | Design Laranja/Preto</small>
+            </div>
+
+            <div class="row g-0">
+                <!-- Sidebar -->
+                <div class="col-lg-4 p-4" style="background: #000000;">
+                    <!-- Seletor de pasta -->
+                    <div class="folder-selector mb-4" id="folderSelector">
+                        <div class="folder-icon">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <h5>Clique para selecionar pasta</h5>
+                        <p class="text-white-50 small">
+                            Selecione a pasta raiz para buscar TODAS as subpastas
+                        </p>
+                        
+                        <div id="folderInfo" class="mt-3 d-none">
+                            <div class="alert alert-info py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span id="selectedFolderName" class="fw-bold text-white">Pasta</span>
+                                    <span id="foundCount" class="badge-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Scan -->
+                    <button id="scanButton" class="btn-scan mb-4" disabled>
+                        <i class="bi bi-search me-2"></i>Buscar TODAS as Pastas
+                    </button>
+
+                    <!-- Caminho atual sendo escaneado -->
+                    <div id="currentPathContainer" class="current-path d-none mb-3">
+                        <i class="bi bi-folder2-open"></i>
+                        <span id="currentScanPath">Aguardando...</span>
+                    </div>
+
+                    <!-- Estatísticas -->
+                    <div id="statsSection" class="stats-card d-none">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="bi bi-folder"></i> Total de Pastas:</span>
+                            <span class="fw-bold text-white" id="totalFolders">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="bi bi-check-circle text-success"></i> JÁ GERADOS:</span>
+                            <span class="fw-bold text-success" id="hasFileFolders">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="bi bi-exclamation-circle text-warning"></i> NÃO GERADOS:</span>
+                            <span class="fw-bold text-warning" id="noFileFolders">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="bi bi-x-circle text-secondary"></i> IGNORADOS:</span>
+                            <span class="fw-bold text-secondary" id="ignoredFolders">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between" style="border-top: 1px solid #ff6b00; padding-top: 10px; margin-top: 5px;">
+                            <span><i class="bi bi-file-text text-warning"></i> PRECISAM GERAR:</span>
+                            <span class="fw-bold text-warning" id="needToGenerate">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="stats-card">
+                        <h6 class="mb-2">Filtrar por:</h6>
+                        <div class="action-buttons">
+                            <span class="filter-badge active" id="filterAll">Todas</span>
+                            <span class="filter-badge" id="filterHas">Já gerados</span>
+                            <span class="filter-badge" id="filterNo">Não gerados</span>
+                            <span class="filter-badge" id="filterNeed">Precisam gerar</span>
+                            <span class="filter-badge" id="filterIgnored">Ignorados</span>
+                        </div>
+                    </div>
+
+                    <!-- Ações em Massa -->
+                    <div class="stats-card">
+                        <h6 class="mb-2">Marcar como "Não gerar":</h6>
+                        <div class="action-buttons">
+                            <button id="ignoreAllHas" class="btn btn-sm btn-outline-success w-100 mb-1">
+                                <i class="bi bi-check-all"></i> Quem já tem
+                            </button>
+                            <button id="ignoreAllNo" class="btn btn-sm btn-outline-danger w-100 mb-1">
+                                <i class="bi bi-x-circle"></i> Quem não tem
+                            </button>
+                            <button id="unignoreAll" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-counterclockwise"></i> Resetar todos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Exportação -->
+                    <div class="stats-card">
+                        <h6 class="mb-2">Relatórios:</h6>
+                        <button id="exportButton" class="btn btn-success w-100 mb-2" disabled>
+                            <i class="bi bi-download"></i> Lista completa
+                        </button>
+                        <button id="exportNeedGenerate" class="btn btn-primary w-100 mb-2" disabled>
+                            <i class="bi bi-file-text"></i> Só os que PRECISAM
+                        </button>
+                        <button id="exportMissingButton" class="btn btn-warning w-100" disabled>
+                            <i class="bi bi-exclamation-triangle"></i> Só os não gerados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteúdo principal -->
+                <div class="col-lg-8 p-4" style="background: #f5f5f5;">
+                    <!-- Barra de progresso -->
+                    <div id="progressSection" class="stats-card d-none" style="background: white; color: black;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span id="progressText" class="small" style="color: black;">Escaneando pastas...</span>
+                            <span id="progressPercent" class="small" style="color: black;">0%</span>
+                        </div>
+                        <div class="progress-fast">
+                            <div id="progressBar" class="progress-bar-fast" style="width: 0%;"></div>
+                        </div>
+                        <div id="currentFile" class="small text-warning mt-1"></div>
+                    </div>
+
+                    <!-- Lista de Pastas -->
+                    <div class="stats-card" style="background: white;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 results-header">
+                            <h5 class="mb-0" style="color: #ff6b00;">TODAS as Pastas Encontradas</h5>
+                            <span class="badge-count" id="resultsCount">0</span>
+                        </div>
+                        
+                        <div id="resultsContainer" style="max-height: 500px; overflow-y: auto;">
+                            <div class="text-center py-5">
+                                <i class="bi bi-folder2-open display-4 d-block mb-3" style="color: #ff6b00;"></i>
+                                <p style="color: #666;">Clique em "Buscar TODAS as Pastas"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs -->
+                    <div class="stats-card mt-4" style="background: #1a1a1a;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="fw-bold" style="color: #ff6b00;">LOG DE EXECUÇÃO</small>
+                            <button id="clearLogs" class="btn btn-sm btn-outline-warning py-0">limpar</button>
+                        </div>
+                        <div id="logsContainer" style="max-height: 120px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado
+        let selectedDirectoryHandle = null;
+        let allFolders = [];
+        let filteredFolders = [];
+        let currentFilter = 'all';
+        let ignoredFolders = new Set();
+        let isScanning = false;
+
+        // Elementos DOM
+        const folderSelector = document.getElementById('folderSelector');
+        const folderInfo = document.getElementById('folderInfo');
+        const selectedFolderName = document.getElementById('selectedFolderName');
+        const scanButton = document.getElementById('scanButton');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const currentFile = document.getElementById('currentFile');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const logsContainer = document.getElementById('logsContainer');
+        const exportButton = document.getElementById('exportButton');
+        const exportMissingButton = document.getElementById('exportMissingButton');
+        const exportNeedGenerate = document.getElementById('exportNeedGenerate');
+        const statsSection = document.getElementById('statsSection');
+        const totalFolders = document.getElementById('totalFolders');
+        const hasFileFolders = document.getElementById('hasFileFolders');
+        const noFileFolders = document.getElementById('noFileFolders');
+        const ignoredFoldersSpan = document.getElementById('ignoredFolders');
+        const needToGenerate = document.getElementById('needToGenerate');
+        const foundCount = document.getElementById('foundCount');
+        const resultsCount = document.getElementById('resultsCount');
+        const currentPathContainer = document.getElementById('currentPathContainer');
+        const currentScanPath = document.getElementById('currentScanPath');
+
+        // Filtros
+        const filterAll = document.getElementById('filterAll');
+        const filterHas = document.getElementById('filterHas');
+        const filterNo = document.getElementById('filterNo');
+        const filterNeed = document.getElementById('filterNeed');
+        const filterIgnored = document.getElementById('filterIgnored');
+
+        // Função para verificar se é arquivo SPED (começa com sped_fiscal_)
+        function isSpedTxtFile(name) {
+            return name.toLowerCase().startsWith('sped_fiscal_') && name.toLowerCase().endsWith('.txt');
+        }
+
+        // Extrair informações do nome do arquivo
+        function parseSpedFileName(name) {
+            const match = name.match(/sped_fiscal_(\d{6})_(\d{14})\.txt$/i);
+            if (match) {
+                return {
+                    periodo: match[1],
+                    cnpj: match[2].replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+                };
+            }
+            return null;
+        }
+
+        // Log
+        function addLog(msg) {
+            const log = document.createElement('div');
+            log.className = 'log-entry';
+            log.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logsContainer.prepend(log);
+            if (logsContainer.children.length > 20) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        document.getElementById('clearLogs').addEventListener('click', () => {
+            logsContainer.innerHTML = '';
+        });
+
+        // Selecionar pasta
+        folderSelector.addEventListener('click', async function(e) {
+            if (isScanning) return;
+            
+            try {
+                if (!window.showDirectoryPicker) {
+                    alert('Use Chrome/Edge versão 86+ ou outro navegador compatível com File System Access API');
+                    return;
+                }
+                
+                selectedDirectoryHandle = await window.showDirectoryPicker({
+                    id: 'sped-scanner',
+                    mode: 'read'
+                });
+                
+                if (selectedDirectoryHandle) {
+                    selectedFolderName.textContent = selectedDirectoryHandle.name;
+                    folderInfo.classList.remove('d-none');
+                    scanButton.disabled = false;
+                    addLog(`📁 Pasta raiz selecionada: ${selectedDirectoryHandle.name}`);
+                }
+                
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    alert('Erro ao selecionar pasta: ' + error.message);
+                    addLog(`❌ Erro: ${error.message}`);
+                }
+            }
+        });
+
+        // Busca recursiva em TODAS as subpastas
+        async function scanAllFolders(dirHandle, path = '') {
+            const folders = [];
+            let totalScanned = 0;
+            
+            async function scan(currentHandle, currentPath) {
+                if (!isScanning) return;
+                
+                try {
+                    // Mostrar caminho atual sendo escaneado
+                    currentPathContainer.classList.remove('d-none');
+                    currentScanPath.textContent = currentPath || 'Raiz';
+                    
+                    const entries = [];
+                    for await (const entry of currentHandle.values()) {
+                        entries.push(entry);
+                    }
+                    
+                    // Verificar arquivos SPED na pasta atual
+                    const spedFiles = [];
+                    
+                    for (const entry of entries) {
+                        if (entry.kind === 'file') {
+                            if (isSpedTxtFile(entry.name)) {
+                                const info = parseSpedFileName(entry.name);
+                                spedFiles.push({
+                                    name: entry.name,
+                                    handle: entry,
+                                    info: info,
+                                    path: currentPath ? `${currentPath}/${entry.name}` : entry.name
+                                });
+                                currentFile.textContent = `📄 Encontrado: ${entry.name}`;
+                            }
+                        }
+                    }
+                    
+                    // Adicionar a pasta atual à lista (exceto a raiz)
+                    if (currentPath) {
+                        folders.push({
+                            name: currentHandle.name,
+                            path: currentPath,
+                            handle: currentHandle,
+                            files: spedFiles,
+                            hasSpedFile: spedFiles.length > 0,
+                            fileCount: spedFiles.length,
+                            isIgnored: ignoredFolders.has(currentPath)
+                        });
+                        
+                        totalScanned++;
+                        
+                        // Atualizar progresso
+                        progressText.textContent = `Escaneando: ${currentPath}`;
+                        progressPercent.textContent = `${Math.min(100, Math.round(totalScanned/2))}%`;
+                        progressBar.style.width = `${Math.min(100, totalScanned)}%`;
+                    }
+                    
+                    // Escanear todas as subpastas recursivamente
+                    for (const entry of entries) {
+                        if (entry.kind === 'directory') {
+                            const newPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+                            await scan(entry, newPath);
+                        }
+                    }
+                    
+                } catch (error) {
+                    // Ignorar erros de permissão em pastas específicas
+                    if (error.name !== 'NotAllowedError') {
+                        addLog(`⚠️ Erro ao acessar ${currentPath}: ${error.message}`);
+                    }
+                }
+            }
+            
+            await scan(dirHandle, '');
+            currentPathContainer.classList.add('d-none');
+            return folders;
+        }
+
+        // Buscar TODAS as pastas
+        scanButton.addEventListener('click', async () => {
+            if (!selectedDirectoryHandle || isScanning) return;
+            
+            isScanning = true;
+            scanButton.disabled = true;
+            allFolders = [];
+            
+            progressSection.classList.remove('d-none');
+            statsSection.classList.remove('d-none');
+            resultsContainer.innerHTML = '<div class="text-center py-4"><i class="bi bi-arrow-repeat spinning" style="color: #ff6b00; font-size: 2rem;"></i><br><span style="color: #666;">Escaneando todas as subpastas...</span></div>';
+            
+            addLog('🔍 Iniciando busca em TODAS as pastas...');
+            
+            try {
+                const startTime = Date.now();
+                allFolders = await scanAllFolders(selectedDirectoryHandle);
+                const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                
+                // Ordenar por caminho
+                allFolders.sort((a, b) => a.path.localeCompare(b.path));
+                
+                updateStats();
+                applyFilter('all');
+                
+                // Log resumido
+                const hasCount = allFolders.filter(f => f.hasSpedFile).length;
+                const noCount = allFolders.filter(f => !f.hasSpedFile).length;
+                
+                addLog(`✅ Busca concluída em ${elapsedTime}s`);
+                addLog(`📊 Total: ${allFolders.length} pastas | Já gerados: ${hasCount} | Não gerados: ${noCount}`);
+                
+                if (allFolders.length > 0) {
+                    exportButton.disabled = false;
+                    exportMissingButton.disabled = false;
+                    exportNeedGenerate.disabled = false;
+                }
+                
+            } catch (error) {
+                addLog(`❌ Erro na busca: ${error.message}`);
+                resultsContainer.innerHTML = `<div class="alert alert-danger">Erro: ${error.message}</div>`;
+            }
+            
+            progressSection.classList.add('d-none');
+            isScanning = false;
+            scanButton.disabled = false;
+        });
+
+        // Atualizar estatísticas
+        function updateStats() {
+            totalFolders.textContent = allFolders.length;
+            foundCount.textContent = allFolders.length;
+            
+            const hasFile = allFolders.filter(f => f.hasSpedFile && !f.isIgnored).length;
+            const noFile = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored).length;
+            const ignored = allFolders.filter(f => f.isIgnored).length;
+            
+            hasFileFolders.textContent = hasFile;
+            noFileFolders.textContent = noFile;
+            ignoredFoldersSpan.textContent = ignored;
+            
+            // Pastas que PRECISAM gerar = não tem arquivo E não estão ignoradas
+            const needGenerate = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored).length;
+            needToGenerate.textContent = needGenerate;
+            
+            resultsCount.textContent = filteredFolders.length;
+        }
+
+        // Aplicar filtro
+        function applyFilter(filter) {
+            currentFilter = filter;
+            
+            // Atualizar botões
+            [filterAll, filterHas, filterNo, filterNeed, filterIgnored].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (filter === 'all') filterAll.classList.add('active');
+            if (filter === 'has') filterHas.classList.add('active');
+            if (filter === 'no') filterNo.classList.add('active');
+            if (filter === 'need') filterNeed.classList.add('active');
+            if (filter === 'ignored') filterIgnored.classList.add('active');
+            
+            // Filtrar
+            filteredFolders = allFolders.filter(f => {
+                if (filter === 'all') return true;
+                if (filter === 'has') return f.hasSpedFile && !f.isIgnored;
+                if (filter === 'no') return !f.hasSpedFile && !f.isIgnored;
+                if (filter === 'need') return !f.hasSpedFile && !f.isIgnored;
+                if (filter === 'ignored') return f.isIgnored;
+                return true;
+            });
+            
+            renderResults();
+            updateStats();
+        }
+
+        // Renderizar resultados
+        function renderResults() {
+            if (filteredFolders.length === 0) {
+                resultsContainer.innerHTML = '<div class="text-center text-muted py-4">Nenhuma pasta encontrada</div>';
+                return;
+            }
+            
+            let html = '';
+            const displayCount = Math.min(100, filteredFolders.length);
+            
+            for (let i = 0; i < displayCount; i++) {
+                const folder = filteredFolders[i];
+                const statusClass = folder.isIgnored ? 'ignored' : (folder.hasSpedFile ? 'has-file' : 'no-file');
+                const statusText = folder.isIgnored ? 'IGNORADO' : (folder.hasSpedFile ? 'JÁ GERADO' : 'NÃO GERADO');
+                const statusType = folder.isIgnored ? 'ignored' : (folder.hasSpedFile ? 'has' : 'missing');
+                
+                html += `
+                    <div class="result-item ${statusClass}">
+                        <div class="d-flex align-items-start">
+                            <input type="checkbox" class="folder-checkbox mt-1" 
+                                   data-path="${folder.path}" 
+                                   ${folder.isIgnored ? 'checked' : ''}>
+                            <div style="flex: 1;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <span class="folder-name">
+                                        <i class="bi bi-folder file-icon"></i>
+                                        ${folder.name}
+                                        <span class="status-tag status-${statusType}">${statusText}</span>
+                                    </span>
+                                </div>
+                                <div class="folder-path">
+                                    <i class="bi bi-pin-map-fill"></i> ${folder.path}
+                                </div>`;
+                
+                // Mostrar arquivos encontrados
+                if (folder.files && folder.files.length > 0) {
+                    html += `<div class="file-details mt-2">`;
+                    folder.files.forEach(file => {
+                        html += `
+                            <div class="d-flex justify-content-between align-items-center small">
+                                <span><i class="bi bi-file-text text-warning me-1"></i>${file.name}</span>`;
+                        if (file.info) {
+                            html += `<span class="text-warning">${file.info.periodo}</span>`;
+                        }
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+                
+                html += `</div></div></div>`;
+            }
+            
+            if (filteredFolders.length > displayCount) {
+                html += `<div class="text-center text-muted small mt-2">... e mais ${filteredFolders.length - displayCount} pastas</div>`;
+            }
+            
+            resultsContainer.innerHTML = html;
+            resultsCount.textContent = filteredFolders.length;
+            
+            // Eventos dos checkboxes
+            document.querySelectorAll('.folder-checkbox').forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    const path = this.dataset.path;
+                    toggleIgnore(path, this.checked);
+                });
+            });
+        }
+
+        // Marcar pasta como ignorada
+        function toggleIgnore(path, ignore) {
+            const folder = allFolders.find(f => f.path === path);
+            if (folder) {
+                folder.isIgnored = ignore;
+                if (ignore) {
+                    ignoredFolders.add(path);
+                    addLog(`✗ Ignorado: ${folder.name}`);
+                } else {
+                    ignoredFolders.delete(path);
+                    addLog(`✓ Reativado: ${folder.name}`);
+                }
+                updateStats();
+                applyFilter(currentFilter);
+            }
+        }
+
+        // Event listeners dos filtros
+        filterAll.addEventListener('click', () => applyFilter('all'));
+        filterHas.addEventListener('click', () => applyFilter('has'));
+        filterNo.addEventListener('click', () => applyFilter('no'));
+        filterNeed.addEventListener('click', () => applyFilter('need'));
+        filterIgnored.addEventListener('click', () => applyFilter('ignored'));
+
+        // Ações em massa
+        document.getElementById('ignoreAllHas').addEventListener('click', () => {
+            let count = 0;
+            allFolders.forEach(f => {
+                if (f.hasSpedFile && !f.isIgnored) {
+                    f.isIgnored = true;
+                    ignoredFolders.add(f.path);
+                    count++;
+                }
+            });
+            updateStats();
+            applyFilter(currentFilter);
+            addLog(`✅ ${count} pastas com arquivo marcadas como IGNORADAS`);
+        });
+
+        document.getElementById('ignoreAllNo').addEventListener('click', () => {
+            let count = 0;
+            allFolders.forEach(f => {
+                if (!f.hasSpedFile && !f.isIgnored) {
+                    f.isIgnored = true;
+                    ignoredFolders.add(f.path);
+                    count++;
+                }
+            });
+            updateStats();
+            applyFilter(currentFilter);
+            addLog(`⚠️ ${count} pastas sem arquivo marcadas como IGNORADAS`);
+        });
+
+        document.getElementById('unignoreAll').addEventListener('click', () => {
+            allFolders.forEach(f => {
+                f.isIgnored = false;
+            });
+            ignoredFolders.clear();
+            updateStats();
+            applyFilter(currentFilter);
+            addLog('✓ Todas as pastas foram resetadas');
+        });
+
+        // Exportar lista completa
+        exportButton.addEventListener('click', () => {
+            const headers = ['Pasta', 'Caminho', 'Status', 'Arquivos SPED'];
+            const rows = allFolders.map(f => [
+                f.name,
+                f.path,
+                f.isIgnored ? 'IGNORADO' : (f.hasSpedFile ? 'JÁ GERADO' : 'NÃO GERADO'),
+                f.files.map(file => file.name).join('; ')
+            ]);
+            
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
+            
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `todas_pastas_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            addLog(`📊 Exportadas ${allFolders.length} pastas`);
+        });
+
+        // Exportar só as que PRECISAM gerar
+        exportNeedGenerate.addEventListener('click', () => {
+            const needGenerate = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored);
+            
+            if (needGenerate.length === 0) {
+                alert('Nenhuma pasta precisa ser gerada!');
+                return;
+            }
+            
+            const headers = ['Pasta', 'Caminho'];
+            const rows = needGenerate.map(f => [f.name, f.path]);
+            
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
+            
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `precisam_gerar_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            addLog(`📋 Exportadas ${needGenerate.length} pastas que PRECISAM gerar`);
+        });
+
+        // Exportar só as sem arquivo
+        exportMissingButton.addEventListener('click', () => {
+            const missing = allFolders.filter(f => !f.hasSpedFile);
+            
+            if (missing.length === 0) {
+                alert('Nenhuma pasta sem arquivo encontrada!');
+                return;
+            }
+            
+            const headers = ['Pasta', 'Caminho', 'Status'];
+            const rows = missing.map(f => [
+                f.name,
+                f.path,
+                f.isIgnored ? 'IGNORADO' : 'NÃO GERADO'
+            ]);
+            
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
+            
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `nao_gerados_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            addLog(`📋 Exportadas ${missing.length} pastas não geradas`);
+        });
+
+        // Inicialização
+        addLog('🚀 Scanner SPED - Controle de Pastas (Laranja/Preto)');
+        addLog('📌 Selecione a pasta raiz para iniciar');
+        addLog('🔍 Busca arquivos que começam com "sped_fiscal_"');
+        
+        // CSS adicional para animação
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .spinning {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
