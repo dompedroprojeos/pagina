@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -97,13 +98,6 @@
             border-left: 5px solid #6c757d;
             background: #e9ecef;
             opacity: 0.8;
-        }
-        
-        .result-item.highlight {
-            border: 3px solid #ff6b00;
-            box-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
-            transform: scale(1.02);
-            background: #fff0e0;
         }
         
         .folder-name {
@@ -315,119 +309,6 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
-
-        /* Estilos para busca */
-        .search-container {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ff6b00;
-        }
-
-        .search-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background: #000;
-            color: white;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #ff6b00;
-            box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
-        }
-
-        .search-input::placeholder {
-            color: #666;
-        }
-
-        .btn-search {
-            background: #ff6b00;
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .btn-search:hover {
-            background: #ff8533;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
-        }
-
-        .btn-clear {
-            background: #333;
-            color: white;
-            border: 1px solid #ff6b00;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-clear:hover {
-            background: #444;
-            border-color: #ff8533;
-        }
-
-        .search-results-info {
-            color: #ff6b00;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            padding: 5px;
-            border-top: 1px solid #333;
-        }
-
-        .match-highlight {
-            background: #ff6b00;
-            color: black;
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-            justify-content: center;
-        }
-
-        .nav-btn {
-            background: #333;
-            color: white;
-            border: 1px solid #ff6b00;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .nav-btn:hover:not(:disabled) {
-            background: #ff6b00;
-            color: black;
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
@@ -469,37 +350,6 @@
                     <button id="scanButton" class="btn-scan mb-4" disabled>
                         <i class="bi bi-search me-2"></i>Buscar TODAS as Pastas
                     </button>
-
-                    <!-- Busca por Posto -->
-                    <div class="search-container">
-                        <h6 class="mb-3" style="color: #ff6b00;">
-                            <i class="bi bi-search"></i> Buscar por Posto
-                        </h6>
-                        <div class="search-input-group">
-                            <input type="text" id="searchInput" class="search-input" 
-                                   placeholder="Digite o nome do posto...">
-                            <button id="searchButton" class="btn-search" disabled>
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                        <div class="search-input-group">
-                            <button id="clearSearch" class="btn-clear" disabled>
-                                <i class="bi bi-x-circle"></i> Limpar busca
-                            </button>
-                        </div>
-                        <div id="searchResults" class="search-results-info">
-                            Digite um nome para buscar
-                        </div>
-                        <div id="searchNavigation" class="nav-buttons" style="display: none;">
-                            <button id="prevMatch" class="nav-btn" disabled>
-                                <i class="bi bi-arrow-up"></i> Anterior
-                            </button>
-                            <span id="matchCounter" style="color: white; padding: 5px;">0/0</span>
-                            <button id="nextMatch" class="nav-btn" disabled>
-                                Próximo <i class="bi bi-arrow-down"></i>
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- Caminho atual sendo escaneado -->
                     <div id="currentPathContainer" class="current-path d-none mb-3">
@@ -624,11 +474,6 @@
         let currentFilter = 'all';
         let ignoredFolders = new Set();
         let isScanning = false;
-        
-        // Estado da busca
-        let searchTerm = '';
-        let searchResults = [];
-        let currentMatchIndex = -1;
 
         // Elementos DOM
         const folderSelector = document.getElementById('folderSelector');
@@ -655,16 +500,6 @@
         const resultsCount = document.getElementById('resultsCount');
         const currentPathContainer = document.getElementById('currentPathContainer');
         const currentScanPath = document.getElementById('currentScanPath');
-        
-        // Elementos de busca
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const clearSearch = document.getElementById('clearSearch');
-        const searchResultsDiv = document.getElementById('searchResults');
-        const searchNavigation = document.getElementById('searchNavigation');
-        const prevMatch = document.getElementById('prevMatch');
-        const nextMatch = document.getElementById('nextMatch');
-        const matchCounter = document.getElementById('matchCounter');
 
         // Filtros
         const filterAll = document.getElementById('filterAll');
@@ -837,10 +672,6 @@
                 updateStats();
                 applyFilter('all');
                 
-                // Habilitar busca
-                searchButton.disabled = false;
-                clearSearch.disabled = false;
-                
                 // Log resumido
                 const hasCount = allFolders.filter(f => f.hasSpedFile).length;
                 const noCount = allFolders.filter(f => !f.hasSpedFile).length;
@@ -862,141 +693,6 @@
             progressSection.classList.add('d-none');
             isScanning = false;
             scanButton.disabled = false;
-        });
-
-        // Função de busca por posto
-        function searchFolders(term) {
-            if (!term || term.length < 2) {
-                searchResultsDiv.innerHTML = 'Digite pelo menos 2 caracteres para buscar';
-                searchNavigation.style.display = 'none';
-                return [];
-            }
-            
-            term = term.toLowerCase();
-            const results = [];
-            
-            // Buscar em todas as pastas (considerando o filtro atual)
-            filteredFolders.forEach((folder, index) => {
-                if (folder.name.toLowerCase().includes(term) || 
-                    folder.path.toLowerCase().includes(term)) {
-                    results.push({
-                        folder: folder,
-                        index: index
-                    });
-                }
-            });
-            
-            return results;
-        }
-
-        // Realizar busca
-        function performSearch() {
-            const term = searchInput.value.trim();
-            if (term.length < 2) {
-                searchResultsDiv.innerHTML = 'Digite pelo menos 2 caracteres para buscar';
-                searchNavigation.style.display = 'none';
-                return;
-            }
-            
-            searchTerm = term;
-            searchResults = searchFolders(term);
-            
-            if (searchResults.length === 0) {
-                searchResultsDiv.innerHTML = `Nenhum posto encontrado com "<span class="match-highlight">${term}</span>"`;
-                searchNavigation.style.display = 'none';
-                return;
-            }
-            
-            // Atualizar interface
-            searchResultsDiv.innerHTML = `Encontrados <span class="match-highlight">${searchResults.length}</span> postos com "<span class="match-highlight">${term}</span>"`;
-            searchNavigation.style.display = 'flex';
-            
-            // Resetar navegação
-            currentMatchIndex = 0;
-            updateMatchCounter();
-            highlightCurrentMatch();
-            
-            // Habilitar botões de navegação
-            prevMatch.disabled = true;
-            nextMatch.disabled = searchResults.length <= 1;
-        }
-
-        // Destacar resultado atual
-        function highlightCurrentMatch() {
-            // Remover highlights anteriores
-            document.querySelectorAll('.result-item.highlight').forEach(el => {
-                el.classList.remove('highlight');
-            });
-            
-            if (currentMatchIndex >= 0 && searchResults.length > 0) {
-                const result = searchResults[currentMatchIndex];
-                const items = document.querySelectorAll('.result-item');
-                if (items[result.index]) {
-                    items[result.index].classList.add('highlight');
-                    items[result.index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
-        }
-
-        // Atualizar contador de matches
-        function updateMatchCounter() {
-            if (searchResults.length === 0) {
-                matchCounter.textContent = '0/0';
-            } else {
-                matchCounter.textContent = `${currentMatchIndex + 1}/${searchResults.length}`;
-            }
-        }
-
-        // Limpar busca
-        function clearSearch() {
-            searchInput.value = '';
-            searchTerm = '';
-            searchResults = [];
-            currentMatchIndex = -1;
-            searchResultsDiv.innerHTML = 'Digite um nome para buscar';
-            searchNavigation.style.display = 'none';
-            
-            // Remover highlights
-            document.querySelectorAll('.result-item.highlight').forEach(el => {
-                el.classList.remove('highlight');
-            });
-        }
-
-        // Event listeners de busca
-        searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-
-        searchButton.addEventListener('click', performSearch);
-
-        clearSearch.addEventListener('click', () => {
-            clearSearch();
-        });
-
-        prevMatch.addEventListener('click', () => {
-            if (currentMatchIndex > 0) {
-                currentMatchIndex--;
-                updateMatchCounter();
-                highlightCurrentMatch();
-                
-                // Atualizar botões
-                prevMatch.disabled = currentMatchIndex === 0;
-                nextMatch.disabled = false;
-            }
-        });
-
-        nextMatch.addEventListener('click', () => {
-            if (currentMatchIndex < searchResults.length - 1) {
-                currentMatchIndex++;
-                updateMatchCounter();
-                highlightCurrentMatch();
-                
-                // Atualizar botões
-                nextMatch.disabled = currentMatchIndex === searchResults.length - 1;
-                prevMatch.disabled = false;
-            }
         });
 
         // Atualizar estatísticas
@@ -1046,9 +742,6 @@
             
             renderResults();
             updateStats();
-            
-            // Limpar busca ao mudar filtro
-            clearSearch();
         }
 
         // Renderizar resultados
@@ -1257,7 +950,6 @@
         addLog('🚀 Scanner SPED - Controle de Pastas (Laranja/Preto)');
         addLog('📌 Selecione a pasta raiz para iniciar');
         addLog('🔍 Busca arquivos que começam com "sped_fiscal_"');
-        addLog('🔎 Agora com busca por nome do posto!');
         
         // CSS adicional para animação
         const style = document.createElement('style');
