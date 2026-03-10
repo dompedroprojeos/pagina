@@ -522,6 +522,29 @@ const REGIONS = [
 
 let currentId = null;
 let allRecords = [];
+let obsVisible = true;
+
+function toggleObsPadrao(){
+  obsVisible = !obsVisible;
+  const text = document.getElementById('obsPadraoText');
+  const thumb = document.getElementById('obsToggleThumb');
+  const icon = document.getElementById('obsToggleIcon');
+  const lbl = document.getElementById('obsToggleLabel');
+  const chev = document.getElementById('obsChevron');
+  if(obsVisible){
+    text.style.display='block';
+    thumb.style.left='18px';
+    icon.style.background='var(--orange)';
+    lbl.textContent='Visível na impressão — clique para ocultar';
+    chev.style.transform='rotate(0deg)';
+  } else {
+    text.style.display='none';
+    thumb.style.left='2px';
+    icon.style.background='#ccc';
+    lbl.textContent='Oculta na impressão — clique para exibir';
+    chev.style.transform='rotate(180deg)';
+  }
+}
 
 // ===== STORAGE =====
 function loadRecords() {
@@ -595,6 +618,7 @@ function collectForm(){
     estiva_mes:    document.getElementById('estiva_mes').value,
     estiva_ano:    document.getElementById('estiva_ano').value.trim(),
     assinante:     document.getElementById('assinante').value.trim(),
+    obs_padrao_visivel: obsVisible,
     prices,
   };
 }
@@ -605,6 +629,8 @@ function fillForm(d){
     .forEach(id=>{ document.getElementById(id).value = d[id]||''; });
   if(!d.estiva_ano) document.getElementById('estiva_ano').value=new Date().getFullYear();
   if(!d.assinante)  document.getElementById('assinante').value='Sandro José Caetano';
+  // Restore obs padrao visibility
+  if(typeof d.obs_padrao_visivel !== 'undefined' && d.obs_padrao_visivel !== obsVisible) toggleObsPadrao();
   if(d.prices) REGIONS.forEach(r=>{
     document.getElementById('pr_'+r.key+'_comum').value=(d.prices[r.key]||{}).comum||'';
     document.getElementById('pr_'+r.key+'_s10').value  =(d.prices[r.key]||{}).s10  ||'';
@@ -728,11 +754,8 @@ function doPrint(){
 
 function renderPrint(d){
   const prices=d.prices||{};
-  // Build table rows — 2 rows per region (Comum + S10), grouped in pairs per side
   const leftRegs  = ['mg','sp','ba','pa','se'];
   const rightRegs = ['rj','mgn','mgs','to','ce'];
-
-  // Build a combined grid table matching PDF layout (2 columns of regions)
   let rows='';
   for(let i=0;i<5;i++){
     const L=REGIONS.find(r=>r.key===leftRegs[i]);
@@ -741,93 +764,122 @@ function renderPrint(d){
     const rp=prices[R.key]||{};
     rows+=`
       <tr>
-        <td class="rc" rowspan="2" style="background:${L.color}">${L.label}</td>
-        <td class="tc">Diesel Comum</td>
-        <td class="lc">Valor Negociado:</td>
-        <td class="vc">${h(lp.comum||'')}</td>
-        <td class="rc" rowspan="2" style="background:${R.color}">${R.label}</td>
-        <td class="tc">Diesel Comum</td>
-        <td class="lc">Valor Negociado:</td>
-        <td class="vc">${h(rp.comum||'')}</td>
+        <td class="rc" rowspan="2" style="background:${L.color};-webkit-print-color-adjust:exact;print-color-adjust:exact">${L.label}</td>
+        <td class="tc">Diesel Comum</td><td class="lc">Valor Negociado:</td><td class="vc">${h(lp.comum||'')}</td>
+        <td class="rc" rowspan="2" style="background:${R.color};-webkit-print-color-adjust:exact;print-color-adjust:exact">${R.label}</td>
+        <td class="tc">Diesel Comum</td><td class="lc">Valor Negociado:</td><td class="vc">${h(rp.comum||'')}</td>
       </tr>
       <tr>
-        <td class="tc">Diesel S10</td>
-        <td class="lc">Valor Negociado:</td>
-        <td class="vc">${h(lp.s10||'')}</td>
-        <td class="tc">Diesel S10</td>
-        <td class="lc">Valor Negociado:</td>
-        <td class="vc">${h(rp.s10||'')}</td>
+        <td class="tc">Diesel S10</td><td class="lc">Valor Negociado:</td><td class="vc">${h(lp.s10||'')}</td>
+        <td class="tc">Diesel S10</td><td class="lc">Valor Negociado:</td><td class="vc">${h(rp.s10||'')}</td>
       </tr>`;
   }
 
+  const showObs = obsVisible;
+
   document.getElementById('printArea').innerHTML=`
-    <div class="ph">
-      <img class="ph-img"
-        src="https://raw.githubusercontent.com/dompedroprojeos/pagina/main/cabecalho.png"
-        onerror="this.style.display='none';document.getElementById('ph-fallback').style.display='flex'"
-        alt="Dom Pedro">
-      <div id="ph-fallback" style="display:none;align-items:center;gap:10px;margin-right:14px">
-        <div style="background:#0D4F5C;padding:6px 10px;border-radius:4px;color:#fff;font-weight:900;font-size:14px">DOM PEDRO</div>
+  <div class="pa4" style="-webkit-print-color-adjust:exact;print-color-adjust:exact">
+
+    <!-- HERO HEADER -->
+    <div class="ph-hero" style="-webkit-print-color-adjust:exact;print-color-adjust:exact">
+      <div class="ph-arcs">
+        <div class="ph-arc"></div><div class="ph-arc"></div>
+        <div class="ph-arc"></div><div class="ph-arc"></div>
       </div>
-      <div class="ph-title"><h1>Autorização de Ajuste de Preço</h1></div>
-    </div>
-
-    <div class="pf">
-      <div class="pf-item"><span class="lb">Empresa:</span><span class="vl">${h(d.empresa||'')}</span></div>
-      <div class="pf-item"><span class="lb">Código:</span><span class="vl">${h(d.codigo||'')}</span></div>
-      <div class="pf-item"><span class="lb">Quant. Veículos:</span><span class="vl">${h(d.qtd_veiculos||'')}</span></div>
-    </div>
-    <div class="pf">
-      <div class="pf-item"><span class="lb">Cliente desde:</span><span class="vl">${h(d.cliente_desde||'')}</span></div>
-      <div class="pf-item"><span class="lb">Região de Atuação:</span><span class="vl">${h(d.regiao||'')}</span></div>
-    </div>
-    <div class="pf">
-      <div class="pf-item"><span class="lb">Galonagem do mês anterior:</span><span class="vl">${h(d.galonagem||'')}${d.galonagem?' lts':''}</span></div>
-      <div class="pf-item"><span class="lb">Potencial de Abastecimento:</span><span class="vl">${h(d.potencial||'')}</span></div>
-      <div class="pf-item"><span class="lb">Prazo:</span><span class="vl">${h(d.prazo||'')}</span></div>
-    </div>
-    <div class="pf">
-      <div class="pf-item"><span class="lb">Contato da empresa:</span><span class="vl">${h(d.contato||'')}</span></div>
-    </div>
-
-    <table class="pt">
-      <thead><tr>
-        <th colspan="4" style="border-right:2px solid #0D4F5C">Região Esquerda</th>
-        <th colspan="4">Região Direita</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-
-    <div class="pnote">*Considerar os novos preços a partir da próxima data devido às sincronizações no sistema.</div>
-
-    <div><strong style="font-size:10.5px">Obs:</strong>
-      <div class="pobs">MGN: REGIÃO DE NORTE DE MINAS (MONTES CLAROS, SALINAS, DIVISA 1, DIVISA 2, CACHOEIRA DO PAJEÚ E FREI INOCÊNCIO).</div>
-    </div>
-    ${d.obs_adicional?`<div style="margin-top:5px"><strong style="font-size:10.5px">Obs:</strong><div class="pobs">${h(d.obs_adicional)}</div></div>`:''}
-
-    <div class="pestiva">
-      <span class="lb">Estiva,</span>
-      <span>${h(d.estiva_mes||'')} ${h(d.estiva_ano||'')}</span>
-    </div>
-
-    <div class="psigs">
-      <div class="psig">
-        <div class="line"></div>
-        <div class="nm">${h(d.assinante||'Sandro José Caetano')}</div>
+      <div class="ph-logo-box">
+        <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png"
+          onerror="this.style.display='none'"
+          alt="Dom Pedro">
       </div>
-      <div class="psig" style="width:80px"></div>
-      <div class="psig">
-        <div class="line"></div>
-        <div class="rl">Diretoria</div>
+      <div class="ph-text">
+        <div class="ph-title-main">DOM <span>PEDRO</span></div>
+        <div class="ph-subtitle">Rede de Postos — Sistema de Gestão</div>
+      </div>
+      <div class="ph-doc-title">
+        <h1>Autorização de<br>Ajuste de Preço</h1>
       </div>
     </div>
 
-    <div class="pfoot">
-      <span>✉ sac@rededompedro.com</span>
-      <span>🌐 www.rededompedro.com</span>
-      <span>📍 Rodovia Fernão Dias KM 880, S/N Espraiado – Estiva-MG</span>
-      <span>📞 0800 723 1188</span>
-    </div>`;
+    <!-- BODY -->
+    <div class="pa4-body">
+      <div style="height:10px"></div>
+      <div class="pf">
+        <div class="pf-item"><span class="lb">Empresa:</span><span class="vl">${h(d.empresa||'')}</span></div>
+        <div class="pf-item"><span class="lb">Código:</span><span class="vl">${h(d.codigo||'')}</span></div>
+        <div class="pf-item"><span class="lb">Quant. Veículos:</span><span class="vl">${h(d.qtd_veiculos||'')}</span></div>
+      </div>
+      <div class="pf">
+        <div class="pf-item"><span class="lb">Cliente desde:</span><span class="vl">${h(d.cliente_desde||'')}</span></div>
+        <div class="pf-item"><span class="lb">Região de Atuação:</span><span class="vl">${h(d.regiao||'')}</span></div>
+      </div>
+      <div class="pf">
+        <div class="pf-item"><span class="lb">Galonagem do mês anterior:</span><span class="vl">${h(d.galonagem||'')}${d.galonagem?' lts':''}</span></div>
+        <div class="pf-item"><span class="lb">Potencial de Abastecimento:</span><span class="vl">${h(d.potencial||'')}</span></div>
+        <div class="pf-item"><span class="lb">Prazo:</span><span class="vl">${h(d.prazo||'')}</span></div>
+      </div>
+      <div class="pf" style="margin-bottom:8px">
+        <div class="pf-item"><span class="lb">Contato da empresa:</span><span class="vl">${h(d.contato||'')}</span></div>
+      </div>
+
+      <table class="pt">
+        <thead><tr>
+          <th colspan="4" style="border-right:2px solid rgba(255,255,255,.3)">Região</th>
+          <th colspan="4">Região</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="pnote" style="-webkit-print-color-adjust:exact;print-color-adjust:exact">
+        *Considerar os novos preços a partir da próxima data devido às sincronizações no sistema.
+      </div>
+
+      ${showObs?`<div><strong style="font-size:10px">Obs:</strong>
+        <div class="pobs">MGN: REGIÃO DE NORTE DE MINAS (MONTES CLAROS, SALINAS, DIVISA 1, DIVISA 2, CACHOEIRA DO PAJEÚ E FREI INOCÊNCIO).</div>
+      </div>`:''}
+      ${d.obs_adicional?`<div style="margin-top:4px"><strong style="font-size:10px">Obs:</strong><div class="pobs">${h(d.obs_adicional)}</div></div>`:''}
+
+      <div class="pestiva">
+        <span class="lb">Estiva,</span>
+        <span>${h(d.estiva_mes||'')} ${h(d.estiva_ano||'')}</span>
+      </div>
+
+      <div class="psigs">
+        <div class="psig">
+          <div class="line"></div>
+          <div class="nm">${h(d.assinante||'Sandro José Caetano')}</div>
+        </div>
+        <div class="psig" style="max-width:60px"></div>
+        <div class="psig">
+          <div class="line"></div>
+          <div class="rl">Diretoria</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPACER pushes footer to bottom -->
+    <div class="pa4-footer-push"></div>
+
+    <!-- FOOTER -->
+    <div class="pfoot" style="-webkit-print-color-adjust:exact;print-color-adjust:exact">
+      <div class="pfoot-item">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        sac@rededompedro.com
+      </div>
+      <div class="pfoot-item">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+        www.rededompedro.com
+      </div>
+      <div class="pfoot-item">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Rodovia Fernão Dias KM 880, S/N Espraiado – Estiva-MG
+      </div>
+      <div class="pfoot-item">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.08 9.81 19.79 19.79 0 01.99 1.2 2 2 0 013 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 6.91a16 16 0 006.86 6.86l.27-.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        0800 723 1188
+      </div>
+    </div>
+
+  </div>`;
 }
 
 // ===== UTILS =====
