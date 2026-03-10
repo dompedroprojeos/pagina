@@ -141,10 +141,12 @@ textarea.fi{resize:vertical;min-height:58px}
   body > *:not(#printArea) { display: none !important; }
   #printArea {
     display: block !important;
-    position: static !important;
+    position: fixed !important;
+    top: 0; left: 0; right: 0; bottom: 0;
     font-family: Arial, Helvetica, sans-serif;
+    margin: 0; padding: 0;
   }
-  @page { margin: 15mm 12mm; size: A4 portrait; }
+  @page { margin: 0; size: A4 portrait; }
 }
 
 #printArea {
@@ -154,61 +156,123 @@ textarea.fi{resize:vertical;min-height:58px}
   color: #111;
   background: #fff;
 }
-.ph { /* print header */
+
+/* A4 inner wrapper - full page layout */
+.pa4 {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+.pa4-body {
+  flex: 1;
+  padding: 0 14mm 6mm;
+}
+.pa4-footer-push { flex: 1; }
+
+/* PRINT HERO HEADER - igual ao design system */
+.ph-hero {
+  background: #E8501A;
+  position: relative;
+  overflow: hidden;
+  padding: 14px 18px 12px;
   display: flex;
   align-items: center;
-  border-bottom: 3px solid #E8501A;
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-  gap: 0;
+  gap: 14px;
+  margin-bottom: 0;
 }
-.ph-img { height: 54px; margin-right: 14px; }
-.ph-title { flex: 1; text-align: center; }
-.ph-title h1 { font-size: 17px; font-weight: 900; color: #0C2830; margin: 0; }
-.pf { /* print field row */
-  display: flex; gap: 18px; margin-bottom: 5px; flex-wrap: wrap;
+.ph-arcs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ph-arc {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.18);
 }
-.pf-item { display: flex; align-items: baseline; gap: 5px; flex: 1; min-width: 140px; }
+.ph-arc:nth-child(1){width:260px;height:260px;top:-140px;right:-40px}
+.ph-arc:nth-child(2){width:180px;height:180px;top:-40px;right:50px}
+.ph-arc:nth-child(3){width:110px;height:110px;top:18px;right:120px}
+.ph-arc:nth-child(4){width:200px;height:200px;bottom:-130px;left:-50px;border-color:rgba(255,255,255,.07)}
+.ph-logo-box {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.35);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex-shrink: 0;
+  position: relative; z-index: 2;
+}
+.ph-logo-box img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+.ph-text { position: relative; z-index: 2; }
+.ph-title-main { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+.ph-title-main span { color: rgba(255,255,255,.6); font-weight: 300; }
+.ph-subtitle { font-size: 8px; color: rgba(255,255,255,.75); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; font-weight: 700; }
+.ph-doc-title {
+  position: relative; z-index: 2;
+  margin-left: auto;
+  text-align: right;
+}
+.ph-doc-title h1 {
+  font-size: 13px; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.2);
+  line-height: 1.2;
+}
+.ph-doc-title p { font-size: 8px; color: rgba(255,255,255,.65); margin-top: 2px; }
+
+.pf { display: flex; gap: 14px; margin-bottom: 4px; flex-wrap: wrap; }
+.pf-item { display: flex; align-items: baseline; gap: 5px; flex: 1; min-width: 130px; }
 .pf-item .lb { font-weight: 700; font-size: 10.5px; white-space: nowrap; color: #0C2830; }
 .pf-item .vl {
   font-size: 11px; color: #000;
   border-bottom: 1px solid #aaa;
-  flex: 1; padding-bottom: 1px; min-width: 60px; min-height: 14px;
+  flex: 1; padding-bottom: 1px; min-width: 50px; min-height: 13px;
 }
-.pt { /* prices table */
-  width: 100%; border-collapse: collapse; font-size: 10px; margin: 10px 0;
-}
+.pt { width: 100%; border-collapse: collapse; font-size: 10px; margin: 8px 0; }
 .pt th {
   background: #0D4F5C; color: #fff;
-  padding: 5px 7px; text-align: center; font-size: 9.5px; font-weight: 700;
+  padding: 4px 6px; text-align: center; font-size: 9px; font-weight: 700;
 }
-.pt td { border: 1px solid #ccc; padding: 3.5px 7px; vertical-align: middle; }
-.pt .rc { /* region cell */
+.pt td { border: 1px solid #ccc; padding: 3px 6px; vertical-align: middle; }
+.pt .rc {
   background: #E8501A; color: #fff; font-weight: 800; font-size: 10px;
-  text-align: center; width: 44px; white-space: nowrap;
+  text-align: center; width: 38px; white-space: nowrap;
 }
-.pt .tc { font-weight: 600; color: #333; width: 78px; }
-.pt .vc { font-weight: 700; color: #0C2830; }
-.pt .lc { font-size: 9.5px; color: #555; width: 80px; }
-.pt tr:nth-child(4n+1) td:not(.rc), .pt tr:nth-child(4n+2) td:not(.rc) { background: #fafafa; }
+.pt .tc { font-weight: 600; color: #333; width: 72px; font-size: 9.5px; }
+.pt .vc { font-weight: 700; color: #0C2830; font-size: 10px; }
+.pt .lc { font-size: 9px; color: #555; width: 74px; }
+.pt tr:nth-child(4n+1) td:not(.rc),
+.pt tr:nth-child(4n+2) td:not(.rc) { background: #fafafa; }
 .pnote {
   background: #FFF3E0; border: 1px solid #FFCC80;
-  border-radius: 3px; padding: 5px 9px; font-size: 10px; color: #E65100;
-  font-weight: 600; margin: 8px 0;
+  border-radius: 3px; padding: 4px 8px; font-size: 9.5px; color: #E65100;
+  font-weight: 600; margin: 6px 0;
 }
-.pobs { border: 1px solid #ddd; border-radius: 3px; padding: 5px 9px; background: #f9f9f9; min-height: 22px; font-size: 10px; margin-top: 4px; }
-.pestiva { display: flex; align-items: center; gap: 7px; font-size: 11px; margin: 10px 0 4px; }
+.pobs { border: 1px solid #ddd; border-radius: 3px; padding: 4px 8px; background: #f9f9f9; min-height: 18px; font-size: 9.5px; margin-top: 3px; }
+.pestiva { display: flex; align-items: center; gap: 7px; font-size: 11px; margin: 8px 0 3px; }
 .pestiva .lb { font-weight: 700; }
-.psigs { display: flex; justify-content: space-between; margin-top: 22px; gap: 20px; }
+.psigs { display: flex; justify-content: space-between; margin-top: 18px; gap: 20px; }
 .psig { flex: 1; text-align: center; }
-.psig .line { border-top: 1px solid #000; margin-top: 28px; margin-bottom: 4px; }
-.psig .nm { font-size: 10.5px; font-weight: 600; }
-.psig .rl { font-size: 9.5px; color: #555; }
+.psig .line { border-top: 1px solid #000; margin-top: 24px; margin-bottom: 3px; }
+.psig .nm { font-size: 10px; font-weight: 600; }
+.psig .rl { font-size: 9px; color: #555; }
+
+/* FOOTER - always at bottom */
 .pfoot {
-  border-top: 2px solid #E8501A; padding-top: 7px; margin-top: 14px;
-  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;
-  font-size: 8.5px; color: #666;
+  background: #E8501A;
+  padding: 8px 14mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
 }
+.pfoot-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 8px; color: rgba(255,255,255,.9); font-family: Arial;
+}
+.pfoot-item svg { flex-shrink: 0; }
+.pf-section { padding: 0 0 4px; }
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -360,9 +424,23 @@ textarea.fi{resize:vertical;min-height:58px}
   <!-- OBS + ASSINATURA -->
   <div class="fcard">
     <div class="fcard-title">📝 Observações e Assinatura</div>
-    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--text2);margin-bottom:14px">
-      <span style="font-weight:700;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Obs. Padrão</span>
-      MGN: REGIÃO DE NORTE DE MINAS (MONTES CLAROS, SALINAS, DIVISA 1, DIVISA 2, CACHOEIRA DO PAJEÚ E FREI INOCÊNCIO).
+    <!-- OBS PADRÃO COM TOGGLE -->
+    <div id="obsPadraoCard" style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;transition:all .3s">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none" onclick="toggleObsPadrao()">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="obsToggleIcon" style="width:36px;height:20px;border-radius:10px;background:var(--orange);border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0">
+            <div id="obsToggleThumb" style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--text);letter-spacing:.3px">Obs. Padrão</div>
+            <div style="font-size:10px;color:var(--muted)" id="obsToggleLabel">Visível na impressão — clique para ocultar</div>
+          </div>
+        </div>
+        <svg id="obsChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);transition:transform .3s"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+      <div id="obsPadraoText" style="padding:0 14px 12px;font-size:12px;color:var(--text2);border-top:1px solid var(--border);padding-top:10px;transition:all .3s">
+        MGN: REGIÃO DE NORTE DE MINAS (MONTES CLAROS, SALINAS, DIVISA 1, DIVISA 2, CACHOEIRA DO PAJEÚ E FREI INOCÊNCIO).
+      </div>
     </div>
     <div>
       <label class="fl">Obs. adicional</label>
