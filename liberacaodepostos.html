@@ -1996,6 +1996,9 @@
         <span id="toastMessage"></span>
     </div>
 
+    <!-- ARQUIVO DE CREDENCIAIS EXTERNO - ADICIONADO AQUI -->
+    <script src="credenciais.js"></script>
+
     <script>
         // Bloquear inspeção
         document.addEventListener('contextmenu', function(e) {
@@ -2018,31 +2021,7 @@
             }
         });
 
-        // Credenciais dos usuários
-        const usuarios = {
-            'julia.silva@rededompedro.com': {
-                nome: 'Júlia Silva',
-                senha: 'julia@DP@123456',
-                tipo: 'usuario'
-            },
-            'guilherme.araujo@rededompedro.com': {
-                nome: 'Guilherme Araújo',
-                senha: 'guilherme@DP@123456',
-                tipo: 'usuario'
-            },
-            'lilian.borges@rededompedro.com': {
-                nome: 'Lilian Borges',
-                senha: 'lilian@DP@123456',
-                tipo: 'usuario'
-            },
-            'waldeci.ramos@rededompedro.com': {
-                nome: 'Waldeci Ramos',
-                senha: 'ADM@2026',
-                tipo: 'admin'
-            }
-        };
-
-        // Dados dos postos
+        // Dados dos postos (mantidos aqui porque não são sensíveis)
         const postosData = [
             {codigo: 1, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA", nomeReduzido: "REDE DOM PEDRO DE POSTOS LTD", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "237950644", endereco: "ROD FERNAO DIAS, SN - SN", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "DIRCEU", ativo: true},
             {codigo: 2, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 1)", nomeReduzido: "DP 1", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "2450291", endereco: "ROD FERNAO DIAS  KM 880,", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "35 34621188", fax: "35 34621188", contato: "DIRCEU", ativo: true},
@@ -2184,7 +2163,7 @@
             nome: 'Dezembro/2026'
         }];
         let relatoriosSalvos = JSON.parse(localStorage.getItem('relatoriosSalvos')) || [];
-        let backupHistory = JSON.parse(localStorage.getItem('backupHistory')) || []; // Histórico de backups
+        let backupHistory = JSON.parse(localStorage.getItem('backupHistory')) || [];
         let usuarioAtual = null;
         let showInativos = false;
         let searchTerm = '';
@@ -2235,7 +2214,7 @@
         const backupHistoryFullList = document.getElementById('backupHistoryFullList');
         const backupHistoryModal = document.getElementById('backupHistoryModal');
 
-        // Função de Login
+        // Função de Login com decodificação Base64
         function fazerLogin() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -2252,8 +2231,11 @@
                 loginError.textContent = 'Usuário não encontrado';
                 return;
             }
-
-            if (usuario.senha !== password) {
+            
+            // Decodificar a senha de Base64 para texto normal
+            const senhaDecodificada = atob(usuario.senha);
+            
+            if (senhaDecodificada !== password) {
                 loginError.textContent = 'Senha incorreta';
                 return;
             }
@@ -2277,7 +2259,6 @@
             carregarRelatorios();
             atualizarBackupHistory();
             
-            // Mostrar botão de zerar sistema apenas para admin
             if (usuarioAtual.tipo === 'admin') {
                 resetSystemBtn.style.display = 'flex';
             }
@@ -2501,7 +2482,6 @@
         }
 
         function visualizarBackup(backup) {
-            // Mostrar informações do backup
             const detalhes = `
                 Data: ${backup.dataFormatada}
                 Usuário: ${backup.usuarioNome}
@@ -2597,7 +2577,7 @@
             resetModal.style.display = 'flex';
             confirmResetCheckbox.checked = false;
             confirmResetBtn.disabled = true;
-            atualizarBackupHistory(); // Atualizar lista de backups recentes
+            atualizarBackupHistory();
         }
 
         function fecharResetModal() {
@@ -2611,56 +2591,42 @@
 
         // Confirmar zerar sistema (apenas com backup já realizado)
         function confirmarZerarSistema() {
-            // Verificar se tem backup no histórico
             if (backupHistory.length === 0) {
                 mostrarToast('Você PRECISA fazer um backup antes de zerar o sistema!', 'error');
                 return;
             }
             
-            // Verificar se o último backup é recente (opcional - pode remover se quiser)
             const ultimoBackup = backupHistory[0];
             const agora = new Date();
             const dataBackup = new Date(ultimoBackup.data);
             const diferencaMinutos = (agora - dataBackup) / (1000 * 60);
             
-            if (diferencaMinutos > 30) { // Se o último backup tem mais de 30 minutos
+            if (diferencaMinutos > 30) {
                 if (!confirm('Seu último backup não é recente. Deseja continuar mesmo assim?')) {
                     return;
                 }
             }
             
-            // Limpar todas as unidades liberadas
             unidadesLiberadas = [];
-            
-            // Limpar períodos (deixar apenas o período padrão)
             periodosLiberacao = [{
                 ano: '2026',
                 mes: '12',
                 nome: 'Dezembro/2026'
             }];
-            
-            // Limpar todos os relatórios
             relatoriosSalvos = [];
             
-            // NÃO limpar o histórico de backups - importante para acesso fácil!
-            // backupHistory = []; // Comentado para manter o histórico
-            
-            // Salvar no localStorage
             localStorage.setItem('unidadesLiberadas', JSON.stringify(unidadesLiberadas));
             localStorage.setItem('periodosLiberacao', JSON.stringify(periodosLiberacao));
             localStorage.setItem('relatoriosSalvos', JSON.stringify(relatoriosSalvos));
             localStorage.setItem('backupHistory', JSON.stringify(backupHistory));
             
-            // Recarregar interfaces
             carregarPeriodos();
             loadPostos();
             loadLiberados();
             carregarRelatorios();
             
-            // Fechar modal
             fecharResetModal();
             
-            // Mostrar mensagem
             mostrarToast('Sistema completamente zerado com sucesso! Backup mantido para acesso.', 'warning');
         }
 
@@ -3180,17 +3146,13 @@
             const assunto = `Relatório de Unidades Liberadas - ${relatorioAtual.numero}`;
             const destinatarios = 'conferenciasfiscais@rededompedro.com; contabilidade@rededompedro.com; waldeci.ramos@rededompedro.com; lmc@rededompedro.com';
             
-            // Criar corpo do email com o relatório
             const saudacao = getSaudacao();
             const responsavel = relatorioAtual.responsavel;
             
             let corpoEmail = `${saudacao},\n\n`;
             corpoEmail += `Segue abaixo a relação de unidades liberadas para verificação do Speed Fiscal:\n\n`;
-            
-            // Adicionar unidades em formato texto
             corpoEmail += `PERÍODOS: ${relatorioAtual.periodos.join(' • ')}\n`;
             corpoEmail += `RESPONSÁVEL: ${responsavel}\n\n`;
-            
             corpoEmail += `LISTA DE UNIDADES LIBERADAS:\n`;
             corpoEmail += `========================================\n`;
             
@@ -3203,14 +3165,11 @@
             corpoEmail += `TOTAL DE UNIDADES: ${relatorioAtual.total}\n`;
             corpoEmail += `COM CORREÇÃO: ${relatorioAtual.comCorrecao}\n`;
             corpoEmail += `SEM CORREÇÃO: ${relatorioAtual.semCorrecao}\n\n`;
-            
             corpoEmail += `Atenciosamente,\n`;
             corpoEmail += `${responsavel}\n`;
             corpoEmail += `Setor de LMC - Rede Dom Pedro\n`;
             
-            // Criar link mailto
             const mailtoLink = `mailto:${destinatarios}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpoEmail)}`;
-            
             window.location.href = mailtoLink;
             
             mostrarToast('Cliente de email aberto com o relatório!', 'success');
@@ -3356,7 +3315,6 @@
             updateDataFooter();
             setInterval(updateDataFooter, 60000);
             
-            // Verificar se já está logado
             const usuarioSalvo = sessionStorage.getItem('usuarioLogado');
             if (usuarioSalvo && usuarios[usuarioSalvo]) {
                 usuarioAtual = {
@@ -3376,13 +3334,11 @@
                 carregarRelatorios();
                 atualizarBackupHistory();
                 
-                // Mostrar botão de zerar sistema apenas para admin
                 if (usuarioAtual.tipo === 'admin') {
                     resetSystemBtn.style.display = 'flex';
                 }
             }
             
-            // Iniciar com status padrão
             selecionarStatusRapido('padrao');
         });
 
