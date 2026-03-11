@@ -1241,11 +1241,43 @@ function copyEmailBody(){
   const txt=document.getElementById('emailBody').textContent;
   navigator.clipboard.writeText(txt).then(()=>toast('📋 Copiado!','success')).catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copiado!','success');});
 }
-function sendEmail(){
-  const para=document.getElementById('emailDestinatario').value.trim();
-  const assunto=encodeURIComponent(document.getElementById('emailAssunto').value);
-  const corpo=encodeURIComponent(document.getElementById('emailBody').textContent);
-  window.location.href=`mailto:${para}?subject=${assunto}&body=${corpo}`;
+function sendEmail() {
+  const para = document.getElementById('emailDestinatario').value.trim();
+  const assunto = encodeURIComponent(document.getElementById('emailAssunto').value);
+  const corpo = encodeURIComponent(document.getElementById('emailBody').textContent);
+  const mailtoUrl = `mailto:${para}?subject=${assunto}&body=${corpo}`;
+  
+  // Primeiro tenta abrir com Thunderbird
+  const thunderbirdUrl = `thunderbird://${mailtoUrl}`;
+  
+  // Cria um iframe invisível para tentar abrir o Thunderbird
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = thunderbirdUrl;
+  document.body.appendChild(iframe);
+  
+  // Define um timer para verificar se o Thunderbird foi aberto
+  let thunderbirdAberto = false;
+  
+  // Se o Thunderbird não abrir em 500ms, tenta com mailto padrão
+  setTimeout(() => {
+    if (!thunderbirdAberto) {
+      document.body.removeChild(iframe);
+      window.location.href = mailtoUrl;
+    }
+  }, 500);
+  
+  // Tenta detectar se o Thunderbird foi aberto (quando o iframe perde o foco)
+  window.addEventListener('blur', function onBlur() {
+    thunderbirdAberto = true;
+    window.removeEventListener('blur', onBlur);
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 100);
+  });
+  
   closeEmailModal();
 }
 
