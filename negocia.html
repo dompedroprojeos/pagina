@@ -51,7 +51,7 @@
       background:linear-gradient(90deg,transparent 5%,rgba(255,240,180,.65) 30%,rgba(255,255,255,.9) 50%,rgba(255,240,180,.65) 70%,transparent 95%);
     }
     .topbar-logo{display:flex;align-items:center;position:relative;z-index:1}
-    .topbar-logo img{height:50px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.3));opacity:.95}
+    .topbar-logo img{height:32px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.3));opacity:.95}
     .topbar-divider{width:1px;height:22px;background:rgba(255,255,255,.22);flex-shrink:0;position:relative;z-index:1}
     .topbar-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px;text-shadow:0 1px 8px rgba(0,0,0,.28);position:relative;z-index:1;white-space:nowrap}
     .topbar-title span.accent{color:rgba(255,255,255,.52);margin-left:5px;font-size:13px;font-weight:400}
@@ -303,7 +303,7 @@
 <header class="topbar">
   <div class="topbar-logo">
     <!-- Logo pedrinho.png — fallback para texto se imagem não carregar -->
-    <img src="pedrinho.png" alt="Rede Dom Pedro"
+    <img src="pedrinho.png" alt="Rede Dom Pedro" style="height:52px"
       onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
     <span id="logo-fallback" style="display:none;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.3px;text-shadow:0 1px 6px rgba(0,0,0,.3)">Rede Dom Pedro</span>
   </div>
@@ -1288,26 +1288,15 @@ function renderChart(allData, volAcordado, nome, period) {
 
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
-  // ── Alta nitidez: força devicePixelRatio = 3 ──
-  // Isso torna as bordas das barras e da linha muito mais nítidas ao imprimir
-  const DPR = Math.max(3, window.devicePixelRatio || 1);
-  const wrap = canvas.parentElement;
-  const cssW  = wrap.clientWidth  || 800;
-  const cssH  = 360;
-  canvas.width  = Math.round(cssW  * DPR);
-  canvas.height = Math.round(cssH  * DPR);
-  canvas.style.width  = cssW  + 'px';
-  canvas.style.height = cssH  + 'px';
   const ctx = canvas.getContext('2d');
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   const PALETTE = [
     '#6366f1','#8b5cf6','#ec4899','#f43f5e',
     '#f97316','#eab308','#22c55e','#14b8a6',
     '#0ea5e9','#3b82f6','#a855f7','#ea6c00'
   ];
-  const offset      = 12 - period;
-  const barColors   = data.map((_, i) => PALETTE[(offset + i) % 12]);
+  const offset        = 12 - period;
+  const barColors     = data.map((_, i) => PALETTE[(offset + i) % 12]);
   const barColorsFade = barColors.map(c => c + 'bb');
 
   Chart.register(ChartDataLabels);
@@ -1324,7 +1313,7 @@ function renderChart(allData, volAcordado, nome, period) {
           data,
           backgroundColor: barColorsFade,
           borderColor: barColors,
-          borderWidth: 2.5,       // ligeiramente mais grosso para impressão
+          borderWidth: 2,
           borderRadius: 8,
           borderSkipped: false,
           datalabels: {
@@ -1334,9 +1323,7 @@ function renderChart(allData, volAcordado, nome, period) {
             align: 'center',
             rotation: -90,
             font: { family: 'DM Mono, monospace', size: 10, weight: '600' },
-            formatter: v => fmtVal(v),
-            textShadowBlur: 4,
-            textShadowColor: 'rgba(0,0,0,.5)'
+            formatter: v => fmtVal(v)
           }
         },
         {
@@ -1344,12 +1331,12 @@ function renderChart(allData, volAcordado, nome, period) {
           data: new Array(data.length).fill(volAcordado),
           type: 'line',
           borderColor: '#ea6c00',
-          borderWidth: 3,         // linha mais grossa para nitidez ao imprimir
-          pointRadius: ctx => (ctx.dataIndex === 0 || ctx.dataIndex === data.length - 1) ? 7 : 0,
-          pointHoverRadius: 8,
+          borderWidth: 2.5,
+          pointRadius: ctx => (ctx.dataIndex === 0 || ctx.dataIndex === data.length - 1) ? 6 : 0,
+          pointHoverRadius: 7,
           pointBackgroundColor: '#ea6c00',
           pointBorderColor: '#fff',
-          pointBorderWidth: 3,
+          pointBorderWidth: 2,
           tension: 0,
           fill: { target: 'origin', above: 'rgba(234,108,0,.06)' },
           order: 0,
@@ -1363,15 +1350,14 @@ function renderChart(allData, volAcordado, nome, period) {
             formatter: v => Math.round(v).toLocaleString('pt-BR'),
             anchor: ctx => ctx.dataIndex === 0 ? 'end' : 'start',
             align:  ctx => ctx.dataIndex === 0 ? 'right' : 'left',
-            offset: 6,
-            textShadowBlur: 0
+            offset: 6
           }
         }
       ]
     },
     options: {
-      devicePixelRatio: DPR,   // informa ao Chart.js o DPR real
-      responsive: false,       // desativa responsive para manter tamanho fixo com DPR manual
+      responsive: true,
+      maintainAspectRatio: false,
       animation: { duration: 600, easing: 'easeOutQuart' },
       scales: {
         y: {
