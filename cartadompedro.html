@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Cartas – Rede Dom Pedro</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#F47920;
+  --or2:#d96510;
+  --dk:#1a1a1a;
+  --gy:#5a5a6a;
+  --wh:#fff;
+  --border:#e8e8e8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:radial-gradient(ellipse at 20% 50%,#1a1a30 0%,#0d0d18 60%);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+}
+
+/* ══ TOOLBAR ══ */
+#toolbar{
+  width:100%;
+  background:linear-gradient(90deg,#0d0d18,#141428 60%,#1a1020);
+  border-bottom:2px solid var(--or);
+  padding:8px 16px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 20px rgba(0,0,0,.7);
+}
+#toolbar .logo-bar{height:34px;margin-right:12px;filter:drop-shadow(0 0 6px rgba(244,121,32,.4))}
+#toolbar button,#toolbar select{
+  background:rgba(255,255,255,.05);color:#ddd;
+  border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  padding:5px 11px;cursor:pointer;font-size:12.5px;
+  font-family:'Nunito',sans-serif;transition:all .2s;white-space:nowrap;
+}
+#toolbar button:hover{background:var(--or);color:#fff;border-color:var(--or)}
+#toolbar select{padding:5px 6px}
+#toolbar input[type=color]{padding:2px;width:30px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);cursor:pointer}
+#toolbar .sep{width:1px;height:26px;background:rgba(255,255,255,.15);margin:0 2px}
+.tbg{display:flex;align-items:center;gap:4px}
+.btn-special{
+  background:linear-gradient(135deg,var(--or),var(--or2))!important;
+  color:#fff!important;border:none!important;font-weight:700!important;
+  padding:6px 16px!important;box-shadow:0 3px 12px rgba(244,121,32,.4);
+}
+.btn-special:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(244,121,32,.5)!important}
+.btn-profile{background:rgba(244,121,32,.15)!important;border-color:var(--or)!important;color:var(--or)!important}
+.btn-tpl{background:rgba(201,168,76,.12)!important;border-color:#c9a84c!important;color:#c9a84c!important}
+
+/* ══ PAGE ══ */
+#page-wrapper{padding:24px 20px 60px;display:flex;justify-content:center}
+#letter{
+  width:794px;min-height:1123px;background:#fff;
+  position:relative;display:flex;flex-direction:column;
+  box-shadow:0 20px 80px rgba(0,0,0,.8),0 0 0 1px rgba(244,121,32,.15);
+}
+
+/* ══════════════════════════════════
+   HEADER  —  estilo Autorização PDF
+══════════════════════════════════ */
+.lh-header{
+  position:relative;display:flex;align-items:stretch;height:90px;overflow:hidden;
+}
+/* faixa laranja esquerda */
+.hdr-left{
+  background:var(--or);
+  display:flex;align-items:center;
+  padding:0 36px 0 18px;
+  flex-shrink:0;
+  clip-path:polygon(0 0,calc(100% - 22px) 0,100% 100%,0 100%);
+  position:relative;z-index:2;
+}
+.hdr-left img{height:54px;filter:brightness(0) invert(1)}
+/* zona central branca */
+.hdr-center{
+  flex:1;background:#fff;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0 20px 0 28px;
+  position:relative;z-index:1;
+}
+.hdr-brand{
+  font-family:'Nunito',sans-serif;
+  font-size:23px;font-weight:900;
+  color:var(--dk);letter-spacing:.5px;line-height:1;
+}
+.hdr-brand span{color:var(--or)}
+/* tagline editável */
+.hdr-sub{
+  font-size:9.5px;font-weight:700;
+  color:#999;letter-spacing:2.5px;
+  text-transform:uppercase;margin-top:5px;
+  outline:none;
+  cursor:text;
+  transition:color .2s;
+}
+.hdr-sub:focus{color:#555;outline:none}
+/* faixa laranja direita com título editável */
+.hdr-right{
+  background:var(--or);
+  display:flex;align-items:center;justify-content:center;
+  padding:0 26px;
+  clip-path:polygon(18px 0,100% 0,100% 100%,0 100%);
+  flex-shrink:0;min-width:170px;
+}
+.hdr-doc-title{
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
+  color:#fff;text-align:right;line-height:1.35;
+  letter-spacing:.3px;text-transform:uppercase;
+  outline:none;cursor:text;
+}
+.hdr-doc-title:focus{outline:none;text-decoration:underline;text-decoration-color:rgba(255,255,255,.5)}
+/* linha laranja separadora */
+.hdr-line{height:3px;background:linear-gradient(90deg,var(--or),#f9a05a,var(--or))}
+
+/* ══ SENDER ROW ══ */
+.sender-row{
+  padding:20px 36px 16px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:1px solid var(--border);
+}
+.sender-info{line-height:1.75}
+.s-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:19px;font-weight:600;color:var(--dk);
+}
+.s-name em{color:var(--or);font-style:normal}
+.s-detail{font-size:12.5px;color:var(--gy);display:flex;align-items:center;gap:5px}
+.s-detail strong{color:var(--or);font-weight:700;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase}
+.letter-date{
+  font-family:'Cormorant Garamond',serif;
+  font-size:13.5px;color:var(--gy);text-align:right;padding-top:2px;
+}
+
+/* ══ BODY ══ */
+.letter-body{
+  flex:1;padding:24px 36px 18px;
+  font-size:13.5px;color:var(--gy);line-height:1.8;
+  outline:none;position:relative;min-height:500px;
+}
+.letter-body:focus{outline:2px dashed rgba(244,121,32,.25);outline-offset:-3px}
+.letter-body p{margin-bottom:14px}
+
+/* ══ DRAG IMAGE ══ */
+.dw{position:absolute;cursor:move;user-select:none;border:2px dashed transparent;border-radius:6px;transition:border-color .2s;z-index:10}
+.dw:hover,.dw.sel{border-color:var(--or)}
+.dw img{display:block;width:100%;border-radius:4px;pointer-events:none}
+.dih{position:absolute;top:-10px;right:-10px;width:22px;height:22px;background:#e74c3c;color:#fff;border-radius:50%;font-size:12px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.dw.sel .dih{display:flex}
+.rsh{position:absolute;bottom:0;right:0;width:16px;height:16px;background:var(--or);cursor:se-resize;border-radius:3px 0 4px 0;display:none}
+.dw.sel .rsh{display:block}
+
+/* ══ SIGNATURE ══ */
+.letter-sig{
+  padding:14px 36px 26px;
+  border-top:1px solid var(--border);
+}
+.sig-line{width:220px;height:1px;background:#bbb;margin-bottom:7px}
+.sig-script{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:24px;color:var(--dk);line-height:1.1;margin-bottom:4px;
+}
+.sig-name-typed{
+  font-weight:900;font-size:12.5px;color:var(--dk);
+  text-transform:uppercase;letter-spacing:.8px;
+}
+.sig-role{font-size:12px;color:var(--or);font-weight:700;margin-top:2px}
+.sig-dept{font-size:11.5px;color:var(--gy);margin-top:1px}
+
+/* ══════════════════════════════════
+   FOOTER  —  estilo Autorização PDF
+══════════════════════════════════ */
+.lh-footer{
+  background:var(--or);
+  padding:13px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.ft-item{display:flex;align-items:center;gap:7px;color:#fff;font-size:11.5px;font-weight:600;line-height:1.3}
+.ft-item svg{width:15px;height:15px;fill:#fff;flex-shrink:0;opacity:.9}
+.ft-sep{width:1px;height:24px;background:rgba(255,255,255,.3)}
+
+/* ══ MODALS ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{
+  background:linear-gradient(145deg,#1a1a2e,#141428);
+  border:1px solid rgba(244,121,32,.25);border-radius:18px;
+  padding:30px;width:560px;max-width:95vw;
+  box-shadow:0 30px 80px rgba(0,0,0,.8);
+  position:relative;max-height:92vh;overflow-y:auto;
+}
+.modal h2{font-family:'Cormorant Garamond',serif;color:#fff;font-size:22px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.modal h2 span{color:var(--or)}
+.modal label{color:#aaa;font-size:11.5px;display:block;margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase}
+.modal input,.modal textarea{
+  width:100%;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);border-radius:10px;
+  padding:10px 14px;color:#fff;font-family:'Nunito',sans-serif;font-size:13.5px;
+  margin-bottom:14px;outline:none;resize:vertical;transition:border-color .2s;
+}
+.modal input:focus,.modal textarea:focus{border-color:var(--or)}
+.mrow{display:flex;gap:12px}.mrow>div{flex:1}
+.modal-close{position:absolute;top:16px;right:18px;background:rgba(255,255,255,.08);border:none;color:#aaa;font-size:18px;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:#e74c3c;color:#fff}
+.btn-save-modal{width:100%;padding:12px;background:linear-gradient(135deg,var(--or),var(--or2));color:#fff;font-weight:700;font-size:14px;border:none;border-radius:10px;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;box-shadow:0 4px 14px rgba(244,121,32,.35);transition:all .2s}
+.btn-save-modal:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(244,121,32,.5)}
+/* templates */
+.tpl-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tpl-body{flex:1}
+.tpl-title{color:#ccc;font-size:13px;font-weight:700}
+.tpl-prev{color:#666;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:290px}
+.tpl-btns{display:flex;gap:6px;flex-shrink:0}
+.tpl-btns button{padding:4px 10px;font-size:11px;border-radius:6px;cursor:pointer;border:none;font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s}
+.bu{background:var(--or);color:#fff}.bu:hover{background:var(--or2)}
+.be{background:rgba(255,255,255,.1);color:#aaa}.be:hover{background:rgba(255,255,255,.2);color:#fff}
+.bd{background:rgba(231,76,60,.15);color:#e74c3c}.bd:hover{background:#e74c3c;color:#fff}
+.modal-hr{border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0}
+#noTpl{color:#666;font-size:13px;text-align:center;padding:10px 0}
+
+/* toast */
+.toast{position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg,var(--or),var(--or2));color:#fff;padding:11px 22px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 6px 20px rgba(244,121,32,.5);z-index:999;transform:translateY(80px);opacity:0;transition:all .35s cubic-bezier(.68,-.55,.27,1.55);pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+[contenteditable]:focus{background:rgba(244,121,32,.04)}
+
+@media print{
+  body{background:none}
+  #toolbar,.overlay,.toast{display:none!important}
+  #page-wrapper{padding:0}
+  #letter{width:210mm;min-height:297mm;box-shadow:none}
+  .dw{border:none!important}.dih,.rsh{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <img class="logo-bar" src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png" alt="Dom Pedro">
+  <div class="sep"></div>
+  <div class="tbg">
+    <button onclick="fmt('bold')"><b>B</b></button>
+    <button onclick="fmt('italic')"><i>I</i></button>
+    <button onclick="fmt('underline')"><u>U</u></button>
+  </div>
+  <div class="sep"></div>
+  <div class="tbg">
+    <button onclick="fmt('justifyLeft')" title="Esquerda">⬅</button>
+    <button onclick="fmt('justifyCenter')" title="Centro">⬛</button>
+    <button onclick="fmt('justifyRight')" title="Direita">➡</button>
+    <button onclick="fmt('justifyFull')" title="Justificar">☰</button>
+  </div>
+  <div class="sep"></div>
+  <div class="tbg">
+    <select onchange="fmt('fontName',this.value)">
+      <option value="Nunito">Nunito</option>
+      <option value="Cormorant Garamond">Cormorant</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Courier New">Courier</option>
+    </select>
+    <select onchange="fmt('fontSize',this.value)">
+      <option value="2">10</option>
+      <option value="3" selected>13</option>
+      <option value="4">15</option>
+      <option value="5">18</option>
+      <option value="6">24</option>
+    </select>
+    <input type="color" title="Cor do texto" onchange="fmt('foreColor',this.value)" value="#5a5a6a">
+  </div>
+  <div class="sep"></div>
+  <div class="tbg">
+    <button onclick="fmt('insertUnorderedList')">• Lista</button>
+    <button onclick="fmt('insertOrderedList')">1. Lista</button>
+  </div>
+  <div class="sep"></div>
+  <div class="tbg">
+    <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="insertImage(event)">
+    <button onclick="document.getElementById('imgInput').click()">📷 Imagem</button>
+  </div>
+  <div class="sep"></div>
+  <div class="tbg">
+    <button class="btn-tpl" onclick="openTplModal()">📋 Modelos</button>
+    <button class="btn-profile" onclick="openProfileModal()">👤 Perfil</button>
+  </div>
+  <button class="btn-special" onclick="window.print()">🖨 Imprimir / PDF</button>
+</div>
+
+<!-- A4 -->
+<div id="page-wrapper">
+<div id="letter">
+
+  <!-- HEADER -->
+  <div class="lh-header">
+    <!-- faixa laranja esq com logo -->
+    <div class="hdr-left">
+      <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png" alt="Dom Pedro">
+    </div>
+    <!-- centro branco: nome + tagline editável -->
+    <div class="hdr-center">
+      <div class="hdr-brand"><span>DOM</span> PEDRO</div>
+      <div class="hdr-sub" contenteditable="true" id="hdrSub" spellcheck="false">Rede de Postos &nbsp;—&nbsp; Gestão Comercial</div>
+    </div>
+    <!-- faixa laranja dir: título editável -->
+    <div class="hdr-right">
+      <div class="hdr-doc-title" contenteditable="true" id="docTitle" spellcheck="false">Carta<br>Oficial</div>
+    </div>
+  </div>
+  <div class="hdr-line"></div>
+
+  <!-- SENDER ROW -->
+  <div class="sender-row">
+    <div class="sender-info">
+      <div class="s-name" id="sigNameDisplay">Rede Dom <em>Pedro</em></div>
+      <div class="s-detail" contenteditable="true"><strong>A&nbsp;</strong>Rod. Fernão Dias, Km 880 – Estiva, MG</div>
+      <div class="s-detail" contenteditable="true"><strong>W&nbsp;</strong>www.rededompedro.com</div>
+      <div class="s-detail" contenteditable="true"><strong>P&nbsp;</strong>0800 723 1188 &nbsp;|&nbsp; (35) 3462-2100</div>
+    </div>
+    <div class="letter-date" contenteditable="true" id="dateField"></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="letter-body" id="letterBody" contenteditable="true">
+    <p>Prezado(a),</p>
+    <p>Escreva aqui o conteúdo da sua carta. Use a barra de ferramentas para formatar o texto e o botão <strong>📷 Imagem</strong> para inserir fotos que podem ser movidas e redimensionadas livremente.</p>
+    <p>A Rede Dom Pedro, com quase 40 anos de experiência no atendimento ao caminhoneiro brasileiro, reafirma seu compromisso com a qualidade e a confiança em cada um de seus postos.</p>
+    <p>Atenciosamente,</p>
+  </div>
+
+  <!-- SIGNATURE — apenas nome e cargo -->
+  <div class="letter-sig">
+    <div class="sig-script" id="sigScript">Nome Sobrenome</div>
+    <div class="sig-role"   id="sigRole">Cargo / Função</div>
+    <div class="sig-dept"   id="sigDept">Setor</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="lh-footer">
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      sac@rededompedro.com
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      www.rededompedro.com
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+      Rod. Fernão Dias KM 880 — Estiva-MG
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      0800 723 1188
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('profileOverlay')">✕</button>
+    <h2>👤 Seu <span>Perfil</span></h2>
+    <div class="mrow">
+      <div><label>Nome Completo</label><input type="text" id="pName" placeholder="João da Silva"></div>
+      <div><label>Cargo / Função</label><input type="text" id="pRole" placeholder="Gerente Comercial"></div>
+    </div>
+    <div class="mrow">
+      <div><label>Setor / Departamento</label><input type="text" id="pDept" placeholder="Comercial"></div>
+      <div><label>Profissão</label><input type="text" id="pProf" placeholder="Administrador"></div>
+    </div>
+    <button class="btn-save-modal" onclick="saveProfile()">💾 Salvar Perfil</button>
+  </div>
+</div>
+
+<!-- TEMPLATES MODAL -->
+<div class="overlay" id="tplOverlay">
+  <div class="modal" style="width:600px">
+    <button class="modal-close" onclick="closeModal('tplOverlay')">✕</button>
+    <h2>📋 <span>Modelos</span> de Carta</h2>
+    <div id="tplList"></div>
+    <div id="noTpl"></div>
+    <hr class="modal-hr">
+    <label>Nome do Modelo</label>
+    <input type="text" id="tplName" placeholder="Ex: Carta de Apresentação">
+    <label>Conteúdo</label>
+    <textarea id="tplContent" rows="5" placeholder="Digite o conteúdo da carta..."></textarea>
+    <input type="hidden" id="tplEditId" value="">
+    <button class="btn-save-modal" onclick="saveTpl()">💾 Salvar Modelo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+function showToast(m){
+  const t=$('toast');t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function openModal(id){$(id).classList.add('open')}
+function closeModal(id){$(id).classList.remove('open')}
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('mousedown',e=>{if(e.target===o)o.classList.remove('open')});
+});
+
+/* Date */
+(()=>{
+  const d=new Date();
+  const M=['janeiro','fevereiro','março','abril','maio','junho',
+           'julho','agosto','setembro','outubro','novembro','dezembro'];
+  $('dateField').textContent='Data: '+d.getDate()+' de '+M[d.getMonth()]+' de '+d.getFullYear();
+})();
+
+/* Format */
+function fmt(cmd,val){$('letterBody').focus();document.execCommand(cmd,false,val||null)}
+
+/* Profile */
+function loadProfile(){
+  const p=JSON.parse(localStorage.getItem('rdp_profile')||'{}');
+  if(p.name){
+    $('sigScript').textContent=p.name;
+    const pts=p.name.trim().split(' ');
+    $('sigNameDisplay').innerHTML=pts[0]+(pts.length>1?' <em>'+pts.slice(1).join(' ')+'</em>':'');
+  }
+  if(p.role) $('sigRole').textContent=p.role;
+  if(p.dept||p.prof) $('sigDept').textContent=[p.dept,p.prof].filter(Boolean).join(' — ');
+  /* também atualiza a tagline do header se tiver setor */
+  if(p.dept) $('hdrSub').textContent='Rede de Postos  —  '+p.dept;
+  /* preenche inputs */
+  $('pName').value=p.name||'';
+  $('pRole').value=p.role||'';
+  $('pDept').value=p.dept||'';
+  $('pProf').value=p.prof||'';
+}
+function saveProfile(){
+  const p={
+    name:$('pName').value.trim(),
+    role:$('pRole').value.trim(),
+    dept:$('pDept').value.trim(),
+    prof:$('pProf').value.trim()
+  };
+  localStorage.setItem('rdp_profile',JSON.stringify(p));
+  loadProfile();
+  closeModal('profileOverlay');
+  showToast('✓ Perfil salvo!');
+}
+function openProfileModal(){loadProfile();openModal('profileOverlay')}
+
+/* Templates */
+function getTpls(){return JSON.parse(localStorage.getItem('rdp_tpls')||'[]')}
+function saveTpls(a){localStorage.setItem('rdp_tpls',JSON.stringify(a))}
+
+function renderTplList(){
+  const arr=getTpls(),list=$('tplList'),noTpl=$('noTpl');
+  list.innerHTML='';noTpl.textContent='';
+  if(!arr.length){noTpl.style.cssText='color:#666;font-size:13px;text-align:center;padding:10px 0';noTpl.textContent='Nenhum modelo salvo ainda.';return}
+  arr.forEach((t,i)=>{
+    const el=document.createElement('div');el.className='tpl-item';
+    el.innerHTML=`<div class="tpl-body">
+        <div class="tpl-title">${t.name}</div>
+        <div class="tpl-prev">${t.content.substring(0,65)}…</div>
+      </div>
+      <div class="tpl-btns">
+        <button class="bu" onclick="useTpl(${i})">Usar</button>
+        <button class="be" onclick="editTpl(${i})">Editar</button>
+        <button class="bd" onclick="delTpl(${i})">✕</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+function saveTpl(){
+  const name=$('tplName').value.trim(),content=$('tplContent').value.trim(),eid=$('tplEditId').value;
+  if(!name||!content){showToast('⚠ Preencha nome e conteúdo');return}
+  const arr=getTpls();
+  if(eid!==''){arr[parseInt(eid)]={name,content};$('tplEditId').value=''}
+  else arr.push({name,content});
+  saveTpls(arr);$('tplName').value='';$('tplContent').value='';
+  renderTplList();showToast('✓ Modelo salvo!');
+}
+function useTpl(i){
+  $('letterBody').innerHTML=getTpls()[i].content;
+  closeModal('tplOverlay');showToast('✓ Modelo aplicado!');
+}
+function editTpl(i){
+  const t=getTpls()[i];
+  $('tplName').value=t.name;$('tplContent').value=t.content;$('tplEditId').value=i;
+  $('tplContent').scrollIntoView({behavior:'smooth'});
+}
+function delTpl(i){
+  if(!confirm('Excluir este modelo?'))return;
+  const arr=getTpls();arr.splice(i,1);saveTpls(arr);renderTplList();
+}
+function openTplModal(){renderTplList();openModal('tplOverlay')}
+
+/* Draggable images */
+let selW=null;
+function insertImage(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>createDragImg(e.target.result);r.readAsDataURL(f);ev.target.value='';
+}
+function createDragImg(src){
+  const body=$('letterBody');
+  const wrap=document.createElement('div');
+  wrap.className='dw';wrap.style.cssText='left:40px;top:60px;width:220px;position:absolute;';
+  const img=document.createElement('img');img.src=src;
+  const del=document.createElement('div');del.className='dih';del.innerHTML='✕';
+  del.addEventListener('click',ev=>{ev.stopPropagation();wrap.remove();selW=null});
+  const rsh=document.createElement('div');rsh.className='rsh';
+  wrap.append(img,del,rsh);body.appendChild(wrap);
+  selWrap(wrap);makeDrag(wrap);makeResize(wrap,rsh);
+}
+function selWrap(w){if(selW)selW.classList.remove('sel');selW=w;if(w)w.classList.add('sel')}
+document.addEventListener('mousedown',e=>{
+  if(!e.target.closest('.dw')&&selW){selW.classList.remove('sel');selW=null}
+});
+function makeDrag(el){
+  el.addEventListener('mousedown',function(e){
+    if(e.target.classList.contains('rsh')||e.target.classList.contains('dih'))return;
+    e.preventDefault();selWrap(el);
+    const sx=e.clientX,sy=e.clientY,ol=el.offsetLeft,ot=el.offsetTop;
+    const onM=e=>{
+      el.style.left=Math.max(0,ol+(e.clientX-sx))+'px';
+      el.style.top =Math.max(0,ot+(e.clientY-sy))+'px';
+    };
+    const onU=()=>{document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onU)};
+    document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onU);
+  });
+}
+function makeResize(el,h){
+  h.addEventListener('mousedown',function(e){
+    e.preventDefault();e.stopPropagation();
+    const sx=e.clientX,sw=el.offsetWidth;
+    const onM=e=>el.style.width=Math.max(60,sw+(e.clientX-sx))+'px';
+    const onU=()=>{document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onU)};
+    document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onU);
+  });
+}
+
+loadProfile();
+</script>
+</body>
+</html>
