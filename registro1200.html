@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPED - Registro 1200 / 1210</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #c8d8e8; padding: 10px; font-size: 12px; }
+
+  #paste-area { background: #fff; border: 2px solid #4a7ab5; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+  #paste-area h2 { font-size: 13px; color: #1a3c6b; margin-bottom: 6px; }
+  #paste-area textarea { width: 100%; height: 90px; font-size: 11px; border: 1px solid #aaa; border-radius: 3px; padding: 4px; resize: vertical; }
+  #btn-parse { background: #1a5fa8; color: #fff; border: none; padding: 6px 20px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 6px; font-weight: bold; }
+  #btn-parse:hover { background: #0d3f7a; }
+  #status { font-size: 11px; color: #1a5fa8; margin-top: 5px; font-style: italic; min-height: 16px; }
+
+  .tabs { display: flex; gap: 2px; margin-bottom: -1px; position: relative; z-index: 1; }
+  .tab { padding: 5px 16px; background: #b0c8e0; border: 1px solid #7a7a7a; border-bottom: none; cursor: pointer; font-size: 12px; border-radius: 3px 3px 0 0; user-select: none; }
+  .tab.active { background: #ece9d8; font-weight: bold; color: #000; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .window { background: #ece9d8; border: 2px solid #7a7a7a; margin-bottom: 12px; box-shadow: 2px 2px 6px rgba(0,0,0,0.3); }
+  .win-title { background: linear-gradient(180deg, #0a246a 0%, #3a6ea5 100%); color: #fff; font-weight: bold; font-size: 12px; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .win-title .x-btn { background: #c0392b; color: #fff; padding: 0 6px; cursor: pointer; border-radius: 2px; }
+  .win-header { background: #ece9d8; border-bottom: 1px solid #aaa; padding: 8px 14px; }
+  .win-header .rtitle { font-weight: bold; font-size: 13px; }
+  .win-header .rsub { font-size: 11px; color: #444; }
+  .win-body { padding: 10px 14px; }
+  .win-footer { border-top: 1px solid #aaa; padding: 8px 14px; display: flex; justify-content: center; gap: 10px; background: #ece9d8; }
+
+  .form-row { display: flex; align-items: center; margin-bottom: 5px; }
+  .form-label { width: 215px; min-width: 215px; font-size: 12px; text-align: right; padding-right: 8px; color: #111; }
+  .form-ctrl { display: flex; flex: 1; align-items: center; gap: 3px; }
+  .finput { flex: 1; height: 22px; border: 1px solid #7c9fbe; background: #fff; padding: 2px 6px; font-size: 12px; color: #222; text-align: right; }
+  .finput.wide { flex: 2; text-align: left; }
+  .finput.calc { background: #f0f8f0; font-weight: bold; color: #005500; border-color: #5a9a5a; }
+  .ddBtn { background: #ddd; border: 1px solid #999; width: 22px; height: 22px; cursor: pointer; font-size: 10px; flex-shrink: 0; }
+  .wBtn { background: #ece9d8; border: 2px outset #fff; padding: 4px 22px; font-size: 12px; cursor: pointer; }
+  .wBtn:active { border-style: inset; }
+  .wBtn.primary { font-weight: bold; }
+
+  .section-sep { font-size: 12px; font-weight: bold; color: #1a3c6b; background: #d0dff0; border-left: 4px solid #1a5fa8; padding: 4px 10px; margin: 10px 0 8px 0; }
+
+  .ref-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .ref-table th { background: #4472c4; color: #fff; padding: 4px 8px; text-align: left; border: 1px solid #2a5aaa; }
+  .ref-table td { padding: 3px 8px; border: 1px solid #ccc; background: #fff; }
+  .ref-table tr.row-cred   td { background: #fffbe6; }
+  .ref-table tr.row-total  td { background: #ffd700; font-weight: bold; }
+  .ref-table tr.row-ant    td { background: #ff69b4; font-weight: bold; color: #000; }
+  .ref-table tr.row-deb    td { background: #ffa500; font-weight: bold; color: #000; }
+  .ref-table tr.row-es     td { background: #add8e6; font-weight: bold; }
+  .ref-table tr.row-transp td { background: #90ee90; font-weight: bold; }
+  .ref-table td.val { text-align: right; }
+
+  .t1210 { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+  .t1210 th { background: #4472c4; color: #fff; padding: 4px 8px; border: 1px solid #2a5aaa; text-align: left; }
+  .t1210 td { padding: 3px 8px; border: 1px solid #ccc; background: #fff; }
+  .t1210 tr:nth-child(even) td { background: #f0f4ff; }
+
+  .formula-note { font-size: 10px; color: #555; margin-top: 6px; background: #fffbe6; border: 1px solid #e0c040; padding: 4px 8px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- COLAR TEXTO -->
+<div id="paste-area">
+  <h2>📋 Cole aqui o texto do MODELO P9 (Apuração ICMS)</h2>
+  <textarea id="txt-input" placeholder="Cole o conteúdo do relatório P9 aqui..."></textarea>
+  <br>
+  <button id="btn-parse" onclick="parseAndFill()">▶ Processar e preencher telas</button>
+  <button onclick="clearAll()" style="background:#c0392b;color:#fff;border:none;padding:6px 20px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:6px;font-weight:bold;margin-left:6px">🗑 Limpar tudo</button>
+  <div id="status"></div>
+</div>
+
+<!-- ABAS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('tab_a')">REG 1200 — MG091004</div>
+  <div class="tab"        onclick="showTab('tab_b')">REG 1210</div>
+  <div class="tab"        onclick="showTab('tab_c')">REG 1200 — MG091012</div>
+</div>
+
+<!-- ══════ REG 1200 — MG091004 ══════ -->
+<div id="tab_a" class="tab-content active">
+  <div class="window">
+    <div class="win-title">REGISTRO - 1200 - CONTROLE DE CRÉDITOS FISCAIS - ICMS <span class="x-btn">✕</span></div>
+    <div class="win-header"><div class="rtitle">REGISTRO - 1200</div><div class="rsub">CONTROLE DE CRÉDITOS FISCAIS - ICMS</div></div>
+    <div class="win-body">
+
+      <div class="form-row">
+        <span class="form-label">Código de ajuste</span>
+        <div class="form-ctrl">
+          <input class="finput wide" id="a_cod" value="MG091004" style="text-align:left;max-width:180px"/>
+          <button class="ddBtn">▼</button>
+          <input class="finput wide" id="a_desc" value="Apropriação de crédito por saída com alíquota inferior à alíquota de entrada"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <span class="form-label">Saldo de créditos fiscais anteriores</span>
+        <div class="form-ctrl">
+          <input class="finput" id="a_saldo_ant" readonly title="009 - Saldo credor período anterior"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <span class="form-label">Crédito apropriado no mês</span>
+        <div class="form-ctrl">
+          <input class="finput" id="a_cred_mes" readonly title="Soma imposto creditado CFOPs: 1.102+1.152+1.202+2.102+2.152+2.202"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <span class="form-label">Créditos recebidos por transferência</span>
+        <div class="form-ctrl">
+          <input class="finput" id="a_transf" value="R$ 0,00" readonly/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <span class="form-label">Créditos utilizados no período</span>
+        <div class="form-ctrl">
+          <input class="finput" id="a_util" readonly title="Imposto debitado saídas (Totais da seção SAÍDAS)"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <span class="form-label">Saldo de crédito fiscal</span>
+        <div class="form-ctrl">
+          <input class="finput calc" id="a_saldo_final" readonly title="= Saldo anterior + Crédito do mês − Utilizado"/>
+        </div>
+      </div>
+
+    </div>
+    <div class="win-footer">
+      <button class="wBtn primary">Salvar</button>
+      <button class="wBtn">Fechar</button>
+    </div>
+  </div>
+
+  <div class="section-sep">📊 Conferência — Imposto Creditado por CFOP (MG091004)</div>
+  <div class="window" style="padding:10px 14px;">
+    <table class="ref-table">
+      <thead><tr><th>fiscal(cfop)</th><th style="text-align:right">VALOR</th></tr></thead>
+      <tbody>
+        <tr class="row-cred"><td>1.102</td><td class="val" id="r_1102">—</td></tr>
+        <tr class="row-cred"><td>1.152</td><td class="val" id="r_1152">—</td></tr>
+        <tr class="row-cred"><td>1.202</td><td class="val" id="r_1202">—</td></tr>
+        <tr class="row-cred"><td>2.102</td><td class="val" id="r_2102">—</td></tr>
+        <tr class="row-cred"><td>2.152</td><td class="val" id="r_2152">—</td></tr>
+        <tr class="row-cred"><td>2.202</td><td class="val" id="r_2202">—</td></tr>
+        <tr class="row-total"><td><strong>Total crédito apropriado no mês</strong></td><td class="val" id="r_total_cred"><strong>—</strong></td></tr>
+      </tbody>
+    </table>
+
+    <table class="ref-table" style="margin-top:8px">
+      <thead><tr><th colspan="2">Resumo da apuração (do texto colado)</th></tr></thead>
+      <tbody>
+        <tr class="row-ant"> <td>009 — Saldo credor período anterior</td>          <td class="val" id="r_009">—</td></tr>
+        <tr class="row-deb"> <td>Imposto debitado saídas (utilizado no período)</td><td class="val" id="r_deb_saidas">—</td></tr>
+        <tr class="row-es">  <td>Saldo final sob entradas e saídas</td>             <td class="val" id="r_saldo_es">—</td></tr>
+        <tr class="row-transp"><td>Saldo final a transportar</td>                   <td class="val" id="r_transporte">—</td></tr>
+      </tbody>
+    </table>
+    <div class="formula-note">✅ <strong>Fórmula saldo crédito fiscal:</strong> Saldo anterior + Crédito do mês − Utilizado no período</div>
+  </div>
+</div>
+
+<!-- ══════ REG 1210 ══════ -->
+<div id="tab_b" class="tab-content">
+  <div class="window">
+    <div class="win-title">REGISTRO - 1210 - UTILIZAÇÃO DE CRÉDITOS FISCAIS - ICMS <span class="x-btn">✕</span></div>
+    <div class="win-header"><div class="rtitle">REGISTRO - 1210</div><div class="rsub">UTILIZAÇÃO DE CRÉDITOS FISCAIS - ICMS</div></div>
+    <div class="win-body">
+
+      <!-- Linha 1: Tipo de utilização -->
+      <div class="form-row">
+        <span class="form-label">Tipo de utilização</span>
+        <div class="form-ctrl">
+          <input class="finput wide" id="b_tipo" value="MG03" style="text-align:left;max-width:180px"/>
+          <button class="ddBtn">▼</button>
+          <input class="finput wide" id="b_tipo_desc" value="Utilização de crédito para abatimento de saldo devedor na apuração de ICMS" readonly/>
+        </div>
+      </div>
+
+      <!-- Linha 2: Número do documento + Total de crédito utilizado -->
+      <div class="form-row">
+        <span class="form-label">Número do documento</span>
+        <div class="form-ctrl">
+          <input class="finput wide" id="b_num_doc" placeholder="" style="max-width:260px"/>
+          <span style="font-size:12px;padding:0 8px;white-space:nowrap">Total de crédito utilizado</span>
+          <input class="finput" id="b_total_cred" readonly style="max-width:160px"/>
+        </div>
+      </div>
+
+      <!-- Linha 3: Chave do documento eletrônico -->
+      <div class="form-row">
+        <span class="form-label">Chave do documento eletrônico</span>
+        <div class="form-ctrl">
+          <input class="finput wide" id="b_chave" placeholder="- -.- / ----- - -- .- --" style="color:#aaa;letter-spacing:1px"/>
+        </div>
+      </div>
+
+    </div>
+    <div class="win-footer">
+      <button class="wBtn primary">Salvar</button>
+      <button class="wBtn">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ REG 1200 — MG091012 ══════ -->
+<div id="tab_c" class="tab-content">
+  <div class="window">
+    <div class="win-title">REGISTRO - 1200 - CONTROLE DE CRÉDITOS FISCAIS - ICMS <span class="x-btn">✕</span></div>
+    <div class="win-header"><div class="rtitle">REGISTRO - 1200</div><div class="rsub">CONTROLE DE CRÉDITOS FISCAIS - ICMS</div></div>
+    <div class="win-body">
+
+      <div class="form-row">
+        <span class="form-label">Código de ajuste</span>
+        <div class="form-ctrl">
+          <input class="finput wide" id="c_cod" value="MG091002" style="text-align:left;max-width:180px"/>
+          <button class="ddBtn">▼</button>
+          <input class="finput wide" id="c_desc" value="Apropriação de crédito por saída com diferimento"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Saldo de créditos fiscais anteriores</span>
+        <div class="form-ctrl"><input class="finput" id="c_saldo_ant" readonly/></div>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Crédito apropriado no mês</span>
+        <div class="form-ctrl"><input class="finput" id="c_cred_mes" readonly/></div>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Créditos recebidos por transferência</span>
+        <div class="form-ctrl"><input class="finput" id="c_transf" value="R$ 0,00" readonly/></div>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Créditos utilizados no período</span>
+        <div class="form-ctrl"><input class="finput" id="c_util" readonly/></div>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Saldo de crédito fiscal</span>
+        <div class="form-ctrl"><input class="finput calc" id="c_saldo_final" readonly title="= Saldo anterior + Crédito do mês − Utilizado"/></div>
+      </div>
+
+    </div>
+    <div class="win-footer">
+      <button class="wBtn primary">Salvar</button>
+      <button class="wBtn">Fechar</button>
+    </div>
+  </div>
+
+  <div class="section-sep">📊 Conferência — Créditos CT-E (MG091012 — da planilha)</div>
+  <div class="window" style="padding:10px 14px;">
+    <table class="ref-table">
+      <thead><tr><th>Campo</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>
+        <tr class="row-cred">  <td>Imposto creditado (1.353)</td>                    <td class="val" id="q_1353">R$ 0,00</td></tr>
+        <tr class="row-cred">  <td>Imposto creditado (2.353)</td>                    <td class="val" id="q_2353">R$ 31.106,72</td></tr>
+        <tr class="row-total"> <td><strong>Total crédito CT-E</strong></td>          <td class="val" id="q_total"><strong>R$ 31.106,72</strong></td></tr>
+        <tr class="row-ant">   <td>009 — Saldo credor período anterior</td>          <td class="val" id="q_009">R$ 896.950,75</td></tr>
+        <tr class="row-deb">   <td>Impostos debitados saídas (Totais)</td>           <td class="val" id="q_deb">R$ 13.709,00</td></tr>
+        <tr class="row-es">    <td>Saldo final sob entradas e saídas</td>            <td class="val" id="q_saldo_es">R$ 890.098,22</td></tr>
+        <tr class="row-transp"><td>Saldo final a transportar para próximo período</td><td class="val" id="q_transporte">R$ 921.204,94</td></tr>
+      </tbody>
+    </table>
+    <div class="formula-note">✅ <strong>Fórmula saldo crédito fiscal:</strong> Saldo anterior + Crédito do mês − Utilizado no período</div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+function clearAll() {
+  document.getElementById('txt-input').value = '';
+  document.getElementById('status').textContent = '';
+
+  // Limpa inputs dos formulários
+  ['a_saldo_ant','a_cred_mes','a_util','a_saldo_final',
+   'c_saldo_ant','c_cred_mes','c_util','c_saldo_final',
+   'b_total_cred','b_num_doc','b_chave'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.value = '';
+  });
+  setInput('a_transf', 'R$ 0,00');
+  setInput('c_transf', 'R$ 0,00');
+
+  // Limpa tabela conferência MG091004
+  ['r_1102','r_1152','r_1202','r_2102','r_2152','r_2202',
+   'r_009','r_deb_saidas','r_saldo_es','r_transporte'].forEach(id => setText(id, '—'));
+  document.getElementById('r_total_cred').innerHTML = '<strong>—</strong>';
+
+  // Limpa tabela conferência MG091012
+  ['q_1353','q_2353','q_009','q_deb','q_saldo_es','q_transporte'].forEach(id => setText(id, '—'));
+  document.getElementById('q_total').innerHTML = '<strong>—</strong>';
+
+  // Limpa tabela 1210
+  document.getElementById('tbl_1210').innerHTML =
+    '<tr><td colspan="4" style="text-align:center;color:#888;font-style:italic;padding:8px">Sem lançamentos. Cole a apuração e processe.</td></tr>';
+}
+
+// ─────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['tab_a','tab_b','tab_c'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+function brlToFloat(s) {
+  if (!s) return 0;
+  const clean = s.replace(/[^\d,]/g,'').replace(',','.');
+  return parseFloat(clean) || 0;
+}
+
+function fmtBrl(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function setInput(id, val) { const e = document.getElementById(id); if (e) e.value = val; }
+function setText(id, val)  { const e = document.getElementById(id); if (e) e.textContent = val; }
+
+// ─────────────────────────────────────────────
+function parseAndFill() {
+  const txt    = document.getElementById('txt-input').value;
+  const status = document.getElementById('status');
+  if (!txt.trim()) { status.textContent = '⚠️ Cole o texto do P9 primeiro.'; return; }
+
+  const lines = txt.split('\n').map(l => l.trim());
+
+  // ── 1. Saldo credor período anterior (009) ──────────────────────
+  // Linha no P9: "009 - Saldo credor do período anterior  921.204,94"
+  let saldoAnt = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (/009\s*[-–]?\s*saldo\s*credor\s*(do\s*)?per[ií]odo\s*anterior/i.test(lines[i])) {
+      const src = lines[i] + ' ' + (lines[i+1]||'');
+      const m = src.match(/([\d]{1,3}(?:\.[\d]{3})*,\d{2})/);
+      if (m) { saldoAnt = brlToFloat(m[1]); break; }
+    }
+  }
+
+  // ── 2. Imposto debitado saídas (Totais) ─────────────────────────
+  // No P9 a seção SAÍDAS tem linhas: val_cont val_fiscal cfop imposto isentas outras
+  // Somamos a coluna "imposto" (4ª) de todos os CFOPs 5xxx/6xxx/7xxx
+  let impDebSaidas = 0;
+  {
+    const saiIdx = lines.findIndex(l => /S\s*A\s*[IÍ]\s*D\s*A\s*S/i.test(l));
+    if (saiIdx >= 0) {
+      for (let i = saiIdx; i < lines.length && i < saiIdx + 80; i++) {
+        // padrão: 72.349,42  72.349,42  5102  13.022,84  0,00  0,00
+        const m = lines[i].match(/^([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+(\d{4})\s+([\d.]+,\d{2})/);
+        if (m) impDebSaidas += brlToFloat(m[4]);
+      }
+    }
+    // fallback: busca "impostos debitados" + valor
+    if (impDebSaidas === 0) {
+      for (let i = 0; i < lines.length; i++) {
+        if (/impost[o]?[s]?\s*debita[d]?[o]?[s]?/i.test(lines[i])) {
+          const src = lines[i] + ' ' + (lines[i+1]||'');
+          const m = src.match(/([\d]{1,3}(?:\.[\d]{3})*,\d{2})/);
+          if (m) { impDebSaidas = brlToFloat(m[1]); break; }
+        }
+      }
+    }
+  }
+
+  // ── 3. Imposto creditado por CFOP (tabela ENTRADAS) ─────────────
+  // CFOPs MG091004: 1102 1152 1202 2102 2152 2202
+  const cfops = ['1102','1152','1202','2102','2152','2202'];
+  const cfopVals = {};
+  cfops.forEach(c => cfopVals[c] = 0);
+
+  const entIdx  = lines.findIndex(l => /E\s*N\s*T\s*R\s*A\s*D\s*A\s*S/i.test(l));
+  const saiIdx2 = lines.findIndex(l => /S\s*A\s*[IÍ]\s*D\s*A\s*S/i.test(l));
+  const endEnt  = saiIdx2 > 0 ? saiIdx2 : lines.length;
+
+  for (let i = (entIdx >= 0 ? entIdx : 0); i < endEnt; i++) {
+    // padrão: val_cont  val_fiscal  cfop  imposto  isentas  outras
+    const m = lines[i].match(/^([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+(\d{4})\s+([\d.]+,\d{2})/);
+    if (m && cfops.includes(m[3])) cfopVals[m[3]] = brlToFloat(m[4]);
+  }
+
+  const totalCredMes = cfops.reduce((s, c) => s + cfopVals[c], 0);
+
+  // ── 4. Cálculo saldo crédito fiscal ────────────────────────────
+  // Saldo = Anteriores + Apropriado no mês − Utilizado
+  const saldoFiscal_A = saldoAnt + totalCredMes - impDebSaidas;
+
+  // ── 5. Preenche REG 1200 — MG091004 ────────────────────────────
+  setInput('a_saldo_ant',   fmtBrl(saldoAnt));
+  setInput('a_cred_mes',    fmtBrl(totalCredMes));
+  setInput('a_util',        fmtBrl(impDebSaidas));
+  setInput('a_saldo_final', fmtBrl(saldoFiscal_A));
+
+  // ── 6. Tabela conferência MG091004 ──────────────────────────────
+  cfops.forEach(c => setText('r_' + c, fmtBrl(cfopVals[c])));
+  document.getElementById('r_total_cred').innerHTML = '<strong>' + fmtBrl(totalCredMes) + '</strong>';
+  setText('r_009',        fmtBrl(saldoAnt));
+  setText('r_deb_saidas', fmtBrl(impDebSaidas));
+  setText('r_saldo_es',   fmtBrl(saldoFiscal_A));
+  setText('r_transporte', fmtBrl(saldoFiscal_A));
+
+  // ── 7. REG 1200 — MG091012 ─────────────────────────────────────
+  // Crédito CT-E = CFOPs 1.353 + 2.353 da seção ENTRADAS
+  // Saldo anterior = 0,  Utilizado = 0,  Saldo fiscal = apenas o crédito apropriado
+  let cred1353 = 0, cred2353 = 0;
+  for (let i = (entIdx >= 0 ? entIdx : 0); i < endEnt; i++) {
+    const m = lines[i].match(/^([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+(\d{4})\s+([\d.]+,\d{2})/);
+    if (m) {
+      if (m[3] === '1353') cred1353 = brlToFloat(m[4]);
+      if (m[3] === '2353') cred2353 = brlToFloat(m[4]);
+    }
+  }
+  const credCTE = cred1353 + cred2353;
+  // Saldo anterior = 0, utilizado = 0, saldo fiscal = crédito do mês
+  setInput('c_saldo_ant',   fmtBrl(0));
+  setInput('c_cred_mes',    fmtBrl(credCTE));
+  setInput('c_util',        fmtBrl(0));
+  setInput('c_saldo_final', fmtBrl(credCTE));
+
+  // Atualiza conferência MG091012
+  setText('q_1353',       fmtBrl(cred1353));
+  setText('q_2353',       fmtBrl(cred2353));
+  document.getElementById('q_total').innerHTML = '<strong>' + fmtBrl(credCTE) + '</strong>';
+  setText('q_009',        fmtBrl(0));
+  setText('q_deb',        fmtBrl(0));
+  setText('q_saldo_es',   fmtBrl(credCTE));
+  setText('q_transporte', fmtBrl(credCTE));
+
+  // ── 8. REG 1210 ────────────────────────────────────────────────
+  fill1210(impDebSaidas, getPeriodo(txt));
+
+  status.textContent = '✅ Preenchido! Fórmula: Saldo anterior + Crédito do mês − Utilizado = Saldo crédito fiscal';
+}
+
+function getPeriodo(txt) {
+  const m = txt.match(/(\d{2}\/\d{4})/);
+  return m ? m[1] : '';
+}
+
+function fill1210(utilizado, periodo) {
+  if (utilizado > 0) {
+    setInput('b_total_cred', fmtBrl(utilizado));
+  }
+}
+
+function add1210Row() {
+  const tbody = document.getElementById('tbl_1210');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input style="width:100%;border:1px solid #ccc;padding:2px;font-size:11px" placeholder="Tipo utilização"></td>
+    <td><input style="width:90px;border:1px solid #ccc;padding:2px;font-size:11px;text-align:right" placeholder="0,00"></td>
+    <td><input style="width:70px;border:1px solid #ccc;padding:2px;font-size:11px" placeholder="MM/AAAA"></td>
+    <td style="text-align:center"><button onclick="this.closest('tr').remove()" style="color:#c00;background:none;border:none;cursor:pointer;font-weight:bold">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ── Pré-carga com valores da planilha .ods ──────────────────────
+window.onload = function () {
+  // Conferência CFOP
+  setText('r_1102', 'R$ 6.354,27');
+  setText('r_1152', 'R$ 0,00');
+  setText('r_1202', 'R$ 0,00');
+  setText('r_2102', 'R$ 502,20');
+  setText('r_2152', 'R$ 0,00');
+  setText('r_2202', 'R$ 0,00');
+  document.getElementById('r_total_cred').innerHTML = '<strong>R$ 6.856,47</strong>';
+
+  setText('r_009',        'R$ 896.950,75');
+  setText('r_deb_saidas', 'R$ 13.709,00');
+  setText('r_saldo_es',   'R$ 890.098,22');
+  setText('r_transporte', 'R$ 921.204,94');
+
+  // Campos MG091004 com dados da planilha
+  // Saldo ant=896950.75 + mes=6856.47 - util=13709.00 = 890.098,22
+  setInput('a_saldo_ant',   'R$ 896.950,75');
+  setInput('a_cred_mes',    'R$ 6.856,47');
+  setInput('a_util',        'R$ 13.709,00');
+  setInput('a_saldo_final', 'R$ 890.098,22');
+
+  // Campos MG091012 com dados da planilha
+  // Saldo anterior = 0, crédito = 1.353+2.353, utilizado = 0, saldo = crédito
+  setInput('c_saldo_ant',   'R$ 0,00');
+  setInput('c_cred_mes',    'R$ 31.106,72');
+  setInput('c_util',        'R$ 0,00');
+  setInput('c_saldo_final', 'R$ 31.106,72');
+  // conferência
+  setText('q_009',        'R$ 0,00');
+  setText('q_deb',        'R$ 0,00');
+  setText('q_saldo_es',   'R$ 31.106,72');
+  setText('q_transporte', 'R$ 31.106,72');
+};
+
+function fmtBrl(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
+</body>
+</html>
