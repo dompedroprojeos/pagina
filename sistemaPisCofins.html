@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Crédito — NF-e XML</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg:      #f0f4fa;
+  --bg2:     #ffffff;
+  --bg3:     #f6f9fc;
+  --bd:      #e2e8f0;
+  --bd2:     #cbd5e1;
+  --tx:      #1e293b;
+  --tx2:     #475569;
+  --tx3:     #94a3b8;
+  --accent:  #0284c7;
+  --accent2: #0369a1;
+  --green:   #059669;
+  --amber:   #d97706;
+  --red:     #dc2626;
+  --mono:    'DM Mono', monospace;
+  --sans:    'Outfit', sans-serif;
+  --r:       12px;
+  --sh:      0 4px 24px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bd);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.hdr-brand{display:flex;align-items:center;gap:14px}
+.hdr-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),#01579b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;letter-spacing:.5px}
+.hdr-title{font-size:1rem;font-weight:700;letter-spacing:-.3px;color:var(--tx)}
+.hdr-sub{font-size:.72rem;color:var(--tx3);font-weight:400}
+.hdr-actions{display:flex;gap:8px}
+.hdr-btn{height:36px;padding:0 16px;border:1px solid var(--bd2);border-radius:8px;background:var(--bg3);color:var(--tx2);font-family:var(--sans);font-size:.78rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.verse{background:linear-gradient(100deg,#eff6ff,#dbeafe,#eff6ff);border-bottom:1px solid var(--bd);padding:10px 2rem;text-align:center;font-size:.8rem;color:var(--tx2);font-style:italic}
+.verse strong{color:var(--accent);font-style:normal;font-weight:700}
+
+.wrap{max-width:1280px;margin:0 auto;padding:2rem 1.5rem}
+
+.ctrl-panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:2rem}
+@media(max-width:900px){.ctrl-panel{grid-template-columns:1fr}}
+.ctrl-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1.2rem 1.4rem;box-shadow:var(--sh)}
+.ctrl-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.ctrl-label i{color:var(--accent)}
+
+.upload-zone{border:1.5px dashed var(--bd2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;color:var(--tx2);display:block}
+.upload-zone:hover{border-color:var(--accent);color:var(--accent);background:#0284c710}
+.upload-zone i{font-size:1.6rem;margin-bottom:6px;display:block}
+.upload-zone .uz-title{font-size:.82rem;font-weight:600}
+.upload-zone .uz-sub{font-size:.7rem;color:var(--tx3);margin-top:3px}
+.file-badge{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:#0284c715;color:var(--accent);border:1px solid #0284c730;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:600}
+
+.filter-row{display:flex;flex-direction:column;gap:8px}
+.fi{position:relative}
+.fi i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tx3);font-size:.8rem;pointer-events:none}
+.fi input{width:100%;height:38px;padding:0 12px 0 34px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:var(--sans);font-size:.8rem;transition:border-color .2s}
+.fi input:focus{outline:none;border-color:var(--accent)}
+.fi input::placeholder{color:var(--tx3)}
+
+.proc-btn{width:100%;height:48px;margin-top:10px;background:linear-gradient(135deg,var(--accent),#01579b);border:none;border-radius:10px;color:#fff;font-family:var(--sans);font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 4px 16px #0284c730}
+.proc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px #0284c740}
+.proc-btn:active{transform:translateY(0)}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+@media(max-width:900px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.stat-chip{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1.2rem;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.stat-chip::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--chip-color,var(--accent))}
+.stat-chip.green{--chip-color:var(--green)}.stat-chip.amber{--chip-color:var(--amber)}.stat-chip.blue{--chip-color:var(--accent)}.stat-chip.teal{--chip-color:#0891b2}
+.stat-chip-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:6px}
+.stat-chip-value{font-family:var(--mono);font-size:1.15rem;font-weight:500;color:var(--tx)}
+.stat-chip-sub{font-size:.68rem;color:var(--tx3);margin-top:3px}
+
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:1rem;margin-top:2rem}
+.sec-hdr-line{flex:1;height:1px;background:var(--bd)}
+.sec-hdr-tag{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx3);white-space:nowrap}
+.sec-hdr-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+.diesel-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:2rem;box-shadow:var(--sh)}
+.diesel-card-top{background:linear-gradient(100deg,#fef3c715,#fde68a20);border-bottom:1px solid #fde68a50;padding:14px 20px;display:flex;align-items:center;gap:10px}
+.diesel-card-top i{color:var(--amber);font-size:1rem}
+.diesel-card-top span{font-weight:700;font-size:.88rem;color:var(--amber)}
+.diesel-card-top small{color:var(--tx3);font-size:.72rem;margin-left:auto;font-family:var(--mono)}
+.diesel-grid{display:grid;grid-template-columns:repeat(5,1fr)}
+@media(max-width:900px){.diesel-grid{grid-template-columns:repeat(2,1fr)}}
+.diesel-cell{padding:18px 20px;border-right:1px solid var(--bd)}
+.diesel-cell:last-child{border-right:none}
+.diesel-cell-label{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:6px}
+.diesel-cell-value{font-family:var(--mono);font-size:1.05rem;font-weight:500;color:var(--tx)}
+.diesel-cell-value.hl{color:var(--green)}
+
+.tbl-wrap{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:2rem;box-shadow:var(--sh)}
+.tbl-wrap table{width:100%;border-collapse:collapse}
+.tbl-wrap th{background:var(--bg3);padding:10px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+.tbl-wrap th.r{text-align:right}.tbl-wrap th.c{text-align:center}
+.tbl-wrap td{padding:10px 14px;font-size:.8rem;color:var(--tx2);border-bottom:1px solid var(--bd);vertical-align:middle}
+.tbl-wrap td.r{text-align:right;font-family:var(--mono)}.tbl-wrap td.c{text-align:center}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tbody tr:hover td{background:#0284c708}
+.tbl-wrap tr.drow td{background:#fef3c730}
+.tbl-wrap tr.drow:hover td{background:#fde68a30}
+.tbl-wrap tfoot td{background:var(--bg3);border-top:2px solid var(--bd);border-bottom:none;font-family:var(--mono);font-weight:600;color:var(--tx);font-size:.8rem}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700}
+.badge-blue {background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+.badge-amber{background:#fef3c7;color:#b45309;border:1px solid #fde68a}
+.badge-green{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+.badge-gray {background:var(--bg3);color:var(--tx3);border:1px solid var(--bd)}
+
+.mono{font-family:var(--mono)}
+.val-green{color:var(--green);font-family:var(--mono)}
+
+.empty{text-align:center;padding:4rem 2rem;color:var(--tx3)}
+.empty i{font-size:2.5rem;margin-bottom:1rem;opacity:.3;display:block}
+.empty p{font-size:.88rem}
+
+.ftr{background:var(--bg2);border-top:1px solid var(--bd);padding:2rem 1.5rem;margin-top:3rem}
+.ftr-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;margin-bottom:1.5rem}
+@media(max-width:700px){.ftr-inner{grid-template-columns:repeat(2,1fr)}}
+.ftr-col h4{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
+.ftr-col p{font-size:.75rem;color:var(--tx3);line-height:1.7}
+.ftr-bottom{max-width:1280px;margin:0 auto;border-top:1px solid var(--bd);padding-top:1rem;font-size:.72rem;color:var(--tx3);text-align:center}
+
+.fab-group{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:8px;z-index:300}
+.fab{width:42px;height:42px;border-radius:50%;border:1px solid var(--bd2);background:var(--bg2);color:var(--tx2);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.fab:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.1)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.animate{animation:fadeUp .4s ease both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">DP</div>
+    <div>
+      <div class="hdr-title">Sistema de Crédito NF-e</div>
+      <div class="hdr-sub">Processamento Inteligente de Notas Fiscais</div>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" id="exportBtn"><i class="fas fa-download"></i> Exportar</button>
+    <button class="hdr-btn" id="themeBtn"><i class="fas fa-moon"></i> Escuro</button>
+  </div>
+</header>
+
+<div id="verse"></div>
+
+<main class="wrap">
+  <div class="ctrl-panel">
+
+    <div class="ctrl-card animate d1">
+      <div class="ctrl-label"><i class="fas fa-cloud-upload-alt"></i> Arquivos XML</div>
+      <input type="file" id="fileInput" multiple accept=".xml" style="display:none">
+      <label for="fileInput" class="upload-zone" id="uploadZone">
+        <i class="fas fa-file-code"></i>
+        <div class="uz-title">Clique para selecionar</div>
+        <div class="uz-sub">ou arraste os arquivos .xml aqui</div>
+        <div id="fileBadge" class="file-badge" style="display:none">
+          <i class="fas fa-check"></i>&nbsp;<span id="fileCount"></span>
+        </div>
+      </label>
+    </div>
+
+    <div class="ctrl-card animate d2">
+      <div class="ctrl-label"><i class="fas fa-sliders-h"></i> Filtros</div>
+      <div class="filter-row">
+        <div class="fi"><i class="fas fa-building"></i><input type="text" id="searchInput" placeholder="Filtrar por CNPJ..."></div>
+        <div class="fi"><i class="fas fa-map-marker-alt"></i><input type="text" id="stateInput" placeholder="Filtrar por UF..."></div>
+        <div class="fi"><i class="fas fa-barcode"></i><input type="text" id="productCodeInput" placeholder="Código do produto..."></div>
+      </div>
+    </div>
+
+    <div class="ctrl-card animate d3">
+      <div class="ctrl-label"><i class="fas fa-cogs"></i> Processamento</div>
+      <p style="font-size:.78rem;color:var(--tx3);line-height:1.6;margin-bottom:12px;">Selecione os arquivos XML e aplique os filtros desejados antes de processar.</p>
+      <button class="proc-btn" id="processButton"><i class="fas fa-bolt"></i> Processar Arquivos</button>
+    </div>
+
+  </div>
+
+  <div id="output">
+    <div class="empty">
+      <i class="fas fa-file-invoice"></i>
+      <p>Selecione os arquivos XML e clique em <strong>Processar</strong> para ver os resultados.</p>
+    </div>
+  </div>
+</main>
+
+<div class="fab-group">
+  <button class="fab" id="fabUp"    title="Ir ao topo"><i class="fas fa-chevron-up"></i></button>
+  <button class="fab" id="fabDown"  title="Ir ao fim"><i class="fas fa-chevron-down"></i></button>
+  <button class="fab" id="fabPrint" title="Imprimir"><i class="fas fa-print"></i></button>
+</div>
+
+<footer class="ftr">
+  <div class="ftr-inner">
+    <div class="ftr-col"><h4>Desenvolvedor</h4><p>Waldeci Ramos<br>Leitor de XML Créditos<br>Sistemas Fiscais</p></div>
+    <div class="ftr-col"><h4>Sistema</h4><p>Processamento de XML NF-e<br>Análise de Créditos ICMS<br>Versão 2.0.0</p></div>
+    <div class="ftr-col"><h4>Tecnologias</h4><p>HTML5 · CSS3 · JavaScript<br>DOM Parser para XML<br>Responsive Design</p></div>
+    <div class="ftr-col"><h4>Contato</h4><p>waldeci.ramos@rededompedro.com<br>(35) 3462-2100</p></div>
+  </div>
+  <div class="ftr-bottom">© 2025 Sistema de Crédito NF-e · Todos os direitos reservados</div>
+</footer>
+
+<script>
+// ── VERSÍCULO DO DIA (Seg=1 … Sex=5) ──────────────────────────────────────────
+(function(){
+  var map = {
+    1: { ref:"Provérbios 3:5-6",  txt:"Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento; reconheça-o em todos os seus caminhos e ele endireitará as suas veredas." },
+    2: { ref:"Isaías 41:10",      txt:"Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a minha destra fiel." },
+    3: { ref:"Filipenses 4:13",   txt:"Tudo posso naquele que me fortalece." },
+    4: { ref:"Salmos 23:1",       txt:"O Senhor é o meu pastor; nada me faltará." },
+    5: { ref:"Salmos 37:5",       txt:"Entrega o teu caminho ao Senhor; confia nele, e ele o fará." }
+  };
+  var dia = new Date().getDay();
+  var v = map[dia] || { ref:"Salmos 90:17", txt:"Que a graça do Senhor nosso Deus seja sobre nós; confirme a obra das nossas mãos." };
+  document.getElementById('verse').innerHTML =
+    '<div class="verse">\u2736 <strong>' + v.ref + '</strong> &nbsp;\u2014&nbsp; ' + v.txt + '</div>';
+})();
+
+// ── FABs ──────────────────────────────────────────────────────────────────────
+document.getElementById('fabUp').onclick    = function(){ window.scrollTo({top:0,               behavior:'smooth'}); };
+document.getElementById('fabDown').onclick  = function(){ window.scrollTo({top:999999,           behavior:'smooth'}); };
+document.getElementById('fabPrint').onclick = function(){ window.print(); };
+
+// ── FILE INPUT ────────────────────────────────────────────────────────────────
+var fileInput  = document.getElementById('fileInput');
+var fileBadge  = document.getElementById('fileBadge');
+var fileCount  = document.getElementById('fileCount');
+var uploadZone = document.getElementById('uploadZone');
+
+fileInput.addEventListener('change', function(){
+  var n = this.files.length;
+  if(n > 0){
+    fileCount.textContent = n + ' arquivo' + (n>1?'s':'') + ' selecionado' + (n>1?'s':'');
+    fileBadge.style.display = 'inline-flex';
+  } else {
+    fileBadge.style.display = 'none';
+  }
+});
+
+// Drag & drop
+uploadZone.addEventListener('dragover', function(e){ e.preventDefault(); this.style.borderColor='var(--accent)'; });
+uploadZone.addEventListener('dragleave', function(){ this.style.borderColor=''; });
+uploadZone.addEventListener('drop', function(e){
+  e.preventDefault(); this.style.borderColor='';
+  try {
+    var dt = new DataTransfer();
+    for(var i=0;i<e.dataTransfer.files.length;i++){
+      var f=e.dataTransfer.files[i];
+      if(f.name.toLowerCase().endsWith('.xml')) dt.items.add(f);
+    }
+    fileInput.files = dt.files;
+    fileInput.dispatchEvent(new Event('change'));
+  } catch(err){ console.warn('Drop DataTransfer não suportado'); }
+});
+
+// ── HELPERS XML ───────────────────────────────────────────────────────────────
+function g(p,t){ var e=p.getElementsByTagName(t)[0]; return e?e.textContent.trim():''; }
+function gn(p,t){ var v=g(p,t); return v?parseFloat(v)||0:0; }
+
+function extractICMS(prod){
+  var i61=prod.getElementsByTagName('ICMS61')[0];
+  if(i61) return {tipo:'ICMS61',aliq:gn(i61,'adRemICMSRet'),bc:gn(i61,'qBCMonoRet'),val:gn(i61,'vICMSMonoRet')};
+  var groups=['ICMS00','ICMS10','ICMS20','ICMS30','ICMS40','ICMS41','ICMS50','ICMS51','ICMS60','ICMS70','ICMS90','ICMSST'];
+  for(var i=0;i<groups.length;i++){
+    var e=prod.getElementsByTagName(groups[i])[0];
+    if(e) return {tipo:groups[i],aliq:gn(e,'pICMS')||gn(e,'pICMSST'),bc:gn(e,'vBC')||gn(e,'vBCST'),val:gn(e,'vICMS')||gn(e,'vICMSST')};
+  }
+  return {tipo:'–',aliq:0,bc:0,val:0};
+}
+
+function isDiesel(c,n){ return c==='2309'||(n.toUpperCase().indexOf('DIESEL')>=0&&/S\s*10/.test(n.toUpperCase())); }
+function fmt2(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt3(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:3,maximumFractionDigits:3}); }
+function R(v){ return 'R$ '+fmt2(v); }
+
+// ── PROCESSAR ─────────────────────────────────────────────────────────────────
+document.getElementById('processButton').addEventListener('click', function(){
+  var files = fileInput.files;
+  var out   = document.getElementById('output');
+  out.innerHTML = '';
+
+  if(!files.length){
+    out.innerHTML='<div class="empty"><i class="fas fa-exclamation-triangle"></i><p style="color:var(--red)">Nenhum arquivo selecionado.</p></div>';
+    return;
+  }
+
+  var fSearch  = document.getElementById('searchInput').value.trim().toLowerCase();
+  var fState   = document.getElementById('stateInput').value.trim().toUpperCase();
+  var fProduct = document.getElementById('productCodeInput').value.trim();
+
+  var rows=[],byProd={},die={bc:0,val:0,vNF:0,qty:0};
+  var totVNF=0,totBC=0,totVal=0,done=0;
+
+  Array.from(files).forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var xml=new DOMParser().parseFromString(ev.target.result,'text/xml');
+      var nNF  =g(xml,'nNF');
+      var nome =g(xml,'xFant')||g(xml,'xNome');
+      var cnpj =g(xml,'CNPJ');
+      var uf   =g(xml,'UF');
+      var serie=g(xml,'serie');
+      var dhEmi=g(xml,'dhEmi');
+      var data =dhEmi?new Date(dhEmi).toLocaleDateString('pt-BR'):'–';
+
+      var dets=xml.getElementsByTagName('det');
+      for(var i=0;i<dets.length;i++){
+        var det=dets[i];
+        var p=det.getElementsByTagName('prod')[0]; if(!p) continue;
+        var xProd=g(p,'xProd'),cProd=g(p,'cProd');
+        var vProd=gn(p,'vProd'),qCom=gn(p,'qCom'),cfop=g(p,'CFOP');
+        var icms=extractICMS(det);
+        var tipo=icms.tipo,aliq=icms.aliq,bc=icms.bc,val=icms.val;
+        var isD=isDiesel(cProd,xProd);
+
+        var okSearch = fSearch===''||cnpj.toLowerCase().indexOf(fSearch)>=0;
+        var okState  = fState ===''||uf.indexOf(fState)>=0;
+        var okProd   = fProduct===''||cProd===fProduct;
+
+        if(okSearch&&okState&&okProd){
+          rows.push({nome:nome,cnpj:cnpj,uf:uf,nNF:nNF,serie:serie,data:data,
+                     xProd:xProd,cProd:cProd,vProd:vProd,qCom:qCom,
+                     aliq:aliq,bc:bc,val:val,tipo:tipo,cfop:cfop,isD:isD});
+          totVNF+=vProd; totBC+=bc; totVal+=val;
+          if(isD){ die.bc+=bc; die.val+=val; die.vNF+=vProd; die.qty+=qCom; }
+          var key=cProd+'|'+aliq+'|'+tipo;
+          if(!byProd[key]) byProd[key]={xProd:xProd,cProd:cProd,aliq:aliq,tipo:tipo,bc:0,val:0,vNF:0,qty:0};
+          byProd[key].bc+=bc; byProd[key].val+=val; byProd[key].vNF+=vProd; byProd[key].qty+=qCom;
+        }
+      }
+      done++;
+      if(done===files.length) render(rows,byProd,die,totVNF,totBC,totVal,files.length);
+    };
+    reader.readAsText(file);
+  });
+});
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(rows,byProd,die,totVNF,totBC,totVal,nFiles){
+  var out=document.getElementById('output');
+  var nD=rows.filter(function(r){return r.isD;}).length;
+
+  var html='<div class="stat-row animate">'
+    +'<div class="stat-chip blue d1"><div class="stat-chip-label">Arquivos processados</div><div class="stat-chip-value">'+nFiles+'</div><div class="stat-chip-sub">NF-e lidas com sucesso</div></div>'
+    +'<div class="stat-chip teal d2"><div class="stat-chip-label">Itens totais</div><div class="stat-chip-value">'+rows.length+'</div><div class="stat-chip-sub">'+nD+' itens Diesel S10</div></div>'
+    +'<div class="stat-chip green d3"><div class="stat-chip-label">Crédito ICMS total</div><div class="stat-chip-value">'+R(totVal)+'</div><div class="stat-chip-sub">Todos os produtos</div></div>'
+    +'<div class="stat-chip amber d4"><div class="stat-chip-label">Crédito Diesel S10</div><div class="stat-chip-value">'+R(die.val)+'</div><div class="stat-chip-sub">vICMSMonoRet acumulado</div></div>'
+    +'</div>';
+
+  var pm=die.qty>0?die.vNF/die.qty:0;
+  html+='<div class="sec-hdr animate"><div class="sec-hdr-dot"></div><span class="sec-hdr-tag">Diesel S10 — Destaque</span><div class="sec-hdr-line"></div></div>'
+    +'<div class="diesel-card animate">'
+    +'<div class="diesel-card-top"><i class="fas fa-gas-pump"></i><span>DIESEL S10 — Monofásico (Código 2309)</span><small>ICMS61 · qBCMonoRet / vICMSMonoRet</small></div>'
+    +'<div class="diesel-grid">'
+    +'<div class="diesel-cell"><div class="diesel-cell-label">Base de Cálculo</div><div class="diesel-cell-value">'+fmt2(die.bc)+'</div></div>'
+    +'<div class="diesel-cell"><div class="diesel-cell-label">Valor Crédito ICMS</div><div class="diesel-cell-value hl">'+R(die.val)+'</div></div>'
+    +'<div class="diesel-cell"><div class="diesel-cell-label">Valor Total NF</div><div class="diesel-cell-value">'+R(die.vNF)+'</div></div>'
+    +'<div class="diesel-cell"><div class="diesel-cell-label">Quantidade (L)</div><div class="diesel-cell-value">'+fmt3(die.qty)+' L</div></div>'
+    +'<div class="diesel-cell"><div class="diesel-cell-label">Preço Médio / L</div><div class="diesel-cell-value">'+R(pm)+'</div></div>'
+    +'</div></div>';
+
+  html+='<div class="sec-hdr animate"><div class="sec-hdr-dot"></div><span class="sec-hdr-tag">Detalhamento — '+rows.length+' itens</span><div class="sec-hdr-line"></div></div>'
+    +'<div class="tbl-wrap animate"><table>'
+    +'<thead><tr><th>Emitente</th><th>NF-e / Série</th><th class="c">Data</th><th class="c">UF</th>'
+    +'<th>Produto</th><th class="c">Cód.</th><th class="c">CFOP</th>'
+    +'<th class="r">Qtde</th><th class="r">Valor NF</th><th class="r">Base Cálc.</th><th class="r">Crédito</th><th class="c">ICMS</th>'
+    +'</tr></thead><tbody>';
+
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    var cls=r.isD?'drow':'';
+    var badge=r.isD?'<span class="badge badge-amber">ICMS61</span>':'<span class="badge badge-gray">'+r.tipo+'</span>';
+    var s10=r.isD?' <span class="badge badge-amber" style="margin-left:4px">S10</span>':'';
+    html+='<tr class="'+cls+'">'
+      +'<td><span style="font-weight:600;color:var(--tx)">'+r.nome+'</span><br><span style="font-family:var(--mono);font-size:.68rem;color:var(--tx3)">'+r.cnpj+'</span></td>'
+      +'<td><span class="mono">'+r.nNF+'</span><br><span style="font-size:.68rem;color:var(--tx3)">série '+r.serie+'</span></td>'
+      +'<td class="c">'+r.data+'</td>'
+      +'<td class="c"><span class="badge badge-blue">'+r.uf+'</span></td>'
+      +'<td>'+r.xProd+s10+'</td>'
+      +'<td class="c"><span class="mono">'+r.cProd+'</span></td>'
+      +'<td class="c"><span class="mono">'+(r.cfop||'–')+'</span></td>'
+      +'<td class="r">'+fmt3(r.qCom)+' L</td>'
+      +'<td class="r">'+R(r.vProd)+'</td>'
+      +'<td class="r">'+fmt2(r.bc)+'</td>'
+      +'<td class="r"><span class="'+(r.val>0?'val-green':'')+'">'+R(r.val)+'</span></td>'
+      +'<td class="c">'+badge+'</td>'
+      +'</tr>';
+  }
+
+  var totQty=rows.reduce(function(s,r){return s+r.qCom;},0);
+  html+='</tbody><tfoot><tr>'
+    +'<td colspan="7" style="text-align:right">TOTAL GERAL</td>'
+    +'<td class="r">'+fmt3(totQty)+' L</td>'
+    +'<td class="r">'+R(totVNF)+'</td>'
+    +'<td class="r">'+fmt2(totBC)+'</td>'
+    +'<td class="r" style="color:var(--green)">'+R(totVal)+'</td>'
+    +'<td></td>'
+    +'</tr></tfoot></table></div>';
+
+  var sorted=Object.values(byProd).sort(function(a,b){return b.val-a.val;});
+  html+='<div class="sec-hdr animate"><div class="sec-hdr-dot"></div><span class="sec-hdr-tag">Resumo por Produto</span><div class="sec-hdr-line"></div></div>'
+    +'<div class="tbl-wrap animate"><table>'
+    +'<thead><tr><th>Produto</th><th class="c">Código</th><th class="c">Tipo ICMS</th><th class="r">Alíquota</th>'
+    +'<th class="r">Quantidade</th><th class="r">Base Cálculo</th><th class="r">Crédito ICMS</th><th class="r">Valor Total NF</th>'
+    +'</tr></thead><tbody>';
+
+  for(var j=0;j<sorted.length;j++){
+    var p=sorted[j];
+    var isD2=p.cProd==='2309'||(p.xProd.toUpperCase().indexOf('DIESEL')>=0&&/S\s*10/.test(p.xProd.toUpperCase()));
+    var s10p=isD2?' <span class="badge badge-amber" style="margin-left:4px">S10</span>':'';
+    html+='<tr'+(isD2?' class="drow"':'')+'>'
+      +'<td><strong style="color:var(--tx)">'+p.xProd+'</strong>'+s10p+'</td>'
+      +'<td class="c"><span class="mono">'+p.cProd+'</span></td>'
+      +'<td class="c"><span class="badge '+(isD2?'badge-amber':'badge-gray')+'">'+p.tipo+'</span></td>'
+      +'<td class="r">'+p.aliq+'%</td>'
+      +'<td class="r">'+fmt3(p.qty)+' L</td>'
+      +'<td class="r">'+fmt2(p.bc)+'</td>'
+      +'<td class="r"><span class="'+(p.val>0?'val-green':'')+'">'+R(p.val)+'</span></td>'
+      +'<td class="r">'+R(p.vNF)+'</td>'
+      +'</tr>';
+  }
+
+  var totQtyP=sorted.reduce(function(s,p){return s+p.qty;},0);
+  html+='</tbody><tfoot><tr>'
+    +'<td colspan="4" style="text-align:right">TOTAL</td>'
+    +'<td class="r">'+fmt3(totQtyP)+' L</td>'
+    +'<td class="r">'+fmt2(totBC)+'</td>'
+    +'<td class="r" style="color:var(--green)">'+R(totVal)+'</td>'
+    +'<td class="r">'+R(totVNF)+'</td>'
+    +'</tr></tfoot></table></div>';
+
+  out.innerHTML=html;
+}
+
+// ── TEMA ──────────────────────────────────────────────────────────────────────
+var dark=false;
+document.getElementById('themeBtn').addEventListener('click',function(){
+  dark=!dark;
+  var s=document.documentElement.style;
+  var verse=document.querySelector('.verse');
+  if(dark){
+    s.setProperty('--bg','#0b0f1a');    s.setProperty('--bg2','#111827');
+    s.setProperty('--bg3','#1a2235');   s.setProperty('--bd','#1f2d45');
+    s.setProperty('--bd2','#2a3f5f');   s.setProperty('--tx','#e8edf5');
+    s.setProperty('--tx2','#8ca0bb');   s.setProperty('--tx3','#4d637f');
+    s.setProperty('--accent','#0ea5e9');s.setProperty('--green','#10b981');
+    s.setProperty('--amber','#f59e0b');s.setProperty('--sh','0 4px 24px rgba(0,0,0,.45)');
+    if(verse) verse.style.background='linear-gradient(100deg,#0f172a,#0c1a2e,#0f172a)';
+    this.innerHTML='<i class="fas fa-sun"></i> Claro';
+  } else {
+    s.setProperty('--bg','#f0f4fa');    s.setProperty('--bg2','#ffffff');
+    s.setProperty('--bg3','#f6f9fc');   s.setProperty('--bd','#e2e8f0');
+    s.setProperty('--bd2','#cbd5e1');   s.setProperty('--tx','#1e293b');
+    s.setProperty('--tx2','#475569');   s.setProperty('--tx3','#94a3b8');
+    s.setProperty('--accent','#0284c7');s.setProperty('--green','#059669');
+    s.setProperty('--amber','#d97706');s.setProperty('--sh','0 4px 24px rgba(0,0,0,.08)');
+    if(verse) verse.style.background='linear-gradient(100deg,#eff6ff,#dbeafe,#eff6ff)';
+    this.innerHTML='<i class="fas fa-moon"></i> Escuro';
+  }
+});
+
+// ── EXPORTAR ──────────────────────────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click',function(){
+  var txt=document.getElementById('output').innerText;
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  a.download='relatorio_nfe_'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>
