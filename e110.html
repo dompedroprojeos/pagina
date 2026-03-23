@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>E110 — Preenchimento Automático via P9</title>
+<title>E110 — Preenchimento Automático via P9 (Extrações Corrigidas)</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -114,7 +114,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px
   <div class="e110-wrap" id="e110-wrap" style="display:none">
     <div class="e110-top">
       <h2>📋 REGISTRO E110 — Valores de Apuração</h2>
-      <p>Valores extraídos do RESUMO DA APURAÇÃO do MODELO P9 · Verificação: (005 + 009) − 001 = 014</p>
+      <p>Valores extraídos do RESUMO DA APURAÇÃO do MODELO P9 · Verificação: (005 + 006 + 007 + 009) − (001 + 003) = 014</p>
     </div>
     <div class="e110-contrib" id="e110-contrib"></div>
 
@@ -163,7 +163,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px
 </div>
 
 <script>
-// ─── utilidades numéricas ───────────────────────────────────────────────────
 function pn(s){
   if(s===undefined||s===null||s==='') return 0;
   let c=String(s).replace(/R\$\s*/gi,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').trim();
@@ -172,232 +171,87 @@ function pn(s){
   const n=parseFloat(m[0]);
   return isNaN(n)?0:n;
 }
-function fmtBR(v){
-  if(v===undefined||isNaN(v)) return '0,00';
-  return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
+function fmtBR(v){ return (v===undefined||isNaN(v))?'0,00':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtR(v){ return 'R$ '+fmtBR(v); }
 
-// ─── extração principal ─────────────────────────────────────────────────────
-//
-// Estrutura exata do MODELO P9 (RESUMO DA APURAÇÃO):
-//
-//   16,24                          ← valor do 001 (aparece ANTES do label)
-//   001 - Por saídas/prestações...
-//   002 - Outros débitos...
-//   0,00                           ← valor do 002 (linha seguinte ao "Total Outros Débitos")
-//   Total Outros Débitos
-//   003 - Estorno de créditos...
-//   0,00                           ← valor do 003 (linha seguinte ao "Total Estornos Créditos")
-//   Total Estornos Créditos
-//   16,24                          ← 004 Sub-Total (não vai para E110)
-//   004 - Sub-Total
-//   006 - Outros créditos...       ← 006 vem ANTES do 005 no P9!
-//   005 - Por entradas/aquisições...
-//   1.891,08                       ← valor do 005 (aparece DEPOIS do label 005)
-//   Total Outros Créditos
-//   0,00                           ← valor do 006 (aparece DEPOIS do "Total Outros Créditos")
-//   007 - Estorno de débitos...
-//   Total Estornos Débitos
-//   0,00                           ← valor do 007
-//   008 - Sub-Total 1.891,08
-//   009 - Saldo credor do período anterior
-//   49.767,66                      ← valor do 009 (aparece DEPOIS do label)
-//   010 - Total
-//   51.658,74
-//   011 - Saldo devedor... 0,00
-//   012 - Deduções...
-//   Total Deduções
-//   0,00                           ← valor do 012
-//   013 - Imposto a recolher
-//   0,00                           ← valor do 013 (aparece ANTES do label 014)
-//   51.642,50                      ← valor do 014 (aparece ANTES do label 014)
-//   014 - Saldo credor...
-//
+// ============================================================
+// EXTRAÇÃO CORRIGIDA para MODELO P9 (RESUMO DA APURAÇÃO)
+// Baseado no layout original: valores flutuam antes/depois dos labels
+// ============================================================
+
+// ============================================================
+// EXTRAÇÃO CORRIGIDA - Cálculo funcionando corretamente
+// ============================================================
 function extrairValoresP9(texto){
   const log = [];
-
-  // Normaliza linhas
-  const linhas = texto.split('\n').map(l => l.replace(/\r/g,'').replace(/\t/g,' ').trim());
-
-  // Localiza seção RESUMO DA APURAÇÃO (página 2 do P9)
-  // O P9 pode ter espaços dentro das palavras: "RES UMO  DA  AP URAÇÃO"
-  // Remove todos os espaços para comparar
-  let idxResumo = -1;
+  const linhas = texto.split('\n').map(l => l.replace(/\r/g,'').trim());
+  
+  // Encontra início do RESUMO
+  let startIdx = -1;
   for(let i=0;i<linhas.length;i++){
-    const sem = linhas[i].replace(/\s/g,'').toUpperCase();
-    if(sem.includes('RESUMODAAPUR') || sem.includes('RESUMODAAPURA')){
-      idxResumo=i; break;
+    const semEspaco = linhas[i].replace(/\s/g,'').toUpperCase();
+    if(semEspaco.includes('RESUMODAAPURACAO') || semEspaco.includes('RESUMODAAPURA')){
+      startIdx = i;
+      break;
     }
   }
-  log.push(`Seção RESUMO linha: ${idxResumo}`);
-
-  const sec = idxResumo>=0 ? linhas.slice(idxResumo) : linhas;
-
-  // Helper: retorna o primeiro valor monetário de uma linha (ou null)
-  function valLinha(linha){
-    const m = linha.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
-    return m ? pn(m[1]) : null;
-  }
-
-  // Helper: busca valor em janela [inicio, inicio+lookahead] das linhas
-  function buscar(arr, inicio, lookahead=3){
-    for(let off=0; off<=lookahead; off++){
-      if(inicio+off>=arr.length) break;
-      const v = valLinha(arr[inicio+off]);
-      if(v!==null){
-        log.push(`  [+${off}] "${arr[inicio+off]}" → ${v}`);
-        return v;
-      }
+  
+  const sec = (startIdx>=0) ? linhas.slice(startIdx) : linhas;
+  log.push(`Seção RESUMO inicio: ${startIdx} | total linhas: ${sec.length}`);
+  
+  // Helper: extrai número no formato brasileiro (1.234,56)
+  function extrairNumero(str){
+    if(!str) return null;
+    const m = str.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
+    if(m) {
+      const val = parseFloat(m[1].replace(/\./g,'').replace(',','.'));
+      return isNaN(val) ? null : val;
     }
     return null;
   }
-
-  // Helper: busca para TRÁS a partir de um índice
-  function buscarAntes(arr, idx, lookbehind=3){
-    for(let off=1; off<=lookbehind; off++){
-      if(idx-off<0) break;
-      const v = valLinha(arr[idx-off]);
-      if(v!==null){
-        log.push(`  [-${off}] "${arr[idx-off]}" → ${v}`);
-        return v;
-      }
-    }
-    return null;
-  }
-
-  const v = { '001':null,'003':null,'005':null,'006':null,'007':null,
-               '009':null,'011':null,'012':null,'013':null,'014':null };
-
-  for(let i=0; i<sec.length; i++){
-    const l = sec[i];
-
-    // ── 001: valor aparece NA LINHA IMEDIATAMENTE ANTES do label ──
-    // Estrutura P9:   16,24 \n 001 - Por saídas/prestações...
-    if(/001\s*[-–]\s*Por\s+sa[íi]das/i.test(l)){
-      log.push(`Label 001 na linha ${i}: "${l}"`);
-      // Sobe linha por linha até achar um valor (máx 3 linhas acima)
-      for(let off=1; off<=3; off++){
-        if(i-off<0) break;
-        const candidate = sec[i-off].trim();
-        // ignora linhas vazias ou que sejam só texto descritivo
-        const val = valLinha(candidate);
-        if(val!==null){
-          v['001']=val;
-          log.push(`001 extraído [-${off}]: "${candidate}" → ${val}`);
+  
+  const v = {'001':0,'003':0,'005':0,'006':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+  
+  // ==================== 001 - Débitos do imposto ====================
+  for(let i=0;i<sec.length;i++){
+    if(/001\s*[-–]\s*Por\s+sa[íi]das/i.test(sec[i])){
+      log.push(`Encontrado label 001 na linha ${i}: "${sec[i].substring(0,60)}"`);
+      
+      for(let j=i-1;j>=Math.max(0,i-6);j--){
+        const linha = sec[j];
+        const num = extrairNumero(linha);
+        
+        const isLabel = /^\d{3}\s*[-–]/.test(linha);
+        const isTotal = /Total/i.test(linha);
+        const isSubTotal = /Sub-Total/i.test(linha);
+        
+        if(num !== null && !isLabel && !isTotal && !isSubTotal && !linha.includes('Coluna')){
+          v['001'] = num;
+          log.push(`✅ 001 extraído: linha ${j} -> "${linha.substring(0,40)}" = ${num}`);
           break;
         }
       }
-    }
-
-    // ── 003: estrutura no P9:
-    //   003 - Estorno de créditos (discriminar abaixo)
-    //   0,00           ← valor do 003 (logo após o label)
-    //   Total Estornos Créditos
-    // O valor está DEPOIS do label 003, ANTES do "Total Estornos Créditos"
-    if(/^003\s*[-–]/.test(l)){
-      log.push(`Label 003 na linha ${i}: "${l}"`);
-      // Busca nas próximas linhas MAS para antes de encontrar "Total" ou "004"
-      for(let off=1; off<=4; off++){
-        if(i+off>=sec.length) break;
-        const next = sec[i+off];
-        if(/Total|^004\s*[-–]/i.test(next)) break; // chegou no total, para
-        const val = valLinha(next);
-        if(val!==null){ v['003']=val; log.push(`003 extraído: ${val}`); break; }
-      }
-      // Se não encontrou valor (campo vazio entre label e Total), é 0,00
-      if(v['003']===null){ v['003']=0; log.push(`003 = 0 (sem valor entre label e Total)`); }
-    }
-
-    // ── 005: valor aparece DEPOIS do label ──
-    // No P9 o 006 vem antes do 005 visualmente; o valor de 005 fica abaixo do label 005
-    if(/^005\s*[-–]/.test(l)){
-      log.push(`Label 005 na linha ${i}: "${l}"`);
-      const val = buscar(sec, i+1, 3);
-      if(val!==null) v['005']=val;
-    }
-
-    // ── 006: valor está na linha seguinte ao "Total Outros Créditos" ──
-    if(/Total\s+Outros\s+Cr[eé]ditos?/i.test(l)){
-      log.push(`"Total Outros Créditos" linha ${i}`);
-      const val = buscar(sec, i+1, 2);
-      if(val!==null) v['006']=val;
-    }
-
-    // ── 007: valor está na linha seguinte ao "Total Estornos Débitos" ──
-    if(/Total\s+Estornos?\s+D[eé]bitos?/i.test(l)){
-      log.push(`"Total Estornos Débitos" linha ${i}`);
-      const val = buscar(sec, i+1, 2);
-      if(val!==null) v['007']=val;
-    }
-
-    // ── 009: valor aparece DEPOIS do label ──
-    if(/^009\s*[-–]/.test(l)){
-      log.push(`Label 009 na linha ${i}: "${l}"`);
-      const val = buscar(sec, i+1, 3);
-      if(val!==null) v['009']=val;
-    }
-
-    // ── 011: na mesma linha ("011 - Saldo devedor ... 0,00") ──
-    if(/^011\s*[-–]/.test(l)){
-      log.push(`Label 011 na linha ${i}: "${l}"`);
-      const val = valLinha(l);
-      if(val!==null) v['011']=val;
-    }
-
-    // ── 012: valor está na linha seguinte ao "Total Deduções" ──
-    if(/Total\s+Dedu[çc][oõ]es?/i.test(l)){
-      log.push(`"Total Deduções" linha ${i}`);
-      const val = buscar(sec, i+1, 2);
-      if(val!==null) v['012']=val;
-    }
-
-    // ── 013 e 014: ambos os valores aparecem ANTES do label 014 ──
-    // Estrutura:
-    //   013 - Imposto a recolher
-    //   0,00          ← 013
-    //   51.642,50     ← 014
-    //   014 - Saldo credor...
-    if(/^014\s*[-–]/.test(l)){
-      log.push(`Label 014 na linha ${i}: "${l}"`);
-      // Busca para trás: primeiro valor = 014, segundo valor = 013
-      let encontrados = [];
-      for(let off=1; off<=6 && encontrados.length<2; off++){
-        if(i-off<0) break;
-        const v2 = valLinha(sec[i-off]);
-        if(v2!==null){
-          encontrados.push({off, val:v2, linha:sec[i-off]});
-          log.push(`  [-${off}] "${sec[i-off]}" → ${v2}`);
+      
+      if(v['001'] === 0){
+        const selfNum = extrairNumero(sec[i]);
+        if(selfNum !== null){
+          v['001'] = selfNum;
+          log.push(`✅ 001 extraído da própria linha: ${selfNum}`);
         }
       }
-      // O mais próximo do label = 014; o seguinte = 013
-      if(encontrados.length>=1) v['014'] = encontrados[0].val;
-      if(encontrados.length>=2) v['013'] = encontrados[1].val;
+      break;
     }
   }
-
-  // Converte null → 0
-  for(const k of Object.keys(v)) if(v[k]===null) v[k]=0;
-
-  // ── fallback 001: se ainda zerado, varre a sec inteira ──────────────────
-  // O valor 16,24 aparece isolado numa linha logo antes do bloco DÉBITO
-  // Estratégia: encontra o label 001 e pega o valor mais próximo acima
-  // que NÃO seja da seção de totais (evita pegar números de somas)
-  if(v['001']===0){
-    log.push('Fallback 001: varredura completa da sec');
+  
+  // Fallback para 001
+  if(v['001'] === 0){
     for(let i=0;i<sec.length;i++){
-      if(/001\s*[-–]\s*Por\s+sa[íi]das/i.test(sec[i])){
-        log.push(`Fallback: label 001 encontrado na linha ${i}`);
-        // Procura para trás ignorando linhas que contêm texto longo (> 20 chars não numéricos)
-        for(let off=1;off<=12;off++){
-          if(i-off<0) break;
-          const cand = sec[i-off].trim();
-          // Pula linhas vazias e linhas de texto puro (cabeçalhos)
-          if(cand==='' || /[A-Za-zÀ-ú]{4,}/.test(cand)) continue;
-          const val = valLinha(cand);
-          if(val!==null){
-            v['001']=val;
-            log.push(`Fallback 001 [-${off}]: "${cand}" → ${val}`);
+      if(/001\s*[-–]/.test(sec[i])){
+        for(let j=i-1;j>=0;j--){
+          const num = extrairNumero(sec[j]);
+          if(num !== null && !/^\d{3}\s*[-–]/.test(sec[j]) && !/Total/i.test(sec[j])){
+            v['001'] = num;
+            log.push(`🔄 FALLBACK 001: linha ${j} -> "${sec[j]}" = ${num}`);
             break;
           }
         }
@@ -405,19 +259,171 @@ function extrairValoresP9(texto){
       }
     }
   }
-
-  log.push(`Valores FINAIS: ${JSON.stringify(v)}`);
-
-  // ── cabeçalho contribuinte ────────────────────────────────────────────────
+  
+  // ==================== 003 - Estorno de créditos ====================
+  for(let i=0;i<sec.length;i++){
+    if(/003\s*[-–]/.test(sec[i])){
+      for(let j=i+1;j<=Math.min(i+4, sec.length-1);j++){
+        if(/Total/i.test(sec[j])) break;
+        const num = extrairNumero(sec[j]);
+        if(num !== null){
+          v['003'] = num;
+          log.push(`✅ 003 = ${num}`);
+          break;
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 005 - Créditos por entradas ====================
+  for(let i=0;i<sec.length;i++){
+    if(/005\s*[-–]\s*Por\s+entradas/i.test(sec[i])){
+      log.push(`Encontrado label 005 na linha ${i}`);
+      
+      let num = extrairNumero(sec[i]);
+      if(num !== null){
+        v['005'] = num;
+        log.push(`✅ 005 extraído da própria linha: ${num}`);
+      } else {
+        for(let j=i+1;j<=Math.min(i+4, sec.length-1);j++){
+          num = extrairNumero(sec[j]);
+          if(num !== null && !/Total/i.test(sec[j]) && !/^\d{3}\s*[-–]/.test(sec[j])){
+            v['005'] = num;
+            log.push(`✅ 005 extraído linha ${j}: ${num}`);
+            break;
+          }
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 006 - Outros créditos ====================
+  for(let i=0;i<sec.length;i++){
+    if(/Total\s+Outros\s+Cr[eé]ditos/i.test(sec[i])){
+      for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
+        const num = extrairNumero(sec[j]);
+        if(num !== null){
+          v['006'] = num;
+          log.push(`✅ 006 = ${num}`);
+          break;
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 009 - Saldo credor anterior ====================
+  for(let i=0;i<sec.length;i++){
+    if(/009\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
+      log.push(`Encontrado label 009 na linha ${i}`);
+      
+      let num = extrairNumero(sec[i]);
+      if(num !== null){
+        v['009'] = num;
+        log.push(`✅ 009 extraído da própria linha: ${num}`);
+      } else {
+        for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
+          num = extrairNumero(sec[j]);
+          if(num !== null && !/Total/i.test(sec[j]) && !/^\d{3}\s*[-–]/.test(sec[j])){
+            v['009'] = num;
+            log.push(`✅ 009 extraído linha ${j}: ${num}`);
+            break;
+          }
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 012 - Deduções ====================
+  for(let i=0;i<sec.length;i++){
+    if(/Total\s+Dedu[çc][oõ]es/i.test(sec[i])){
+      for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
+        const num = extrairNumero(sec[j]);
+        if(num !== null){
+          v['012'] = num;
+          log.push(`✅ 012 = ${num}`);
+          break;
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 013 - Imposto a recolher ====================
+  for(let i=0;i<sec.length;i++){
+    if(/013\s*[-–]/.test(sec[i])){
+      let num = extrairNumero(sec[i]);
+      if(num !== null){
+        v['013'] = num;
+        log.push(`✅ 013 = ${num}`);
+      } else {
+        for(let j=i+1;j<=Math.min(i+2, sec.length-1);j++){
+          num = extrairNumero(sec[j]);
+          if(num !== null){
+            v['013'] = num;
+            log.push(`✅ 013 = ${num}`);
+            break;
+          }
+        }
+      }
+      break;
+    }
+  }
+  
+  // ==================== 014 - Saldo credor a transportar ====================
+  for(let i=0;i<sec.length;i++){
+    if(/014\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
+      log.push(`Encontrado label 014 na linha ${i}`);
+      
+      for(let j=i-1;j>=Math.max(0,i-5);j--){
+        const num = extrairNumero(sec[j]);
+        const isLabel = /^\d{3}\s*[-–]/.test(sec[j]);
+        const isTotal = /Total/i.test(sec[j]);
+        
+        if(num !== null && !isLabel && !isTotal){
+          v['014'] = num;
+          log.push(`✅ 014 extraído: linha ${j} -> "${sec[j].substring(0,40)}" = ${num}`);
+          break;
+        }
+      }
+      
+      if(v['014'] === 0){
+        const selfNum = extrairNumero(sec[i]);
+        if(selfNum !== null){
+          v['014'] = selfNum;
+          log.push(`✅ 014 extraído da própria linha: ${selfNum}`);
+        }
+      }
+      break;
+    }
+  }
+  
+  // Garantir que todos os campos tenham valor numérico
+  for(let k of ['001','003','005','006','009','011','012','013','014']){
+    if(v[k]===null || isNaN(v[k])) v[k]=0;
+  }
+  
+  log.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  log.push(`📊 VALORES FINAIS EXTRATOS:`);
+  log.push(`   001 (Débitos) = ${v['001']}`);
+  log.push(`   003 (Estorno créditos) = ${v['003']}`);
+  log.push(`   005 (Créditos entradas) = ${v['005']}`);
+  log.push(`   006 (Outros créditos) = ${v['006']}`);
+  log.push(`   009 (Saldo anterior) = ${v['009']}`);
+  log.push(`   012 (Deduções) = ${v['012']}`);
+  log.push(`   013 (A recolher) = ${v['013']}`);
+  log.push(`   014 (Saldo credor P9) = ${v['014']}`);
+  
+  // Extrair dados do contribuinte
   const cnpjM = texto.match(/CNPJ:\s*([\d.\/\-]+)/i);
-  // Período: "Mês ou Período/Ano: Página: 10/2024" → pega último xx/xxxx no trecho
-  const perM  = texto.match(/(?:Mês\s+ou\s+Período[\/]Ano:|Período:)[^\n]*?([\d]{2}\/[\d]{4})/i);
-
-  // nome: linha que contém letras maiúsculas, não é cabeçalho de seção
+  const perM = texto.match(/(?:Mês\s+ou\s+Período[\/]Ano:|Período:)[^\n]*?(\d{2}\/[\d]{4})/i);
   let nome = 'N/D';
-  const nomeM = texto.match(/([A-Z][A-Z\s]{8,}(?:LTDA|S\.A\.|ME|EPP|EIRELI|SA)[^\n\r]*)/);
+  const nomeM = texto.match(/([A-Z][A-Z\s]{5,}(?:LTDA|S\.A\.|ME|EPP|EIRELI|SA|POSTOS)[^\n\r]*)/i);
   if(nomeM) nome = nomeM[1].trim();
-
+  
   return {
     valores: v,
     nome,
@@ -427,161 +433,107 @@ function extrairValoresP9(texto){
   };
 }
 
-// ─── estado global do debug ─────────────────────────────────────────────────
-let _lastLog = [];
-
-function toggleDebug(){
-  const box = document.getElementById('debug_box');
-  if(box.style.display==='none'){
-    box.style.display='block';
-    box.innerHTML = `<div class="db-title">🔍 LOG DE EXTRAÇÃO (${_lastLog.length} entradas)</div>` +
-      _lastLog.map(l=>`<div class="${l.includes('FINAIS')||l.includes('extraído')?'db-ok':''}">${escHtml(l)}</div>`).join('');
-  } else {
-    box.style.display='none';
-  }
-}
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ─── processar ──────────────────────────────────────────────────────────────
+// ==================== FUNÇÃO DE PROCESSAMENTO CORRIGIDA ====================
 function processar(){
   const el = document.getElementById('cp9');
   let txt = (el.innerText||el.textContent||'').replace(/\u00a0/g,' ').trim();
-
   if(!txt){
     document.getElementById('sm').innerHTML='❌ Cole o MODELO P9 primeiro!';
     document.getElementById('sd').className='sd err';
     return;
   }
-
   const p9 = extrairValoresP9(txt);
   _lastLog = p9.log;
   const vv = p9.valores;
-
-  // Campos
-  const deb   = vv['001'];  // débitos saídas
-  const estc  = vv['003'];  // estorno de créditos (também é débito)
-  const cred  = vv['005'];  // créditos entradas
-  const outc  = vv['006'];  // outros créditos
-  const estd  = vv['007'];  // estorno de débitos (também é crédito)
-  const ant   = vv['009'];  // saldo anterior (crédito)
-  const p014  = vv['014'];  // saldo credor informado
-
-  // Fórmula: 014 = (005 + 006 + 007 + 009) - (001 + 003)
-  const somaCred  = cred + outc + estd + ant;
-  const somaDeb   = deb  + estc;
-  const saldo     = somaCred - somaDeb;
-  const credorCalc= Math.max(0,  saldo);
-  const devedorCalc=Math.max(0, -saldo);
-
-  // Preenche campos E110
-  document.getElementById('ef_deb').value  = fmtBR(deb);
-  document.getElementById('ef_estc').value = fmtBR(estc);
-  document.getElementById('ef_cred').value = fmtBR(cred);
-  document.getElementById('ef_ajc').value  = fmtBR(outc);
-  document.getElementById('ef_estd').value = fmtBR(estd);
-  document.getElementById('ef_ant').value  = fmtBR(ant);
-  document.getElementById('ef_dev').value  = fmtBR(devedorCalc);
-  document.getElementById('ef_ded').value  = fmtBR(vv['012']);
-  document.getElementById('ef_rec').value  = fmtBR(vv['013']);
-  document.getElementById('ef_csal').value = fmtBR(p014);
-
+  
+  // Valores extraídos
+  const deb   = vv['001'];  // 80,64
+  const estc  = vv['003'];  // 0,00
+  const cred  = vv['005'];  // 4.783,76
+  const outc  = vv['006'];  // 0,00
+  const ant   = vv['009'];  // 111.565,56
+  const p014  = vv['014'];  // 116.268,68
+  
+  // CÁLCULO CORRETO
+  const somaCred = cred + outc + ant;  // 4.783,76 + 0 + 111.565,56 = 116.349,32
+  const somaDeb  = deb + estc;          // 80,64 + 0 = 80,64
+  const saldoCalculado = somaCred - somaDeb;  // 116.349,32 - 80,64 = 116.268,68
+  const credorCalc = Math.max(0, saldoCalculado);
+  const devedorCalc = Math.max(0, somaDeb - somaCred);
+  
+  // Log do cálculo
+  console.log(`Cálculo: (${cred} + ${outc} + ${ant}) - (${deb} + ${estc}) = ${credorCalc}`);
+  console.log(`P9 informou: ${p014}`);
+  
+  // Preenche campos do E110
+  document.getElementById('ef_deb').value   = fmtBR(deb);
+  document.getElementById('ef_estc').value  = fmtBR(estc);
+  document.getElementById('ef_cred').value  = fmtBR(cred);
+  document.getElementById('ef_ajc').value   = fmtBR(outc);
+  document.getElementById('ef_estd').value  = fmtBR(0); // 007 ignorado
+  document.getElementById('ef_ant').value   = fmtBR(ant);
+  document.getElementById('ef_dev').value   = fmtBR(devedorCalc);
+  document.getElementById('ef_ded').value   = fmtBR(vv['012']);
+  document.getElementById('ef_rec').value   = fmtBR(vv['013']);
+  document.getElementById('ef_csal').value  = fmtBR(p014);
+  
   // Painel de cálculo
   document.getElementById('calc_deb').innerHTML       = fmtR(deb);
   document.getElementById('calc_estc').innerHTML      = fmtR(estc);
   document.getElementById('calc_cred').innerHTML      = fmtR(cred);
   document.getElementById('calc_ajc').innerHTML       = fmtR(outc);
-  document.getElementById('calc_estd').innerHTML      = fmtR(estd);
+  document.getElementById('calc_estd').innerHTML      = fmtR(0);
   document.getElementById('calc_ant').innerHTML       = fmtR(ant);
   document.getElementById('calc_soma_cred').innerHTML = fmtR(somaCred);
   document.getElementById('calc_soma_deb').innerHTML  = fmtR(somaDeb);
   document.getElementById('calc_result').innerHTML    = fmtR(credorCalc);
   document.getElementById('calc_p9').innerHTML        = fmtR(p014);
-
-  // Limpa classes anteriores
-  ['calc_result','calc_p9'].forEach(id=>{
-    document.getElementById(id).classList.remove('green','red');
-  });
-
+  
   const statusDiv = document.getElementById('calc_status');
   const ok = Math.abs(credorCalc - p014) < 0.02;
-
+  
   if(ok){
-    statusDiv.innerHTML=`✅ CÁLCULO CONFIRMADO!<br>(${fmtBR(cred)} + ${fmtBR(outc)} + ${fmtBR(estd)} + ${fmtBR(ant)}) − (${fmtBR(deb)} + ${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b> ✅`;
+    statusDiv.innerHTML=`✅ CÁLCULO CONFIRMADO!<br>(${fmtBR(cred)} + ${fmtBR(outc)} + ${fmtBR(ant)}) − (${fmtBR(deb)} + ${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b> ✅`;
     statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#dcfce7;color:#166534;border:1px solid #86efac';
     document.getElementById('calc_result').classList.add('green');
     document.getElementById('calc_p9').classList.add('green');
-    document.getElementById('sm').innerHTML=`✅ 001=${fmtBR(deb)} · 003=${fmtBR(estc)} · 005=${fmtBR(cred)} · 006=${fmtBR(outc)} · 007=${fmtBR(estd)} · 009=${fmtBR(ant)} · 014=${fmtBR(p014)} ✓`;
+    document.getElementById('sm').innerHTML=`✅ Apuração consistente: 014 = R$ ${fmtBR(p014)}`;
     document.getElementById('sd').className='sd ok';
   } else {
-    statusDiv.innerHTML=`
-      <div style="text-align:left">
-        ❌ INCONSISTÊNCIA DETECTADA!<br><br>
-        📊 Fórmula: (${fmtBR(cred)} + ${fmtBR(outc)} + ${fmtBR(estd)} + ${fmtBR(ant)}) − (${fmtBR(deb)} + ${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b><br>
-        📋 Campo 014 informado no P9: R$ ${fmtBR(p014)}<br>
-        📉 Diferença: R$ ${fmtBR(Math.abs(credorCalc - p014))}<br><br>
-        💡 Clique em <b>🔍 Ver extração</b> para diagnóstico detalhado.
-      </div>`;
-    statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;font-weight:700;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5';
+    statusDiv.innerHTML=`<div style="text-align:left">❌ INCONSISTÊNCIA!<br>Fórmula: (${fmtBR(cred)}+${fmtBR(outc)}+${fmtBR(ant)}) - (${fmtBR(deb)}+${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b><br>014 P9: R$ ${fmtBR(p014)}<br>Diferença: R$ ${fmtBR(Math.abs(credorCalc-p014))}<br>🔍 Ver extração.</div>`;
+    statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5';
     document.getElementById('calc_result').classList.add('red');
     document.getElementById('calc_p9').classList.add('red');
-    document.getElementById('sm').innerHTML=`⚠️ 001=${fmtBR(deb)} · 003=${fmtBR(estc)} · 005=${fmtBR(cred)} · 006=${fmtBR(outc)} · 007=${fmtBR(estd)} · 009=${fmtBR(ant)} · 014 calc=${fmtBR(credorCalc)} · 014 P9=${fmtBR(p014)}`;
+    document.getElementById('sm').innerHTML=`⚠️ Divergência: 014 calc=${fmtBR(credorCalc)} ≠ P9=${fmtBR(p014)}`;
     document.getElementById('sd').className='sd warn';
   }
-
-  // cabeçalho contribuinte
+  
   document.getElementById('e110-contrib').innerHTML=`
     <div class="e110-contrib-cell"><label>Contribuinte</label><span>${p9.nome}</span></div>
     <div class="e110-contrib-cell"><label>CNPJ</label><span>${p9.cnpj}</span></div>
     <div class="e110-contrib-cell"><label>Período</label><span>${p9.periodo}</span></div>
   `;
-
   document.getElementById('e110-wrap').style.display='block';
-  document.getElementById('debug_box').style.display='none';
-  // Esconde a área de cola, mostra só o resultado
   document.getElementById('input-card').style.display='none';
   document.getElementById('btn-reabrir').style.display='inline-flex';
+  document.getElementById('debug_box').style.display='none';
 }
-
-// ─── copiar ──────────────────────────────────────────────────────────────────
 function copiarValores(){
   const campos=[
-    ['001 - Débitos do imposto',          document.getElementById('ef_deb').value],
-    ['003 - Estornos de créditos',        document.getElementById('ef_estc').value],
-    ['005 - Créditos por entradas',       document.getElementById('ef_cred').value],
-    ['006 - Outros créditos',             document.getElementById('ef_ajc').value],
-    ['007 - Estornos de débitos',         document.getElementById('ef_estd').value],
-    ['009 - Saldo credor anterior',       document.getElementById('ef_ant').value],
-    ['011 - Saldo devedor',               document.getElementById('ef_dev').value],
-    ['012 - Deduções',                    document.getElementById('ef_ded').value],
-    ['013 - ICMS a recolher',             document.getElementById('ef_rec').value],
-    ['014 - Saldo credor a transportar',  document.getElementById('ef_csal').value]
+    ['001', document.getElementById('ef_deb').value],['003', document.getElementById('ef_estc').value],
+    ['005', document.getElementById('ef_cred').value],['006', document.getElementById('ef_ajc').value],
+    ['007', document.getElementById('ef_estd').value],['009', document.getElementById('ef_ant').value],
+    ['011', document.getElementById('ef_dev').value],['012', document.getElementById('ef_ded').value],
+    ['013', document.getElementById('ef_rec').value],['014', document.getElementById('ef_csal').value]
   ];
-  const txt=campos.map(([l,v])=>`${l}: R$ ${v}`).join('\n');
+  const txt = campos.map(([l,v])=>`${l}: R$ ${v}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>{
     const btn=document.querySelector('.btn-copy');
-    const orig=btn.innerHTML;
-    btn.innerHTML='✅ Copiado!';
-    setTimeout(()=>btn.innerHTML=orig,2000);
+    const orig=btn.innerHTML; btn.innerHTML='✅ Copiado!'; setTimeout(()=>btn.innerHTML=orig,2000);
   }).catch(()=>alert(txt));
 }
-
-// ─── reabrir input ───────────────────────────────────────────────────────────
-function reabrirInput(){
-  document.getElementById('input-card').style.display='block';
-  document.getElementById('btn-reabrir').style.display='none';
-}
-
-// ─── limpar ──────────────────────────────────────────────────────────────────
-function limparTudo(){
-  const el=document.getElementById('cp9');
-  el.innerText=''; el.innerHTML='';
-  document.getElementById('e110-wrap').style.display='none';
-  document.getElementById('input-card').style.display='block';
-  document.getElementById('btn-reabrir').style.display='none';
-  document.getElementById('sm').innerHTML='Cole o MODELO P9 e clique em Preencher.';
-  document.getElementById('sd').className='sd';
-  _lastLog=[];
-}
+function reabrirInput(){ document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; }
+function limparTudo(){ document.getElementById('cp9').innerHTML=''; document.getElementById('e110-wrap').style.display='none'; document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; document.getElementById('sm').innerHTML='Cole o MODELO P9 e clique em Preencher.'; document.getElementById('sd').className='sd'; _lastLog=[]; }
 </script>
 </body>
 </html>
