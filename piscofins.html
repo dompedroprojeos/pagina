@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -104,7 +103,7 @@
         }
 
         .main-content {
-            max-width: 1200px;
+            max-width: 1700px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
@@ -304,6 +303,25 @@
             background-color: #1e3a5f;
         }
 
+        /* AUMENTO DA LARGURA DA COLUNA VALOR TOTAL */
+        .nfe-table th:nth-child(10),
+        .nfe-table td:nth-child(10) {
+            min-width: 130px;
+            width: 130px;
+        }
+
+        /* Ajuste para responsividade */
+        @media (max-width: 1200px) {
+            .nfe-table {
+                font-size: 0.85rem;
+            }
+            .nfe-table th:nth-child(10),
+            .nfe-table td:nth-child(10) {
+                min-width: 110px;
+                width: 110px;
+            }
+        }
+
         .daily-verse {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -383,22 +401,6 @@
             transform: scale(1.1);
         }
 
-        .validation-summary {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            text-align: center;
-        }
-
-        body.dark-mode .validation-summary {
-            background-color: #2d2d1c;
-            border-color: #6d6b3c;
-            color: #ffd966;
-        }
-
         .product-group {
             margin: 2rem 0;
             border: 1px solid #ddd;
@@ -426,11 +428,6 @@
             background-color: #4a3a1a !important;
         }
 
-        .diesel-highlight {
-            background-color: #ffeb3b20;
-            border-left: 4px solid #ff9800;
-        }
-
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -439,6 +436,11 @@
                 font-size: 0.7rem;
                 display: block;
                 overflow-x: auto;
+            }
+            .nfe-table th:nth-child(10),
+            .nfe-table td:nth-child(10) {
+                min-width: 90px;
+                width: 90px;
             }
         }
     </style>
@@ -586,7 +588,6 @@
         function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function scrollToBottom() { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }
 
-        // Versículo do dia
         function showDailyVerse() {
             const verseContainer = document.getElementById('dailyVerseContainer');
             const dayOfWeek = new Date().getDay();
@@ -617,7 +618,6 @@
             fileCountDisplay.textContent = count > 0 ? `${count} arquivo(s) selecionado(s)` : 'Nenhum arquivo selecionado';
         });
 
-        // Função para extrair valor de elemento XML
         function getElemValue(parent, tagName) {
             const elem = parent.getElementsByTagName(tagName)[0];
             return elem ? elem.textContent.trim() : '';
@@ -628,14 +628,12 @@
             return val ? parseFloat(val) || 0 : 0;
         }
 
-        // Função para extrair informações de ICMS - CORRIGIDA PARA DIESEL S10
         function extractICMSInfo(produto) {
             let aliquota = 0;
             let baseCalculo = 0;
             let valorCredito = 0;
             let tipoICMS = 'Sem ICMS';
 
-            // Buscar especificamente ICMS61 (monofásico para combustíveis)
             const icms61 = produto.getElementsByTagName('ICMS61')[0];
             if (icms61) {
                 tipoICMS = 'ICMS61 - Monofásico';
@@ -645,7 +643,6 @@
                 return { aliquota, baseCalculo, valorCredito, tipoICMS };
             }
 
-            // Buscar outros tipos de ICMS
             const icmsGroups = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS41', 'ICMS50', 'ICMS51', 'ICMS60', 'ICMS70', 'ICMS90', 'ICMSST'];
             for (const group of icmsGroups) {
                 const icmsElem = produto.getElementsByTagName(group)[0];
@@ -661,11 +658,8 @@
             return { aliquota, baseCalculo, valorCredito, tipoICMS };
         }
 
-        // Função para verificar se é DIESEL S10 (por código ou nome)
         function isDieselS10(cProd, xProd) {
-            // Código 2309 é do DIESEL S10 conforme seu XML
             if (cProd === '2309') return true;
-            // Verificar por nome: DIESEL S10, DIESEL S 10, etc
             const nomeUpper = xProd.toUpperCase();
             return nomeUpper.includes('DIESEL') && (nomeUpper.includes('S10') || nomeUpper.includes('S 10'));
         }
@@ -683,22 +677,22 @@
             const stateTerm = stateInput.value.trim().toUpperCase();
             const productCodeTerm = productCodeInput.value.trim();
 
-            // Dados para processamento
             let todosProdutos = {};
             let dieselS10Items = [];
             let tableRows = [];
-            let totalValorNotas = 0;
+            let totalValorNotasGeral = 0;
             let totalBCGeral = 0;
             let totalCreditoGeral = 0;
             let processedFiles = 0;
 
-            // Dados para o resumo do DIESEL S10
             let dieselS10Summary = {
                 totalBC: 0,
                 totalCredito: 0,
                 totalValorNF: 0,
                 totalQuantidade: 0
             };
+
+            let notasDieselProcessadas = new Set();
 
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
@@ -714,8 +708,15 @@
                     const dhEmi = getElemValue(xmlDoc, 'dhEmi');
                     const dataEmissao = dhEmi ? new Date(dhEmi).toLocaleDateString('pt-BR') : '';
                     const infAdFisco = getElemValue(xmlDoc, 'infAdFisco') || getElemValue(xmlDoc, 'infCpl') || '';
+                    
+                    // EXTRAINDO O vNF (VALOR TOTAL DA NOTA FISCAL)
+                    const vNF = getElemNumber(xmlDoc, 'vNF');
+                    
+                    totalValorNotasGeral += vNF;
 
                     const produtos = xmlDoc.getElementsByTagName('det');
+                    
+                    let notaContemDiesel = false;
 
                     for (let i = 0; i < produtos.length; i++) {
                         const produto = produtos[i];
@@ -728,40 +729,38 @@
                         const qCom = getElemNumber(prodElement, 'qCom');
                         const cfop = getElemValue(prodElement, 'CFOP');
 
-                        // Extrair ICMS
                         const { aliquota, baseCalculo, valorCredito, tipoICMS } = extractICMSInfo(produto);
 
-                        // Aplicar filtros
                         const matchesSearch = searchTerm === '' || cnpj.toLowerCase().includes(searchTerm);
                         const matchesState = stateTerm === '' || uf.includes(stateTerm);
                         const matchesProduct = productCodeTerm === '' || cProd === productCodeTerm;
 
                         const isDiesel = isDieselS10(cProd, xProd);
+                        
+                        if (isDiesel) {
+                            notaContemDiesel = true;
+                        }
 
                         if (matchesSearch && matchesState && matchesProduct) {
-                            // Acumular para tabela principal
                             const rowData = {
                                 nomePosto, cnpj, uf, nNF, serie, dataEmissao,
-                                xProd, cProd, vProd, qCom,
+                                xProd, cProd, qCom,
+                                vNF, // AGORA USA O vNF (VALOR TOTAL DA NOTA)
                                 aliquota, baseCalculo, valorCredito, tipoICMS,
                                 infAdFisco, isDiesel, cfop
                             };
                             tableRows.push(rowData);
                             
-                            totalValorNotas += vProd;
                             totalBCGeral += baseCalculo;
                             totalCreditoGeral += valorCredito;
 
-                            // Acumular dados do DIESEL S10 separadamente
                             if (isDiesel) {
                                 dieselS10Items.push(rowData);
                                 dieselS10Summary.totalBC += baseCalculo;
                                 dieselS10Summary.totalCredito += valorCredito;
-                                dieselS10Summary.totalValorNF += vProd;
                                 dieselS10Summary.totalQuantidade += qCom;
                             }
 
-                            // Agrupar todos os produtos para resumo
                             const key = `${xProd}|${cProd}|${aliquota}|${tipoICMS}`;
                             if (!todosProdutos[key]) {
                                 todosProdutos[key] = {
@@ -781,20 +780,24 @@
                             todosProdutos[key].totalQuantidade += qCom;
                         }
                     }
+                    
+                    if (notaContemDiesel && !notasDieselProcessadas.has(nNF + '|' + cnpj)) {
+                        notasDieselProcessadas.add(nNF + '|' + cnpj);
+                        dieselS10Summary.totalValorNF += vNF;
+                    }
 
                     processedFiles++;
                     if (processedFiles === files.length) {
-                        renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, totalValorNotas, totalBCGeral, totalCreditoGeral, files.length);
+                        renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, totalValorNotasGeral, totalBCGeral, totalCreditoGeral, files.length);
                     }
                 };
                 reader.readAsText(file);
             });
         });
 
-        function renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, totalValorNotas, totalBCGeral, totalCreditoGeral, totalFiles) {
+        function renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, totalValorNotasGeral, totalBCGeral, totalCreditoGeral, totalFiles) {
             let html = '';
 
-            // ==================== SEÇÃO DIESEL S10 - DESTAQUE ====================
             html += `
                 <div class="product-group">
                     <div class="product-group-header">
@@ -807,14 +810,14 @@
                         <tbody>
                             <tr style="background-color: #ff980020;">
                                 <td><strong>📊 Total Base de Cálculo (ICMS Monofásico - qBCMonoRet)</strong></td>
-                                <td class="align-right"><strong style="font-size: 1.1rem;">${dieselS10Summary.totalBC.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+                                <td class="align-right"><strong>${dieselS10Summary.totalBC.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
                             </tr>
                             <tr style="background-color: #ff980020;">
                                 <td><strong>💰 Total Valor de Crédito (ICMS Monofásico Retido - vICMSMonoRet)</strong></td>
-                                <td class="align-right"><strong style="font-size: 1.1rem; color: #2e7d32;">R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+                                <td class="align-right"><strong style="color: #2e7d32;">R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
                             </tr>
                             <tr>
-                                <td>📦 Total Valor das Notas (DIESEL S10)</td>
+                                <td>📦 Total Valor das Notas (vNF - SOMA DAS NOTAS COM DIESEL S10)</td>
                                 <td class="align-right">R$ ${dieselS10Summary.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             </tr>
                             <tr>
@@ -830,7 +833,6 @@
                 </div>
             `;
 
-            // ==================== TABELA PRINCIPAL COM TODOS OS PRODUTOS ====================
             html += `
                 <h2 style="text-align: center; margin-top: 2rem;">📋 ENTREGAS - DETALHAMENTO COMPLETO</h2>
                 <div style="overflow-x: auto;">
@@ -846,7 +848,7 @@
                                 <th class="align-center">Produto</th>
                                 <th class="align-center">Código</th>
                                 <th class="align-center">Quantidade</th>
-                                <th class="align-right">Valor Total</th>
+                                <th class="align-right">Valor Total (vNF)</th>
                                 <th class="align-right">Alíquota</th>
                                 <th class="align-right">Base Cálculo</th>
                                 <th class="align-right">Valor Crédito</th>
@@ -869,32 +871,30 @@
                     <td class="align-center">${row.xProd}</td>
                     <td class="align-center">${row.cProd}</td>
                     <td class="align-center">${row.qCom.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}</td>
-                    <td class="align-right">R$ ${row.vProd.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td class="align-right"><strong>R$ ${row.vNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                     <td class="align-right">${row.aliquota}%</td>
                     <td class="align-right">${row.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td class="align-right ${row.isDiesel ? 'highlight' : ''}">R$ ${row.valorCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td class="align-center">${row.cfop || '-'}</td>
                     <td class="align-center">${row.infAdFisco.substring(0, 50)}${row.infAdFisco.length > 50 ? '...' : ''}</td>
-                 </tr>`;
+                  </tr>`;
             }
 
             html += `
                         </tbody>
                         <tfoot>
                             <tr class="total-cell">
-                                <td colspan="8" class="align-right"><strong>TOTAL GERAL:</strong></td>
-                                <td class="align-center"><strong>${tableRows.reduce((s, r) => s + r.qCom, 0).toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td>
-                                <td class="align-right"><strong>R$ ${totalValorNotas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                                <td colspan="9" class="align-right"><strong>TOTAL GERAL (SOMA vNF):</strong></td>
+                                <td class="align-right"><strong>R$ ${totalValorNotasGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                                 <td colspan="2" class="align-right"><strong>${totalBCGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                                 <td class="align-right"><strong>R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                                 <td colspan="2"></td>
-                            </tr>
+                             </tr>
                         </tfoot>
                     </table>
                 </div>
             `;
 
-            // ==================== RESUMO DE TODOS OS PRODUTOS ====================
             html += `<h2 style="text-align: center; margin-top: 2rem;">📊 RESUMO POR PRODUTO</h2>`;
             html += `<div style="overflow-x: auto;">
                 <table class="summary-table">
@@ -907,7 +907,6 @@
                             <th class="align-right">Total Quantidade</th>
                             <th class="align-right">Total Base Cálculo</th>
                             <th class="align-right">Total Valor Crédito</th>
-                            <th class="align-right">Total Valor NF</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -923,7 +922,6 @@
                     <td class="align-right">${p.totalQuantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</td>
                     <td class="align-right">${p.totalBC.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td class="align-right">R$ ${p.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td class="align-right">R$ ${p.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 </tr>`;
             }
             
@@ -934,13 +932,11 @@
                             <td class="align-right"><strong>${Object.values(todosProdutos).reduce((s, p) => s + p.totalQuantidade, 0).toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td>
                             <td class="align-right"><strong>${totalBCGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                             <td class="align-right"><strong>R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
-                            <td class="align-right"><strong>R$ ${totalValorNotas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>`;
 
-            // ==================== RESUMO DO PROCESSAMENTO ====================
             html += `
                 <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 12px; text-align: center;">
                     <h3><i class="fas fa-chart-line"></i> RESUMO DO PROCESSAMENTO</h3>
@@ -948,6 +944,7 @@
                     <p><strong>📄 Total de Itens Processados:</strong> ${tableRows.length}</p>
                     <p><strong>⛽ Itens de DIESEL S10 (Código 2309):</strong> ${dieselS10Items.length}</p>
                     <p><strong>💰 Total de Crédito de ICMS (GERAL):</strong> R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p><strong>🏷️ Total Geral de Notas Fiscais (vNF):</strong> R$ ${totalValorNotasGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     <p style="font-size: 1.2rem; margin-top: 0.5rem; padding: 0.5rem; background: #ff9800; color: white; border-radius: 8px; display: inline-block;">
                         🎯 <strong>CRÉDITO DIESEL S10: R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
                     </p>
@@ -957,7 +954,6 @@
             outputDiv.innerHTML = html;
         }
 
-        // Tema escuro
         document.getElementById('themeToggleButton').addEventListener('click', function() {
             document.body.classList.toggle('dark-mode');
             this.innerHTML = document.body.classList.contains('dark-mode') 
@@ -965,7 +961,6 @@
                 : '<i class="fas fa-moon"></i> Modo Escuro';
         });
 
-        // Exportar
         document.getElementById('exportButton').addEventListener('click', function() {
             const content = outputDiv.innerText;
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
