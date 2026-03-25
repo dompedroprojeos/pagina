@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -83,6 +82,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px
 .btn-copy{padding:8px 16px;border-radius:8px;border:none;background:var(--bl);color:#fff;font-weight:700;cursor:pointer}
 .btn-copy:hover{background:#1e40af}
 .btn-debug{padding:8px 16px;border-radius:8px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx2);font-weight:700;cursor:pointer;font-size:.75rem}
+
+.zero-rule-badge{background:#fef3c7;border-left:4px solid #f59e0b;padding:10px 15px;margin:12px 16px;border-radius:8px;font-size:.7rem;font-weight:600;color:#92400e}
 </style>
 </head>
 <body>
@@ -118,6 +119,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px
       <p>Valores extraídos do RESUMO DA APURAÇÃO do MODELO P9 · Verificação: (005 + 006 + 007 + 009) − (001 + 003) = 014</p>
     </div>
     <div class="e110-contrib" id="e110-contrib"></div>
+    
+    <div id="zero-rule-message" class="zero-rule-badge" style="display:none">
+      ⚠️ REGRA ESPECIAL APLICADA: E009 (Saldo anterior) = R$ 0,00 e E014 (Saldo credor a transportar) = R$ 0,00 → Todos os campos do E110 foram zerados.
+    </div>
 
     <div class="e110-sec-title sec-deb">🔴 DÉBITO DO IMPOSTO</div>
     <div class="e110-row"><div class="row-num">001</div><div class="row-label">Valor total dos débitos do imposto<div class="sub">P9: Por saídas/prestações com débito do imposto</div></div><div class="row-value"><input class="e110-field" id="ef_deb" readonly placeholder="0,00"></div></div>
@@ -175,19 +180,15 @@ function pn(s){
 function fmtBR(v){ return (v===undefined||isNaN(v))?'0,00':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtR(v){ return 'R$ '+fmtBR(v); }
 
-// ============================================================
-// EXTRAÇÃO CORRIGIDA para MODELO P9 (RESUMO DA APURAÇÃO)
-// Baseado no layout original: valores flutuam antes/depois dos labels
-// ============================================================
+let _lastLog = [];
 
 // ============================================================
-// EXTRAÇÃO CORRIGIDA - Cálculo funcionando corretamente
+// EXTRAÇÃO CORRIGIDA para MODELO P9 (RESUMO DA APURAÇÃO)
 // ============================================================
 function extrairValoresP9(texto){
   const log = [];
   const linhas = texto.split('\n').map(l => l.replace(/\r/g,'').trim());
   
-  // Encontra início do RESUMO
   let startIdx = -1;
   for(let i=0;i<linhas.length;i++){
     const semEspaco = linhas[i].replace(/\s/g,'').toUpperCase();
@@ -200,7 +201,6 @@ function extrairValoresP9(texto){
   const sec = (startIdx>=0) ? linhas.slice(startIdx) : linhas;
   log.push(`Seção RESUMO inicio: ${startIdx} | total linhas: ${sec.length}`);
   
-  // Helper: extrai número no formato brasileiro (1.234,56)
   function extrairNumero(str){
     if(!str) return null;
     const m = str.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
@@ -213,7 +213,7 @@ function extrairValoresP9(texto){
   
   const v = {'001':0,'003':0,'005':0,'006':0,'009':0,'011':0,'012':0,'013':0,'014':0};
   
-  // ==================== 001 - Débitos do imposto ====================
+  // 001 - Débitos do imposto
   for(let i=0;i<sec.length;i++){
     if(/001\s*[-–]\s*Por\s+sa[íi]das/i.test(sec[i])){
       log.push(`Encontrado label 001 na linha ${i}: "${sec[i].substring(0,60)}"`);
@@ -261,7 +261,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 003 - Estorno de créditos ====================
+  // 003 - Estorno de créditos
   for(let i=0;i<sec.length;i++){
     if(/003\s*[-–]/.test(sec[i])){
       for(let j=i+1;j<=Math.min(i+4, sec.length-1);j++){
@@ -277,7 +277,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 005 - Créditos por entradas ====================
+  // 005 - Créditos por entradas
   for(let i=0;i<sec.length;i++){
     if(/005\s*[-–]\s*Por\s+entradas/i.test(sec[i])){
       log.push(`Encontrado label 005 na linha ${i}`);
@@ -300,7 +300,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 006 - Outros créditos ====================
+  // 006 - Outros créditos
   for(let i=0;i<sec.length;i++){
     if(/Total\s+Outros\s+Cr[eé]ditos/i.test(sec[i])){
       for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
@@ -315,7 +315,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 009 - Saldo credor anterior ====================
+  // 009 - Saldo credor anterior
   for(let i=0;i<sec.length;i++){
     if(/009\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
       log.push(`Encontrado label 009 na linha ${i}`);
@@ -338,7 +338,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 012 - Deduções ====================
+  // 012 - Deduções
   for(let i=0;i<sec.length;i++){
     if(/Total\s+Dedu[çc][oõ]es/i.test(sec[i])){
       for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
@@ -353,7 +353,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 013 - Imposto a recolher ====================
+  // 013 - Imposto a recolher
   for(let i=0;i<sec.length;i++){
     if(/013\s*[-–]/.test(sec[i])){
       let num = extrairNumero(sec[i]);
@@ -374,7 +374,7 @@ function extrairValoresP9(texto){
     }
   }
   
-  // ==================== 014 - Saldo credor a transportar ====================
+  // 014 - Saldo credor a transportar
   for(let i=0;i<sec.length;i++){
     if(/014\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
       log.push(`Encontrado label 014 na linha ${i}`);
@@ -402,7 +402,6 @@ function extrairValoresP9(texto){
     }
   }
   
-  // Garantir que todos os campos tenham valor numérico
   for(let k of ['001','003','005','006','009','011','012','013','014']){
     if(v[k]===null || isNaN(v[k])) v[k]=0;
   }
@@ -418,7 +417,6 @@ function extrairValoresP9(texto){
   log.push(`   013 (A recolher) = ${v['013']}`);
   log.push(`   014 (Saldo credor P9) = ${v['014']}`);
   
-  // Extrair dados do contribuinte
   const cnpjM = texto.match(/CNPJ:\s*([\d.\/\-]+)/i);
   const perM = texto.match(/(?:Mês\s+ou\s+Período[\/]Ano:|Período:)[^\n]*?(\d{2}\/[\d]{4})/i);
   let nome = 'N/D';
@@ -434,7 +432,7 @@ function extrairValoresP9(texto){
   };
 }
 
-// ==================== FUNÇÃO DE PROCESSAMENTO CORRIGIDA ====================
+// ==================== FUNÇÃO DE PROCESSAMENTO ====================
 function processar(){
   const el = document.getElementById('cp9');
   let txt = (el.innerText||el.textContent||'').replace(/\u00a0/g,' ').trim();
@@ -448,65 +446,102 @@ function processar(){
   const vv = p9.valores;
   
   // Valores extraídos
-  const deb   = vv['001'];  // 80,64
-  const estc  = vv['003'];  // 0,00
-  const cred  = vv['005'];  // 4.783,76
-  const outc  = vv['006'];  // 0,00
-  const ant   = vv['009'];  // 111.565,56
-  const p014  = vv['014'];  // 116.268,68
+  const deb   = vv['001'];
+  const estc  = vv['003'];
+  const cred  = vv['005'];
+  const outc  = vv['006'];
+  const ant   = vv['009'];
+  const p014  = vv['014'];
   
-  // CÁLCULO CORRETO
-  const somaCred = cred + outc + ant;  // 4.783,76 + 0 + 111.565,56 = 116.349,32
-  const somaDeb  = deb + estc;          // 80,64 + 0 = 80,64
-  const saldoCalculado = somaCred - somaDeb;  // 116.349,32 - 80,64 = 116.268,68
-  const credorCalc = Math.max(0, saldoCalculado);
-  const devedorCalc = Math.max(0, somaDeb - somaCred);
+  // REGRA ESPECIAL: Se E009 = 0 e E014 = 0, zera TODOS os campos
+  const isZeroRule = (Math.abs(ant) < 0.01 && Math.abs(p014) < 0.01);
   
-  // Log do cálculo
-  console.log(`Cálculo: (${cred} + ${outc} + ${ant}) - (${deb} + ${estc}) = ${credorCalc}`);
-  console.log(`P9 informou: ${p014}`);
+  let debFinal, estcFinal, credFinal, outcFinal, antFinal, p014Final, dedFinal, recFinal, devedorFinal;
+  let somaCred, somaDeb, credorCalc;
+  
+  if(isZeroRule){
+    // Zera todos os campos
+    debFinal = 0;
+    estcFinal = 0;
+    credFinal = 0;
+    outcFinal = 0;
+    antFinal = 0;
+    p014Final = 0;
+    dedFinal = 0;
+    recFinal = 0;
+    devedorFinal = 0;
+    somaCred = 0;
+    somaDeb = 0;
+    credorCalc = 0;
+    
+    document.getElementById('zero-rule-message').style.display = 'block';
+  } else {
+    // Mantém os valores originais
+    debFinal = deb;
+    estcFinal = estc;
+    credFinal = cred;
+    outcFinal = outc;
+    antFinal = ant;
+    p014Final = p014;
+    dedFinal = vv['012'];
+    recFinal = vv['013'];
+    
+    somaCred = credFinal + outcFinal + antFinal;
+    somaDeb = debFinal + estcFinal;
+    credorCalc = Math.max(0, somaCred - somaDeb);
+    devedorFinal = Math.max(0, somaDeb - somaCred);
+    
+    document.getElementById('zero-rule-message').style.display = 'none';
+  }
   
   // Preenche campos do E110
-  document.getElementById('ef_deb').value   = fmtBR(deb);
-  document.getElementById('ef_estc').value  = fmtBR(estc);
-  document.getElementById('ef_cred').value  = fmtBR(cred);
-  document.getElementById('ef_ajc').value   = fmtBR(outc);
-  document.getElementById('ef_estd').value  = fmtBR(0); // 007 ignorado
-  document.getElementById('ef_ant').value   = fmtBR(ant);
-  document.getElementById('ef_dev').value   = fmtBR(devedorCalc);
-  document.getElementById('ef_ded').value   = fmtBR(vv['012']);
-  document.getElementById('ef_rec').value   = fmtBR(vv['013']);
-  document.getElementById('ef_csal').value  = fmtBR(p014);
+  document.getElementById('ef_deb').value   = fmtBR(debFinal);
+  document.getElementById('ef_estc').value  = fmtBR(estcFinal);
+  document.getElementById('ef_cred').value  = fmtBR(credFinal);
+  document.getElementById('ef_ajc').value   = fmtBR(outcFinal);
+  document.getElementById('ef_estd').value  = fmtBR(0);
+  document.getElementById('ef_ant').value   = fmtBR(antFinal);
+  document.getElementById('ef_dev').value   = fmtBR(devedorFinal);
+  document.getElementById('ef_ded').value   = fmtBR(dedFinal);
+  document.getElementById('ef_rec').value   = fmtBR(recFinal);
+  document.getElementById('ef_csal').value  = fmtBR(p014Final);
   
   // Painel de cálculo
-  document.getElementById('calc_deb').innerHTML       = fmtR(deb);
-  document.getElementById('calc_estc').innerHTML      = fmtR(estc);
-  document.getElementById('calc_cred').innerHTML      = fmtR(cred);
-  document.getElementById('calc_ajc').innerHTML       = fmtR(outc);
+  document.getElementById('calc_deb').innerHTML       = fmtR(debFinal);
+  document.getElementById('calc_estc').innerHTML      = fmtR(estcFinal);
+  document.getElementById('calc_cred').innerHTML      = fmtR(credFinal);
+  document.getElementById('calc_ajc').innerHTML       = fmtR(outcFinal);
   document.getElementById('calc_estd').innerHTML      = fmtR(0);
-  document.getElementById('calc_ant').innerHTML       = fmtR(ant);
+  document.getElementById('calc_ant').innerHTML       = fmtR(antFinal);
   document.getElementById('calc_soma_cred').innerHTML = fmtR(somaCred);
   document.getElementById('calc_soma_deb').innerHTML  = fmtR(somaDeb);
   document.getElementById('calc_result').innerHTML    = fmtR(credorCalc);
-  document.getElementById('calc_p9').innerHTML        = fmtR(p014);
+  document.getElementById('calc_p9').innerHTML        = fmtR(p014Final);
   
   const statusDiv = document.getElementById('calc_status');
-  const ok = Math.abs(credorCalc - p014) < 0.02;
   
-  if(ok){
-    statusDiv.innerHTML=`✅ CÁLCULO CONFIRMADO!<br>(${fmtBR(cred)} + ${fmtBR(outc)} + ${fmtBR(ant)}) − (${fmtBR(deb)} + ${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b> ✅`;
-    statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#dcfce7;color:#166534;border:1px solid #86efac';
-    document.getElementById('calc_result').classList.add('green');
-    document.getElementById('calc_p9').classList.add('green');
-    document.getElementById('sm').innerHTML=`✅ Apuração consistente: 014 = R$ ${fmtBR(p014)}`;
-    document.getElementById('sd').className='sd ok';
+  if(isZeroRule){
+    statusDiv.innerHTML = `✅ REGRA ESPECIAL APLICADA: E009 = R$ 0,00 e E014 = R$ 0,00<br>Todos os campos do E110 foram zerados.`;
+    statusDiv.style.cssText = 'margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#fef3c7;color:#92400e;border:1px solid #f59e0b';
+    document.getElementById('sm').innerHTML = `✅ Regra Zero: E009 e E014 são zero → E110 zerado.`;
+    document.getElementById('sd').className = 'sd ok';
   } else {
-    statusDiv.innerHTML=`<div style="text-align:left">❌ INCONSISTÊNCIA!<br>Fórmula: (${fmtBR(cred)}+${fmtBR(outc)}+${fmtBR(ant)}) - (${fmtBR(deb)}+${fmtBR(estc)}) = <b>R$ ${fmtBR(credorCalc)}</b><br>014 P9: R$ ${fmtBR(p014)}<br>Diferença: R$ ${fmtBR(Math.abs(credorCalc-p014))}<br>🔍 Ver extração.</div>`;
-    statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5';
-    document.getElementById('calc_result').classList.add('red');
-    document.getElementById('calc_p9').classList.add('red');
-    document.getElementById('sm').innerHTML=`⚠️ Divergência: 014 calc=${fmtBR(credorCalc)} ≠ P9=${fmtBR(p014)}`;
-    document.getElementById('sd').className='sd warn';
+    const ok = Math.abs(credorCalc - p014Final) < 0.02;
+    if(ok){
+      statusDiv.innerHTML=`✅ CÁLCULO CONFIRMADO!<br>(${fmtBR(credFinal)} + ${fmtBR(outcFinal)} + ${fmtBR(antFinal)}) − (${fmtBR(debFinal)} + ${fmtBR(estcFinal)}) = <b>R$ ${fmtBR(credorCalc)}</b> ✅`;
+      statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#dcfce7;color:#166534;border:1px solid #86efac';
+      document.getElementById('calc_result').classList.add('green');
+      document.getElementById('calc_p9').classList.add('green');
+      document.getElementById('sm').innerHTML=`✅ Apuração consistente: 014 = R$ ${fmtBR(p014Final)}`;
+      document.getElementById('sd').className='sd ok';
+    } else {
+      statusDiv.innerHTML=`<div style="text-align:left">❌ INCONSISTÊNCIA!<br>Fórmula: (${fmtBR(credFinal)}+${fmtBR(outcFinal)}+${fmtBR(antFinal)}) - (${fmtBR(debFinal)}+${fmtBR(estcFinal)}) = <b>R$ ${fmtBR(credorCalc)}</b><br>014 P9: R$ ${fmtBR(p014Final)}<br>Diferença: R$ ${fmtBR(Math.abs(credorCalc-p014Final))}<br>🔍 Ver extração.</div>`;
+      statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5';
+      document.getElementById('calc_result').classList.add('red');
+      document.getElementById('calc_p9').classList.add('red');
+      document.getElementById('sm').innerHTML=`⚠️ Divergência: 014 calc=${fmtBR(credorCalc)} ≠ P9=${fmtBR(p014Final)}`;
+      document.getElementById('sd').className='sd warn';
+    }
   }
   
   document.getElementById('e110-contrib').innerHTML=`
@@ -519,6 +554,7 @@ function processar(){
   document.getElementById('btn-reabrir').style.display='inline-flex';
   document.getElementById('debug_box').style.display='none';
 }
+
 function copiarValores(){
   const campos=[
     ['001', document.getElementById('ef_deb').value],['003', document.getElementById('ef_estc').value],
@@ -533,8 +569,24 @@ function copiarValores(){
     const orig=btn.innerHTML; btn.innerHTML='✅ Copiado!'; setTimeout(()=>btn.innerHTML=orig,2000);
   }).catch(()=>alert(txt));
 }
+
+function toggleDebug(){
+  const dbg = document.getElementById('debug_box');
+  if(dbg.style.display === 'none' || !dbg.style.display){
+    if(_lastLog && _lastLog.length){
+      dbg.innerHTML = `<div class="db-title">🔎 LOG DE EXTRAÇÃO (P9)</div><div class="db-ok">${_lastLog.map(l=>l.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br>')}</div>`;
+      dbg.style.display = 'block';
+    } else {
+      dbg.innerHTML = `<div class="db-title">⚠️ Nenhum log disponível. Execute o processamento primeiro.</div>`;
+      dbg.style.display = 'block';
+    }
+  } else {
+    dbg.style.display = 'none';
+  }
+}
+
 function reabrirInput(){ document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; }
-function limparTudo(){ document.getElementById('cp9').innerHTML=''; document.getElementById('e110-wrap').style.display='none'; document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; document.getElementById('sm').innerHTML='Cole o MODELO P9 e clique em Preencher.'; document.getElementById('sd').className='sd'; _lastLog=[]; }
+function limparTudo(){ document.getElementById('cp9').innerHTML=''; document.getElementById('e110-wrap').style.display='none'; document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; document.getElementById('sm').innerHTML='Cole o MODELO P9 e clique em Preencher.'; document.getElementById('sd').className='sd'; _lastLog=[]; document.getElementById('debug_box').style.display='none'; document.getElementById('zero-rule-message').style.display='none';}
 </script>
 </body>
 </html>
