@@ -1,592 +1,595 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>E110 — Preenchimento Automático via P9 (Extrações Corrigidas)</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f0f4fa;--sf:#fff;--sf2:#f6f9fc;--sf3:#edf2f7;--bd:#cdd7e8;--bd2:#aab8d0;
-  --tx:#18253a;--tx2:#445570;--tx3:#8296b0;
-  --bl:#1d4ed8;--bll:#eff6ff;--blm:#dbeafe;
-  --gn:#166534;--gnl:#dcfce7;--gll:#f0fdf4;
-  --rd:#991b1b;--rdl:#fee2e2;--rll:#fff5f5;
-  --mono:'IBM Plex Mono',monospace;--sans:'Syne',sans-serif
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px}
-
-.top{background:var(--sf);border-bottom:2px solid var(--bd);padding:0 22px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.tb{display:flex;align-items:center;gap:10px}
-.pill{background:#1d4ed8;color:#fff;padding:3px 11px;border-radius:20px;font-size:.67rem;font-weight:800}
-.tnm{font-size:.93rem;font-weight:800}
-.wrap{max-width:1000px;margin:0 auto;padding:20px 16px}
-
-.input-card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:18px}
-.input-card h2{font-size:.82rem;font-weight:800;color:var(--tx2);margin-bottom:12px}
-.cola-wrap{display:flex;flex-direction:column;gap:6px}
-.cola-lbl{font-family:var(--mono);font-size:.62rem;font-weight:700;color:var(--tx3);text-transform:uppercase}
-.cola{background:#080d18;color:#67e8f9;border:1px solid #1e3755;border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:.68rem;min-height:420px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;outline:none;line-height:1.65}
-.cola:focus{border-color:var(--bl)}
-.cola:empty::before{content:attr(data-ph);color:#1e3755;font-style:italic}
-.btns{display:flex;gap:8px;margin-top:12px}
-.btn{padding:9px 20px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
-.btn-proc{background:var(--bl);color:#fff}
-.btn-proc:hover{background:#1e40af}
-.btn-clr{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)}
-.sts{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd);margin-top:10px}
-.sd{width:8px;height:8px;border-radius:50%;background:var(--bd2)}
-.sd.ok{background:#16a34a}
-.sd.err{background:#dc2626}
-.sd.warn{background:#d97706}
-
-.e110-wrap{background:var(--sf);border:2px solid #1e3a8a;border-radius:16px;overflow:hidden;margin-bottom:18px}
-.e110-top{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 100%);padding:16px 20px}
-.e110-top h2{color:#fff;font-size:.95rem;font-weight:800}
-.e110-top p{color:#93c5fd;font-family:var(--mono);font-size:.67rem}
-.e110-contrib{display:grid;grid-template-columns:2fr 1fr 1fr;border-bottom:2px solid var(--bd)}
-.e110-contrib-cell{padding:10px 16px;border-right:1px solid var(--bd)}
-.e110-contrib-cell label{font-size:.59rem;font-weight:700;color:var(--tx3);text-transform:uppercase;display:block}
-.e110-contrib-cell span{font-family:var(--mono);font-size:.77rem;font-weight:600}
-
-.e110-sec-title{padding:8px 16px;font-size:.66rem;font-weight:800;text-transform:uppercase;border-bottom:1px solid var(--bd)}
-.sec-deb{background:#fdf2f8;color:#9d174d;border-left:4px solid #db2777}
-.sec-cred{background:var(--bll);color:var(--bl);border-left:4px solid var(--bl)}
-.sec-saldo{background:var(--gll);color:var(--gn);border-left:4px solid var(--gn)}
-
-.e110-row{display:flex;border-bottom:1px solid #eef2f9}
-.e110-row:hover{background:var(--sf2)}
-.row-num{width:44px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;border-right:1px solid var(--bd);background:var(--sf2)}
-.row-label{flex:1;padding:9px 14px;font-size:.74rem;color:var(--tx2)}
-.row-label .sub{font-family:var(--mono);font-size:.6rem;color:var(--tx3)}
-.row-value{width:220px;border-left:1px solid var(--bd);padding:7px 12px;background:var(--sf)}
-.row-value .e110-field{font-family:var(--mono);font-size:.82rem;font-weight:700;padding:6px 10px;border:1.5px solid var(--bd);border-radius:7px;background:var(--sf2);color:var(--tx);text-align:right;width:100%}
-.row-value .e110-field[readonly]{background:var(--sf2);color:var(--tx2);font-weight:600}
-
-.calc-box{background:var(--sf2);border-top:2px solid var(--bd);padding:12px 16px}
-.calc-title{font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--tx3);margin-bottom:8px}
-.calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
-.calc-item{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px}
-.calc-label{font-size:.65rem;color:var(--tx3)}
-.calc-value{font-family:var(--mono);font-size:.9rem;font-weight:800}
-.calc-value.green{color:var(--gn)}
-.calc-value.red{color:var(--rd)}
-
-.debug-box{background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;padding:12px 16px;margin-top:12px;font-family:var(--mono);font-size:.63rem;color:#94a3b8;line-height:1.8}
-.debug-box .db-title{color:#38bdf8;font-weight:700;margin-bottom:6px;font-size:.65rem}
-.debug-box .db-ok{color:#4ade80}
-.debug-box .db-warn{color:#fb923c}
-
-.e110-footer{padding:12px 18px;background:var(--sf2);border-top:2px solid var(--bd);display:flex;justify-content:flex-end;gap:10px}
-.btn-copy{padding:8px 16px;border-radius:8px;border:none;background:var(--bl);color:#fff;font-weight:700;cursor:pointer}
-.btn-copy:hover{background:#1e40af}
-.btn-debug{padding:8px 16px;border-radius:8px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx2);font-weight:700;cursor:pointer;font-size:.75rem}
-
-.zero-rule-badge{background:#fef3c7;border-left:4px solid #f59e0b;padding:10px 15px;margin:12px 16px;border-radius:8px;font-size:.7rem;font-weight:600;color:#92400e}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E110 - Extrator ICMS P9</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%); font-family: 'Inter', sans-serif; min-height: 100vh; padding: 24px; }
+    .container { max-width: 1300px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #0f2b4d 0%, #1a3a5c 100%); border-radius: 28px; padding: 24px 32px; margin-bottom: 28px; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    .header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { opacity: 0.85; margin-top: 8px; font-size: 0.9rem; }
+    .upload-card { background: white; border-radius: 32px; padding: 32px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
+    .dropzone { border: 2px dashed #cbd5e1; border-radius: 24px; padding: 48px 32px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fafcff; }
+    .dropzone:hover, .dropzone.drag-over { border-color: #3b82f6; background: #eff6ff; }
+    .dropzone-icon { font-size: 48px; margin-bottom: 16px; }
+    .dropzone-title { font-size: 1.2rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+    .dropzone-sub { font-size: 0.85rem; color: #64748b; }
+    .file-info { display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border-radius: 20px; padding: 16px 20px; margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .btn-group { display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+    .btn { padding: 12px 28px; border-radius: 40px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; }
+    .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(37,99,235,0.4); }
+    .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: #f8fafc; border-radius: 20px; margin-top: 20px; border: 1px solid #e2e8f0; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
+    .status-dot.success { background: #22c55e; box-shadow: 0 0 0 2px #bbf7d0; }
+    .status-dot.error { background: #ef4444; box-shadow: 0 0 0 2px #fecaca; }
+    .status-dot.warning { background: #f59e0b; box-shadow: 0 0 0 2px #fed7aa; }
+    .debug-card { background: #1e293b; border-radius: 20px; padding: 20px; margin-top: 24px; display: none; color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; max-height: 400px; overflow-y: auto; }
+    .debug-card h3 { color: #38bdf8; margin-bottom: 12px; font-size: 0.85rem; }
+    .debug-card pre { white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+    .e110-card { background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15); margin-top: 28px; display: none; }
+    .e110-header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 24px 28px; color: white; }
+    .e110-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    .e110-header p { opacity: 0.7; font-size: 0.8rem; }
+    .contrib-row { display: grid; grid-template-columns: repeat(3, 1fr); background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .contrib-cell { padding: 16px 24px; border-right: 1px solid #e2e8f0; }
+    .contrib-cell label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; display: block; }
+    .contrib-cell span { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-top: 4px; display: block; }
+    .section-title { padding: 14px 24px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: #fef2f2; color: #b91c1c; border-left: 4px solid #dc2626; }
+    .section-title.credit { background: #ecfdf5; color: #065f46; border-left-color: #10b981; }
+    .section-title.saldo { background: #eff6ff; color: #1e40af; border-left-color: #3b82f6; }
+    .field-row { display: flex; border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+    .field-row:hover { background: #fafcff; }
+    .field-code { width: 70px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.1rem; background: #f8fafc; border-right: 1px solid #e2e8f0; color: #334155; }
+    .field-label { flex: 1; padding: 16px 20px; font-size: 0.9rem; font-weight: 500; color: #334155; }
+    .field-label small { display: block; font-size: 0.7rem; color: #94a3b8; font-weight: normal; margin-top: 4px; }
+    .field-value { width: 260px; padding: 12px 20px; border-left: 1px solid #e2e8f0; display: flex; align-items: center; }
+    .field-value input { width: 100%; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; text-align: right; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 16px; color: #0f172a; }
+    .field-value input.found { background: #f0fdf4; border-color: #86efac; color: #166534; }
+    .calc-panel { background: #f8fafc; padding: 24px; border-top: 2px solid #e2e8f0; }
+    .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .calc-item { background: white; border-radius: 20px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; }
+    .calc-label-sm { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
+    .calc-number { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; margin-top: 8px; color: #0f172a; }
+    .calc-number.green { color: #16a34a; }
+    .calc-number.red { color: #dc2626; }
+    .validation-message { margin-top: 20px; padding: 16px 20px; border-radius: 20px; font-weight: 600; text-align: center; }
+    .btn-copy-e110 { background: #0f172a; color: white; border: none; padding: 12px 28px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-copy-e110:hover { background: #1e293b; transform: translateY(-2px); }
+    .footer-actions { padding: 20px 24px; display: flex; justify-content: flex-end; background: white; border-top: 1px solid #e2e8f0; }
+  </style>
 </head>
 <body>
-
-<div class="top">
-  <div class="tb">
-    <span class="pill">E110</span>
-    <span class="tnm">Preenchimento Automático — P9 (Resumo da Apuração)</span>
-  </div>
-  <button id="btn-reabrir" onclick="reabrirInput()" style="display:none;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1.5px solid var(--bd);background:var(--sf2);color:var(--tx2);font-weight:700;cursor:pointer;font-size:.78rem">
-    ✏️ Alterar P9
-  </button>
-</div>
-
-<div class="wrap">
-
-  <div class="input-card" id="input-card">
-    <h2>📥 Cole o MODELO P9 (Resumo da Apuração)</h2>
-    <div class="cola-wrap">
-      <div class="cola-lbl">📘 MODELO P9 — RESUMO DA APURAÇÃO DO ICMS</div>
-      <div class="cola" id="cp9" contenteditable="true" data-ph="Cole aqui o texto completo do MODELO P9..."></div>
-    </div>
-    <div class="btns">
-      <button class="btn btn-proc" onclick="processar()">▶ Preencher E110 e Verificar Cálculo</button>
-      <button class="btn btn-clr" onclick="limparTudo()">✕ Limpar</button>
-    </div>
-    <div class="sts"><div class="sd" id="sd"></div><span id="sm">Cole o MODELO P9 e clique em Preencher.</span></div>
+<div class="container">
+  <div class="header">
+    <h1>📋 E110 - Apuração ICMS</h1>
+    <p>Extração automática dos valores do P9 — seção RESUMO DA APURAÇÃO DO IMPOSTO</p>
   </div>
 
-  <div class="e110-wrap" id="e110-wrap" style="display:none">
-    <div class="e110-top">
-      <h2>📋 REGISTRO E110 — Valores de Apuração</h2>
-      <p>Valores extraídos do RESUMO DA APURAÇÃO do MODELO P9 · Verificação: (005 + 006 + 007 + 009) − (001 + 003) = 014</p>
+  <div class="upload-card">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-icon">📄📎</div>
+      <div class="dropzone-title">Arraste seu PDF do P9 ou clique para selecionar</div>
+      <div class="dropzone-sub">Busca os valores na seção "RESUMO DA APURAÇÃO DO IMPOSTO"</div>
+      <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
     </div>
-    <div class="e110-contrib" id="e110-contrib"></div>
-    
-    <div id="zero-rule-message" class="zero-rule-badge" style="display:none">
-      ⚠️ REGRA ESPECIAL APLICADA: E009 (Saldo anterior) = R$ 0,00 e E014 (Saldo credor a transportar) = R$ 0,00 → Todos os campos do E110 foram zerados.
+    <div id="fileInfo" class="file-info" style="display: none;">
+      <span id="fileName"></span>
+      <button id="clearFileBtn" class="btn-secondary" style="padding:6px 16px;">🗑 Remover</button>
     </div>
+    <div class="btn-group">
+      <button id="processBtn" class="btn btn-primary">🔍 Extrair e Preencher E110</button>
+      <button id="debugBtn" class="btn btn-secondary">🐛 Ver linhas do PDF</button>
+    </div>
+    <div id="statusBar" class="status-bar">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText">Aguardando PDF com o Resumo da Apuração</span>
+    </div>
+  </div>
 
-    <div class="e110-sec-title sec-deb">🔴 DÉBITO DO IMPOSTO</div>
-    <div class="e110-row"><div class="row-num">001</div><div class="row-label">Valor total dos débitos do imposto<div class="sub">P9: Por saídas/prestações com débito do imposto</div></div><div class="row-value"><input class="e110-field" id="ef_deb" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num"></div><div class="row-label">Valor total dos ajustes a débito (decorrentes do documento fiscal)</div><div class="row-value"><input class="e110-field" id="ef_ajdDoc" readonly value="0,00"></div></div>
-    <div class="e110-row"><div class="row-num"></div><div class="row-label">Valor total dos ajustes a débito do imposto</div><div class="row-value"><input class="e110-field" id="ef_ajd" readonly value="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">003</div><div class="row-label">Valor total dos estornos de créditos<div class="sub">P9: Estorno de créditos</div></div><div class="row-value"><input class="e110-field" id="ef_estc" readonly placeholder="0,00"></div></div>
+  <div id="debugCard" class="debug-card">
+    <h3>🐛 Linhas reconstruídas da página do Resumo (ordem top→bottom)</h3>
+    <pre id="debugText"></pre>
+  </div>
 
-    <div class="e110-sec-title sec-cred">🔵 CRÉDITO DO IMPOSTO</div>
-    <div class="e110-row"><div class="row-num">005</div><div class="row-label">Valor total dos créditos por entradas e aquisições com crédito do imposto<div class="sub">P9: Por entradas/aquisições com crédito do imposto</div></div><div class="row-value"><input class="e110-field" id="ef_cred" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num"></div><div class="row-label">Valor total dos ajustes a crédito (decorrentes do documento fiscal)</div><div class="row-value"><input class="e110-field" id="ef_ajcDoc" readonly value="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">006</div><div class="row-label">Valor total dos ajustes a crédito do imposto<div class="sub">P9: Outros créditos</div></div><div class="row-value"><input class="e110-field" id="ef_ajc" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">007</div><div class="row-label">Valor total dos estornos de débitos<div class="sub">P9: Estorno de débitos</div></div><div class="row-value"><input class="e110-field" id="ef_estd" readonly placeholder="0,00"></div></div>
+  <div id="e110Card" class="e110-card">
+    <div class="e110-header">
+      <h2>📊 REGISTRO E110 - ICMS</h2>
+      <p>Valores extraídos da seção "RESUMO DA APURAÇÃO DO IMPOSTO"</p>
+    </div>
+    <div id="contribArea" class="contrib-row"></div>
 
-    <div class="e110-sec-title sec-saldo">🟢 APURAÇÃO DO SALDO</div>
-    <div class="e110-row"><div class="row-num">009</div><div class="row-label">Saldo credor do período anterior<div class="sub">P9: Saldo credor do período anterior</div></div><div class="row-value"><input class="e110-field" id="ef_ant" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">011</div><div class="row-label">Valor do saldo devedor<div class="sub">Calculado automaticamente</div></div><div class="row-value"><input class="e110-field" id="ef_dev" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">012</div><div class="row-label">Valor total das deduções<div class="sub">P9: Deduções</div></div><div class="row-value"><input class="e110-field" id="ef_ded" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">013</div><div class="row-label">Valor total do ICMS a recolher<div class="sub">P9: Imposto a recolher</div></div><div class="row-value"><input class="e110-field" id="ef_rec" readonly placeholder="0,00"></div></div>
-    <div class="e110-row"><div class="row-num">014</div><div class="row-label">Valor do saldo credor do ICMS (a transportar)<div class="sub">P9: Saldo credor a transportar</div></div><div class="row-value"><input class="e110-field" id="ef_csal" readonly placeholder="0,00" style="font-weight:800"></div></div>
-
-    <div class="calc-box">
-      <div class="calc-title">📐 VERIFICAÇÃO — 014 = (005 + 006 + 007 + 009) − (001 + 003)</div>
-      <div class="calc-grid">
-        <div class="calc-item"><div class="calc-label">001 — Débitos saídas</div><div class="calc-value" id="calc_deb">R$ 0,00</div></div>
-        <div class="calc-item"><div class="calc-label">003 — Estorno créditos</div><div class="calc-value" id="calc_estc">R$ 0,00</div></div>
-        <div class="calc-item"><div class="calc-label">005 — Créditos entradas</div><div class="calc-value" id="calc_cred">R$ 0,00</div></div>
-        <div class="calc-item"><div class="calc-label">006 — Outros créditos</div><div class="calc-value" id="calc_ajc">R$ 0,00</div></div>
-        <div class="calc-item"><div class="calc-label">007 — Estorno débitos</div><div class="calc-value" id="calc_estd">R$ 0,00</div></div>
-        <div class="calc-item"><div class="calc-label">009 — Saldo anterior</div><div class="calc-value" id="calc_ant">R$ 0,00</div></div>
-        <div class="calc-item" style="border:2px solid #93c5fd"><div class="calc-label">Σ Créditos (005+006+007+009)</div><div class="calc-value" id="calc_soma_cred">R$ 0,00</div></div>
-        <div class="calc-item" style="border:2px solid #fca5a5"><div class="calc-label">Σ Débitos (001+003)</div><div class="calc-value" id="calc_soma_deb">R$ 0,00</div></div>
-        <div class="calc-item" style="border:2px solid #6ee7b7"><div class="calc-label">014 Calculado</div><div class="calc-value" id="calc_result">R$ 0,00</div></div>
-        <div class="calc-item" style="border:2px solid #fbbf24"><div class="calc-label">014 Informado P9</div><div class="calc-value" id="calc_p9">R$ 0,00</div></div>
-      </div>
-      <div id="calc_status" style="margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center"></div>
-      <div id="debug_box" class="debug-box" style="display:none"></div>
+    <div class="section-title">🔴 DÉBITO DO IMPOSTO</div>
+    <div class="field-row">
+      <div class="field-code">001</div>
+      <div class="field-label">Por saídas/prestações com débito do imposto<small>Valor fica antes do rótulo no P9 (linha acima)</small></div>
+      <div class="field-value"><input id="f001" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">003</div>
+      <div class="field-label">Estorno de créditos<small>Total Estornos Créditos (linha após rótulo)</small></div>
+      <div class="field-value"><input id="f003" type="text" readonly placeholder="0,00"></div>
     </div>
 
-    <div class="e110-footer">
-      <button class="btn-debug" onclick="toggleDebug()">🔍 Ver extração</button>
-      <button class="btn-copy" onclick="copiarValores()">📋 Copiar valores do E110</button>
+    <div class="section-title credit">🔵 CRÉDITO DO IMPOSTO</div>
+    <div class="field-row">
+      <div class="field-code">005</div>
+      <div class="field-label">Por entradas/aquisições com crédito do imposto</div>
+      <div class="field-value"><input id="f005" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">006</div>
+      <div class="field-label">Outros créditos<small>Total Outros Créditos</small></div>
+      <div class="field-value"><input id="f006" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">007</div>
+      <div class="field-label">Estorno de débitos<small>Total Estornos Débitos</small></div>
+      <div class="field-value"><input id="f007" type="text" readonly placeholder="0,00"></div>
+    </div>
+
+    <div class="section-title saldo">🟢 APURAÇÃO DO SALDO</div>
+    <div class="field-row">
+      <div class="field-code">009</div>
+      <div class="field-label">Saldo credor do período anterior<small>Valor pode vir antes ou depois do rótulo</small></div>
+      <div class="field-value"><input id="f009" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">011</div>
+      <div class="field-label">Saldo devedor (débito menos crédito)</div>
+      <div class="field-value"><input id="f011" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">012</div>
+      <div class="field-label">Deduções</div>
+      <div class="field-value"><input id="f012" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">013</div>
+      <div class="field-label">Imposto a recolher</div>
+      <div class="field-value"><input id="f013" type="text" readonly placeholder="0,00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-code">014</div>
+      <div class="field-label">Saldo credor (crédito menos débito) a transportar<small>Valor fica antes do rótulo no P9 (linha acima)</small></div>
+      <div class="field-value"><input id="f014" type="text" readonly placeholder="0,00" style="background:#ecfdf5;font-weight:800;"></div>
+    </div>
+
+    <div class="calc-panel">
+      <div style="font-weight:700;margin-bottom:12px;">📐 VERIFICAÇÃO AUTOMÁTICA</div>
+      <div id="calcGrid" class="calc-grid"></div>
+      <div id="validationMsg" class="validation-message"></div>
+    </div>
+    <div class="footer-actions">
+      <button id="copyE110Btn" class="btn-copy-e110">📋 Copiar todos os valores</button>
     </div>
   </div>
 </div>
 
 <script>
-function pn(s){
-  if(s===undefined||s===null||s==='') return 0;
-  let c=String(s).replace(/R\$\s*/gi,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').trim();
-  const m=c.match(/[\d.]+/);
-  if(!m) return 0;
-  const n=parseFloat(m[0]);
-  return isNaN(n)?0:n;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+let currentFile = null;
+let lastDebugLines = [];
+let extractedValues = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+let contribData = {nome:'—', cnpj:'—', periodo:'—'};
+
+// ─── helpers ───────────────────────────────────────────────────────────────
+function parseMoney(s) {
+  if (!s) return 0;
+  const clean = String(s).replace(/R\$\s*/gi,'').replace(/\./g,'').replace(',','.').trim();
+  const n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
 }
-function fmtBR(v){ return (v===undefined||isNaN(v))?'0,00':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtR(v){ return 'R$ '+fmtBR(v); }
+function formatMoney(v) {
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function isMoney(s) {
+  return /^\d{1,3}(\.\d{3})*,\d{2}$/.test(s.trim()) || /^\d+,\d{2}$/.test(s.trim());
+}
+function normalize(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+}
 
-let _lastLog = [];
-
-// ============================================================
-// EXTRAÇÃO CORRIGIDA para MODELO P9 (RESUMO DA APURAÇÃO)
-// ============================================================
-function extrairValoresP9(texto){
-  const log = [];
-  const linhas = texto.split('\n').map(l => l.replace(/\r/g,'').trim());
-  
-  let startIdx = -1;
-  for(let i=0;i<linhas.length;i++){
-    const semEspaco = linhas[i].replace(/\s/g,'').toUpperCase();
-    if(semEspaco.includes('RESUMODAAPURACAO') || semEspaco.includes('RESUMODAAPURA')){
-      startIdx = i;
-      break;
+// ─── Step 1: extract all text items WITH position from the RESUMO page ──────
+async function getResumoItems(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const joined = content.items.map(i=>i.str).join(' ');
+    const norm = normalize(joined);
+    if (norm.includes('resumo') && norm.includes('apuracao')) {
+      return content.items;
     }
   }
-  
-  const sec = (startIdx>=0) ? linhas.slice(startIdx) : linhas;
-  log.push(`Seção RESUMO inicio: ${startIdx} | total linhas: ${sec.length}`);
-  
-  function extrairNumero(str){
-    if(!str) return null;
-    const m = str.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
-    if(m) {
-      const val = parseFloat(m[1].replace(/\./g,'').replace(',','.'));
-      return isNaN(val) ? null : val;
+  // fallback: last page
+  const page = await pdf.getPage(pdf.numPages);
+  const content = await page.getTextContent();
+  return content.items;
+}
+
+// ─── Step 2: group items into visual lines by Y coordinate ──────────────────
+function buildLines(items) {
+  const rows = [];
+  for (const item of items) {
+    const s = item.str;
+    if (!s || !s.trim()) continue;
+    const x = item.transform[4];
+    const y = item.transform[5];
+    let row = rows.find(r => Math.abs(r.y - y) < 3.5);
+    if (!row) { row = {y, cells:[]}; rows.push(row); }
+    row.cells.push({s: s.trim(), x});
+  }
+  rows.sort((a,b) => b.y - a.y);           // top → bottom (PDF Y is inverted)
+  rows.forEach(r => r.cells.sort((a,b) => a.x - b.x));
+  return rows;
+}
+
+// ─── Step 3: flatten each line to a single string ───────────────────────────
+function lineText(row) { return row.cells.map(c=>c.s).join(' '); }
+
+// Get the last (rightmost = "Somas" column) money value from a line
+function lastMoney(row) {
+  const moneys = row.cells.filter(c => isMoney(c.s));
+  return moneys.length ? parseMoney(moneys[moneys.length-1].s) : null;
+}
+
+// Get ALL money values on a line
+function allMoneys(row) {
+  return row.cells.filter(c => isMoney(c.s)).map(c => parseMoney(c.s));
+}
+
+// ─── Step 4: the smart extractor ────────────────────────────────────────────
+//
+// P9 RESUMO layout patterns (confirmed from user's paste):
+//
+//  Pattern A — value BEFORE label (value floats on line above):
+//    line i  : "172,32"                      ← this is 001
+//    line i+1: "001 - Por saídas/prestações..."
+//    line i+1: "004 - Sub-Total"
+//    line i  : "188.315,13"                  ← this is 014
+//    line i+1: "014 - Saldo credor..."
+//
+//  Pattern B — value AFTER label or on SAME line:
+//    "005 - Por entradas/aquisições com crédito do imposto 5.800,03"
+//    "009 - Saldo credor do período anterior 182.687,42"
+//    "011 - Saldo devedor (débito menos crédito) 0,00"
+//    "013 - Imposto a recolher 0,00"
+//
+//  Pattern C — value on SEPARATE line AFTER a "Total Xxx" label:
+//    "003 - Estorno de créditos (discriminar abaixo)"
+//    "0,00"
+//    "Total Estornos Créditos"
+//    ← so the money is 1-2 lines AFTER the "Total" label
+//    OR the "0,00" comes right after "003 -" row
+//
+// STRATEGY:
+//   For each field we define WHERE to look relative to the anchor keyword.
+//   - "before"  : look at lines ABOVE the anchor (line i-1, i-2)
+//   - "after"   : look at lines BELOW the anchor (line i+1, i+2)
+//   - "same"    : look on the same line (rightmost value)
+//   - "any"     : try same → after → before
+
+function extractValues(lines) {
+  const result = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+
+  // Helper: find line index matching keyword
+  function findLine(keywords, startFrom=0) {
+    for (let i = startFrom; i < lines.length; i++) {
+      const t = normalize(lineText(lines[i]));
+      if (keywords.some(k => t.includes(normalize(k)))) return i;
+    }
+    return -1;
+  }
+
+  // Helper: find the first money value searching from lineIdx in a direction
+  // direction: +1 = downward (after), -1 = upward (before)
+  function seekMoney(lineIdx, direction, maxSteps=3) {
+    for (let step = 0; step <= maxSteps; step++) {
+      const idx = lineIdx + direction * step;
+      if (idx < 0 || idx >= lines.length) break;
+      const v = lastMoney(lines[idx]);
+      if (v !== null) return v;
     }
     return null;
   }
-  
-  const v = {'001':0,'003':0,'005':0,'006':0,'009':0,'011':0,'012':0,'013':0,'014':0};
-  
-  // 001 - Débitos do imposto
-  for(let i=0;i<sec.length;i++){
-    if(/001\s*[-–]\s*Por\s+sa[íi]das/i.test(sec[i])){
-      log.push(`Encontrado label 001 na linha ${i}: "${sec[i].substring(0,60)}"`);
-      
-      for(let j=i-1;j>=Math.max(0,i-6);j--){
-        const linha = sec[j];
-        const num = extrairNumero(linha);
-        
-        const isLabel = /^\d{3}\s*[-–]/.test(linha);
-        const isTotal = /Total/i.test(linha);
-        const isSubTotal = /Sub-Total/i.test(linha);
-        
-        if(num !== null && !isLabel && !isTotal && !isSubTotal && !linha.includes('Coluna')){
-          v['001'] = num;
-          log.push(`✅ 001 extraído: linha ${j} -> "${linha.substring(0,40)}" = ${num}`);
-          break;
-        }
-      }
-      
-      if(v['001'] === 0){
-        const selfNum = extrairNumero(sec[i]);
-        if(selfNum !== null){
-          v['001'] = selfNum;
-          log.push(`✅ 001 extraído da própria linha: ${selfNum}`);
-        }
-      }
-      break;
+
+  // Helper: look same line first, then after, then before
+  function findValue(keywords, {before=2, after=2, startFrom=0} = {}) {
+    const idx = findLine(keywords, startFrom);
+    if (idx === -1) return null;
+
+    // Same line
+    let v = lastMoney(lines[idx]);
+    if (v !== null) return v;
+
+    // After (downward)
+    v = seekMoney(idx, +1, after);
+    if (v !== null) return v;
+
+    // Before (upward)
+    v = seekMoney(idx, -1, before);
+    if (v !== null) return v;
+
+    return null;
+  }
+
+  // ── Locate the RESUMO section to restrict our search window ──
+  let resumoStart = findLine(['resumo da apuracao', 'resumo da apuração']);
+  if (resumoStart === -1) resumoStart = 0;
+
+  const L = lines.slice(resumoStart);  // work only within Resumo section
+
+  // Redefine helpers to work on L
+  function fL(keywords, startFrom=0) {
+    for (let i = startFrom; i < L.length; i++) {
+      const t = normalize(lineText(L[i]));
+      if (keywords.some(k => t.includes(normalize(k)))) return i;
+    }
+    return -1;
+  }
+  function seekL(lineIdx, dir, steps=3) {
+    for (let s = 0; s <= steps; s++) {
+      const idx = lineIdx + dir * s;
+      if (idx < 0 || idx >= L.length) break;
+      const v = lastMoney(L[idx]);
+      if (v !== null) return v;
+    }
+    return null;
+  }
+  function fV(keywords, {before=2, after=2}={}) {
+    const idx = fL(keywords);
+    if (idx === -1) return null;
+    let v = lastMoney(L[idx]);
+    if (v !== null) return v;
+    v = seekL(idx, +1, after);   // look down first (most common)
+    if (v !== null) return v;
+    v = seekL(idx, -1, before);  // look up
+    if (v !== null) return v;
+    return null;
+  }
+
+  // ── 001: "Por saídas/prestações com débito do imposto"
+  //   Value (172,32) appears BEFORE the 001 label → search upward first
+  {
+    const idx = fL(['001 -', 'por saidas', 'por saídas']);
+    if (idx !== -1) {
+      // Try same line, then UP (before), then down
+      let v = lastMoney(L[idx]);
+      if (v === null) v = seekL(idx, -1, 3);  // look up
+      if (v === null) v = seekL(idx, +1, 2);  // look down
+      result['001'] = v ?? 0;
     }
   }
-  
-  // Fallback para 001
-  if(v['001'] === 0){
-    for(let i=0;i<sec.length;i++){
-      if(/001\s*[-–]/.test(sec[i])){
-        for(let j=i-1;j>=0;j--){
-          const num = extrairNumero(sec[j]);
-          if(num !== null && !/^\d{3}\s*[-–]/.test(sec[j]) && !/Total/i.test(sec[j])){
-            v['001'] = num;
-            log.push(`🔄 FALLBACK 001: linha ${j} -> "${sec[j]}" = ${num}`);
-            break;
-          }
-        }
-        break;
+
+  // ── 003: "Estorno de créditos" / "Total Estornos Créditos"
+  //   The 0,00 appears right after "003 -" or after "Total Estornos Créditos"
+  {
+    const idx = fL(['003 -', 'estorno de creditos', 'estorno de créditos']);
+    if (idx !== -1) {
+      let v = lastMoney(L[idx]);
+      if (v === null) v = seekL(idx, +1, 3);
+      if (v === null) v = seekL(idx, -1, 2);
+      result['003'] = v ?? 0;
+    }
+    // Also try "Total Estornos Créditos" as backup
+    if (!result['003']) {
+      const idx2 = fL(['total estornos creditos', 'total estornos créditos']);
+      if (idx2 !== -1) {
+        let v = lastMoney(L[idx2]);
+        if (v === null) v = seekL(idx2, +1, 2);
+        if (v === null) v = seekL(idx2, -1, 2);
+        result['003'] = v ?? 0;
       }
     }
   }
-  
-  // 003 - Estorno de créditos
-  for(let i=0;i<sec.length;i++){
-    if(/003\s*[-–]/.test(sec[i])){
-      for(let j=i+1;j<=Math.min(i+4, sec.length-1);j++){
-        if(/Total/i.test(sec[j])) break;
-        const num = extrairNumero(sec[j]);
-        if(num !== null){
-          v['003'] = num;
-          log.push(`✅ 003 = ${num}`);
-          break;
-        }
-      }
-      break;
+
+  // ── 005: "Por entradas/aquisições com crédito do imposto 5.800,03"
+  //   Value is typically on the SAME line (rightmost)
+  result['005'] = fV(['005 -', 'por entradas', 'por entradas/aquisicoes', 'credito do imposto'], {before:1, after:2}) ?? 0;
+
+  // ── 006: "Total Outros Créditos" — value same line or after
+  result['006'] = fV(['006 -', 'outros creditos', 'outros créditos', 'total outros creditos'], {before:1, after:2}) ?? 0;
+
+  // ── 007: "Total Estornos Débitos" — value same line or after
+  result['007'] = fV(['007 -', 'estorno de debitos', 'estorno de débitos', 'total estornos debitos'], {before:1, after:2}) ?? 0;
+
+  // ── 009: "Saldo credor do período anterior 182.687,42"
+  //   Value is typically on the SAME line or line after
+  result['009'] = fV(['009 -', 'saldo credor do periodo anterior', 'saldo credor do período anterior'], {before:1, after:2}) ?? 0;
+
+  // ── 011: "Saldo devedor (débito menos crédito) 0,00" — same line
+  result['011'] = fV(['011 -', 'saldo devedor'], {before:1, after:2}) ?? 0;
+
+  // ── 012: "Total Deduções" — value same or after
+  result['012'] = fV(['012 -', 'deducoes', 'deduções', 'total deducoes', 'total deduções'], {before:1, after:2}) ?? 0;
+
+  // ── 013: "Imposto a recolher 0,00" — same line
+  result['013'] = fV(['013 -', 'imposto a recolher'], {before:1, after:2}) ?? 0;
+
+  // ── 014: "Saldo credor (crédito menos débito) a transportar"
+  //   Value (188.315,13) appears BEFORE the 014 label → look UP first
+  {
+    const idx = fL(['014 -', 'transportar', 'credito menos debito', 'crédito menos débito']);
+    if (idx !== -1) {
+      let v = lastMoney(L[idx]);
+      if (v === null) v = seekL(idx, -1, 3);  // look up (value floats above)
+      if (v === null) v = seekL(idx, +1, 2);  // look down
+      result['014'] = v ?? 0;
     }
   }
-  
-  // 005 - Créditos por entradas
-  for(let i=0;i<sec.length;i++){
-    if(/005\s*[-–]\s*Por\s+entradas/i.test(sec[i])){
-      log.push(`Encontrado label 005 na linha ${i}`);
-      
-      let num = extrairNumero(sec[i]);
-      if(num !== null){
-        v['005'] = num;
-        log.push(`✅ 005 extraído da própria linha: ${num}`);
-      } else {
-        for(let j=i+1;j<=Math.min(i+4, sec.length-1);j++){
-          num = extrairNumero(sec[j]);
-          if(num !== null && !/Total/i.test(sec[j]) && !/^\d{3}\s*[-–]/.test(sec[j])){
-            v['005'] = num;
-            log.push(`✅ 005 extraído linha ${j}: ${num}`);
-            break;
-          }
-        }
-      }
-      break;
-    }
-  }
-  
-  // 006 - Outros créditos
-  for(let i=0;i<sec.length;i++){
-    if(/Total\s+Outros\s+Cr[eé]ditos/i.test(sec[i])){
-      for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
-        const num = extrairNumero(sec[j]);
-        if(num !== null){
-          v['006'] = num;
-          log.push(`✅ 006 = ${num}`);
-          break;
-        }
-      }
-      break;
-    }
-  }
-  
-  // 009 - Saldo credor anterior
-  for(let i=0;i<sec.length;i++){
-    if(/009\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
-      log.push(`Encontrado label 009 na linha ${i}`);
-      
-      let num = extrairNumero(sec[i]);
-      if(num !== null){
-        v['009'] = num;
-        log.push(`✅ 009 extraído da própria linha: ${num}`);
-      } else {
-        for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
-          num = extrairNumero(sec[j]);
-          if(num !== null && !/Total/i.test(sec[j]) && !/^\d{3}\s*[-–]/.test(sec[j])){
-            v['009'] = num;
-            log.push(`✅ 009 extraído linha ${j}: ${num}`);
-            break;
-          }
-        }
-      }
-      break;
-    }
-  }
-  
-  // 012 - Deduções
-  for(let i=0;i<sec.length;i++){
-    if(/Total\s+Dedu[çc][oõ]es/i.test(sec[i])){
-      for(let j=i+1;j<=Math.min(i+3, sec.length-1);j++){
-        const num = extrairNumero(sec[j]);
-        if(num !== null){
-          v['012'] = num;
-          log.push(`✅ 012 = ${num}`);
-          break;
-        }
-      }
-      break;
-    }
-  }
-  
-  // 013 - Imposto a recolher
-  for(let i=0;i<sec.length;i++){
-    if(/013\s*[-–]/.test(sec[i])){
-      let num = extrairNumero(sec[i]);
-      if(num !== null){
-        v['013'] = num;
-        log.push(`✅ 013 = ${num}`);
-      } else {
-        for(let j=i+1;j<=Math.min(i+2, sec.length-1);j++){
-          num = extrairNumero(sec[j]);
-          if(num !== null){
-            v['013'] = num;
-            log.push(`✅ 013 = ${num}`);
-            break;
-          }
-        }
-      }
-      break;
-    }
-  }
-  
-  // 014 - Saldo credor a transportar
-  for(let i=0;i<sec.length;i++){
-    if(/014\s*[-–]\s*Saldo\s+credor/i.test(sec[i])){
-      log.push(`Encontrado label 014 na linha ${i}`);
-      
-      for(let j=i-1;j>=Math.max(0,i-5);j--){
-        const num = extrairNumero(sec[j]);
-        const isLabel = /^\d{3}\s*[-–]/.test(sec[j]);
-        const isTotal = /Total/i.test(sec[j]);
-        
-        if(num !== null && !isLabel && !isTotal){
-          v['014'] = num;
-          log.push(`✅ 014 extraído: linha ${j} -> "${sec[j].substring(0,40)}" = ${num}`);
-          break;
-        }
-      }
-      
-      if(v['014'] === 0){
-        const selfNum = extrairNumero(sec[i]);
-        if(selfNum !== null){
-          v['014'] = selfNum;
-          log.push(`✅ 014 extraído da própria linha: ${selfNum}`);
-        }
-      }
-      break;
-    }
-  }
-  
-  for(let k of ['001','003','005','006','009','011','012','013','014']){
-    if(v[k]===null || isNaN(v[k])) v[k]=0;
-  }
-  
-  log.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  log.push(`📊 VALORES FINAIS EXTRATOS:`);
-  log.push(`   001 (Débitos) = ${v['001']}`);
-  log.push(`   003 (Estorno créditos) = ${v['003']}`);
-  log.push(`   005 (Créditos entradas) = ${v['005']}`);
-  log.push(`   006 (Outros créditos) = ${v['006']}`);
-  log.push(`   009 (Saldo anterior) = ${v['009']}`);
-  log.push(`   012 (Deduções) = ${v['012']}`);
-  log.push(`   013 (A recolher) = ${v['013']}`);
-  log.push(`   014 (Saldo credor P9) = ${v['014']}`);
-  
-  const cnpjM = texto.match(/CNPJ:\s*([\d.\/\-]+)/i);
-  const perM = texto.match(/(?:Mês\s+ou\s+Período[\/]Ano:|Período:)[^\n]*?(\d{2}\/[\d]{4})/i);
-  let nome = 'N/D';
-  const nomeM = texto.match(/([A-Z][A-Z\s]{5,}(?:LTDA|S\.A\.|ME|EPP|EIRELI|SA|POSTOS)[^\n\r]*)/i);
-  if(nomeM) nome = nomeM[1].trim();
-  
+
+  return result;
+}
+
+// ─── Step 5: extract contributor metadata from full page text ───────────────
+function extractMeta(items) {
+  const full = items.map(i=>i.str).join(' ');
+  const cnpjM = full.match(/CNPJ[:\s]*([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/i);
+  const perM  = full.match(/(?:Mês ou Período\/Ano:|Período\/Ano:)\s*([\d\/]+)/i)
+              || full.match(/\b(\d{2}\/\d{4})\b/);
+  // Contributor name: text near "Contribuinte:" or a long string before CNPJ
+  const nomeM = full.match(/Contribuinte[:\s]*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇ\s\.]+?)(?=\s{3,}|CNPJ|Inscr)/i);
   return {
-    valores: v,
-    nome,
-    cnpj: cnpjM ? cnpjM[1].trim() : 'N/D',
-    periodo: perM ? perM[1].trim() : 'N/D',
-    log
+    nome: nomeM ? nomeM[1].trim() : (full.match(/REDE\s+[\w\s]+LTDA/i)||['—'])[0],
+    cnpj: cnpjM ? cnpjM[1] : '—',
+    periodo: perM ? perM[1] : '—'
   };
 }
 
-// ==================== FUNÇÃO DE PROCESSAMENTO ====================
-function processar(){
-  const el = document.getElementById('cp9');
-  let txt = (el.innerText||el.textContent||'').replace(/\u00a0/g,' ').trim();
-  if(!txt){
-    document.getElementById('sm').innerHTML='❌ Cole o MODELO P9 primeiro!';
-    document.getElementById('sd').className='sd err';
-    return;
+// ─── Main process ────────────────────────────────────────────────────────────
+async function processPDF() {
+  if (!currentFile) { setStatus('warning','⚠️ Nenhum PDF selecionado.'); return; }
+  setStatus('warning','⏳ Lendo PDF e reconstruindo linhas posicionais...');
+  try {
+    const items = await getResumoItems(currentFile);
+    if (!items.length) throw new Error('PDF sem conteúdo de texto extraível');
+
+    const lines = buildLines(items);
+
+    // Build debug string
+    lastDebugLines = lines.map((r,i) =>
+      `[${String(i).padStart(3,'0')}] Y=${Math.round(r.y).toString().padStart(4)} | ${r.cells.map(c=>`"${c.s}"@${Math.round(c.x)}`).join('  ')}`
+    );
+
+    contribData = extractMeta(items);
+    extractedValues = extractValues(lines);
+
+    updateUI();
+    document.getElementById('e110Card').style.display = 'block';
+    document.getElementById('debugText').textContent = lastDebugLines.join('\n');
+
+    const s = extractedValues;
+    setStatus('success',
+      `✅ Extraído! 001: ${formatMoney(s['001'])} | 005: ${formatMoney(s['005'])} | 009: ${formatMoney(s['009'])} | 014: ${formatMoney(s['014'])}`
+    );
+  } catch(err) {
+    console.error(err);
+    document.getElementById('debugText').textContent = lastDebugLines.join('\n') || 'Sem linhas capturadas.';
+    setStatus('error', `❌ Erro: ${err.message}`);
   }
-  const p9 = extrairValoresP9(txt);
-  _lastLog = p9.log;
-  const vv = p9.valores;
-  
-  // Valores extraídos
-  const deb   = vv['001'];
-  const estc  = vv['003'];
-  const cred  = vv['005'];
-  const outc  = vv['006'];
-  const ant   = vv['009'];
-  const p014  = vv['014'];
-  
-  // REGRA ESPECIAL: Se E009 = 0 e E014 = 0, zera TODOS os campos
-  const isZeroRule = (Math.abs(ant) < 0.01 && Math.abs(p014) < 0.01);
-  
-  let debFinal, estcFinal, credFinal, outcFinal, antFinal, p014Final, dedFinal, recFinal, devedorFinal;
-  let somaCred, somaDeb, credorCalc;
-  
-  if(isZeroRule){
-    // Zera todos os campos
-    debFinal = 0;
-    estcFinal = 0;
-    credFinal = 0;
-    outcFinal = 0;
-    antFinal = 0;
-    p014Final = 0;
-    dedFinal = 0;
-    recFinal = 0;
-    devedorFinal = 0;
-    somaCred = 0;
-    somaDeb = 0;
-    credorCalc = 0;
-    
-    document.getElementById('zero-rule-message').style.display = 'block';
-  } else {
-    // Mantém os valores originais
-    debFinal = deb;
-    estcFinal = estc;
-    credFinal = cred;
-    outcFinal = outc;
-    antFinal = ant;
-    p014Final = p014;
-    dedFinal = vv['012'];
-    recFinal = vv['013'];
-    
-    somaCred = credFinal + outcFinal + antFinal;
-    somaDeb = debFinal + estcFinal;
-    credorCalc = Math.max(0, somaCred - somaDeb);
-    devedorFinal = Math.max(0, somaDeb - somaCred);
-    
-    document.getElementById('zero-rule-message').style.display = 'none';
-  }
-  
-  // Preenche campos do E110
-  document.getElementById('ef_deb').value   = fmtBR(debFinal);
-  document.getElementById('ef_estc').value  = fmtBR(estcFinal);
-  document.getElementById('ef_cred').value  = fmtBR(credFinal);
-  document.getElementById('ef_ajc').value   = fmtBR(outcFinal);
-  document.getElementById('ef_estd').value  = fmtBR(0);
-  document.getElementById('ef_ant').value   = fmtBR(antFinal);
-  document.getElementById('ef_dev').value   = fmtBR(devedorFinal);
-  document.getElementById('ef_ded').value   = fmtBR(dedFinal);
-  document.getElementById('ef_rec').value   = fmtBR(recFinal);
-  document.getElementById('ef_csal').value  = fmtBR(p014Final);
-  
-  // Painel de cálculo
-  document.getElementById('calc_deb').innerHTML       = fmtR(debFinal);
-  document.getElementById('calc_estc').innerHTML      = fmtR(estcFinal);
-  document.getElementById('calc_cred').innerHTML      = fmtR(credFinal);
-  document.getElementById('calc_ajc').innerHTML       = fmtR(outcFinal);
-  document.getElementById('calc_estd').innerHTML      = fmtR(0);
-  document.getElementById('calc_ant').innerHTML       = fmtR(antFinal);
-  document.getElementById('calc_soma_cred').innerHTML = fmtR(somaCred);
-  document.getElementById('calc_soma_deb').innerHTML  = fmtR(somaDeb);
-  document.getElementById('calc_result').innerHTML    = fmtR(credorCalc);
-  document.getElementById('calc_p9').innerHTML        = fmtR(p014Final);
-  
-  const statusDiv = document.getElementById('calc_status');
-  
-  if(isZeroRule){
-    statusDiv.innerHTML = `✅ REGRA ESPECIAL APLICADA: E009 = R$ 0,00 e E014 = R$ 0,00<br>Todos os campos do E110 foram zerados.`;
-    statusDiv.style.cssText = 'margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#fef3c7;color:#92400e;border:1px solid #f59e0b';
-    document.getElementById('sm').innerHTML = `✅ Regra Zero: E009 e E014 são zero → E110 zerado.`;
-    document.getElementById('sd').className = 'sd ok';
-  } else {
-    const ok = Math.abs(credorCalc - p014Final) < 0.02;
-    if(ok){
-      statusDiv.innerHTML=`✅ CÁLCULO CONFIRMADO!<br>(${fmtBR(credFinal)} + ${fmtBR(outcFinal)} + ${fmtBR(antFinal)}) − (${fmtBR(debFinal)} + ${fmtBR(estcFinal)}) = <b>R$ ${fmtBR(credorCalc)}</b> ✅`;
-      statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;font-weight:700;text-align:center;background:#dcfce7;color:#166534;border:1px solid #86efac';
-      document.getElementById('calc_result').classList.add('green');
-      document.getElementById('calc_p9').classList.add('green');
-      document.getElementById('sm').innerHTML=`✅ Apuração consistente: 014 = R$ ${fmtBR(p014Final)}`;
-      document.getElementById('sd').className='sd ok';
-    } else {
-      statusDiv.innerHTML=`<div style="text-align:left">❌ INCONSISTÊNCIA!<br>Fórmula: (${fmtBR(credFinal)}+${fmtBR(outcFinal)}+${fmtBR(antFinal)}) - (${fmtBR(debFinal)}+${fmtBR(estcFinal)}) = <b>R$ ${fmtBR(credorCalc)}</b><br>014 P9: R$ ${fmtBR(p014Final)}<br>Diferença: R$ ${fmtBR(Math.abs(credorCalc-p014Final))}<br>🔍 Ver extração.</div>`;
-      statusDiv.style.cssText='margin-top:12px;padding:10px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5';
-      document.getElementById('calc_result').classList.add('red');
-      document.getElementById('calc_p9').classList.add('red');
-      document.getElementById('sm').innerHTML=`⚠️ Divergência: 014 calc=${fmtBR(credorCalc)} ≠ P9=${fmtBR(p014Final)}`;
-      document.getElementById('sd').className='sd warn';
-    }
-  }
-  
-  document.getElementById('e110-contrib').innerHTML=`
-    <div class="e110-contrib-cell"><label>Contribuinte</label><span>${p9.nome}</span></div>
-    <div class="e110-contrib-cell"><label>CNPJ</label><span>${p9.cnpj}</span></div>
-    <div class="e110-contrib-cell"><label>Período</label><span>${p9.periodo}</span></div>
+}
+
+// ─── UI update ───────────────────────────────────────────────────────────────
+function updateUI() {
+  ['001','003','005','006','007','009','011','012','013','014'].forEach(k => {
+    const inp = document.getElementById('f'+k);
+    inp.value = formatMoney(extractedValues[k]);
+    inp.className = extractedValues[k] > 0 ? 'found' : '';
+  });
+
+  document.getElementById('contribArea').innerHTML = `
+    <div class="contrib-cell"><label>CONTRIBUINTE</label><span>${contribData.nome}</span></div>
+    <div class="contrib-cell"><label>CNPJ</label><span>${contribData.cnpj}</span></div>
+    <div class="contrib-cell"><label>PERÍODO</label><span>${contribData.periodo}</span></div>
   `;
-  document.getElementById('e110-wrap').style.display='block';
-  document.getElementById('input-card').style.display='none';
-  document.getElementById('btn-reabrir').style.display='inline-flex';
-  document.getElementById('debug_box').style.display='none';
-}
 
-function copiarValores(){
-  const campos=[
-    ['001', document.getElementById('ef_deb').value],['003', document.getElementById('ef_estc').value],
-    ['005', document.getElementById('ef_cred').value],['006', document.getElementById('ef_ajc').value],
-    ['007', document.getElementById('ef_estd').value],['009', document.getElementById('ef_ant').value],
-    ['011', document.getElementById('ef_dev').value],['012', document.getElementById('ef_ded').value],
-    ['013', document.getElementById('ef_rec').value],['014', document.getElementById('ef_csal').value]
-  ];
-  const txt = campos.map(([l,v])=>`${l}: R$ ${v}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>{
-    const btn=document.querySelector('.btn-copy');
-    const orig=btn.innerHTML; btn.innerHTML='✅ Copiado!'; setTimeout(()=>btn.innerHTML=orig,2000);
-  }).catch(()=>alert(txt));
-}
+  const v = extractedValues;
+  const totalDeb  = v['001'] + v['003'];
+  const totalCred = v['005'] + v['006'] + v['007'] + v['009'];
+  const saldo     = totalCred - totalDeb;
+  const credor    = saldo > 0 ? saldo : 0;
+  const devedor   = saldo < 0 ? Math.abs(saldo) : 0;
 
-function toggleDebug(){
-  const dbg = document.getElementById('debug_box');
-  if(dbg.style.display === 'none' || !dbg.style.display){
-    if(_lastLog && _lastLog.length){
-      dbg.innerHTML = `<div class="db-title">🔎 LOG DE EXTRAÇÃO (P9)</div><div class="db-ok">${_lastLog.map(l=>l.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br>')}</div>`;
-      dbg.style.display = 'block';
-    } else {
-      dbg.innerHTML = `<div class="db-title">⚠️ Nenhum log disponível. Execute o processamento primeiro.</div>`;
-      dbg.style.display = 'block';
-    }
+  document.getElementById('calcGrid').innerHTML = `
+    <div class="calc-item"><div class="calc-label-sm">Débitos (001+003)</div><div class="calc-number">R$ ${formatMoney(totalDeb)}</div></div>
+    <div class="calc-item"><div class="calc-label-sm">Créditos (005+006+007+009)</div><div class="calc-number">R$ ${formatMoney(totalCred)}</div></div>
+    <div class="calc-item"><div class="calc-label-sm">Saldo Calculado</div><div class="calc-number ${saldo>=0?'green':'red'}">R$ ${formatMoney(Math.abs(saldo))} ${saldo>=0?'(Credor)':'(Devedor)'}</div></div>
+    <div class="calc-item"><div class="calc-label-sm">014 Informado</div><div class="calc-number">R$ ${formatMoney(v['014'])}</div></div>
+  `;
+
+  const msg = document.getElementById('validationMsg');
+  const diff = Math.abs(credor - v['014']);
+  if (v['014'] > 0 && diff < 1.0) {
+    msg.innerHTML = `✅ CONFIRMADO! Saldo credor calculado R$ ${formatMoney(credor)} = campo 014 R$ ${formatMoney(v['014'])}`;
+    msg.style.cssText = 'background:#dcfce7;color:#166534;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
+  } else if (v['014'] > 0) {
+    msg.innerHTML = `⚠️ DIVERGÊNCIA: Calculado R$ ${formatMoney(credor)} | 014 = R$ ${formatMoney(v['014'])} | Dif R$ ${formatMoney(diff)}`;
+    msg.style.cssText = 'background:#fee2e2;color:#991b1b;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
+  } else if (devedor > 0) {
+    msg.innerHTML = `ℹ️ Saldo Devedor R$ ${formatMoney(devedor)} | ICMS a recolher = R$ ${formatMoney(v['013'])}`;
+    msg.style.cssText = 'background:#fef9c3;color:#854d0e;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
   } else {
-    dbg.style.display = 'none';
+    msg.innerHTML = `📊 Débitos R$ ${formatMoney(totalDeb)} | Créditos R$ ${formatMoney(totalCred)} | ${saldo>=0?'Credor':'Devedor'} R$ ${formatMoney(Math.abs(saldo))}`;
+    msg.style.cssText = 'background:#e6f0fa;color:#1e40af;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
   }
 }
 
-function reabrirInput(){ document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; }
-function limparTudo(){ document.getElementById('cp9').innerHTML=''; document.getElementById('e110-wrap').style.display='none'; document.getElementById('input-card').style.display='block'; document.getElementById('btn-reabrir').style.display='none'; document.getElementById('sm').innerHTML='Cole o MODELO P9 e clique em Preencher.'; document.getElementById('sd').className='sd'; _lastLog=[]; document.getElementById('debug_box').style.display='none'; document.getElementById('zero-rule-message').style.display='none';}
+function setStatus(type, text) {
+  document.getElementById('statusText').innerHTML = text;
+  document.getElementById('statusDot').className = 'status-dot ' + (type||'');
+}
+
+function resetAndHide() {
+  document.getElementById('e110Card').style.display = 'none';
+  document.getElementById('debugCard').style.display = 'none';
+  setStatus('', 'Aguardando PDF com o Resumo da Apuração');
+  extractedValues = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+}
+
+function copyAllValues() {
+  const labels = {'001':'Débitos','003':'Estorno de créditos','005':'Créditos','006':'Outros créditos',
+    '007':'Estorno de débitos','009':'Saldo credor anterior','011':'Saldo devedor',
+    '012':'Deduções','013':'ICMS a recolher','014':'Saldo credor a transportar'};
+  const lines = Object.keys(labels).map(k =>
+    `${k} - ${labels[k]}: R$ ${document.getElementById('f'+k).value}`
+  );
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.getElementById('copyE110Btn');
+    const orig = btn.innerText;
+    btn.innerText = '✅ Copiado!';
+    setTimeout(() => btn.innerText = orig, 1500);
+  });
+}
+
+// ─── Events ──────────────────────────────────────────────────────────────────
+const dropzone  = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f?.type === 'application/pdf') {
+    currentFile = f;
+    document.getElementById('fileName').innerText = `📄 ${f.name}`;
+    document.getElementById('fileInfo').style.display = 'flex';
+    resetAndHide();
+  }
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) {
+    currentFile = fileInput.files[0];
+    document.getElementById('fileName').innerText = `📄 ${currentFile.name}`;
+    document.getElementById('fileInfo').style.display = 'flex';
+    resetAndHide();
+  }
+});
+document.getElementById('clearFileBtn').addEventListener('click', () => {
+  currentFile = null; fileInput.value = '';
+  document.getElementById('fileInfo').style.display = 'none';
+  resetAndHide();
+});
+document.getElementById('processBtn').addEventListener('click', processPDF);
+document.getElementById('copyE110Btn').addEventListener('click', copyAllValues);
+document.getElementById('debugBtn').addEventListener('click', () => {
+  const card = document.getElementById('debugCard');
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  if (lastDebugLines.length)
+    document.getElementById('debugText').textContent = lastDebugLines.join('\n');
+});
 </script>
 </body>
 </html>
