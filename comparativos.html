@@ -1,0 +1,1499 @@
+	<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard NFE XML - Análise de Créditos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f5f6f5;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0288d1, #01579b);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1700px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .header-subtitle {
+            font-size: 0.8rem;
+            color: #b3e5fc;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 25px;
+            background-color: #fff;
+            color: #0288d1;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn:hover {
+            background-color: #b3e5fc;
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            max-width: 1700px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        body.dark-mode .card {
+            background: #2a2a2a;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.upload { background-color: #b3e5fc; color: #0288d1; }
+        .card-icon.search { background-color: #b2dfdb; color: #00796b; }
+        .card-icon.process { background-color: #c8e6c9; color: #388e3c; }
+        .card-icon.compare { background-color: #ffe0b2; color: #f57c00; }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .card-description {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        body.dark-mode .card-description {
+            color: #b0b0b0;
+        }
+
+        .file-upload-container {
+            text-align: center;
+            padding: 1.5rem;
+            border: 2px dashed #0288d1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-container:hover {
+            border-color: #01579b;
+            background-color: #e1f5fe;
+        }
+
+        body.dark-mode .file-upload-container:hover {
+            background-color: #003c8f;
+        }
+
+        .file-upload-icon i {
+            font-size: 2rem;
+            color: #0288d1;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .search-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-group i {
+            position: absolute;
+            left: 1rem;
+            color: #0288d1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0288d1;
+        }
+
+        body.dark-mode .search-input {
+            background-color: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .btn-success {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background-color: #ff9800;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background-color: #f57c00;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: #0288d1;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #01579b;
+            transform: translateY(-2px);
+        }
+
+        .nfe-table, .summary-table, .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .nfe-table,
+        body.dark-mode .summary-table,
+        body.dark-mode .compare-table {
+            background: #2a2a2a;
+        }
+
+        .nfe-table th,
+        .summary-table th,
+        .compare-table th {
+            background: #0288d1;
+            color: #fff;
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .nfe-table td,
+        .summary-table td,
+        .compare-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        body.dark-mode .nfe-table td,
+        body.dark-mode .summary-table td,
+        body.dark-mode .compare-table td {
+            border-bottom: 1px solid #444;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        .total-cell {
+            font-weight: 600;
+            background-color: #e3f2fd;
+        }
+
+        body.dark-mode .total-cell {
+            background-color: #1e3a5f;
+        }
+
+        .divergence {
+            background-color: #ffebee !important;
+            color: #c62828 !important;
+        }
+
+        body.dark-mode .divergence {
+            background-color: #4a1a1a !important;
+            color: #ff6b6b !important;
+        }
+
+        .match {
+            background-color: #e8f5e9 !important;
+            color: #2e7d32 !important;
+        }
+
+        .missing-in-xml {
+            background-color: #fff3e0 !important;
+            color: #f57c00 !important;
+        }
+
+        .missing-in-ref {
+            background-color: #e3f2fd !important;
+            color: #0288d1 !important;
+        }
+
+        .daily-verse {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            margin: 1rem auto;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .daily-verse i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #ffd700;
+        }
+
+        .daily-verse p {
+            font-size: 1rem;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #0288d1, #01579b);
+            color: #fff;
+            padding: 2rem 1rem;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #b3e5fc;
+            font-size: 0.8rem;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background-color: #0288d1;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: #01579b;
+            transform: scale(1.1);
+        }
+
+        .product-group {
+            margin: 2rem 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .product-group-header {
+            background-color: #0288d1;
+            color: white;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        body.dark-mode .product-group-header {
+            background-color: #29b6f6;
+        }
+
+        .highlight-row {
+            background-color: #fff3e0 !important;
+        }
+
+        body.dark-mode .highlight-row {
+            background-color: #4a3a1a !important;
+        }
+
+        .comparison-area {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 2px solid #ff9800;
+            border-radius: 12px;
+            background: #fff8e7;
+        }
+
+        body.dark-mode .comparison-area {
+            background: #2a2a1a;
+            border-color: #ff9800;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .comparison-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #f57c00;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .reference-data-area {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 2px solid #0288d1;
+            border-radius: 12px;
+            background: #e3f2fd;
+        }
+
+        body.dark-mode .reference-data-area {
+            background: #1a2a3a;
+            border-color: #0288d1;
+        }
+
+        .reference-textarea {
+            width: 100%;
+            height: 300px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .stat-card {
+            background: #2a2a2a;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        @media (max-width: 1400px) {
+            .nfe-table th,
+            .nfe-table td,
+            .summary-table th,
+            .summary-table td,
+            .compare-table th,
+            .compare-table td {
+                padding: 0.6rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+            }
+            .nfe-table, .summary-table, .compare-table {
+                font-size: 0.7rem;
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .comparison-header {
+                flex-direction: column;
+            }
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-circle">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%230288d1'/%3E%3Ctext x='50' y='67' text-anchor='middle' fill='white' font-size='40' font-weight='bold'%3EDP%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-image">
+                </div>
+                <div>
+                    <div class="header-title">SISTEMA PARA CRÉDITO</div>
+                    <div class="header-subtitle">Processamento Inteligente de Notas Fiscais</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="exportCSVButton" class="header-btn">
+                    <i class="fas fa-file-csv"></i>
+                    Exportar CSV
+                </button>
+                <button id="exportButton" class="header-btn">
+                    <i class="fas fa-download"></i>
+                    Exportar TXT
+                </button>
+                <button id="themeToggleButton" class="header-btn">
+                    <i class="fas fa-moon"></i>
+                    Modo Escuro
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="dailyVerseContainer"></div>
+
+    <main class="main-content">
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div>
+                        <div class="card-title">Upload de Arquivos</div>
+                        <div class="card-description">Selecione os arquivos XML das NFEs</div>
+                    </div>
+                </div>
+                <div class="file-upload-container" onclick="document.getElementById('fileInput').click()">
+                    <div class="file-upload-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <strong>Clique para selecionar arquivos</strong>
+                    <span>ou arraste e solte aqui</span>
+                    <input type="file" id="fileInput" multiple accept=".xml" style="display: none;">
+                    <div class="file-count" id="fileCountDisplay">Nenhum arquivo selecionado</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon search">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>
+                        <div class="card-title">Filtros de Busca</div>
+                        <div class="card-description">Filtre os resultados por critérios específicos</div>
+                    </div>
+                </div>
+                <div class="search-container">
+                    <div class="search-group">
+                        <i class="fas fa-building"></i>
+                        <input type="search" id="searchInput" placeholder="Buscar por CNPJ..." class="search-input" />
+                    </div>
+                    <div class="search-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="search" id="stateInput" placeholder="Buscar por Estado (UF)..." class="search-input" />
+                    </div>
+                    <div class="search-group">
+                        <i class="fas fa-barcode"></i>
+                        <input type="search" id="productCodeInput" placeholder="Código do Produto..." class="search-input" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon process">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div>
+                        <div class="card-title">Processamento</div>
+                        <div class="card-description">Execute o processamento dos arquivos</div>
+                    </div>
+                </div>
+                <button id="processButton" class="btn btn-success">
+                    <i class="fas fa-play"></i>
+                    Processar Arquivos
+                </button>
+            </div>
+        </div>
+
+        <!-- Área para colar dados de referência -->
+        <div class="reference-data-area">
+            <div class="comparison-header">
+                <div class="comparison-title">
+                    <i class="fas fa-paste"></i> 📋 ÁREA DE REFERÊNCIA
+                </div>
+                <div class="filter-group">
+                    <button id="loadExampleButton" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;">
+                        <i class="fas fa-database"></i> Carregar Exemplo
+                    </button>
+                    <button id="clearReferenceButton" class="btn btn-warning" style="width: auto; padding: 0.5rem 1rem;">
+                        <i class="fas fa-trash"></i> Limpar
+                    </button>
+                </div>
+            </div>
+            <p style="margin-bottom: 0.5rem; font-size: 0.8rem;">
+                <i class="fas fa-info-circle"></i> Cole os dados no formato: <strong>NFE | PRODUTO | VALOR | ICMS | BASE DE CALCULO</strong><br>
+                Exemplo: <code>51513 | DIESEL | 3869.71 | 830.75 | 3038.96</code>
+            </p>
+            <textarea id="referenceData" class="reference-textarea" placeholder="Cole aqui os dados de referência...&#10;&#10;Formato:&#10;NFE | PRODUTO | VALOR | ICMS | BASE DE CALCULO&#10;&#10;Exemplo:&#10;51513 | DIESEL | 3869.71 | 830.75 | 3038.96&#10;50754 | DIESEL S10 | 3611.46 | 768.26 | 2843.20"></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button id="compareWithReference" class="btn btn-primary" style="width: auto; padding: 0.8rem 2rem;">
+                    <i class="fas fa-chart-line"></i> COMPARAR COM XML PROCESSADO
+                </button>
+            </div>
+        </div>
+
+        <div id="comparisonArea" style="display: none;"></div>
+        <div id="output"></div>
+    </main>
+
+    <div class="nav-buttons">
+        <button onclick="scrollToTop()" class="nav-btn" title="Voltar ao topo">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <button onclick="scrollToBottom()" class="nav-btn" title="Ir para o fim">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <button onclick="window.print()" class="nav-btn" title="Imprimir">
+            <i class="fas fa-print"></i>
+        </button>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-code"></i> Desenvolvedor</h3>
+                <p>Waldeci Ramos</p>
+                <p>Leitor de Xml Créditos</p>
+                <p>Sistemas Fiscais</p>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-info-circle"></i> Sobre o Sistema</h3>
+                <p>Processamento de XML de NF-e</p>
+                <p>Análise de Créditos de ICMS</p>
+                <p>Versão: 2.0.0</p>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-shield-alt"></i> Tecnologias</h3>
+                <p>HTML5, CSS3, JavaScript</p>
+                <p>DOM Parser para XML</p>
+                <p>Responsive Design</p>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-phone"></i> Contato</h3>
+                <p><i class="fas fa-envelope"></i> waldeci.ramos@rededompedo.com</p>
+                <p><i class="fas fa-phone"></i> (35) 3462-2100</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Dashboard NFE XML. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        let processedXmlData = []; // Dados processados dos XMLs
+        let referenceDataList = []; // Dados de referência colados
+
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollToBottom() { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }
+
+        function showDailyVerse() {
+            const verseContainer = document.getElementById('dailyVerseContainer');
+            const dayOfWeek = new Date().getDay();
+            const verses = {
+                1: { verse: "Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento; reconheça o Senhor em todos os seus caminhos, e ele endireitará as suas veredas.", reference: "Provérbios 3:5-6", day: "Segunda-feira" },
+                2: { verse: "Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a minha destra fiel.", reference: "Isaías 41:10", day: "Terça-feira" },
+                3: { verse: "Tudo posso naquele que me fortalece.", reference: "Filipenses 4:13", day: "Quarta-feira" },
+                4: { verse: "O Senhor é o meu pastor; nada me faltará.", reference: "Salmos 23:1", day: "Quinta-feira" },
+                5: { verse: "Entrega o teu caminho ao Senhor; confia nele, e ele o fará.", reference: "Salmos 37:5", day: "Sexta-feira" }
+            };
+            if (verses[dayOfWeek]) {
+                verseContainer.innerHTML = `<div class="daily-verse"><i class="fas fa-bible"></i><p>${verses[dayOfWeek].verse}</p><p class="verse-reference">${verses[dayOfWeek].reference}</p><p>📖 ${verses[dayOfWeek].day}</p></div>`;
+            } else {
+                verseContainer.innerHTML = `<div class="daily-verse"><i class="fas fa-bible"></i><p>"Que este final de semana seja abençoado! Que a nova semana traga muitas conquistas."</p><p class="verse-reference">Salmos 90:17</p></div>`;
+            }
+        }
+        showDailyVerse();
+
+        const fileInput = document.getElementById('fileInput');
+        const fileCountDisplay = document.getElementById('fileCountDisplay');
+        const outputDiv = document.getElementById('output');
+        const comparisonArea = document.getElementById('comparisonArea');
+        const searchInput = document.getElementById('searchInput');
+        const stateInput = document.getElementById('stateInput');
+        const productCodeInput = document.getElementById('productCodeInput');
+
+        fileInput.addEventListener('change', function() {
+            const count = this.files.length;
+            fileCountDisplay.textContent = count > 0 ? `${count} arquivo(s) selecionado(s)` : 'Nenhum arquivo selecionado';
+        });
+
+        function getElemValue(parent, tagName) {
+            const elem = parent.getElementsByTagName(tagName)[0];
+            return elem ? elem.textContent.trim() : '';
+        }
+
+        function getElemNumber(parent, tagName) {
+            const val = getElemValue(parent, tagName);
+            return val ? parseFloat(val) || 0 : 0;
+        }
+
+        function extractICMSInfo(produto, vProd) {
+            let aliquota = 0;
+            let baseCalculo = 0;
+            let valorCredito = 0;
+            let tipoICMS = 'Sem ICMS';
+
+            const icms61 = produto.getElementsByTagName('ICMS61')[0];
+            if (icms61) {
+                tipoICMS = 'ICMS61 - Monofásico';
+                aliquota = getElemNumber(icms61, 'adRemICMSRet');
+                valorCredito = getElemNumber(icms61, 'vICMSMonoRet');
+                baseCalculo = vProd - valorCredito;
+                return { aliquota, baseCalculo, valorCredito, tipoICMS };
+            }
+
+            const icmsGroups = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS41', 'ICMS50', 'ICMS51', 'ICMS60', 'ICMS70', 'ICMS90', 'ICMSST'];
+            for (const group of icmsGroups) {
+                const icmsElem = produto.getElementsByTagName(group)[0];
+                if (icmsElem) {
+                    tipoICMS = group;
+                    aliquota = getElemNumber(icmsElem, 'pICMS') || getElemNumber(icmsElem, 'pICMSST') || 0;
+                    baseCalculo = getElemNumber(icmsElem, 'vBC') || getElemNumber(icmsElem, 'vBCST') || 0;
+                    valorCredito = getElemNumber(icmsElem, 'vICMS') || getElemNumber(icmsElem, 'vICMSST') || 0;
+                    break;
+                }
+            }
+
+            return { aliquota, baseCalculo, valorCredito, tipoICMS };
+        }
+
+        function isDieselS10(cProd, xProd) {
+            if (cProd === '2309') return true;
+            const nomeUpper = xProd.toUpperCase();
+            return nomeUpper.includes('DIESEL') && (nomeUpper.includes('S10') || nomeUpper.includes('S 10'));
+        }
+
+        // Processar XMLs
+        document.getElementById('processButton').addEventListener('click', function() {
+            const files = fileInput.files;
+            outputDiv.innerHTML = '';
+            comparisonArea.style.display = 'none';
+            processedXmlData = [];
+
+            if (files.length === 0) {
+                outputDiv.innerHTML = '<p style="color: red; text-align: center;">Nenhum arquivo selecionado.</p>';
+                return;
+            }
+
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const stateTerm = stateInput.value.trim().toUpperCase();
+            const productCodeTerm = productCodeInput.value.trim();
+
+            let todosProdutos = {};
+            let dieselS10Items = [];
+            let tableRows = [];
+            let totalQuantidadeGeral = 0;
+            let totalBaseCalculoGeral = 0;
+            let totalCreditoGeral = 0;
+            let processedFiles = 0;
+            
+            let notasUnicasMap = new Map();
+
+            let dieselS10Summary = {
+                totalQuantidade: 0,
+                totalBaseCalculo: 0,
+                totalCredito: 0,
+                totalValorNF: 0
+            };
+
+            let notasDieselProcessadas = new Set();
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
+
+                    const nNF = getElemValue(xmlDoc, 'nNF');
+                    const nomePosto = getElemValue(xmlDoc, 'xFant') || getElemValue(xmlDoc, 'xNome');
+                    const cnpj = getElemValue(xmlDoc, 'CNPJ');
+                    const uf = getElemValue(xmlDoc, 'UF');
+                    const serie = getElemValue(xmlDoc, 'serie');
+                    const dhEmi = getElemValue(xmlDoc, 'dhEmi');
+                    const dataEmissao = dhEmi ? new Date(dhEmi).toLocaleDateString('pt-BR') : '';
+                    const infAdFisco = getElemValue(xmlDoc, 'infAdFisco') || getElemValue(xmlDoc, 'infCpl') || '';
+                    
+                    const vNF = getElemNumber(xmlDoc, 'vNF');
+                    
+                    const chaveNota = `${nNF}|${cnpj}`;
+                    if (!notasUnicasMap.has(chaveNota)) {
+                        notasUnicasMap.set(chaveNota, vNF);
+                    }
+
+                    const produtos = xmlDoc.getElementsByTagName('det');
+                    
+                    let notaContemDiesel = false;
+                    let notaValorNF = vNF;
+
+                    for (let i = 0; i < produtos.length; i++) {
+                        const produto = produtos[i];
+                        const prodElement = produto.getElementsByTagName('prod')[0];
+                        if (!prodElement) continue;
+
+                        const xProd = getElemValue(prodElement, 'xProd');
+                        const cProd = getElemValue(prodElement, 'cProd');
+                        const vProd = getElemNumber(prodElement, 'vProd');
+                        const qCom = getElemNumber(prodElement, 'qCom');
+                        const cfop = getElemValue(prodElement, 'CFOP');
+
+                        const { aliquota, baseCalculo, valorCredito, tipoICMS } = extractICMSInfo(produto, vProd);
+
+                        const matchesSearch = searchTerm === '' || cnpj.toLowerCase().includes(searchTerm);
+                        const matchesState = stateTerm === '' || uf.includes(stateTerm);
+                        const matchesProduct = productCodeTerm === '' || cProd === productCodeTerm;
+
+                        const isDiesel = isDieselS10(cProd, xProd);
+                        
+                        if (isDiesel) {
+                            notaContemDiesel = true;
+                        }
+
+                        if (matchesSearch && matchesState && matchesProduct) {
+                            const rowData = {
+                                nomePosto, cnpj, uf, nNF, serie, dataEmissao,
+                                xProd, cProd, qCom, vProd,
+                                vNF: notaValorNF,
+                                aliquota, baseCalculo, valorCredito, tipoICMS,
+                                infAdFisco, isDiesel, cfop
+                            };
+                            tableRows.push(rowData);
+                            
+                            totalQuantidadeGeral += qCom;
+                            totalBaseCalculoGeral += baseCalculo;
+                            totalCreditoGeral += valorCredito;
+
+                            if (isDiesel) {
+                                dieselS10Items.push(rowData);
+                                dieselS10Summary.totalQuantidade += qCom;
+                                dieselS10Summary.totalBaseCalculo += baseCalculo;
+                                dieselS10Summary.totalCredito += valorCredito;
+                            }
+
+                            const key = `${xProd}|${cProd}|${aliquota}|${tipoICMS}`;
+                            if (!todosProdutos[key]) {
+                                todosProdutos[key] = {
+                                    produto: xProd,
+                                    codigo: cProd,
+                                    aliquota,
+                                    tipoICMS,
+                                    totalQuantidade: 0,
+                                    totalBaseCalculo: 0,
+                                    totalCredito: 0,
+                                    totalValorNF: 0,
+                                    notasUtilizadas: new Set()
+                                };
+                            }
+                            todosProdutos[key].totalQuantidade += qCom;
+                            todosProdutos[key].totalBaseCalculo += baseCalculo;
+                            todosProdutos[key].totalCredito += valorCredito;
+                            
+                            if (!todosProdutos[key].notasUtilizadas.has(chaveNota)) {
+                                todosProdutos[key].notasUtilizadas.add(chaveNota);
+                                todosProdutos[key].totalValorNF += notaValorNF;
+                            }
+
+                            // Armazenar para comparação
+                            processedXmlData.push({
+                                nNF: nNF,
+                                produto: xProd,
+                                valorTotal: notaValorNF,
+                                valorCredito: valorCredito,
+                                baseCalculo: baseCalculo
+                            });
+                        }
+                    }
+                    
+                    if (notaContemDiesel && !notasDieselProcessadas.has(chaveNota)) {
+                        notasDieselProcessadas.add(chaveNota);
+                        dieselS10Summary.totalValorNF += notaValorNF;
+                    }
+
+                    processedFiles++;
+                    if (processedFiles === files.length) {
+                        for (let key in todosProdutos) {
+                            delete todosProdutos[key].notasUtilizadas;
+                        }
+                        renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, notasUnicasMap, totalQuantidadeGeral, totalBaseCalculoGeral, totalCreditoGeral, files.length);
+                        
+                        // Se já houver dados de referência, comparar automaticamente
+                        if (referenceDataList.length > 0) {
+                            performComparison();
+                        }
+                    }
+                };
+                reader.readAsText(file);
+            });
+        });
+
+        // Função para processar dados colados
+        function parseReferenceData(text) {
+            const lines = text.split('\n');
+            const data = [];
+            
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (trimmedLine === '') continue;
+                
+                // Suporta separadores: | ou tab ou espaço
+                let parts;
+                if (trimmedLine.includes('|')) {
+                    parts = trimmedLine.split('|').map(p => p.trim());
+                } else if (trimmedLine.includes('\t')) {
+                    parts = trimmedLine.split('\t').map(p => p.trim());
+                } else {
+                    parts = trimmedLine.split(/\s+/);
+                }
+                
+                if (parts.length >= 5) {
+                    const nfe = parts[0].trim();
+                    const produto = parts[1].trim();
+                    const valor = parseFloat(parts[2].replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+                    const icms = parseFloat(parts[3].replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+                    const baseCalculo = parseFloat(parts[4].replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+                    
+                    data.push({ nfe, produto, valor, icms, baseCalculo });
+                }
+            }
+            
+            return data;
+        }
+
+        // Função para realizar comparação
+        function performComparison() {
+            if (processedXmlData.length === 0) {
+                alert('Nenhum dado de XML processado. Processe os arquivos XML primeiro.');
+                return;
+            }
+            
+            if (referenceDataList.length === 0) {
+                alert('Nenhum dado de referência. Cole os dados na área acima e clique em "COMPARAR COM XML PROCESSADO".');
+                return;
+            }
+            
+            const xmlMap = new Map();
+            for (const xml of processedXmlData) {
+                xmlMap.set(xml.nNF, xml);
+            }
+            
+            const refMap = new Map();
+            for (const ref of referenceDataList) {
+                refMap.set(ref.nfe, ref);
+            }
+            
+            // Encontrar correspondências
+            const allNfes = new Set([...xmlMap.keys(), ...refMap.keys()]);
+            const divergences = [];
+            const matches = [];
+            const missingInXml = [];
+            const missingInRef = [];
+            
+            for (const nfe of allNfes) {
+                const xml = xmlMap.get(nfe);
+                const ref = refMap.get(nfe);
+                
+                if (xml && ref) {
+                    // Verificar divergências
+                    const valorDiff = Math.abs(xml.valorTotal - ref.valor);
+                    const icmsDiff = Math.abs(xml.valorCredito - ref.icms);
+                    const baseDiff = Math.abs(xml.baseCalculo - ref.baseCalculo);
+                    
+                    const isMatch = valorDiff < 0.01 && icmsDiff < 0.01 && baseDiff < 0.01;
+                    
+                    const item = {
+                        nfe: nfe,
+                        produtoXML: xml.produto,
+                        produtoRef: ref.produto,
+                        valorXML: xml.valorTotal,
+                        valorRef: ref.valor,
+                        icmsXML: xml.valorCredito,
+                        icmsRef: ref.icms,
+                        baseXML: xml.baseCalculo,
+                        baseRef: ref.baseCalculo,
+                        valorDiff: xml.valorTotal - ref.valor,
+                        icmsDiff: xml.valorCredito - ref.icms,
+                        baseDiff: xml.baseCalculo - ref.baseCalculo
+                    };
+                    
+                    if (isMatch) {
+                        matches.push(item);
+                    } else {
+                        divergences.push(item);
+                    }
+                } else if (xml && !ref) {
+                    missingInRef.push({
+                        nfe: nfe,
+                        produto: xml.produto,
+                        valor: xml.valorTotal,
+                        icms: xml.valorCredito,
+                        baseCalculo: xml.baseCalculo
+                    });
+                } else if (!xml && ref) {
+                    missingInXml.push({
+                        nfe: nfe,
+                        produto: ref.produto,
+                        valor: ref.valor,
+                        icms: ref.icms,
+                        baseCalculo: ref.baseCalculo
+                    });
+                }
+            }
+            
+            renderComparison(divergences, matches, missingInXml, missingInRef);
+        }
+        
+        function renderComparison(divergences, matches, missingInXml, missingInRef) {
+            let html = `
+                <div class="comparison-area">
+                    <div class="comparison-header">
+                        <div class="comparison-title">
+                            <i class="fas fa-chart-line"></i> 📊 COMPARAÇÃO DE DADOS - XML vs REFERÊNCIA
+                        </div>
+                        <div class="filter-group">
+                            <label>Filtrar:</label>
+                            <select id="filterComparison" class="filter-select">
+                                <option value="all">Todos</option>
+                                <option value="divergences">⚠️ Divergências</option>
+                                <option value="matches">✅ Conformes</option>
+                                <option value="missing-xml">❌ Faltam no XML</option>
+                                <option value="missing-ref">❌ Faltam na Ref</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-number">${matches.length}</div>
+                            <div class="stat-label">✅ Conformes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${divergences.length}</div>
+                            <div class="stat-label">⚠️ Divergências</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${missingInXml.length}</div>
+                            <div class="stat-label">❌ Faltam no XML</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${missingInRef.length}</div>
+                            <div class="stat-label">❌ Faltam na Ref</div>
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>NFe</th>
+                                    <th>Produto</th>
+                                    <th colspan="2">Valor Total (R$)</th>
+                                    <th colspan="2">ICMS Crédito (R$)</th>
+                                    <th colspan="2">Base Cálculo (R$)</th>
+                                </tr>
+                                <tr style="background: #f5f5f5;">
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th>XML</th>
+                                    <th>Ref</th>
+                                    <th>XML</th>
+                                    <th>Ref</th>
+                                    <th>XML</th>
+                                    <th>Ref</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTableBody">
+            `;
+            
+            // Divergências
+            for (const item of divergences) {
+                html += `
+                    <tr class="divergence">
+                        <td class="align-center">⚠️ DIVERGÊNCIA</td>
+                        <td class="align-center"><strong>${item.nfe}</strong></td>
+                        <td>${item.produtoXML} / ${item.produtoRef}</td>
+                        <td class="align-right">R$ ${item.valorXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.valorRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.icmsXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.icmsRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.baseXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.baseRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+            }
+            
+            // Conformes
+            for (const item of matches) {
+                html += `
+                    <tr class="match">
+                        <td class="align-center">✅ CONFORME</td>
+                        <td class="align-center"><strong>${item.nfe}</strong></td>
+                        <td>${item.produtoXML}</td>
+                        <td class="align-right">R$ ${item.valorXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.valorRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.icmsXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.icmsRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.baseXML.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${item.baseRef.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+            }
+            
+            // Faltam no XML
+            for (const item of missingInXml) {
+                html += `
+                    <tr class="missing-in-xml">
+                        <td class="align-center">❌ FALTA NO XML</td>
+                        <td class="align-center"><strong>${item.nfe}</strong></td>
+                        <td>${item.produto}</td>
+                        <td class="align-right">-</td>
+                        <td class="align-right">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">-</td>
+                        <td class="align-right">R$ ${item.icms.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">-</td>
+                        <td class="align-right">R$ ${item.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+            }
+            
+            // Faltam na Referência
+            for (const item of missingInRef) {
+                html += `
+                    <tr class="missing-in-ref">
+                        <td class="align-center">❌ FALTA NA REF</td>
+                        <td class="align-center"><strong>${item.nfe}</strong></td>
+                        <td>${item.produto}</td>
+                        <td class="align-right">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">-</td>
+                        <td class="align-right">R$ ${item.icms.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">-</td>
+                        <td class="align-right">R$ ${item.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">-</td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            comparisonArea.innerHTML = html;
+            comparisonArea.style.display = 'block';
+            
+            // Adicionar filtro
+            document.getElementById('filterComparison').addEventListener('change', function(e) {
+                const filter = e.target.value;
+                const rows = document.querySelectorAll('#comparisonTableBody tr');
+                rows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else if (filter === 'divergences') {
+                        row.style.display = row.classList.contains('divergence') ? '' : 'none';
+                    } else if (filter === 'matches') {
+                        row.style.display = row.classList.contains('match') ? '' : 'none';
+                    } else if (filter === 'missing-xml') {
+                        row.style.display = row.classList.contains('missing-in-xml') ? '' : 'none';
+                    } else if (filter === 'missing-ref') {
+                        row.style.display = row.classList.contains('missing-in-ref') ? '' : 'none';
+                    }
+                });
+            });
+        }
+        
+        // Botão de comparação
+        document.getElementById('compareWithReference').addEventListener('click', function() {
+            const textarea = document.getElementById('referenceData');
+            const text = textarea.value;
+            
+            if (!text.trim()) {
+                alert('Cole os dados de referência no campo acima primeiro.');
+                return;
+            }
+            
+            referenceDataList = parseReferenceData(text);
+            
+            if (referenceDataList.length === 0) {
+                alert('Nenhum dado válido encontrado. Use o formato: NFE | PRODUTO | VALOR | ICMS | BASE DE CALCULO');
+                return;
+            }
+            
+            if (processedXmlData.length === 0) {
+                alert('Nenhum dado de XML processado. Processe os arquivos XML primeiro.');
+                return;
+            }
+            
+            performComparison();
+        });
+        
+        // Carregar exemplo
+        document.getElementById('loadExampleButton').addEventListener('click', function() {
+            const example = `51513 | DIESEL | 3869.71 | 830.75 | 3038.96
+50754 | DIESEL S10 | 3611.46 | 768.26 | 2843.20
+45813 | DIESEL | 3117.40 | 669.00 | 2448.16
+45892 | DIESEL | 2812.20 | 604.00 | 2208.48
+45893 | ARLA | 77.36 | 14.00 | 63.46
+45998 | ARLA | 116.24 | 21.00 | 95.32
+46000 | DIESEL | 2703.63 | 580.00 | 2123.22
+46024 | DIESEL | 2261.75 | 486.00 | 1776.20
+46025 | ARLA | 93.84 | 17.00 | 76.94
+46067 | FILTRO | 477.00 | 0.00 | 477.00`;
+            document.getElementById('referenceData').value = example;
+        });
+        
+        // Limpar referência
+        document.getElementById('clearReferenceButton').addEventListener('click', function() {
+            document.getElementById('referenceData').value = '';
+            referenceDataList = [];
+            comparisonArea.style.display = 'none';
+        });
+        
+        function renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, notasUnicasMap, totalQuantidadeGeral, totalBaseCalculoGeral, totalCreditoGeral, totalFiles) {
+            let totalValorNotasCorreto = 0;
+            for (const valor of notasUnicasMap.values()) {
+                totalValorNotasCorreto += valor;
+            }
+            
+            const totalValorProdutosGeral = Object.values(todosProdutos).reduce((s, p) => s + p.totalValorNF, 0);
+            
+            let html = '';
+
+            html += `
+                <div class="product-group">
+                    <div class="product-group-header">
+                        <i class="fas fa-gas-pump"></i> 🎯 DIESEL S10 - RESUMO ESPECÍFICO (Código 2309)
+                    </div>
+                    <table class="summary-table">
+                        <thead>
+                            <tr><th>Indicador</th><th class="align-right">Valor</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: #ff980020;"><td><strong>⛽ Total Quantidade (Litros)</strong></td>
+                            <td class="align-right"><strong>${dieselS10Summary.totalQuantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td></tr>
+                            <tr style="background-color: #ff980020;"><td><strong>💰 Total Base de Cálculo (vProd - vICMS)</strong></td>
+                            <td class="align-right"><strong>R$ ${dieselS10Summary.totalBaseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td></tr>
+                            <tr style="background-color: #ff980020;"><td><strong>💵 Total Valor de Crédito (vICMSMonoRet)</strong></td>
+                            <td class="align-right"><strong style="color: #2e7d32;">R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td></tr>
+                            <tr><td>📦 Total Valor das Notas (vNF - SOMA DAS NOTAS COM DIESEL S10)</td>
+                            <td class="align-right">R$ ${dieselS10Summary.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
+                            <tr><td><strong>📈 Preço Médio por Litro</strong></td>
+                            <td class="align-right">R$ ${dieselS10Summary.totalQuantidade > 0 ? (dieselS10Summary.totalValorNF / dieselS10Summary.totalQuantidade).toLocaleString('pt-BR', { minimumFractionDigits: 3 }) : '0,000'}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            html += `<h2 style="text-align: center; margin-top: 2rem;">📋 ENTREGAS - DETALHAMENTO COMPLETO</h2>
+            <div style="overflow-x: auto;"><table class="nfe-table"><thead><tr>
+                <th>Nome do Posto</th><th>CNPJ</th><th>UF</th><th>Nº NFe</th><th>Série</th><th>Data Emissão</th>
+                <th>Produto</th><th>Código</th><th class="align-right">Quantidade (L)</th>
+                <th class="align-right">Valor Total (vNF)</th><th class="align-right">Alíquota</th>
+                <th class="align-right">Base Cálculo</th><th class="align-right">Valor Crédito</th>
+                <th class="align-center">CFOP</th><th class="align-center">Info Adicional</th>
+            </tr></thead><tbody>`;
+
+            for (const row of tableRows) {
+                const highlightClass = row.isDiesel ? 'highlight-row' : '';
+                html += `<tr class="${highlightClass}">
+                    <td>${row.nomePosto}</td><td>${row.cnpj}</td><td>${row.uf}</td>
+                    <td class="align-center">${row.nNF}${row.isDiesel ? ' 🎯' : ''}</td>
+                    <td>${row.serie}</td><td>${row.dataEmissao}</td>
+                    <td>${row.xProd}</td><td>${row.cProd}</td>
+                    <td class="align-right">${row.qCom.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}</td>
+                    <td class="align-right"><strong>R$ ${row.vNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                    <td class="align-right">${row.aliquota}%</td>
+                    <td class="align-right">R$ ${row.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td class="align-right">R$ ${row.valorCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td class="align-center">${row.cfop || '-'}</td>
+                    <td>${row.infAdFisco.substring(0, 50)}${row.infAdFisco.length > 50 ? '...' : ''}</td>
+                </tr>`;
+            }
+
+            html += `</tbody><tfoot><tr class="total-cell">
+                <td colspan="8" class="align-right"><strong>TOTAL GERAL:</strong></td>
+                <td class="align-right"><strong>${totalQuantidadeGeral.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td>
+                <td class="align-right"><strong>R$ ${totalValorNotasCorreto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                <td></td>
+                <td class="align-right"><strong>R$ ${totalBaseCalculoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                <td class="align-right"><strong>R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                <td colspan="2"></td>
+            </tr></tfoot></table></div>`;
+
+            html += `<h2 style="text-align: center; margin-top: 2rem;">📊 RESUMO POR PRODUTO</h2>
+            <div style="overflow-x: auto;"><table class="summary-table"><thead><tr>
+                <th>Produto</th><th>Código</th><th>Alíquota</th><th>Tipo ICMS</th>
+                <th class="align-right">Total Quantidade (L)</th>
+                <th class="align-right">Total Base Cálculo (R$)</th>
+                <th class="align-right">Total Valor Crédito (R$)</th>
+                <th class="align-right">Total Valor NF (R$)</th>
+            </tr></thead><tbody>`;
+            
+            const sorted = Object.values(todosProdutos).sort((a, b) => b.totalCredito - a.totalCredito);
+            for (const p of sorted) {
+                const isDiesel = p.codigo === '2309' || (p.produto.toUpperCase().includes('DIESEL') && p.produto.toUpperCase().includes('S10'));
+                html += `<tr ${isDiesel ? 'style="background-color: #ff980020;"' : ''}>
+                    <td><strong>${p.produto}${isDiesel ? ' 🎯' : ''}</strong></td>
+                    <td class="align-center">${p.codigo}${isDiesel ? ' ⛽' : ''}</td>
+                    <td class="align-center">${p.aliquota}%</td>
+                    <td class="align-center">${p.tipoICMS}</td>
+                    <td class="align-right">${p.totalQuantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</td>
+                    <td class="align-right">R$ ${p.totalBaseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td class="align-right">R$ ${p.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td class="align-right">R$ ${p.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                </tr>`;
+            }
+            
+            html += `</tbody><tfoot><tr class="total-cell">
+                <td colspan="4" class="align-right"><strong>TOTAL GERAL:</strong></td>
+                <td class="align-right"><strong>${totalQuantidadeGeral.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td>
+                <td class="align-right"><strong>R$ ${totalBaseCalculoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                <td class="align-right"><strong>R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+                <td class="align-right"><strong>R$ ${totalValorProdutosGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
+            </tr></tfoot></table></div>`;
+
+            html += `<div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 12px; text-align: center;">
+                <h3><i class="fas fa-chart-line"></i> RESUMO DO PROCESSAMENTO</h3>
+                <p><strong>📁 Total de Arquivos Processados:</strong> ${totalFiles}</p>
+                <p><strong>📄 Total de Itens Processados:</strong> ${tableRows.length}</p>
+                <p><strong>⛽ Itens de DIESEL S10:</strong> ${dieselS10Items.length}</p>
+                <p><strong>📊 Total Quantidade:</strong> ${totalQuantidadeGeral.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</p>
+                <p><strong>💰 Total Base de Cálculo:</strong> R$ ${totalBaseCalculoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p><strong>💵 Total de Crédito de ICMS:</strong> R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p><strong>🏷️ Total Geral de Notas Fiscais:</strong> R$ ${totalValorNotasCorreto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p style="font-size: 1.2rem; margin-top: 0.5rem; padding: 0.5rem; background: #ff9800; color: white; border-radius: 8px; display: inline-block;">
+                    🎯 <strong>CRÉDITO DIESEL S10: R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                </p>
+            </div>`;
+
+            outputDiv.innerHTML = html;
+        }
+
+        // Exportar CSV
+        document.getElementById('exportCSVButton').addEventListener('click', function() {
+            if (processedXmlData.length === 0) {
+                alert('Nenhum dado processado para exportar. Processe os arquivos XML primeiro.');
+                return;
+            }
+
+            const headers = ['NFe', 'Produto', 'Valor Total (R$)', 'Valor Crédito (R$)', 'Base Cálculo (R$)'];
+            const csvRows = [headers];
+            
+            for (const row of processedXmlData) {
+                csvRows.push([
+                    row.nNF,
+                    row.produto,
+                    row.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
+                    row.valorCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
+                    row.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ',')
+                ]);
+            }
+            
+            const csvContent = csvRows.map(row => row.join(';')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `relatorio_nfe_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('exportButton').addEventListener('click', function() {
+            const content = outputDiv.innerText;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `relatorio_nfe_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            a.click();
+            URL.revokeObjectURL(blob);
+        });
+
+        document.getElementById('themeToggleButton').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            this.innerHTML = document.body.classList.contains('dark-mode') 
+                ? '<i class="fas fa-sun"></i> Modo Claro' 
+                : '<i class="fas fa-moon"></i> Modo Escuro';
+        });
+    </script>
+</body>
+</html>
