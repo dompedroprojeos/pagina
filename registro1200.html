@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,7 +11,7 @@
 
   #paste-area { background: #fff; border: 2px solid #2c6e9e; border-radius: 6px; padding: 12px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
   #paste-area h2 { font-size: 16px; color: #b22234; margin-bottom: 8px; font-weight: 600; }
-  #paste-area textarea { width: 100%; height: 180px; font-size: 11px; font-family: 'Courier New', monospace; border: 1px solid #8ba0bc; border-radius: 4px; padding: 6px; background: #fefcf0; resize: vertical; }
+  #paste-area textarea { width: 100%; height: 350px; font-size: 11px; font-family: 'Courier New', monospace; border: 1px solid #8ba0bc; border-radius: 4px; padding: 6px; background: #fefcf0; resize: vertical; }
   #btn-parse { background: #1e466e; color: white; border: none; padding: 6px 24px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; margin-top: 8px; transition: 0.2s; }
   #btn-parse:hover { background: #0f2c48; }
   .clear-btn { background: #a1312b; color: white; border: none; padding: 6px 24px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; margin-top: 8px; margin-left: 10px; }
@@ -33,7 +34,7 @@
   .win-footer { border-top: 1px solid #dce5ef; padding: 8px 16px; background: #f8f9fc; display: flex; gap: 12px; justify-content: center; }
 
   .form-row { display: flex; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
-  .form-label { width: 230px; font-size: 12px; font-weight: 500; text-align: right; padding-right: 12px; color: #1e3a5f; }
+  .form-label { width: 250px; font-size: 12px; font-weight: 500; text-align: right; padding-right: 12px; color: #1e3a5f; }
   .form-ctrl { flex: 1; display: flex; gap: 6px; align-items: center; }
   .finput { border: 1px solid #8aa0bc; background: #fffef7; height: 28px; padding: 2px 8px; border-radius: 5px; font-size: 12px; text-align: right; width: 180px; }
   .finput.wide { text-align: left; width: auto; flex: 1; max-width: 320px; }
@@ -78,11 +79,6 @@
     margin-top: 6px;
     font-family: monospace;
   }
-  .block-disabled {
-    opacity: 0.65;
-    pointer-events: none;
-    filter: grayscale(0.05);
-  }
   .warning-badge {
     background: #d32f2f;
     color: white;
@@ -96,11 +92,6 @@
   .obrig-label { font-weight: bold; color: #1f4973; font-size: 13px; }
   .obrig-value { background: #fff; padding: 4px 12px; border-radius: 20px; font-weight: bold; border: 1px solid #9bb0c7; min-width: 70px; text-align: center; }
   .obrig-value.nao { background: #f2d9d7; color: #b13b2d; border-color: #c97b6e; }
-  
-  .disabled-form input, .disabled-form .finput {
-    background: #e9ecef;
-    color: #6c757d;
-  }
   
   .extracted-values {
     background: #e8f0fe;
@@ -117,13 +108,28 @@
   .extracted-values p {
     margin: 4px 0;
   }
+  .extracted-values .highlight {
+    font-weight: bold;
+    color: #1e6b3b;
+  }
+  .legenda-campos {
+    background: #fff9e0;
+    border: 1px solid #ffd966;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    font-size: 10px;
+  }
+  .legenda-campos strong {
+    color: #1e466e;
+  }
 </style>
 </head>
 <body>
 
 <div id="paste-area">
-  <h2>📋 Cole o texto do MODELO P9 (Apuração ICMS)</h2>
-  <textarea id="txt-input" placeholder="Cole aqui o relatório de apuração (MODELO P9)"></textarea>
+  <h2>📋 Cole o texto do MODELO P9 - RESULTADO DA APURAÇÃO DO ICMS</h2>
+  <textarea id="txt-input" placeholder="Cole aqui o texto do MODELO P9 (com as duas páginas: REGISTRO DE APURAÇÃO e RESUMO DA APURAÇÃO)"></textarea>
   <br>
   <button id="btn-parse" onclick="parseAndFill()">▶ Processar e preencher telas</button>
   <button class="clear-btn" onclick="clearAll()">🗑 Limpar tudo</button>
@@ -138,16 +144,23 @@
 
 <!-- ABA A - MG091004 -->
 <div id="tab_a" class="tab-content active">
+  <div class="legenda-campos">
+    📌 <strong>Regra de preenchimento (MODELO P9) - ORDEM CORRETA:</strong><br>
+    • 1º Campo: <strong>009 - Saldo credor do período anterior</strong><br>
+    • 2º Campo: <strong>001 - Créditos utilizados no período (débito saídas)</strong><br>
+    • 3º Campo: <strong>005 - Crédito apropriado no mês (entradas/aquisições)</strong><br>
+    • 4º Campo: <strong>009 + 005 - 001 = Saldo final</strong>
+  </div>
   <div class="window" id="windowReg1200">
     <div class="win-title">REGISTRO 1200 - CONTROLE CRÉDITOS FISCAIS <span>MG091004</span></div>
     <div class="win-header"><div class="rtitle">Código: MG091004</div><div class="rsub">Apropriação de crédito por saída com alíquota inferior à entrada</div></div>
     <div class="win-body" id="reg1200Body">
       <div class="form-row"><span class="form-label">Código de ajuste</span><div class="form-ctrl"><input class="finput wide" id="a_cod" value="MG091004" readonly style="background:#f0f2f5"/><button class="ddBtn">▼</button><input class="finput wide" id="a_desc" value="Apropriação de crédito por saída c/ alíquota inferior"/></div></div>
-      <div class="form-row"><span class="form-label">Saldo de créditos fiscais anteriores</span><div class="form-ctrl"><input class="finput" id="a_saldo_ant" readonly/></div></div>
-      <div class="form-row"><span class="form-label">Crédito apropriado no mês</span><div class="form-ctrl"><input class="finput" id="a_cred_mes" readonly/></div></div>
+      <div class="form-row"><span class="form-label">1. Saldo de créditos fiscais anteriores (009)</span><div class="form-ctrl"><input class="finput" id="a_saldo_ant" readonly placeholder="SALDO ANTERIOR"/></div></div>
+      <div class="form-row"><span class="form-label">2. Créditos utilizados no período (001 - Débito saídas)</span><div class="form-ctrl"><input class="finput" id="a_util" readonly placeholder="DÉBITO SAÍDAS"/></div></div>
+      <div class="form-row"><span class="form-label">3. Crédito apropriado no mês (005 - Entradas)</span><div class="form-ctrl"><input class="finput" id="a_cred_mes" readonly placeholder="CRÉDITOS ENTRADAS"/></div></div>
       <div class="form-row"><span class="form-label">Créditos recebidos por transferência</span><div class="form-ctrl"><input class="finput" id="a_transf" value="R$ 0,00" readonly/></div></div>
-      <div class="form-row"><span class="form-label">Créditos utilizados no período</span><div class="form-ctrl"><input class="finput" id="a_util" readonly/></div></div>
-      <div class="form-row"><span class="form-label">Saldo de crédito fiscal</span><div class="form-ctrl"><input class="finput calc" id="a_saldo_final" readonly/></div></div>
+      <div class="form-row"><span class="form-label">4. Saldo de crédito fiscal (009 + 005 - 001)</span><div class="form-ctrl"><input class="finput calc" id="a_saldo_final" readonly/></div></div>
     </div>
     <div class="win-footer"><button class="wBtn primary" style="background:#e0e7f0;border:1px solid #8fabc3;">Salvar</button></div>
   </div>
@@ -163,23 +176,16 @@
     ✓ Campos acima permanecem em branco para evitar geração indevida do registro.</div>
   </div>
 
-  <div class="section-sep">📊 Conferência — Créditos CFOP (MG091004)</div>
+  <div class="section-sep">📊 Conferência — Valores Apurados (MODELO P9 - RESUMO DA APURAÇÃO)</div>
   <div class="window" style="padding:12px;" id="tabelaConferencia">
-    <table class="ref-table"><thead> transduction<th>CFOP</th><th style="text-align:right">Valor ICMS</th> </tr></thead>
-      <tbody>
-        <tr><td>1.102</td><td class="val" id="r_1102">—</td></tr>
-        <tr><td>1.152</td><td class="val" id="r_1152">—</td></tr>
-        <tr><td>1.202</td><td class="val" id="r_1202">—</td></tr>
-        <tr><td>2.102</td><td class="val" id="r_2102">—</td></tr>
-        <tr><td>2.152</td><td class="val" id="r_2152">—</td></tr>
-        <tr><td>2.202</td><td class="val" id="r_2202">—</td></tr>
-        <tr class="row-total"><td><strong>Total crédito apropriado</strong></td><td class="val" id="r_total_cred"><strong>—</strong></td></tr>
-        <tr class="row-ant"><td>009 - Saldo credor anterior</td><td class="val" id="r_009">—</td></tr>
-        <tr class="row-deb"><td>Imposto debitado saídas (utilizado)</td><td class="val" id="r_deb_saidas">—</td></tr>
-        <tr class="row-es"><td>Saldo crédito fiscal apurado</td><td class="val" id="r_saldo_es">—</td></tr>
-      </tbody>
+    <table class="ref-table">
+      <tr class="row-ant"><tr><strong>009 - Saldo credor período anterior (1º campo)</strong></th><td class="val" id="r_009">—</td></tr>
+      <tr class="row-deb"><th><strong>001 - Créditos utilizados no período (2º campo - Débito saídas)</strong></th><td class="val" id="r_deb_saidas">—</td></tr>
+      <tr class="row-ant"><th><strong>005 - Crédito apropriado no mês (3º campo - Entradas)</strong></th><td class="val" id="r_creditos">—</td></tr>
+      <tr class="row-total"><th><strong>Subtotal (009 + 005)</strong></th><td class="val" id="r_subtotal">—</td></tr>
+      <tr class="row-es"><th><strong>014 - Saldo credor a transportar (009+005-001) (4º campo)</strong></th><td class="val" id="r_saldo_es">—</td></tr>
     </table>
-    <div class="formula-note">✅ Fórmula: Saldo anterior + Crédito apropriado − Utilizado = Saldo crédito fiscal</div>
+    <div class="formula-note">✅ Fórmula MODELO P9: 009 (Saldo anterior) + 005 (Créditos Entradas) - 001 (Débito Saídas) = 014 (Saldo credor a transportar)</div>
   </div>
   
   <div class="obrig-card">
@@ -190,11 +196,15 @@
 
 <!-- ABA B - 1210 -->
 <div id="tab_b" class="tab-content">
+  <div class="legenda-campos">
+    📌 <strong>Regra de preenchimento REG 1210:</strong><br>
+    • Total crédito utilizado = <strong>001 - Débito por saídas/prestações</strong>
+  </div>
   <div class="window">
     <div class="win-title">REGISTRO 1210 - UTILIZAÇÃO DE CRÉDITOS FISCAIS</div>
     <div class="win-body">
       <div class="form-row"><span class="form-label">Tipo de utilização</span><div class="form-ctrl"><input class="finput wide" id="b_tipo" value="MG03"/><input class="finput wide" id="b_tipo_desc" value="Abatimento saldo devedor na apuração"/></div></div>
-      <div class="form-row"><span class="form-label">Número do documento</span><div class="form-ctrl"><input class="finput wide" id="b_num_doc" placeholder="Doc. referência"/><span style="margin-left:8px;">Total crédito utilizado</span><input class="finput" id="b_total_cred" readonly/></div></div>
+      <div class="form-row"><span class="form-label">Número do documento</span><div class="form-ctrl"><input class="finput wide" id="b_num_doc" placeholder="Doc. referência"/><span style="margin-left:8px;">Total crédito utilizado (001)</span><input class="finput" id="b_total_cred" readonly/></div></div>
       <div class="form-row"><span class="form-label">Chave documento eletrônico</span><div class="form-ctrl"><input class="finput wide" id="b_chave" placeholder="NF-e / CT-e chave"/></div></div>
     </div>
   </div>
@@ -202,23 +212,29 @@
 
 <!-- ABA C - MG091012 -->
 <div id="tab_c" class="tab-content">
+  <div class="legenda-campos">
+    📌 <strong>Regra de preenchimento MG091012:</strong><br>
+    • Crédito apropriado = <strong>Crédito CT-E (CFOP 2353)</strong><br>
+    • Saldo final = mesmo valor do crédito
+  </div>
   <div class="window">
     <div class="win-title">REGISTRO 1200 - CONTROLE CRÉDITOS CT-E <span>MG091012</span></div>
     <div class="win-body" id="reg1200BodyC">
       <div class="form-row"><span class="form-label">Código de ajuste</span><div class="form-ctrl"><input class="finput wide" id="c_cod" value="MG091012" readonly/><input class="finput wide" id="c_desc" value="Apropriação crédito por saída com diferimento"/></div></div>
-      <div class="form-row"><span class="form-label">Saldo de créditos fiscais anteriores</span><div class="form-ctrl"><input class="finput" id="c_saldo_ant" readonly/></div></div>
-      <div class="form-row"><span class="form-label">Crédito apropriado no mês</span><div class="form-ctrl"><input class="finput" id="c_cred_mes" readonly/></div></div>
+      <div class="form-row"><span class="form-label">Saldo de créditos fiscais anteriores</span><div class="form-ctrl"><input class="finput" id="c_saldo_ant" value="R$ 0,00" readonly/></div></div>
+      <div class="form-row"><span class="form-label">Crédito apropriado no mês (CT-E)</span><div class="form-ctrl"><input class="finput" id="c_cred_mes" readonly placeholder="Crédito CT-E CFOP 2353"/></div></div>
       <div class="form-row"><span class="form-label">Créditos recebidos transferência</span><div class="form-ctrl"><input class="finput" id="c_transf" value="R$ 0,00" readonly/></div></div>
-      <div class="form-row"><span class="form-label">Créditos utilizados período</span><div class="form-ctrl"><input class="finput" id="c_util" readonly/></div></div>
+      <div class="form-row"><span class="form-label">Créditos utilizados período</span><div class="form-ctrl"><input class="finput" id="c_util" value="R$ 0,00" readonly/></div></div>
       <div class="form-row"><span class="form-label">Saldo de crédito fiscal</span><div class="form-ctrl"><input class="finput calc" id="c_saldo_final" readonly/></div></div>
     </div>
   </div>
-  <div class="section-sep">📊 Créditos CT-E (1.353 / 2.353)</div>
+  <div class="section-sep">📊 Créditos CT-E (CFOP 2.353)</div>
   <div class="window" style="padding:12px;">
-    <table class="ref-table"><tr><th>Imposto creditado CFOP 1.353</th><td class="val" id="q_1353">R$ 0,00</td></tr>
-    <tr><th>Imposto creditado CFOP 2.353</th><td class="val" id="q_2353">R$ 0,00</td></tr>
-    <tr class="row-total"><td><strong>Total crédito CT-E</strong></td><td class="val" id="q_total"><strong>—</strong></td></tr>
-    <tr class="row-transp"><td>Saldo final a transportar</td><td class="val" id="q_transporte">—</td></tr></table>
+    <table class="ref-table">
+      <tr><th>Imposto creditado CFOP 2.353</th><td class="val" id="q_2353">R$ 0,00</td></tr>
+      <tr class="row-total"><th><strong>Total crédito CT-E (MG091012)</strong></th><td class="val" id="q_total"><strong>—</strong></td></tr>
+      <tr class="row-transp"><th><strong>Saldo final a transportar</strong></th><td class="val" id="q_transporte">—</td></tr>
+    </table>
   </div>
 </div>
 
@@ -227,20 +243,14 @@
 function clearAll() {
   document.getElementById('txt-input').value = '';
   document.getElementById('status').innerHTML = '';
-  ['a_saldo_ant','a_cred_mes','a_util','a_saldo_final','c_saldo_ant','c_cred_mes','c_util','c_saldo_final','b_total_cred','b_num_doc','b_chave'].forEach(id=>{let e=document.getElementById(id);if(e)e.value='';});
+  ['a_saldo_ant','a_util','a_cred_mes','a_saldo_final','c_saldo_ant','c_cred_mes','c_util','c_saldo_final','b_total_cred','b_num_doc','b_chave'].forEach(id=>{let e=document.getElementById(id);if(e)e.value='';});
   setInput('a_transf','R$ 0,00'); setInput('c_transf','R$ 0,00');
-  ['r_1102','r_1152','r_1202','r_2102','r_2152','r_2202','r_009','r_deb_saidas','r_saldo_es'].forEach(id=>setText(id,'—'));
-  document.getElementById('r_total_cred').innerHTML = '<strong>—</strong>';
-  ['q_1353','q_2353','q_transporte'].forEach(id=>setText(id,'—'));
+  ['r_009','r_creditos','r_deb_saidas','r_subtotal','r_saldo_es','q_2353','q_transporte'].forEach(id=>setText(id,'—'));
   document.getElementById('q_total').innerHTML = '<strong>—</strong>';
   document.getElementById('obrigValue').innerHTML = 'SIM';
   document.getElementById('obrigValue').className = 'obrig-value sim';
   const alertDiv = document.getElementById('alertaNaoGerar1200');
   if(alertDiv) alertDiv.style.display = 'none';
-  const bodyReg = document.getElementById('reg1200Body');
-  if(bodyReg) bodyReg.classList.remove('disabled-form');
-  const bodyRegC = document.getElementById('reg1200BodyC');
-  if(bodyRegC) bodyRegC.classList.remove('disabled-form');
   document.getElementById('status').innerHTML = '🧹 Dados limpos.';
 }
 
@@ -254,7 +264,7 @@ function showTab(id) {
 
 function brlToFloat(s) {
   if(!s) return 0;
-  let clean = String(s).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+  let clean = String(s).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
   let num = parseFloat(clean);
   return isNaN(num) ? 0 : num;
 }
@@ -262,367 +272,178 @@ function fmtBrl(v){ return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigi
 function setInput(id,val){let e=document.getElementById(id);if(e) e.value=val;}
 function setText(id,val){let e=document.getElementById(id);if(e) e.textContent=val;}
 
-// ==================== EXTRAIR VALOR DO DÉBITO PARA REG 1210 ====================
-function extrairValorDebito(texto) {
-  let valorDebito = 0;
-  
-  // Padrão 1: Buscar diretamente o valor do Sub-Total (004)
-  const padrao004 = /004\s*[-–]?\s*Sub-Total\s*([\d.]+,\d{2})/i;
-  let match = texto.match(padrao004);
-  if (match) {
-    valorDebito = brlToFloat(match[1]);
-  }
-  
-  // Padrão 2: Busca o valor do débito (001)
-  if (valorDebito === 0) {
-    const padrao001 = /001\s*[-–]?\s*Por saídas\/prestações com débito do imposto\s*([\d.]+,\d{2})/i;
-    match = texto.match(padrao001);
-    if (match) {
-      valorDebito = brlToFloat(match[1]);
-    }
-  }
-  
-  // Padrão 3: Busca na seção DÉBITO DO IMPOSTO
-  if (valorDebito === 0) {
-    const linhas = texto.split('\n');
-    let naSecaoDebito = false;
-    
-    for (let i = 0; i < linhas.length; i++) {
-      if (/D[ÉE]BITO\s+DO\s+IMPOSTO/i.test(linhas[i])) {
-        naSecaoDebito = true;
-        continue;
-      }
-      if (naSecaoDebito && /Sub-Total|SubTotal/i.test(linhas[i])) {
-        const valorMatch = linhas[i].match(/([\d.]+,\d{2})/);
-        if (valorMatch) {
-          valorDebito = brlToFloat(valorMatch[1]);
-          break;
-        }
-      }
-      if (naSecaoDebito && /C[RÉE]DITO\s+DO\s+IMPOSTO/i.test(linhas[i])) {
-        break;
-      }
-    }
-  }
-  
-  return valorDebito;
-}
-
-// ==================== FUNÇÃO PRINCIPAL DE EXTRAÇÃO DO MODELO P9 ====================
-function extrairValoresP9(texto) {
+// ==================== EXTRAIR VALORES DO RESUMO DA APURAÇÃO ====================
+function extrairValoresModeloP9(texto) {
   const valores = {
-    creditoMes: 0,      // 005 - Por entradas/aquisições com crédito do imposto
-    debitoMes: 0,       // 001 - Por saídas/prestações com débito do imposto
-    saldoAnterior: 0,   // 009 - Saldo credor do período anterior
-    saldoFinal: 0,      // 014 - Saldo credor a transportar
-    credito2353: 0      // Crédito CFOP 2353
+    debitoSaidas: 0,     // 001 - Créditos utilizados no período
+    creditosEntradas: 0, // 005 - Crédito apropriado no mês
+    saldoAnterior: 0,    // 009 - Saldo de créditos fiscais anteriores
+    saldoTransportar: 0  // 014 - Saldo credor a transportar
   };
   
-  // Padrões para capturar os valores no RESUMO DA APURAÇÃO
-  const padrao005 = /005\s*[-–]?\s*Por entradas\/aquisições com crédito do imposto\s*([\d.]+,\d{2})/i;
-  const padrao001 = /001\s*[-–]?\s*Por saídas\/prestações com débito do imposto\s*([\d.]+,\d{2})/i;
-  const padrao009 = /009\s*[-–]?\s*Saldo credor do período anterior\s*([\d.]+,\d{2})/i;
-  const padrao014 = /014\s*[-–]?\s*Saldo credor.*?transportar.*?([\d.]+,\d{2})/i;
+  // Encontrar a seção "RESUMO DA APURAÇÃO DO IMPOSTO"
+  const resumoIndex = texto.indexOf('RESUMO  DA  APURAÇÃO  DO  IMPOSTO');
+  if (resumoIndex === -1) {
+    console.log('Seção RESUMO DA APURAÇÃO não encontrada');
+    return valores;
+  }
   
-  let match;
+  // Pegar apenas o conteúdo após o RESUMO DA APURAÇÃO
+  let resumoTexto = texto.substring(resumoIndex);
+  console.log('Seção RESUMO encontrada');
   
-  match = texto.match(padrao005);
-  if (match) valores.creditoMes = brlToFloat(match[1]);
-  
-  match = texto.match(padrao001);
-  if (match) valores.debitoMes = brlToFloat(match[1]);
-  
-  match = texto.match(padrao009);
-  if (match) valores.saldoAnterior = brlToFloat(match[1]);
-  
-  match = texto.match(padrao014);
-  if (match) valores.saldoFinal = brlToFloat(match[1]);
-  
-  // Buscar CFOP 2353 na seção de ENTRADAS
-  const linhas = texto.split('\n');
-  for (let i = 0; i < linhas.length; i++) {
-    const cfopMatch = linhas[i].match(/([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+2353\s+([\d.]+,\d{2})/);
-    if (cfopMatch) {
-      valores.credito2353 = brlToFloat(cfopMatch[3]);
-      break;
+  // EXTRAIR 001 - O VALOR ESTÁ LOGO ABAIXO DO TÍTULO "RESUMO DA APURAÇÃO DO IMPOSTO"
+  // O padrão é: "RESUMO DA APURAÇÃO DO IMPOSTO\n2.816,21"
+  const regex001Direct = /RESUMO\s+DA\s+APURAÇÃO\s+DO\s+IMPOSTO\s*\n\s*([\d\.,]+)/i;
+  const match001Direct = texto.match(regex001Direct);
+  if (match001Direct) {
+    valores.debitoSaidas = brlToFloat(match001Direct[1]);
+    console.log('001 encontrado (logo abaixo do título):', valores.debitoSaidas);
+  } else {
+    // Fallback: procurar após "001 - Por saídas/prestações"
+    const regex001Alt = /001\s*-\s*Por\s+saídas\/prestações\s+com\s+débito\s+do\s+imposto\s*([\d\.,]+)/i;
+    const match001Alt = resumoTexto.match(regex001Alt);
+    if (match001Alt) {
+      valores.debitoSaidas = brlToFloat(match001Alt[1]);
+      console.log('001 encontrado (fallback):', valores.debitoSaidas);
     }
   }
   
-  if (valores.credito2353 === 0) {
-    const altMatch = texto.match(/2353\s+([\d.]+,\d{2})(?:\s|$)/);
-    if (altMatch) valores.credito2353 = brlToFloat(altMatch[1]);
+  // Extrair 005 - Por entradas/aquisições com crédito do imposto
+  const regex005 = /005\s*-\s*Por\s+entradas\/aquisições\s+com\s+crédito\s+do\s+imposto\s*([\d\.,]+)/i;
+  const match005 = resumoTexto.match(regex005);
+  if (match005) {
+    valores.creditosEntradas = brlToFloat(match005[1]);
+    console.log('005 encontrado:', valores.creditosEntradas);
+  }
+  
+  // Extrair 009 - Saldo credor do período anterior
+  const regex009 = /009\s*-\s*Saldo\s+credor\s+do\s+período\s+anterior\s*([\d\.,]+)/i;
+  const match009 = resumoTexto.match(regex009);
+  if (match009) {
+    valores.saldoAnterior = brlToFloat(match009[1]);
+    console.log('009 encontrado:', valores.saldoAnterior);
+  }
+  
+  // Extrair 014 - Saldo credor a transportar
+  const regex014 = /014\s*-\s*Saldo\s+credor\s*\(crédito\s+menos\s+débito\)\s+a\s+transportar.*?([\d\.,]+)/i;
+  const match014 = resumoTexto.match(regex014);
+  if (match014) {
+    valores.saldoTransportar = brlToFloat(match014[1]);
+    console.log('014 encontrado:', valores.saldoTransportar);
   }
   
   return valores;
 }
 
-function aplicarRegraSaldoNegativo(saldoFiscalNum, totalCredMes, saldoAnt, impDebSaidas, credito2353) {
-  const alertDiv = document.getElementById('alertaNaoGerar1200');
-  const obrigSpan = document.getElementById('obrigValue');
-  const bodyReg = document.getElementById('reg1200Body');
-  const bodyRegC = document.getElementById('reg1200BodyC');
+// ==================== EXTRAIR CRÉDITOS CT-E (CFOP 2353) ====================
+function extrairCreditoCTE(texto) {
+  let credito2353 = 0;
   
-  if (saldoFiscalNum < 0) {
-    setInput('a_saldo_ant', '');
-    setInput('a_cred_mes', '');
-    setInput('a_util', '');
-    setInput('a_saldo_final', '');
-    setInput('c_saldo_ant', '');
-    setInput('c_cred_mes', '');
-    setInput('c_util', '');
-    setInput('c_saldo_final', '');
-    
-    alertDiv.style.display = 'block';
-    obrigSpan.innerHTML = 'NÃO';
-    obrigSpan.className = 'obrig-value nao';
-    if(bodyReg) bodyReg.classList.add('disabled-form');
-    if(bodyRegC) bodyRegC.classList.add('disabled-form');
-    
-    document.getElementById('status').innerHTML = '⚠️ SALDO NEGATIVO (ICMS a pagar) → NÃO GERAR REGISTRO 1200. Campos em branco.';
-    
-    setText('r_009', fmtBrl(saldoAnt));
-    setText('r_deb_saidas', fmtBrl(impDebSaidas));
-    setText('r_saldo_es', fmtBrl(saldoFiscalNum));
-    document.getElementById('r_total_cred').innerHTML = '<strong>'+fmtBrl(totalCredMes)+'</strong>';
-    
-    setText('q_2353', fmtBrl(credito2353));
-    document.getElementById('q_total').innerHTML = '<strong>'+fmtBrl(credito2353)+'</strong>';
-    setText('q_transporte', fmtBrl(credito2353));
-    
-    return false;
-  } else {
-    alertDiv.style.display = 'none';
-    if(bodyReg) bodyReg.classList.remove('disabled-form');
-    if(bodyRegC) bodyRegC.classList.remove('disabled-form');
-    obrigSpan.innerHTML = 'SIM';
-    obrigSpan.className = 'obrig-value sim';
-    document.getElementById('status').innerHTML = '✅ Saldo não negativo → Registro 1200 deve ser gerado normalmente.';
-    return true;
+  // Buscar na seção de ENTRADAS o CFOP 2353
+  const regexCFOP2353 = /[\d\.,]+\s+[\d\.,]+\s+2353\s+([\d\.,]+)/i;
+  const match = texto.match(regexCFOP2353);
+  if (match) {
+    credito2353 = brlToFloat(match[1]);
+    console.log('Crédito CT-E 2353 encontrado:', credito2353);
   }
+  
+  return credito2353;
 }
 
+// ==================== FUNÇÃO PRINCIPAL ====================
 function parseAndFill() {
   const txt = document.getElementById('txt-input').value;
   if(!txt.trim()) { 
-    document.getElementById('status').innerHTML='⚠️ Cole o texto do MODELO P9 primeiro.'; 
+    document.getElementById('status').innerHTML='⚠️ Cole o texto do MODELO P9 (com as duas páginas) primeiro.'; 
     return; 
   }
   
-  // Extrair valores do texto do P9
-  const valores = extrairValoresP9(txt);
+  // Extrair valores do RESUMO DA APURAÇÃO
+  const valores = extrairValoresModeloP9(txt);
+  const creditoCTE = extrairCreditoCTE(txt);
   
-  // Extrair valor do débito para REG 1210
-  const valorDebito = extrairValorDebito(txt);
+  // Calcular saldo final: 009 + 005 - 001
+  const saldoFinal = valores.saldoAnterior + valores.creditosEntradas - valores.debitoSaidas;
   
-  if (valores.creditoMes === 0 && valores.debitoMes === 0 && valores.saldoAnterior === 0) {
-    document.getElementById('status').innerHTML = '⚠️ Nenhum valor encontrado. Verifique se o texto do MODELO P9 foi colado corretamente.';
-    return;
-  }
-  
-  const totalCredMes = valores.creditoMes;
-  const impDebSaidas = valores.debitoMes;
-  const saldoAnt = valores.saldoAnterior;
-  const credito2353 = valores.credito2353;
-  
-  const saldoFiscalCalculado = saldoAnt + totalCredMes - impDebSaidas;
-  const saldoFiscalRelatorio = valores.saldoFinal;
-  const saldoFiscal = saldoFiscalRelatorio > 0 ? saldoFiscalRelatorio : saldoFiscalCalculado;
+  // Verificar se os valores foram extraídos corretamente
+  const extraiuCorretamente = valores.debitoSaidas > 0 || valores.creditosEntradas > 0 || valores.saldoAnterior > 0;
   
   // Exibir valores extraídos
   const extractedDiv = document.createElement('div');
   extractedDiv.className = 'extracted-values';
   extractedDiv.innerHTML = `
-    <h4>📊 Valores extraídos do MODELO P9:</h4>
-    <p><strong>005 - Crédito do imposto (entradas):</strong> ${fmtBrl(valores.creditoMes)}</p>
-    <p><strong>001 - Débito do imposto (saídas):</strong> ${fmtBrl(valores.debitoMes)}</p>
-    <p><strong>009 - Saldo credor anterior:</strong> ${fmtBrl(valores.saldoAnterior)}</p>
-    <p><strong>014 - Saldo credor a transportar:</strong> ${fmtBrl(valores.saldoFinal)}</p>
-    <p><strong>CFOP 2353 - Crédito CT-E:</strong> ${fmtBrl(valores.credito2353)}</p>
+    <h4>📊 Valores extraídos do RESUMO DA APURAÇÃO:</h4>
+    <p><strong>1º Campo - 009 (Saldo anterior):</strong> ${fmtBrl(valores.saldoAnterior)}</p>
+    <p><strong>2º Campo - 001 (Créditos utilizados - Débito saídas):</strong> ${fmtBrl(valores.debitoSaidas)}</p>
+    <p><strong>3º Campo - 005 (Crédito apropriado - Entradas):</strong> ${fmtBrl(valores.creditosEntradas)}</p>
+    <p><strong>4º Campo - 014 (Saldo a transportar):</strong> ${fmtBrl(valores.saldoTransportar)}</p>
     <hr>
-    <p><strong>→ Saldo crédito fiscal apurado:</strong> ${fmtBrl(saldoFiscal)}</p>
-    <p><strong>→ Débito utilizado (REG 1210):</strong> ${fmtBrl(valorDebito)}</p>
+    <p><strong>Crédito CT-E CFOP 2.353:</strong> ${fmtBrl(creditoCTE)}</p>
+    <p class="highlight">→ MG091004: 009 (${fmtBrl(valores.saldoAnterior)}) + 005 (${fmtBrl(valores.creditosEntradas)}) - 001 (${fmtBrl(valores.debitoSaidas)}) = ${fmtBrl(saldoFinal)}</p>
+    <p class="highlight">→ MG091012: Crédito apropriado = ${fmtBrl(creditoCTE)}</p>
+    <p class="highlight">→ REG 1210: Total crédito utilizado = 001 (${fmtBrl(valores.debitoSaidas)})</p>
+    ${!extraiuCorretamente ? '<p style="color:red;">⚠️ ATENÇÃO: Nenhum valor foi extraído. Verifique se o texto contém a seção "RESUMO DA APURAÇÃO DO IMPOSTO".</p>' : ''}
   `;
   
   const oldDiv = document.querySelector('.extracted-values');
   if (oldDiv) oldDiv.remove();
   
   const tabelaConferencia = document.getElementById('tabelaConferencia');
-  tabelaConferencia.parentNode.insertBefore(extractedDiv, tabelaConferencia);
-  
-  // Aplicar regra de saldo negativo
-  const preencherRegistros = aplicarRegraSaldoNegativo(saldoFiscal, totalCredMes, saldoAnt, impDebSaidas, credito2353);
-  
-  if (preencherRegistros) {
-    setInput('a_saldo_ant', fmtBrl(saldoAnt));
-    setInput('a_cred_mes', fmtBrl(totalCredMes));
-    setInput('a_util', fmtBrl(impDebSaidas));
-    setInput('a_saldo_final', fmtBrl(saldoFiscal));
-    
-    setInput('c_saldo_ant', fmtBrl(0));
-    setInput('c_cred_mes', fmtBrl(credito2353));
-    setInput('c_util', fmtBrl(0));
-    setInput('c_saldo_final', fmtBrl(credito2353));
-    
-    setText('r_009', fmtBrl(saldoAnt));
-    setText('r_deb_saidas', fmtBrl(impDebSaidas));
-    setText('r_saldo_es', fmtBrl(saldoFiscal));
-    document.getElementById('r_total_cred').innerHTML = '<strong>'+fmtBrl(totalCredMes)+'</strong>';
-    
-    setText('q_1353', fmtBrl(0));
-    setText('q_2353', fmtBrl(credito2353));
-    document.getElementById('q_total').innerHTML = '<strong>'+fmtBrl(credito2353)+'</strong>';
-    setText('q_transporte', fmtBrl(credito2353));
+  if (tabelaConferencia && tabelaConferencia.parentNode) {
+    tabelaConferencia.parentNode.insertBefore(extractedDiv, tabelaConferencia);
   }
   
-  // ==================== REG 1210 - CORRIGIDO ====================
-  if (valorDebito > 0) {
-    setInput('b_total_cred', fmtBrl(valorDebito));
+  // Preencher MG091004
+  setInput('a_saldo_ant', fmtBrl(valores.saldoAnterior));
+  setInput('a_util', fmtBrl(valores.debitoSaidas));
+  setInput('a_cred_mes', fmtBrl(valores.creditosEntradas));
+  setInput('a_saldo_final', fmtBrl(saldoFinal));
+  
+  // Preencher MG091012
+  setInput('c_saldo_ant', fmtBrl(0));
+  setInput('c_cred_mes', fmtBrl(creditoCTE));
+  setInput('c_util', fmtBrl(0));
+  setInput('c_saldo_final', fmtBrl(creditoCTE));
+  
+  // Preencher tabela de conferência
+  setText('r_009', fmtBrl(valores.saldoAnterior));
+  setText('r_deb_saidas', fmtBrl(valores.debitoSaidas));
+  setText('r_creditos', fmtBrl(valores.creditosEntradas));
+  setText('r_subtotal', fmtBrl(valores.saldoAnterior + valores.creditosEntradas));
+  setText('r_saldo_es', fmtBrl(saldoFinal));
+  
+  setText('q_2353', fmtBrl(creditoCTE));
+  document.getElementById('q_total').innerHTML = '<strong>' + fmtBrl(creditoCTE) + '</strong>';
+  setText('q_transporte', fmtBrl(creditoCTE));
+  
+  // REG 1210
+  setInput('b_total_cred', fmtBrl(valores.debitoSaidas));
+  if (valores.debitoSaidas > 0 && !document.getElementById('b_num_doc').value) {
     setInput('b_num_doc', 'Apuração ICMS - Período');
-  } else {
-    setInput('b_total_cred', 'R$ 0,00');
-    setInput('b_num_doc', '');
   }
   
-  const statusMsg = saldoFiscal < 0 ? 
-    `⚠️ Saldo crédito fiscal NEGATIVO: ${fmtBrl(saldoFiscal)} → NÃO GERAR REGISTRO 1200. | REG 1210: Débito = ${fmtBrl(valorDebito)}` : 
-    `✅ Saldo crédito fiscal POSITIVO: ${fmtBrl(saldoFiscal)} → REG 1200 deve ser gerado. | REG 1210: Débito = ${fmtBrl(valorDebito)}`;
-  document.getElementById('status').innerHTML = statusMsg;
+  // Verificar saldo
+  const saldoNegativo = saldoFinal < 0;
+  
+  if (saldoNegativo) {
+    const alertDiv = document.getElementById('alertaNaoGerar1200');
+    if (alertDiv) alertDiv.style.display = 'block';
+    document.getElementById('obrigValue').innerHTML = 'NÃO';
+    document.getElementById('obrigValue').className = 'obrig-value nao';
+    document.getElementById('status').innerHTML = `⚠️ SALDO NEGATIVO: ${fmtBrl(saldoFinal)} → NÃO GERAR REGISTRO 1200.`;
+  } else {
+    const alertDiv = document.getElementById('alertaNaoGerar1200');
+    if (alertDiv) alertDiv.style.display = 'none';
+    document.getElementById('obrigValue').innerHTML = 'SIM';
+    document.getElementById('obrigValue').className = 'obrig-value sim';
+    document.getElementById('status').innerHTML = `✅ Saldo POSITIVO: ${fmtBrl(saldoFinal)} → REG 1200 deve ser gerado normalmente.`;
+  }
 }
 
-// Dados de exemplo do P9 fornecido
+// Inicializar
 window.onload = function(){
-  const exemploP9 = `Contribuinte:
-Inscr.Estadual:
-000001
-CNPJ: 20.415.295/0055-67
-Mês ou Período/Ano: Página: 10/2024 
-2450683034402
-REDE DOM PEDRO DE POSTOS LTDA
-REGISTRO DE APURAÇÃO DO ICMS
-CODIFICAÇÃO
-Contábil Fiscal
-Valores 
-Contábeis
-ICMS - VALORES FISCAIS
-Base de Cálculo Imposto Creditado
-Isentas/N.Tributadas Outras
-E  N  T  R  A  D  A  S
-Operações com Crédito do Imposto Operações sem Crédito do Imposto
-2.827,30 0,00 1102 0,00 2.827,30 0,00
-213,15 0,00 1253 0,00 213,15 0,00
-53,30 0,00 1303 0,00 53,30 0,00
-252,43 0,00 1407 0,00 252,43 0,00
-305,35 0,00 1556 0,00 305,35 0,00
-48.333,68 48.333,68 2353 5.800,03 0,00 0,00
-2.483,00 0,00 2556 0,00 2.483,00 0,00
-602.273,50 0,00 2652 0,00 602.273,50 0,00
-0,00
-3.651,53
-608.408,03 5.800,03 48.333,68
-0,00 0,00 0,00 0,00 0,00
-604.756,50 0,00 5.800,03 48.333,68 653.090,18
-3.651,53 0,00 0,00 0,00
-3.000 Do Exterior
-2.000 De Outros Estados
-1.000 Do Estado
-TOTAIS 656.741,71
-SUB-TOTAIS 
-CODIFICAÇÃO
-Contábil Fiscal
-Valores 
-Contábeis
-ICMS - VALORES FISCAIS
-Base de Cálculo Imposto Debitado
-Isentas/N.Tributadas Outras
-S  A  Í  D  A  S
-Operações com Débito do Imposto Operações sem Débito do Imposto
-4.137,40 957,40 5102 172,32 0,00 3.180,00
-252,00 0,00 5405 0,00 0,00 252,00
-762.487,11 0,00 5656 0,00 0,00 762.487,11
-14.505,32 0,00 5667 0,00 0,00 14.505,32
-781.381,83
-0,00 780.424,43 172,32 957,40
-0,00 0,00 0,00 0,00 0,00
-0,00 0,00 0,00 0,00 0,00
-0,00 780.424,43 172,32 957,40
-7.000 Para o Exterior
-6.000 Para Outros Estados
-5.000 Para o Estado
-TOTAIS 781.381,83
-SUB-TOTAIS 
-MODELO P9
-Contribuinte:
-Inscr.Estadual:
-000002
-CNPJ: 20.415.295/0055-67
-Mês ou Período/Ano: Página: 10/2024 
-2450683034402
-REDE DOM PEDRO DE POSTOS LTDA
-RESUMO DA APURAÇÃO DO IMPOSTO
-172,32 
-D
-É
-B
-I
-T
-O
-V A L O R E S
-D É B I T O  D O  I MP O S T O
-ColunaAuxiliar Somas
-001 - Por saídas/prestações com débito do imposto
-002 - Outros débitos (discriminar abaixo)
-0,00 
-Total Outros Débitos
-003 - Estorno de créditos (discriminar abaixo)
-0,00 
-Total Estornos Créditos
-172,32 
-004 - Sub-Total
-C
-R
-É
-D
-I
-T
-O
-C R É D I T O  D O  I MP O S T O
-006 - Outros créditos (discriminar abaixo)
-005 - Por entradas/aquisições com crédito do imposto
-5.800,03
-Total Outros Créditos
-0,00 
-007 - Estorno de débitos (discriminar abaixo)
-Total Estornos Débitos
-0,00 
-008 - Sub-Total 5.800,03 
-009 - Saldo credor do período anterior
-182.687,42
-010 - Total
-188.487,45 
-S
-A
-L
-D
-O
-A P U R A Ç Ã O  D O  S A L D O
-011 - Saldo devedor (débito menos crédito) 0,00 
-012 - Deduções (discriminar abaixo)
-Total Deduções
-0,00 
-013 - Imposto a recolher
-0,00 
-188.315,13 
-014 - Saldo credor (crédito menos débito) a transportar para o período seguinte
-I N F O R MA Ç Õ E S  C O MP L E ME N T A R E S
-Número
-G U I A S  D E  R E C O L H I ME N T O
-Data Valor Órgão Arrecadador
-Local da Entrega(Banco/Repartição) Data da Entrega
-G U I A  D E  I N F O R MA Ç Ã O
-O B S E R V A Ç Õ E S`;
-  
-  document.getElementById('txt-input').value = exemploP9;
-  parseAndFill();
+  clearAll();
 };
 </script>
 </body>
