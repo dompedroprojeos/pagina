@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DANFE · Visualizador NF-e</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ========== TEMA CLARO (DEFAULT) ========== */
+        :root {
+            /* Cores - Modo Claro (padrão) */
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface2: #f8f9fc;
+            --surface3: #f0f2f5;
+            --border: #e2e8f0;
+            --border-bright: #cbd5e1;
+            --accent: #1e4a6b;
+            --accent2: #2c7a4d;
+            --accent3: #2c6e9e;
+            --accent-light: #eef2ff;
+            --text: #1e293b;
+            --text-dim: #5b6e8c;
+            --text-dimmer: #94a3b8;
+            --danger: #dc2626;
+            --success: #2c7a4d;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', sans-serif;
+            
+            /* Sombras */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.03), 0 1px 1px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+        }
+
+        /* ========== TEMA ESCURO ========== */
+        [data-theme="dark"] {
+            --bg: #0a0c10;
+            --surface: #14171c;
+            --surface2: #1a1d23;
+            --surface3: #1f232a;
+            --border: #2d3138;
+            --border-bright: #3e424b;
+            --accent: #5b9bc5;
+            --accent2: #5fad7a;
+            --accent3: #6ba6d6;
+            --accent-light: #1e2a3a;
+            --text: #e8edf2;
+            --text-dim: #9aa9bb;
+            --text-dimmer: #5f6c7e;
+            --danger: #f87171;
+            --success: #6fbf8c;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        /* ========== TOP BAR ========== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            background: rgba(var(--surface-rgb, 20,23,28), 0.92);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        body:not([data-theme="dark"]) .topbar {
+            background: rgba(255,255,255,0.95);
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            border-radius: 10px;
+            letter-spacing: 0;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: -0.01em;
+            margin-top: 2px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Toggle Switch */
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme-switch:hover {
+            border-color: var(--accent);
+        }
+
+        .theme-icon {
+            font-size: 14px;
+        }
+
+        .theme-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 14px;
+            background: var(--surface2);
+            border-radius: 40px;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dimmer);
+            transition: background 0.2s;
+        }
+
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        /* ========== MAIN ========== */
+        .main {
+            padding: 40px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ========== DROP ZONE ========== */
+        .drop-zone {
+            border: 2px dashed var(--border-bright);
+            background: var(--surface);
+            padding: 70px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            border-style: solid;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--accent);
+            background: var(--surface2);
+        }
+
+        .drop-zone input { display: none; }
+
+        .drop-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--surface2);
+            border-radius: 60px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            border: 1px solid var(--border);
+        }
+
+        .drop-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .drop-sub {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .drop-hint {
+            margin-top: 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            background: var(--surface2);
+            border-radius: 40px;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: var(--mono);
+        }
+
+        /* ========== TOAST ========== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border-left: 4px solid;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            max-width: 380px;
+        }
+
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+
+        @keyframes slideIn {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: none; opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* ========== DANFE WRAPPER ========== */
+        .danfe-wrapper {
+            animation: fadeIn 0.4s ease;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        /* ========== ACTIONS BAR ========== */
+        .actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .doc-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dim);
+            letter-spacing: -0.01em;
+        }
+
+        .doc-title strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 40px;
+            border: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-bright);
+            color: var(--text-dim);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text);
+            color: var(--text);
+            background: var(--surface2);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        /* ========== CARDS DE DESTAQUE ========== */
+        .highlight-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .highlight-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--mono);
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .card-formula {
+            font-size: 11px;
+            color: var(--text-dimmer);
+            font-family: var(--mono);
+        }
+
+        .highlight-card.accent {
+            background: linear-gradient(135deg, var(--accent-light), var(--surface));
+            border-color: var(--accent);
+        }
+
+        .highlight-card.accent .card-value {
+            color: var(--accent2);
+        }
+
+        /* ========== DANFE DOCUMENTO ========== */
+        .danfe-doc {
+            background: var(--surface);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            font-family: var(--sans);
+        }
+
+        /* Header do DANFE */
+        .danfe-header {
+            background: var(--accent);
+            padding: 24px 28px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .emitente-info h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .emitente-info p {
+            font-size: 12px;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+
+        .danfe-titulo {
+            text-align: right;
+        }
+
+        .danfe-titulo .title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .danfe-titulo .subtitle {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .nf-number {
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Chave de acesso */
+        .chave-acesso {
+            background: var(--surface2);
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: baseline;
+        }
+
+        .chave-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .chave-value {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            word-break: break-all;
+            flex: 1;
+            color: var(--text);
+        }
+
+        /* Seções */
+        .danfe-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            background: var(--surface3);
+            padding: 12px 24px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-body {
+            padding: 16px 24px;
+        }
+
+        /* Grid de campos */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.06em;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .info-value.big {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .info-value.mono {
+            font-family: var(--mono);
+        }
+
+        /* Tabela de produtos */
+        .produtos-table {
+            overflow-x: auto;
+        }
+
+        .prod-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .prod-table th {
+            background: var(--surface3);
+            padding: 12px 12px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prod-table td {
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .prod-table tr:hover td {
+            background: var(--surface2);
+        }
+
+        .prod-table td.right, .prod-table th.right {
+            text-align: right;
+        }
+
+        /* Totais */
+        .totais-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .total-item {
+            background: var(--surface);
+            padding: 16px 20px;
+            text-align: center;
+        }
+
+        .total-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .total-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: var(--mono);
+            color: var(--text);
+        }
+
+        .total-value.gold {
+            color: var(--accent2);
+            font-size: 18px;
+        }
+
+        /* Rodapé */
+        .danfe-footer {
+            padding: 20px 24px;
+            background: var(--surface3);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        .sign-line {
+            text-align: center;
+        }
+
+        .sign-line .line {
+            width: 200px;
+            border-bottom: 1px solid var(--border-bright);
+            margin-bottom: 8px;
+        }
+
+        .sign-line .label {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        /* Print */
+        @media print {
+            body {
+                background: white;
+            }
+            .topbar, .actions-bar, .highlight-cards, .drop-zone, .toast-container, .theme-switch {
+                display: none !important;
+            }
+            .danfe-wrapper {
+                display: block !important;
+            }
+            .danfe-doc {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .danfe-header {
+                background: #1e4a6b;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .section-header {
+                background: #f0f2f5;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="topbar">
+        <div class="topbar-brand">
+            <div class="logo-mark">NF</div>
+            <div>
+                <div class="logo-text">DANFE Viewer</div>
+                <div class="logo-sub">Visualizador de Notas Fiscais Eletrônicas</div>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div class="theme-switch" id="themeSwitch">
+                <span class="theme-icon" id="themeIcon">☀️</span>
+                <span class="theme-label" id="themeLabel">Claro</span>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Aguardando XML</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main">
+        <div class="drop-zone" id="dropZone">
+            <input type="file" id="xmlInput" accept=".xml">
+            <div class="drop-icon">📄</div>
+            <div class="drop-title">Carregar XML da NF-e</div>
+            <div class="drop-sub">Clique para selecionar ou arraste o arquivo .xml aqui</div>
+            <div class="drop-hint">
+                <span>📁</span>
+                <span>XML da NF-e Autorizada</span>
+            </div>
+        </div>
+
+        <div class="danfe-wrapper" id="danfeWrapper">
+            <div class="actions-bar">
+                <div class="doc-title">
+                    📄 DOCUMENTO FISCAL · <strong id="docTitleNf">—</strong>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline" id="newXmlBtn">↩ NOVO XML</button>
+                    <button class="btn btn-primary" id="printBtn">🖨️ IMPRIMIR / PDF</button>
+                </div>
+            </div>
+
+            <div class="highlight-cards">
+                <div class="highlight-card">
+                    <div class="card-label">💰 VALOR TOTAL DOS PRODUTOS</div>
+                    <div class="card-value" id="ch-vprod">R$ 0,00</div>
+                    <div class="card-formula">vProd</div>
+                </div>
+                <div class="highlight-card">
+                    <div class="card-label">📊 ICMS MONOFÁSICO RETIDO</div>
+                    <div class="card-value" id="ch-mono">R$ 0,00</div>
+                    <div class="card-formula">vICMSMonoRet</div>
+                </div>
+                <div class="highlight-card accent">
+                    <div class="card-label">📐 BASE DE CÁLCULO DO ICMS</div>
+                    <div class="card-value" id="ch-base">R$ 0,00</div>
+                    <div class="card-formula">= vProd − vICMSMonoRet</div>
+                </div>
+            </div>
+
+            <div class="danfe-doc" id="danfeDoc"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== UTILS ==========
+        const $ = id => document.getElementById(id);
+
+        function formatMoney(value) {
+            if (value === undefined || value === null || value === '') return 'R$ 0,00';
+            const num = parseFloat(value);
+            if (isNaN(num)) return 'R$ 0,00';
+            return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatNumber(value, decimals = 2) {
+            if (!value) return '0,00';
+            const num = parseFloat(value);
+            if (isNaN(num)) return '0,00';
+            return num.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                return new Date(dateStr).toLocaleString('pt-BR');
+            } catch {
+                return dateStr;
+            }
+        }
+
+        function formatCNPJ(cnpj) {
+            if (!cnpj || cnpj.length < 14) return cnpj || '—';
+            return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        }
+
+        function formatCEP(cep) {
+            if (!cep || cep.length < 8) return cep || '—';
+            return cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+        }
+
+        function formatChave(chave) {
+            if (!chave) return '—';
+            return chave.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function toast(msg, type = 'success') {
+            const container = $('toastContainer');
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.textContent = msg;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function setStatus(active, text) {
+            const dot = $('statusDot');
+            const statusText = $('statusText');
+            dot.className = 'status-dot' + (active ? ' active' : '');
+            statusText.textContent = text || (active ? 'NF-e Carregada' : 'Aguardando XML');
+        }
+
+        // ========== TEMA (Claro/Escuro) ==========
+        function initTheme() {
+            const savedTheme = localStorage.getItem('danfe_theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const icon = $('themeIcon');
+            const label = $('themeLabel');
+            if (theme === 'dark') {
+                icon.textContent = '🌙';
+                label.textContent = 'Escuro';
+            } else {
+                icon.textContent = '☀️';
+                label.textContent = 'Claro';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('danfe_theme', newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        // ========== PARSE XML ==========
+        function parseNFe(xmlDoc) {
+            const infNFe = xmlDoc.getElementsByTagName('infNFe')[0];
+            const ide = xmlDoc.getElementsByTagName('ide')[0];
+            const emit = xmlDoc.getElementsByTagName('emit')[0];
+            const dest = xmlDoc.getElementsByTagName('dest')[0];
+            const total = xmlDoc.getElementsByTagName('total')[0];
+            const ICMSTot = total ? total.getElementsByTagName('ICMSTot')[0] : null;
+            const transp = xmlDoc.getElementsByTagName('transp')[0];
+            const transporta = transp ? transp.getElementsByTagName('transporta')[0] : null;
+            const vol = transp ? transp.getElementsByTagName('vol')[0] : null;
+            const infAdic = xmlDoc.getElementsByTagName('infAdic')[0];
+            const protNFe = xmlDoc.getElementsByTagName('protNFe')[0];
+            const infProt = protNFe ? protNFe.getElementsByTagName('infProt')[0] : null;
+
+            // Produtos
+            const produtos = [];
+            let totalMono = 0;
+            const dets = xmlDoc.getElementsByTagName('det');
+            
+            for (let i = 0; i < dets.length; i++) {
+                const det = dets[i];
+                const prod = det.getElementsByTagName('prod')[0];
+                const imp = det.getElementsByTagName('imposto')[0];
+                
+                let mono = 0;
+                if (imp) {
+                    const icms = imp.getElementsByTagName('ICMS')[0];
+                    if (icms) {
+                        for (let j = 0; j < icms.children.length; j++) {
+                            const child = icms.children[j];
+                            const vMono = child.getElementsByTagName('vICMSMonoRet')[0];
+                            if (vMono && parseFloat(vMono.textContent) > 0) {
+                                mono = parseFloat(vMono.textContent);
+                                totalMono += mono;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (prod) {
+                    const comb = prod.getElementsByTagName('comb')[0];
+                    produtos.push({
+                        cProd: getTagText(prod, 'cProd'),
+                        cProdANP: comb ? getTagText(comb, 'cProdANP') : '',
+                        xProd: getTagText(prod, 'xProd'),
+                        NCM: getTagText(prod, 'NCM'),
+                        CFOP: getTagText(prod, 'CFOP'),
+                        uCom: getTagText(prod, 'uCom'),
+                        qCom: getTagText(prod, 'qCom'),
+                        vUnCom: getTagText(prod, 'vUnCom'),
+                        vProd: getTagText(prod, 'vProd'),
+                        monoRet: mono
+                    });
+                }
+            }
+            
+            const vProd = parseFloat(getTagText(ICMSTot, 'vProd') || '0');
+            const vMonoRet = parseFloat(getTagText(ICMSTot, 'vICMSMonoRet') || totalMono.toString());
+            const baseCalc = vProd - vMonoRet;
+            
+            function getEnder(elem, type) {
+                const enderTag = elem ? elem.getElementsByTagName(type === 'emit' ? 'enderEmit' : 'enderDest')[0] : null;
+                if (!enderTag) return {};
+                return {
+                    logr: getTagText(enderTag, 'xLgr'),
+                    nro: getTagText(enderTag, 'nro'),
+                    bairro: getTagText(enderTag, 'xBairro'),
+                    mun: getTagText(enderTag, 'xMun'),
+                    uf: getTagText(enderTag, 'UF'),
+                    cep: getTagText(enderTag, 'CEP'),
+                    fone: getTagText(enderTag, 'fone')
+                };
+            }
+            
+            return {
+                nNF: getTagText(ide, 'nNF'),
+                serie: getTagText(ide, 'serie'),
+                dhEmi: formatDate(getTagText(ide, 'dhEmi')),
+                dhSaiEnt: formatDate(getTagText(ide, 'dhSaiEnt')),
+                natOp: getTagText(ide, 'natOp'),
+                tpNF: getTagText(ide, 'tpNF') === '1' ? 'SAÍDA' : 'ENTRADA',
+                chave: (getTagText(infNFe, 'Id') || '').replace('NFe', ''),
+                nProt: getTagText(infProt, 'nProt'),
+                dhRecbto: formatDate(getTagText(infProt, 'dhRecbto')),
+                emitCNPJ: formatCNPJ(getTagText(emit, 'CNPJ')),
+                emitNome: getTagText(emit, 'xNome'),
+                emitFant: getTagText(emit, 'xFant'),
+                emitIE: getTagText(emit, 'IE'),
+                emitEnder: getEnder(emit, 'emit'),
+                destCNPJ: formatCNPJ(getTagText(dest, 'CNPJ')),
+                destNome: getTagText(dest, 'xNome'),
+                destIE: getTagText(dest, 'IE'),
+                destEnder: getEnder(dest, 'dest'),
+                vProd: vProd,
+                vMonoRet: vMonoRet,
+                baseCalc: baseCalc,
+                vICMS: getTagText(ICMSTot, 'vICMS'),
+                vST: getTagText(ICMSTot, 'vST'),
+                vFrete: getTagText(ICMSTot, 'vFrete'),
+                vSeg: getTagText(ICMSTot, 'vSeg'),
+                vDesc: getTagText(ICMSTot, 'vDesc'),
+                vNF: getTagText(ICMSTot, 'vNF'),
+                vIPI: getTagText(ICMSTot, 'vIPI'),
+                transportadora: transporta ? {
+                    nome: getTagText(transporta, 'xNome'),
+                    cnpj: formatCNPJ(getTagText(transporta, 'CNPJ')),
+                    ie: getTagText(transporta, 'IE')
+                } : null,
+                placa: transp ? getTagText(transp, 'placa') : '',
+                vol: vol ? {
+                    qVol: getTagText(vol, 'qVol'),
+                    esp: getTagText(vol, 'esp'),
+                    pesoL: getTagText(vol, 'pesoL'),
+                    pesoB: getTagText(vol, 'pesoB')
+                } : null,
+                produtos: produtos,
+                infCpl: infAdic ? getTagText(infAdic, 'infCpl') : ''
+            };
+        }
+        
+        function getTagText(parent, tag) {
+            if (!parent) return '';
+            const el = parent.getElementsByTagName(tag)[0];
+            return el ? el.textContent.trim() : '';
+        }
+        
+        // ========== RENDER DANFE ==========
+        function renderDANFE(data) {
+            const produtosRows = data.produtos.map(p => `
+                <tr>
+                    <td>${p.cProd || '—'}</td>
+                    <td>${p.cProdANP || '—'}</td>
+                    <td style="min-width: 200px;">${p.xProd || '—'}</td>
+                    <td>${p.NCM || '—'}</td>
+                    <td>${p.CFOP || '—'}</td>
+                    <td>${p.uCom || '—'}</td>
+                    <td class="right">${formatNumber(p.qCom, 4)}</td>
+                    <td class="right">${formatNumber(p.vUnCom, 4)}</td>
+                    <td class="right"><strong>${formatMoney(p.vProd)}</strong></td>
+                </tr>
+            `).join('');
+            
+            const hourSai = data.dhSaiEnt ? data.dhSaiEnt.split(' ')[1] || '—' : '—';
+            const dateSai = data.dhSaiEnt ? data.dhSaiEnt.split(' ')[0] : '—';
+            
+            return `
+                <div class="danfe-header">
+                    <div class="emitente-info">
+                        <h2>${data.emitNome || '—'}</h2>
+                        <p>${data.emitEnder.logr || ''}, ${data.emitEnder.nro || ''}<br>
+                        ${data.emitEnder.bairro ? data.emitEnder.bairro + ' · ' : ''}${data.emitEnder.mun || ''} - ${data.emitEnder.uf || ''}<br>
+                        CEP: ${formatCEP(data.emitEnder.cep)} | CNPJ: ${data.emitCNPJ}</p>
+                    </div>
+                    <div class="danfe-titulo">
+                        <div class="title">DANFE</div>
+                        <div class="subtitle">DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRÔNICA</div>
+                        <div class="nf-number">Nº ${data.nNF} · SÉRIE ${data.serie} · ${data.tpNF}</div>
+                    </div>
+                </div>
+                
+                <div class="chave-acesso">
+                    <span class="chave-label">CHAVE DE ACESSO</span>
+                    <span class="chave-value">${formatChave(data.chave)}</span>
+                </div>
+                
+                <div class="danfe-section">
+                    <div class="section-header">📋 NATUREZA DA OPERAÇÃO</div>
+                    <div class="section-body">
+                        <div class="info-value">${data.natOp || '—'}</div>
+                    </div>
+                </div>
+                
+                <div class="danfe-section">
+                    <div class="section-header">🏢 EMITENTE</div>
+                    <div class="section-body">
+                        <div class="info-grid">
+                            <div class="info-field"><span class="info-label">INSCRIÇÃO ESTADUAL</span><span class="info-value">${data.emitIE || '—'}</span></div>
+                            <div class="info-field"><span class="info-label">CNPJ</span><span class="info-value mono">${data.emitCNPJ}</span></div>
+                            <div class="info-field"><span class="info-label">DATA EMISSÃO</span><span class="info-value">${data.dhEmi}</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="danfe-section">
+                    <div class="section-header">👤 DESTINATÁRIO</div>
+                    <div class="section-body">
+                        <div class="info-grid">
+                            <div class="info-field"><span class="info-label">NOME / RAZÃO SOCIAL</span><span class="info-value big">${data.destNome || '—'}</span></div>
+                            <div class="info-field"><span class="info-label">CNPJ / CPF</span><span class="info-value mono">${data.destCNPJ}</span></div>
+                            <div class="info-field"><span class="info-label">INSCRIÇÃO ESTADUAL</span><span class="info-value">${data.destIE || '—'}</span></div>
+                            <div class="info-field"><span class="info-label">ENDEREÇO</span><span class="info-value">${data.destEnder.logr || ''}, ${data.destEnder.nro || ''} - ${data.destEnder.bairro || ''}</span></div>
+                            <div class="info-field"><span class="info-label">MUNICÍPIO / UF</span><span class="info-value">${data.destEnder.mun || ''} / ${data.destEnder.uf || ''}</span></div>
+                            <div class="info-field"><span class="info-label">CEP</span><span class="info-value">${formatCEP(data.destEnder.cep)}</span></div>
+                            <div class="info-field"><span class="info-label">DATA SAÍDA/ENTRADA</span><span class="info-value">${dateSai}</span></div>
+                            <div class="info-field"><span class="info-label">HORA SAÍDA</span><span class="info-value">${hourSai}</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="danfe-section">
+                    <div class="section-header">📦 PRODUTOS / SERVIÇOS</div>
+                    <div class="section-body" style="padding: 0;">
+                        <div class="produtos-table">
+                            <table class="prod-table">
+                                <thead>
+                                    <tr><th>CÓDIGO</th><th>ANP</th><th>DESCRIÇÃO</th><th>NCM</th><th>CFOP</th><th>UN</th><th class="right">QUANT</th><th class="right">V. UNIT</th><th class="right">V. TOTAL</th></tr>
+                                </thead>
+                                <tbody>${produtosRows || '<tr><td colspan="9" style="text-align:center">Nenhum produto encontrado</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="danfe-section">
+                    <div class="section-header">💰 TOTAIS</div>
+                    <div class="section-body">
+                        <div class="totais-grid">
+                            <div class="total-item"><div class="total-label">VALOR DOS PRODUTOS</div><div class="total-value">${formatMoney(data.vProd)}</div></div>
+                            <div class="total-item"><div class="total-label">ICMS MONOFÁSICO</div><div class="total-value">${formatMoney(data.vMonoRet)}</div></div>
+                            <div class="total-item"><div class="total-label">BASE CÁLCULO ICMS</div><div class="total-value">${formatMoney(data.baseCalc)}</div></div>
+                            <div class="total-item"><div class="total-label">VALOR DO ICMS</div><div class="total-value">${formatMoney(data.vICMS)}</div></div>
+                            <div class="total-item"><div class="total-label">VALOR DO IPI</div><div class="total-value">${formatMoney(data.vIPI)}</div></div>
+                            <div class="total-item"><div class="total-label">FRETE</div><div class="total-value">${formatMoney(data.vFrete)}</div></div>
+                            <div class="total-item"><div class="total-label">DESCONTO</div><div class="total-value">${formatMoney(data.vDesc)}</div></div>
+                            <div class="total-item"><div class="total-label">TOTAL DA NOTA</div><div class="total-value gold">${formatMoney(data.vNF)}</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${data.infCpl ? `
+                <div class="danfe-section">
+                    <div class="section-header">📝 INFORMAÇÕES COMPLEMENTARES</div>
+                    <div class="section-body">
+                        <div class="info-value" style="font-size:12px; line-height:1.5;">${data.infCpl.replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="danfe-footer">
+                    <div class="sign-line"><div class="line"></div><div class="label">IDENTIFICAÇÃO E ASSINATURA DO RECEBEDOR</div></div>
+                </div>
+            `;
+        }
+        
+        // ========== PROCESS XML FILE ==========
+        function processXML(file) {
+            if (!file || !file.name.toLowerCase().endsWith('.xml')) {
+                toast('Selecione um arquivo XML válido da NF-e.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(e.target.result, 'text/xml');
+                
+                if (doc.getElementsByTagName('parsererror').length) {
+                    toast('Arquivo XML inválido.', 'error');
+                    return;
+                }
+                
+                try {
+                    const data = parseNFe(doc);
+                    
+                    $('ch-vprod').textContent = formatMoney(data.vProd);
+                    $('ch-mono').textContent = formatMoney(data.vMonoRet);
+                    $('ch-base').textContent = formatMoney(data.baseCalc);
+                    $('docTitleNf').textContent = `NF-e Nº ${data.nNF} · Série ${data.serie}`;
+                    
+                    $('danfeDoc').innerHTML = renderDANFE(data);
+                    $('dropZone').style.display = 'none';
+                    $('danfeWrapper').style.display = 'block';
+                    setStatus(true, 'NF-e Carregada');
+                    toast(`NF-e ${data.nNF} carregada com sucesso!`, 'success');
+                } catch (err) {
+                    console.error(err);
+                    toast('Erro ao processar NF-e: ' + err.message, 'error');
+                }
+            };
+            reader.onerror = () => toast('Erro ao ler o arquivo.', 'error');
+            reader.readAsText(file, 'UTF-8');
+        }
+        
+        // ========== EVENTOS ==========
+        function init() {
+            initTheme();
+            
+            const dropZone = $('dropZone');
+            const xmlInput = $('xmlInput');
+            const newXmlBtn = $('newXmlBtn');
+            const printBtn = $('printBtn');
+            const themeSwitch = $('themeSwitch');
+            
+            dropZone.addEventListener('click', () => xmlInput.click());
+            xmlInput.addEventListener('change', e => processXML(e.target.files[0]));
+            
+            newXmlBtn.addEventListener('click', () => {
+                $('dropZone').style.display = 'block';
+                $('danfeWrapper').style.display = 'none';
+                setStatus(false);
+                xmlInput.value = '';
+            });
+            
+            printBtn.addEventListener('click', () => window.print());
+            themeSwitch.addEventListener('click', toggleTheme);
+            
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                processXML(e.dataTransfer.files[0]);
+            });
+        }
+        
+        init();
+    </script>
+</body>
+</html>
