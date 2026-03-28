@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPED Fiscal — Apuração ICMS · Waldeci Ramos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4f9;
+  --surface: #ffffff;
+  --surface2: #f5f7fb;
+  --surface3: #eef2f8;
+  --border: #dde3ed;
+  --border2: #c4cede;
+  --accent: #1a4db7;
+  --accent-light: #e8f0fe;
+  --accent2: #0a3a9c;
+  --green: #157a4a;
+  --green-light: #e6f5ee;
+  --red: #c5212f;
+  --red-light: #fdeaea;
+  --orange: #c46a00;
+  --orange-light: #fff4e0;
+  --gold: #9a7000;
+  --gold-light: #fef9e2;
+  --text: #1a2233;
+  --text2: #3d4f6a;
+  --text3: #7a8fa8;
+  --shadow: 0 2px 10px rgba(0,0,0,0.06);
+  --shadow2: 0 4px 20px rgba(0,0,0,0.09);
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+  user-select: none;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: linear-gradient(90deg, #0f1e3a 0%, #1a3468 100%);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.22);
+}
+.topbar-fuel { font-size: 1.6rem; filter: drop-shadow(0 0 6px rgba(255,200,50,0.4)); }
+.topbar-brand { display: flex; flex-direction: column; }
+.topbar-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; letter-spacing: -0.3px; line-height: 1.1; }
+.topbar-sub { font-size: 0.62rem; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.3px; }
+.tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.13); }
+.topbar-badge {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 20px;
+  letter-spacing: 0.8px;
+}
+.topbar-posto { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; }
+.topbar-posto-nome { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; color: #fff; }
+.topbar-posto-sub { font-size: 0.65rem; color: rgba(255,255,255,0.45); font-family: 'DM Mono', monospace; }
+.topbar-credit { font-size: 0.6rem; color: rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.1); padding-left: 14px; line-height: 1.6; text-align: right; }
+
+/* ── LAYOUT ── */
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: calc(100vh - 60px - 38px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.sb-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* DROPZONE */
+.drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 22px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+}
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drop-zone .dz-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.drop-zone h3 { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.drop-zone p { font-size: 0.68rem; color: var(--text2); line-height: 1.5; }
+.drop-zone input { display: none; }
+
+.file-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-light);
+  border: 1px solid rgba(26,77,183,0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+}
+.file-chip .fc-name { font-size: 0.7rem; font-family: 'DM Mono', monospace; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip .fc-x { cursor: pointer; color: var(--text3); font-size: 0.9rem; transition: color 0.15s; }
+.file-chip .fc-x:hover { color: var(--red); }
+
+.btn-process {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #1a3468, #1e4db7);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 3px 12px rgba(26,77,183,0.25);
+}
+.btn-process:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(26,77,183,0.35); }
+.btn-process:disabled { background: var(--border2); color: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* STATUS */
+.status-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; margin-top: 4px; }
+.sdot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(21,122,74,0.12); }
+.sdot.err { background: var(--red); box-shadow: 0 0 0 3px rgba(197,33,47,0.12); }
+.sdot.spin { background: var(--orange); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* VALUE CHIPS */
+.val-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; display: none; }
+.vchip {
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.vchip label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); display: block; margin-bottom: 3px; }
+.vchip span { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 700; }
+.vchip.red { background: var(--red-light); border-color: rgba(197,33,47,0.18); }
+.vchip.red span { color: var(--red); }
+.vchip.green { background: var(--green-light); border-color: rgba(21,122,74,0.18); }
+.vchip.green span { color: var(--green); }
+.vchip.blue { background: var(--accent-light); border-color: rgba(26,77,183,0.18); }
+.vchip.blue span { color: var(--accent); }
+.vchip.gold { background: var(--gold-light); border-color: rgba(154,112,0,0.18); }
+.vchip.gold span { color: var(--gold); }
+
+.btn-sm { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 0.7rem; font-weight: 600; transition: all 0.14s; font-family: 'DM Sans', sans-serif; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MAIN ── */
+.main { padding: 22px 26px; overflow-y: auto; background: var(--bg); }
+
+/* CONTRIB CARD */
+.contrib-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 18px;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+.contrib-ico { font-size: 2rem; }
+.cc-f label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); font-weight: 800; display: block; margin-bottom: 3px; }
+.cc-nome { font-family: 'Syne', sans-serif; font-size: 0.98rem; font-weight: 800; color: var(--text); }
+.cc-f span { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text2); }
+.period-pill { display: inline-block; background: var(--gold-light); border: 1px solid rgba(154,112,0,0.22); color: var(--gold); font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700; padding: 3px 11px; border-radius: 20px; }
+.uf-box { padding: 7px 16px; border-radius: 9px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; background: linear-gradient(135deg, #1a3468, #1e4db7); color: #fff; text-align: center; box-shadow: 0 2px 10px rgba(26,77,183,0.28); min-width: 60px; }
+
+/* SECTION LABEL */
+.sec-lbl {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── E110 ── */
+.e110-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 26px; box-shadow: var(--shadow); }
+.e110-hdr { background: linear-gradient(90deg, #0f1e3a, #1a3468); padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+.e110-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.e110-htag { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.e110-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.38); }
+
+.e110-sec { padding: 6px 20px; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+.e110-sec.deb { background: var(--red-light); color: var(--red); border-left: 3px solid var(--red); }
+.e110-sec.cred { background: var(--green-light); color: var(--green); border-left: 3px solid var(--green); }
+.e110-sec.sld { background: var(--accent-light); color: var(--accent); border-left: 3px solid var(--accent); }
+
+.e110-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.e110-row:hover { background: var(--surface2); }
+.e110-cod { width: 50px; text-align: center; font-family: 'DM Mono', monospace; font-weight: 600; font-size: 0.88rem; color: var(--text3); padding: 12px 0; border-right: 1px solid var(--border); flex-shrink: 0; background: var(--surface2); }
+.e110-lbl { flex: 1; padding: 12px 16px; font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.e110-val-wrap { width: 200px; padding: 7px 12px; border-left: 1px solid var(--border); flex-shrink: 0; }
+.e110-inp {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text3);
+  text-align: right;
+}
+.e110-inp.hv { background: var(--green-light); border-color: rgba(21,122,74,0.22); color: var(--green); font-weight: 700; }
+.e110-inp.sv { background: var(--accent-light); border-color: rgba(26,77,183,0.2); color: var(--accent); font-weight: 700; }
+.e110-inp.sv14 { font-size: 0.95rem; font-weight: 800; }
+
+/* E110 SUMMARY */
+.e110-sum { padding: 14px 20px; background: var(--surface2); border-top: 2px solid var(--border); display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.sitem { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 11px 12px; text-align: center; }
+.slbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-weight: 800; margin-bottom: 6px; }
+.sval { font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 800; }
+.sval.red { color: var(--red); }
+.sval.green { color: var(--green); }
+.sval.blue { color: var(--accent); }
+.sval.gold { color: var(--gold); }
+
+.e110-vld { padding: 11px 20px; text-align: center; font-size: 0.78rem; font-weight: 700; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.e110-vld.ok { background: var(--green-light); color: var(--green); }
+.e110-vld.warn { background: var(--orange-light); color: var(--orange); }
+.e110-vld.err { background: var(--red-light); color: var(--red); }
+
+/* ── REG 1200/1210 ── */
+.reg-tabs { display: flex; gap: 3px; }
+.rtab { padding: 8px 17px; font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; border-radius: 9px 9px 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--surface2); color: var(--text3); transition: all 0.15s; }
+.rtab:hover { color: var(--text2); }
+.rtab.active { background: var(--surface); color: var(--accent2); border-color: var(--border2); font-weight: 800; }
+
+.rbody { background: var(--surface); border: 1px solid var(--border2); border-radius: 0 var(--radius) var(--radius) var(--radius); overflow: hidden; display: none; box-shadow: var(--shadow); }
+.rbody.active { display: block; }
+
+.rhdr { background: linear-gradient(90deg, #0f1e3a, #1a3468); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+.rhdr h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; color: #fff; }
+.rcode { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 20px; }
+
+.rform { padding: 16px 20px; }
+.rrow { display: flex; align-items: center; margin-bottom: 11px; gap: 12px; }
+.rlbl { width: 230px; font-size: 0.76rem; color: var(--text2); flex-shrink: 0; text-align: right; font-weight: 500; }
+.rlbl small { display: block; font-size: 0.62rem; color: var(--text3); font-weight: 400; }
+.rinp {
+  flex: 1;
+  max-width: 205px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-align: right;
+}
+.rinp.calc { background: var(--green-light); border-color: rgba(21,122,74,0.22); color: var(--green); font-weight: 700; }
+.rinp.ed { background: var(--surface); border-color: var(--border2); text-align: left; cursor: text; }
+.rinp.ed:focus { outline: 2px solid rgba(26,77,183,0.25); border-color: var(--accent); }
+.rinp:read-only { cursor: default; }
+
+/* ALERT */
+.alert-ng { margin: 0 20px 16px; background: var(--red-light); border: 1px solid rgba(197,33,47,0.22); border-left: 4px solid var(--red); border-radius: var(--radius-sm); padding: 13px 16px; display: none; }
+.alert-ng .at { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.86rem; color: var(--red); display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.alert-ng p { font-size: 0.74rem; color: #8a1020; line-height: 1.65; }
+
+/* CONF TABLE */
+.ctbl { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.ctbl th { background: var(--surface2); color: var(--text2); padding: 8px 13px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+.ctbl td { padding: 8px 13px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.ctbl td.val { text-align: right; font-family: 'DM Mono', monospace; font-weight: 600; color: var(--accent); }
+.ctbl .rtot td { background: var(--gold-light); }
+.ctbl .rtot td.val { color: var(--gold); }
+
+.fnote { font-size: 0.7rem; color: var(--green); background: var(--green-light); border-left: 3px solid var(--green); padding: 7px 11px; border-radius: 5px; }
+
+/* OBRIG */
+.orow { display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; background: var(--surface2); border-top: 1px solid var(--border); }
+.olbl { font-size: 0.74rem; font-weight: 600; color: var(--text2); }
+.obadge { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.72rem; padding: 4px 16px; border-radius: 20px; letter-spacing: 1px; }
+.obadge.sim { background: var(--green-light); color: var(--green); border: 1px solid rgba(21,122,74,0.28); }
+.obadge.nao { background: var(--red-light); color: var(--red); border: 1px solid rgba(197,33,47,0.28); }
+
+.sec1210 { padding: 6px 20px; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; background: var(--accent-light); color: var(--accent2); border-left: 3px solid var(--accent); }
+
+/* NO DATA */
+.no-data { text-align: center; padding: 60px 20px; }
+.no-data .nd-ico { font-size: 4rem; margin-bottom: 14px; display: block; opacity: 0.65; }
+.no-data h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 8px; color: var(--text2); font-size: 1.05rem; }
+.no-data p { font-size: 0.8rem; line-height: 1.7; color: var(--text3); }
+
+/* DEBUG */
+.debug-c { background: #1a2233; border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; margin-top: 16px; display: none; max-height: 260px; overflow-y: auto; }
+.debug-c pre { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: #6688aa; white-space: pre-wrap; line-height: 1.7; }
+
+/* FOOTER */
+.footer { background: var(--surface); border-top: 1px solid var(--border); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 0.63rem; color: var(--text3); }
+.footer strong { color: var(--text2); }
+.footer-ico { font-size: 1rem; }
+
+.fade-in { animation: fi 0.3s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-fuel">⛽</div>
+  <div class="topbar-brand">
+    <div class="topbar-title">SPED Fiscal — Apuração ICMS</div>
+    <div class="topbar-sub">E110 · REG 1200 · REG 1210 · Postos de Combustíveis</div>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="topbar-badge">MG · RJ · SP · BA · CE · GO · TO</div>
+  <div class="topbar-posto" id="topbarPosto" style="display:none;">
+    <div class="topbar-posto-nome" id="topbarNome"></div>
+    <div class="topbar-posto-sub" id="topbarSub"></div>
+  </div>
+  <div class="topbar-credit">
+    Criação <strong style="color:rgba(255,255,255,0.55);">Waldeci Ramos</strong><br>
+    Desenvolvimento &amp; Estudo da Ferramenta
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-title">🛢️ Importar Apuração</div>
+
+    <div class="drop-zone" id="dropzone">
+      <span class="dz-icon">🛢️</span>
+      <h3>PDF Modelo P9</h3>
+      <p>Arraste ou clique para selecionar<br>Extrai dados da 2ª página — Resumo</p>
+      <input type="file" id="fileInput" accept="application/pdf">
+    </div>
+
+    <div class="file-chip" id="fileChip">
+      <span>📄</span>
+      <span class="fc-name" id="fileName"></span>
+      <span class="fc-x" id="clearFile" title="Remover">✕</span>
+    </div>
+
+    <button class="btn-process" id="processBtn" onclick="processPDF()" disabled>
+      🔍 Processar e Preencher
+    </button>
+
+    <div class="sb-title" style="margin-top:4px;">📊 Resultado da Extração</div>
+    <div class="status-bar">
+      <div class="sdot" id="sdot"></div>
+      <span id="stxt">Aguardando PDF do Modelo P9</span>
+    </div>
+    <div class="val-chips" id="valChips">
+      <div class="vchip red"><label>001 Débito</label><span id="vc001">—</span></div>
+      <div class="vchip green"><label>005 Crédito</label><span id="vc005">—</span></div>
+      <div class="vchip blue"><label>009 Anterior</label><span id="vc009">—</span></div>
+      <div class="vchip gold"><label>014 Saldo</label><span id="vc014">—</span></div>
+    </div>
+
+    <button class="btn-sm" onclick="toggleDebug()" style="margin-top:auto;">🐛 Debug PDF</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- CONTRIB -->
+    <div class="contrib-card">
+      <div class="contrib-ico">🏪</div>
+      <div class="cc-f">
+        <label>Estabelecimento</label>
+        <div class="cc-nome" id="cc-nome">Aguardando importação...</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="cc-f"><label>CNPJ</label><span id="cc-cnpj">—</span></div>
+        <div class="cc-f"><label>Período</label><span id="cc-periodo"><span class="period-pill">—</span></span></div>
+      </div>
+      <div class="uf-box" id="cc-uf">—</div>
+    </div>
+
+    <!-- NO DATA -->
+    <div class="no-data fade-in" id="noData">
+      <span class="nd-ico">⛽</span>
+      <h3>Nenhuma apuração carregada</h3>
+      <p>Importe um PDF Modelo P9 pelo painel lateral.<br>
+      O sistema preencherá automaticamente o E110,<br>REG 1200 (MG091004 e MG091012) e REG 1210.</p>
+    </div>
+
+    <!-- E110 -->
+    <div id="e110W" style="display:none;" class="fade-in">
+      <div class="sec-lbl">⚡ Registro E110 — Apuração do ICMS</div>
+      <div class="e110-card">
+        <div class="e110-hdr">
+          <span style="font-size:1.2rem;">📊</span>
+          <h2>E110 — Apuração Mensal do ICMS</h2>
+          <div class="e110-htag">SPED EFD ICMS/IPI</div>
+          <div class="e110-hsub">RESUMO DA APURAÇÃO DO IMPOSTO</div>
+        </div>
+
+        <div class="e110-sec deb">🔴 Débito do Imposto</div>
+        <div class="e110-row">
+          <div class="e110-cod">001</div>
+          <div class="e110-lbl">Por saídas/prestações com débito do imposto</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e001" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">002</div>
+          <div class="e110-lbl">Outros débitos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e002" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">003</div>
+          <div class="e110-lbl">Estorno de créditos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e003" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sec cred">🟢 Crédito do Imposto</div>
+        <div class="e110-row">
+          <div class="e110-cod">005</div>
+          <div class="e110-lbl">Por entradas/aquisições com crédito do imposto</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e005" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">006</div>
+          <div class="e110-lbl">Outros créditos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e006" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">007</div>
+          <div class="e110-lbl">Estorno de débitos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e007" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sec sld">🔵 Apuração do Saldo</div>
+        <div class="e110-row">
+          <div class="e110-cod">009</div>
+          <div class="e110-lbl">Saldo credor do período anterior</div>
+          <div class="e110-val-wrap"><input class="e110-inp sv" id="e009" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">011</div>
+          <div class="e110-lbl">Saldo devedor (débito menos crédito)</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e011" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">012</div>
+          <div class="e110-lbl">Deduções</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e012" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">013</div>
+          <div class="e110-lbl">Imposto a recolher</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e013" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row" style="background:var(--accent-light);">
+          <div class="e110-cod" style="background:var(--accent-light);color:var(--accent);font-weight:800;">014</div>
+          <div class="e110-lbl" style="font-weight:700;color:var(--accent2);">Saldo credor a transportar para o período seguinte</div>
+          <div class="e110-val-wrap"><input class="e110-inp sv sv14" id="e014" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sum" id="e110sum"></div>
+        <div class="e110-vld" id="e110vld"></div>
+      </div>
+    </div>
+
+    <!-- REG BLOCK -->
+    <div id="regW" style="display:none;" class="fade-in">
+      <div class="sec-lbl">📁 Registros de Crédito — Bloco 1</div>
+      <div class="reg-tabs">
+        <div class="rtab active" onclick="showReg('ra')">📋 REG 1200 — MG091004</div>
+        <div class="rtab" onclick="showReg('rb')">📤 REG 1210</div>
+        <div class="rtab" onclick="showReg('rc')">🚛 REG 1200 — MG091012</div>
+      </div>
+
+      <!-- MG091004 -->
+      <div class="rbody active" id="ra">
+        <div class="rhdr">
+          <h3>⛽ Registro 1200 — Controle de Créditos Fiscais</h3>
+          <span class="rcode">MG091004</span>
+        </div>
+        <div class="rform">
+          <div class="rrow">
+            <span class="rlbl">Código de Ajuste</span>
+            <input class="rinp ed" id="a_cod" value="MG091004" style="font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="a_desc" value="Apropriação de crédito por saída com alíquota inferior à entrada" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">1. Saldo credor anterior <small>Campo 009</small></span>
+            <input class="rinp" id="a_sant" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">2. Créditos utilizados no período <small>Campo 001 — Débito saídas</small></span>
+            <input class="rinp" id="a_util" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">3. Crédito apropriado no mês <small>Campo 005 — Entradas</small></span>
+            <input class="rinp" id="a_cmes" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos recebidos por transferência</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">4. Saldo de crédito fiscal <small>009 + 005 − 001</small></span>
+            <input class="rinp calc" id="a_sfin" readonly placeholder="—">
+          </div>
+        </div>
+
+        <div class="alert-ng" id="alertNG">
+          <div class="at">🚫 NÃO GERAR REGISTRO 1200</div>
+          <p>O saldo de crédito fiscal é <strong>negativo</strong>, indicando ICMS a pagar no período.<br>
+          Conforme regra: saldo menor que zero → <strong>não preencher o Registro 1200</strong>.<br>
+          Marque a obrigatoriedade no Registro 1010 como <strong>"NÃO"</strong> para o REG 1200.</p>
+        </div>
+
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência — Resumo da Apuração</div>
+          <table class="ctbl">
+            <tr><th>009 — Saldo credor período anterior (1º campo)</th><td class="val" id="r009">—</td></tr>
+            <tr><th>001 — Débito saídas / Créditos utilizados (2º campo)</th><td class="val" id="rdeb">—</td></tr>
+            <tr><th>005 — Crédito apropriado / Entradas (3º campo)</th><td class="val" id="rcred">—</td></tr>
+            <tr class="rtot"><th><strong>Subtotal (009 + 005)</strong></th><td class="val" id="rsub">—</td></tr>
+            <tr><th>014 — Saldo credor a transportar — 009+005−001 (4º campo)</th><td class="val" id="rsld">—</td></tr>
+          </table>
+          <div class="fnote">✅ Fórmula: 009 (Saldo anterior) + 005 (Créditos Entradas) − 001 (Débito Saídas) = 014 (Saldo credor)</div>
+        </div>
+        <div class="orow">
+          <span class="olbl">📌 Obrigatoriedade Bloco 1 — Registro 1010 — REG.1200:</span>
+          <span class="obadge sim" id="obrig">SIM</span>
+        </div>
+      </div>
+
+      <!-- REG 1210 -->
+      <div class="rbody" id="rb">
+        <div class="rhdr">
+          <h3>📤 Registro 1210 — Utilização de Créditos Fiscais</h3>
+          <span class="rcode">MG03</span>
+        </div>
+        <div class="sec1210">Abatimento do Saldo Devedor na Apuração</div>
+        <div class="rform" style="padding-top:14px;">
+          <div class="rrow">
+            <span class="rlbl">Tipo de utilização</span>
+            <input class="rinp ed" id="b_tipo" value="MG03" style="max-width:85px;font-weight:800;color:var(--accent2);">
+            <input class="rinp ed" id="b_tdesc" value="Abatimento saldo devedor na apuração" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Número do documento</span>
+            <input class="rinp ed" id="b_doc" placeholder="Documento de referência" style="max-width:280px;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">Total crédito utilizado <small>Campo 001</small></span>
+            <input class="rinp calc" id="b_tcred" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Chave documento eletrônico</span>
+            <input class="rinp ed" id="b_chave" placeholder="NF-e / CT-e — chave de acesso" style="max-width:none;flex:1;">
+          </div>
+        </div>
+      </div>
+
+      <!-- MG091012 -->
+      <div class="rbody" id="rc">
+        <div class="rhdr">
+          <h3>🚛 Registro 1200 — Controle de Créditos CT-e</h3>
+          <span class="rcode">MG091012</span>
+        </div>
+        <div class="rform">
+          <div class="rrow">
+            <span class="rlbl">Código de Ajuste</span>
+            <input class="rinp ed" id="c_cod" value="MG091012" style="font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="c_desc" value="Apropriação de crédito por saída com diferimento" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Saldo de créditos anteriores</span>
+            <input class="rinp" id="c_sant" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Crédito apropriado no mês <small>CT-e CFOP 2353</small></span>
+            <input class="rinp" id="c_cmes" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos recebidos por transferência</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos utilizados no período</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">Saldo de crédito fiscal</span>
+            <input class="rinp calc" id="c_sfin" readonly placeholder="—">
+          </div>
+        </div>
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">🚛 Créditos CT-e — CFOP 2.353</div>
+          <table class="ctbl">
+            <tr><th>Imposto creditado CFOP 2.353</th><td class="val" id="q2353">R$ 0,00</td></tr>
+            <tr class="rtot"><th><strong>Total crédito CT-e (MG091012)</strong></th><td class="val" id="qtot"><strong>—</strong></td></tr>
+            <tr><th>Saldo final a transportar</th><td class="val" id="qtrp">—</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug-c" id="debugC"><pre id="debugT">Sem linhas carregadas.</pre></div>
+  </main>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span><span class="footer-ico">⛽</span> <strong>SPED Fiscal — Apuração ICMS</strong> · Postos de Combustíveis · E110 · REG 1200 · REG 1210</span>
+  <span>Criação <strong>Waldeci Ramos</strong> · Desenvolvimento &amp; Estudo da Ferramenta · Uso Interno</span>
+</div>
+
+<script>
+// ── BLOQUEIOS ────────────────────────────────────────────────────────────────
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && ['I','J','C','K'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+});
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+// ── CADASTRO DE POSTOS ────────────────────────────────────────────────────────
+// Para adicionar postos: copie a linha abaixo e preencha cnpj, nome e uf
+const postos = [
+  { cnpj: '20.415.295/0012-27', nome: 'Dom Pedro Betim 1', uf: 'MG' },
+  { cnpj: '20.415.295/0052-14', nome: 'Dom Pedro Betim 2', uf: 'MG' },
+  // { cnpj: '00.000.000/0000-00', nome: 'Posto Exemplo', uf: 'RJ' },
+];
+
+function lookupPosto(cnpj) {
+  return postos.find(p => p.cnpj.replace(/\D/g,'') === cnpj.replace(/\D/g,''));
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function parseMoney(s) {
+  if (!s) return 0;
+  const n = parseFloat(String(s).replace(/R\$\s*/gi,'').replace(/\./g,'').replace(',','.').trim());
+  return isNaN(n) ? 0 : n;
+}
+function fmtBrl(v) { return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtShort(v) {
+  if (v >= 1000) return 'R$ ' + (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'k';
+  return fmtBrl(v);
+}
+function isMoney(s) { return /^\d{1,3}(\.\d{3})*,\d{2}$/.test(s.trim()) || /^\d+,\d{2}$/.test(s.trim()); }
+function normalize(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function setIn(id, v) { const e=document.getElementById(id); if(e){e.value=v; if(v&&v!=='R$ 0,00') e.classList.add('hv');} }
+function setTxt(id, v) { const e=document.getElementById(id); if(e) e.textContent=v; }
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function showReg(id) {
+  document.querySelectorAll('.rbody').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  ['ra','rb','rc'].forEach((r,i) => { if(r===id) document.querySelectorAll('.rtab')[i].classList.add('active'); });
+}
+function toggleDebug() { const c=document.getElementById('debugC'); c.style.display=c.style.display==='none'?'block':'none'; }
+
+// ── PDF ENGINE ───────────────────────────────────────────────────────────────
+async function getPageItems(file, pageNum) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const page = await pdf.getPage(Math.min(pageNum, pdf.numPages));
+  return (await page.getTextContent()).items;
+}
+
+async function getResumoItems(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  for (let p=2; p<=pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const j = content.items.map(i=>i.str).join(' ');
+    if (normalize(j).includes('resumo') && normalize(j).includes('apuracao')) return content.items;
+  }
+  return (await (await pdf.getPage(Math.min(2,pdf.numPages))).getTextContent()).items;
+}
+
+function buildLines(items) {
+  const rows = [];
+  for (const it of items) {
+    const s=it.str; if(!s||!s.trim()) continue;
+    const x=it.transform[4], y=it.transform[5];
+    let row=rows.find(r=>Math.abs(r.y-y)<3.5);
+    if(!row){row={y,cells:[]};rows.push(row);}
+    row.cells.push({s:s.trim(),x});
+  }
+  rows.sort((a,b)=>b.y-a.y);
+  rows.forEach(r=>r.cells.sort((a,b)=>a.x-b.x));
+  return rows;
+}
+
+function lineText(r) { return r.cells.map(c=>c.s).join(' '); }
+function lastMoney(r) {
+  const m=r.cells.filter(c=>isMoney(c.s));
+  return m.length?parseMoney(m[m.length-1].s):null;
+}
+
+function extractValues(lines) {
+  const res={'001':0,'002':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+  let rs=-1;
+  for(let i=0;i<lines.length;i++){const t=normalize(lineText(lines[i]));if(t.includes('resumo')&&t.includes('apuracao')){rs=i;break;}}
+  const L=rs>=0?lines.slice(rs):lines;
+
+  function fL(kws,from=0){for(let i=from;i<L.length;i++){const t=normalize(lineText(L[i]));if(kws.some(k=>t.includes(normalize(k))))return i;}return -1;}
+  function sk(idx,dir,st=3){for(let s=0;s<=st;s++){const i=idx+dir*s;if(i<0||i>=L.length)break;const v=lastMoney(L[i]);if(v!==null)return v;}return null;}
+  function fV(kws,{b=2,a=2}={}){const idx=fL(kws);if(idx===-1)return null;let v=lastMoney(L[idx]);if(v!==null)return v;v=sk(idx,+1,a);if(v!==null)return v;v=sk(idx,-1,b);if(v!==null)return v;return null;}
+
+  {const idx=fL(['001 -','por saidas','por saídas']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,-1,3);if(v===null)v=sk(idx,+1,2);res['001']=v??0;}}
+  res['002']=fV(['002 -','outros debitos','outros débitos'],{b:1,a:2})??0;
+  {const idx=fL(['003 -','estorno de creditos','estorno de créditos','total estornos creditos']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,+1,3);if(v===null)v=sk(idx,-1,2);res['003']=v??0;}}
+  res['005']=fV(['005 -','por entradas','entradas/aquisicoes','entradas/aquisições'],{b:1,a:2})??0;
+  res['006']=fV(['006 -','outros creditos','outros créditos','total outros creditos'],{b:1,a:2})??0;
+  res['007']=fV(['007 -','estorno de debitos','estorno de débitos','total estornos debitos'],{b:1,a:2})??0;
+  res['009']=fV(['009 -','saldo credor do periodo anterior','saldo credor do período anterior'],{b:1,a:2})??0;
+  res['011']=fV(['011 -','saldo devedor'],{b:1,a:2})??0;
+  res['012']=fV(['012 -','deducoes','deduções','total deducoes'],{b:1,a:2})??0;
+  res['013']=fV(['013 -','imposto a recolher'],{b:1,a:2})??0;
+  {const idx=fL(['014 -','transportar','credito menos debito','crédito menos débito']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,-1,3);if(v===null)v=sk(idx,+1,2);res['014']=v??0;}}
+  return res;
+}
+
+function extractMeta(items) {
+  const f=items.map(i=>i.str).join(' ');
+  const cM=f.match(/CNPJ[:\s]*([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/i);
+  const pM=f.match(/(?:Mês ou Período\/Ano:|Período\/Ano:)\s*([\d\/]+)/i)||f.match(/\b(\d{2}\/\d{4})\b/);
+  const nM=f.match(/Contribuinte[:\s]*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][^\n]{4,60}?)(?=\s{2,}|CNPJ|Inscr)/i);
+  return { cnpj:cM?cM[1]:'—', periodo:pM?pM[1]:'—', nome:nM?nM[1].trim():'—' };
+}
+
+function extractCTE(items) {
+  const f=items.map(i=>i.str).join(' ');
+  for(const p of [/2353\s+([\d\.]+,\d{2})/,/2\.353\s+([\d\.]+,\d{2})/]){const m=f.match(p);if(m)return parseMoney(m[1]);}
+  for(const r of buildLines(items)){const t=lineText(r);if(t.includes('2353')||t.includes('2.353')){const m=r.cells.filter(c=>isMoney(c.s));if(m.length)return parseMoney(m[m.length-1].s);}}
+  return 0;
+}
+
+// ── MAIN PROCESS ─────────────────────────────────────────────────────────────
+let currentFile = null;
+
+async function processPDF() {
+  if (!currentFile) return;
+  setStatus('spin','⏳ Extraindo dados do PDF...');
+  document.getElementById('processBtn').disabled = true;
+
+  try {
+    const p1 = await getPageItems(currentFile, 1);
+    const meta = extractMeta(p1);
+    const cte = extractCTE(p1);
+    const ri = await getResumoItems(currentFile);
+    const lines = buildLines(ri);
+    const v = extractValues(lines);
+
+    document.getElementById('debugT').textContent = lines.map((r,i)=>
+      `[${String(i).padStart(3,'0')}] Y=${Math.round(r.y).toString().padStart(4)} | ${r.cells.map(c=>`"${c.s}"@${Math.round(c.x)}`).join('  ')}`
+    ).join('\n');
+
+    const posto = lookupPosto(meta.cnpj);
+    const nome = posto ? posto.nome : meta.nome;
+    const uf   = posto ? posto.uf   : '??';
+
+    // Topbar
+    document.getElementById('topbarPosto').style.display = 'flex';
+    document.getElementById('topbarNome').textContent = nome;
+    document.getElementById('topbarSub').textContent = `${meta.cnpj} · ${meta.periodo} · ${uf}`;
+
+    // Contrib
+    document.getElementById('cc-nome').textContent = nome;
+    setTxt('cc-cnpj', meta.cnpj);
+    document.getElementById('cc-periodo').innerHTML = `<span class="period-pill">${meta.periodo}</span>`;
+    setTxt('cc-uf', uf);
+
+    // E110
+    ['001','002','003','005','006','007','009','011','012','013','014'].forEach(k => {
+      const el = document.getElementById('e'+k);
+      if (!el) return;
+      el.value = fmtBrl(v[k]);
+      el.className = 'e110-inp';
+      if (v[k] > 0) el.classList.add('hv');
+      if (k==='009') { el.className='e110-inp sv'; }
+      if (k==='014') { el.className='e110-inp sv sv14'; }
+    });
+
+    const totDeb  = v['001']+v['003'];
+    const totCred = v['005']+v['006']+v['007']+v['009'];
+    const saldo   = totCred - totDeb;
+    const credor  = saldo > 0 ? saldo : 0;
+    const devedor = saldo < 0 ? Math.abs(saldo) : 0;
+
+    document.getElementById('e110sum').innerHTML = `
+      <div class="sitem"><div class="slbl">🔴 Débitos 001+003</div><div class="sval red">${fmtBrl(totDeb)}</div></div>
+      <div class="sitem"><div class="slbl">🟢 Créditos 005+006+007+009</div><div class="sval green">${fmtBrl(totCred)}</div></div>
+      <div class="sitem"><div class="slbl">${saldo>=0?'🔵 Saldo Credor':'🔴 Saldo Devedor'}</div><div class="sval ${saldo>=0?'blue':'red'}">${fmtBrl(Math.abs(saldo))}</div></div>
+      <div class="sitem"><div class="slbl">🟡 014 Informado</div><div class="sval gold">${fmtBrl(v['014'])}</div></div>
+    `;
+
+    const vl = document.getElementById('e110vld');
+    const diff = Math.abs(credor-v['014']);
+    if(v['014']>0&&diff<1.0){vl.className='e110-vld ok';vl.innerHTML=`✅ CONFIRMADO — Saldo credor calculado ${fmtBrl(credor)} = Campo 014 ${fmtBrl(v['014'])}`;}
+    else if(v['014']>0){vl.className='e110-vld warn';vl.innerHTML=`⚠️ DIVERGÊNCIA — Calculado ${fmtBrl(credor)} · Campo 014 = ${fmtBrl(v['014'])} · Dif ${fmtBrl(diff)}`;}
+    else if(devedor>0){vl.className='e110-vld warn';vl.innerHTML=`ℹ️ Saldo Devedor ${fmtBrl(devedor)} — ICMS a recolher = ${fmtBrl(v['013'])}`;}
+    else{vl.className='e110-vld ok';vl.innerHTML=`📊 Débitos ${fmtBrl(totDeb)} · Créditos ${fmtBrl(totCred)} · Saldo ${fmtBrl(Math.abs(saldo))}`;}
+
+    // REG 1200 MG091004
+    const sf = v['009']+v['005']-v['001'];
+    setIn('a_sant', fmtBrl(v['009']));
+    setIn('a_util', fmtBrl(v['001']));
+    setIn('a_cmes', fmtBrl(v['005']));
+    setIn('a_sfin', fmtBrl(sf));
+    setTxt('r009', fmtBrl(v['009']));
+    setTxt('rdeb', fmtBrl(v['001']));
+    setTxt('rcred', fmtBrl(v['005']));
+    setTxt('rsub', fmtBrl(v['009']+v['005']));
+    setTxt('rsld', fmtBrl(sf));
+
+    // REG 1210
+    setIn('b_tcred', fmtBrl(v['001']));
+    if(v['001']>0&&!document.getElementById('b_doc').value) document.getElementById('b_doc').value=`Apuração ICMS ${meta.periodo}`;
+
+    // REG 1200 MG091012
+    setIn('c_cmes', fmtBrl(cte));
+    setIn('c_sfin', fmtBrl(cte));
+    setTxt('q2353', fmtBrl(cte));
+    document.getElementById('qtot').innerHTML=`<strong>${fmtBrl(cte)}</strong>`;
+    setTxt('qtrp', fmtBrl(cte));
+
+    // Obrigatoriedade
+    const ng = sf < 0;
+    document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
+    const ob = document.getElementById('obrig');
+    ob.textContent = ng ? 'NÃO' : 'SIM';
+    ob.className = 'obadge '+(ng?'nao':'sim');
+
+    // Status chips
+    document.getElementById('vc001').textContent = fmtShort(v['001']);
+    document.getElementById('vc005').textContent = fmtShort(v['005']);
+    document.getElementById('vc009').textContent = fmtShort(v['009']);
+    document.getElementById('vc014').textContent = fmtShort(v['014']);
+    document.getElementById('valChips').style.display = 'grid';
+
+    // Mostrar painéis
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('e110W').style.display = 'block';
+    document.getElementById('regW').style.display = 'block';
+
+    setStatus(ng?'spin':'ok', ng ? `⚠️ Saldo negativo — NÃO gerar REG 1200 (${nome})` : `✅ Extração concluída — ${nome}`);
+
+  } catch(err) {
+    console.error(err);
+    setStatus('err', `❌ Erro: ${err.message}`);
+  }
+  document.getElementById('processBtn').disabled = false;
+}
+
+function setStatus(type, text) {
+  document.getElementById('stxt').textContent = text;
+  const d = document.getElementById('sdot');
+  d.className = 'sdot';
+  if(type==='ok') d.classList.add('ok');
+  if(type==='err') d.classList.add('err');
+  if(type==='spin') d.classList.add('spin');
+}
+
+// ── FILE EVENTS ───────────────────────────────────────────────────────────────
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
+
+dz.addEventListener('click', () => fi.click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f?.type === 'application/pdf') setFile(f);
+});
+fi.addEventListener('change', () => { if(fi.files[0]) setFile(fi.files[0]); });
+document.getElementById('clearFile').addEventListener('click', () => {
+  currentFile=null; fi.value='';
+  document.getElementById('fileChip').style.display='none';
+  document.getElementById('processBtn').disabled=true;
+  document.getElementById('valChips').style.display='none';
+  setStatus('','Aguardando PDF do Modelo P9');
+});
+
+function setFile(f) {
+  currentFile = f;
+  document.getElementById('fileName').textContent = f.name;
+  document.getElementById('fileChip').style.display = 'flex';
+  document.getElementById('processBtn').disabled = false;
+  setStatus('','PDF carregado — clique em Processar');
+}
+</script>
+</body>
+</html>
