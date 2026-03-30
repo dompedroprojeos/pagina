@@ -1,595 +1,961 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E110 - Extrator ICMS P9</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%); font-family: 'Inter', sans-serif; min-height: 100vh; padding: 24px; }
-    .container { max-width: 1300px; margin: 0 auto; }
-    .header { background: linear-gradient(135deg, #0f2b4d 0%, #1a3a5c 100%); border-radius: 28px; padding: 24px 32px; margin-bottom: 28px; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-    .header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
-    .header p { opacity: 0.85; margin-top: 8px; font-size: 0.9rem; }
-    .upload-card { background: white; border-radius: 32px; padding: 32px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
-    .dropzone { border: 2px dashed #cbd5e1; border-radius: 24px; padding: 48px 32px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fafcff; }
-    .dropzone:hover, .dropzone.drag-over { border-color: #3b82f6; background: #eff6ff; }
-    .dropzone-icon { font-size: 48px; margin-bottom: 16px; }
-    .dropzone-title { font-size: 1.2rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
-    .dropzone-sub { font-size: 0.85rem; color: #64748b; }
-    .file-info { display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border-radius: 20px; padding: 16px 20px; margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
-    .btn-group { display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
-    .btn { padding: 12px 28px; border-radius: 40px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; }
-    .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(37,99,235,0.4); }
-    .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-    .btn-secondary:hover { background: #e2e8f0; }
-    .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: #f8fafc; border-radius: 20px; margin-top: 20px; border: 1px solid #e2e8f0; }
-    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
-    .status-dot.success { background: #22c55e; box-shadow: 0 0 0 2px #bbf7d0; }
-    .status-dot.error { background: #ef4444; box-shadow: 0 0 0 2px #fecaca; }
-    .status-dot.warning { background: #f59e0b; box-shadow: 0 0 0 2px #fed7aa; }
-    .debug-card { background: #1e293b; border-radius: 20px; padding: 20px; margin-top: 24px; display: none; color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; max-height: 400px; overflow-y: auto; }
-    .debug-card h3 { color: #38bdf8; margin-bottom: 12px; font-size: 0.85rem; }
-    .debug-card pre { white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
-    .e110-card { background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15); margin-top: 28px; display: none; }
-    .e110-header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 24px 28px; color: white; }
-    .e110-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
-    .e110-header p { opacity: 0.7; font-size: 0.8rem; }
-    .contrib-row { display: grid; grid-template-columns: repeat(3, 1fr); background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-    .contrib-cell { padding: 16px 24px; border-right: 1px solid #e2e8f0; }
-    .contrib-cell label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; display: block; }
-    .contrib-cell span { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-top: 4px; display: block; }
-    .section-title { padding: 14px 24px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: #fef2f2; color: #b91c1c; border-left: 4px solid #dc2626; }
-    .section-title.credit { background: #ecfdf5; color: #065f46; border-left-color: #10b981; }
-    .section-title.saldo { background: #eff6ff; color: #1e40af; border-left-color: #3b82f6; }
-    .field-row { display: flex; border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
-    .field-row:hover { background: #fafcff; }
-    .field-code { width: 70px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.1rem; background: #f8fafc; border-right: 1px solid #e2e8f0; color: #334155; }
-    .field-label { flex: 1; padding: 16px 20px; font-size: 0.9rem; font-weight: 500; color: #334155; }
-    .field-label small { display: block; font-size: 0.7rem; color: #94a3b8; font-weight: normal; margin-top: 4px; }
-    .field-value { width: 260px; padding: 12px 20px; border-left: 1px solid #e2e8f0; display: flex; align-items: center; }
-    .field-value input { width: 100%; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; text-align: right; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 16px; color: #0f172a; }
-    .field-value input.found { background: #f0fdf4; border-color: #86efac; color: #166534; }
-    .calc-panel { background: #f8fafc; padding: 24px; border-top: 2px solid #e2e8f0; }
-    .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
-    .calc-item { background: white; border-radius: 20px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; }
-    .calc-label-sm { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
-    .calc-number { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; margin-top: 8px; color: #0f172a; }
-    .calc-number.green { color: #16a34a; }
-    .calc-number.red { color: #dc2626; }
-    .validation-message { margin-top: 20px; padding: 16px 20px; border-radius: 20px; font-weight: 600; text-align: center; }
-    .btn-copy-e110 { background: #0f172a; color: white; border: none; padding: 12px 28px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-copy-e110:hover { background: #1e293b; transform: translateY(-2px); }
-    .footer-actions { padding: 20px 24px; display: flex; justify-content: flex-end; background: white; border-top: 1px solid #e2e8f0; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPED Fiscal — Apuração ICMS · Waldeci Ramos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4f9;
+  --surface: #ffffff;
+  --surface2: #f5f7fb;
+  --surface3: #eef2f8;
+  --border: #dde3ed;
+  --border2: #c4cede;
+  --accent: #1a4db7;
+  --accent-light: #e8f0fe;
+  --accent2: #0a3a9c;
+  --green: #157a4a;
+  --green-light: #e6f5ee;
+  --red: #c5212f;
+  --red-light: #fdeaea;
+  --orange: #c46a00;
+  --orange-light: #fff4e0;
+  --gold: #9a7000;
+  --gold-light: #fef9e2;
+  --text: #1a2233;
+  --text2: #3d4f6a;
+  --text3: #7a8fa8;
+  --shadow: 0 2px 10px rgba(0,0,0,0.06);
+  --shadow2: 0 4px 20px rgba(0,0,0,0.09);
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+  user-select: none;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: linear-gradient(90deg, #0f1e3a 0%, #1a3468 100%);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.22);
+}
+.topbar-fuel { font-size: 1.6rem; filter: drop-shadow(0 0 6px rgba(255,200,50,0.4)); }
+.topbar-brand { display: flex; flex-direction: column; }
+.topbar-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; letter-spacing: -0.3px; line-height: 1.1; }
+.topbar-sub { font-size: 0.62rem; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.3px; }
+.tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.13); }
+.topbar-badge {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 20px;
+  letter-spacing: 0.8px;
+}
+.topbar-posto { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; }
+.topbar-posto-nome { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; color: #fff; }
+.topbar-posto-sub { font-size: 0.65rem; color: rgba(255,255,255,0.45); font-family: 'DM Mono', monospace; }
+.topbar-credit { font-size: 0.6rem; color: rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.1); padding-left: 14px; line-height: 1.6; text-align: right; }
+
+/* ── LAYOUT ── */
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: calc(100vh - 60px - 38px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.sb-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* DROPZONE */
+.drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 22px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+}
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drop-zone .dz-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.drop-zone h3 { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.drop-zone p { font-size: 0.68rem; color: var(--text2); line-height: 1.5; }
+.drop-zone input { display: none; }
+
+.file-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-light);
+  border: 1px solid rgba(26,77,183,0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+}
+.file-chip .fc-name { font-size: 0.7rem; font-family: 'DM Mono', monospace; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip .fc-x { cursor: pointer; color: var(--text3); font-size: 0.9rem; transition: color 0.15s; }
+.file-chip .fc-x:hover { color: var(--red); }
+
+.btn-process {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #1a3468, #1e4db7);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 3px 12px rgba(26,77,183,0.25);
+}
+.btn-process:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(26,77,183,0.35); }
+.btn-process:disabled { background: var(--border2); color: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* STATUS */
+.status-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; margin-top: 4px; }
+.sdot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(21,122,74,0.12); }
+.sdot.err { background: var(--red); box-shadow: 0 0 0 3px rgba(197,33,47,0.12); }
+.sdot.spin { background: var(--orange); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* VALUE CHIPS */
+.val-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; display: none; }
+.vchip {
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.vchip label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); display: block; margin-bottom: 3px; }
+.vchip span { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 700; }
+.vchip.red { background: var(--red-light); border-color: rgba(197,33,47,0.18); }
+.vchip.red span { color: var(--red); }
+.vchip.green { background: var(--green-light); border-color: rgba(21,122,74,0.18); }
+.vchip.green span { color: var(--green); }
+.vchip.blue { background: var(--accent-light); border-color: rgba(26,77,183,0.18); }
+.vchip.blue span { color: var(--accent); }
+.vchip.gold { background: var(--gold-light); border-color: rgba(154,112,0,0.18); }
+.vchip.gold span { color: var(--gold); }
+
+.btn-sm { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 0.7rem; font-weight: 600; transition: all 0.14s; font-family: 'DM Sans', sans-serif; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MAIN ── */
+.main { padding: 22px 26px; overflow-y: auto; background: var(--bg); }
+
+/* CONTRIB CARD */
+.contrib-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 18px;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+.contrib-ico { font-size: 2rem; }
+.cc-f label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); font-weight: 800; display: block; margin-bottom: 3px; }
+.cc-nome { font-family: 'Syne', sans-serif; font-size: 0.98rem; font-weight: 800; color: var(--text); }
+.cc-f span { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text2); }
+.period-pill { display: inline-block; background: var(--gold-light); border: 1px solid rgba(154,112,0,0.22); color: var(--gold); font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700; padding: 3px 11px; border-radius: 20px; }
+.uf-box { padding: 7px 16px; border-radius: 9px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; background: linear-gradient(135deg, #1a3468, #1e4db7); color: #fff; text-align: center; box-shadow: 0 2px 10px rgba(26,77,183,0.28); min-width: 60px; }
+
+/* SECTION LABEL */
+.sec-lbl {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── E110 ── */
+.e110-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 26px; box-shadow: var(--shadow); }
+.e110-hdr { background: linear-gradient(90deg, #0f1e3a, #1a3468); padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+.e110-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.e110-htag { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.e110-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.38); }
+
+.e110-sec { padding: 6px 20px; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+.e110-sec.deb { background: var(--red-light); color: var(--red); border-left: 3px solid var(--red); }
+.e110-sec.cred { background: var(--green-light); color: var(--green); border-left: 3px solid var(--green); }
+.e110-sec.sld { background: var(--accent-light); color: var(--accent); border-left: 3px solid var(--accent); }
+
+.e110-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.e110-row:hover { background: var(--surface2); }
+.e110-cod { width: 50px; text-align: center; font-family: 'DM Mono', monospace; font-weight: 600; font-size: 0.88rem; color: var(--text3); padding: 12px 0; border-right: 1px solid var(--border); flex-shrink: 0; background: var(--surface2); }
+.e110-lbl { flex: 1; padding: 12px 16px; font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.e110-val-wrap { width: 200px; padding: 7px 12px; border-left: 1px solid var(--border); flex-shrink: 0; }
+.e110-inp {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text3);
+  text-align: right;
+}
+.e110-inp.hv { background: var(--green-light); border-color: rgba(21,122,74,0.22); color: var(--green); font-weight: 700; }
+.e110-inp.sv { background: var(--accent-light); border-color: rgba(26,77,183,0.2); color: var(--accent); font-weight: 700; }
+.e110-inp.sv14 { font-size: 0.95rem; font-weight: 800; }
+
+/* E110 SUMMARY */
+.e110-sum { padding: 14px 20px; background: var(--surface2); border-top: 2px solid var(--border); display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.sitem { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 11px 12px; text-align: center; }
+.slbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-weight: 800; margin-bottom: 6px; }
+.sval { font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 800; }
+.sval.red { color: var(--red); }
+.sval.green { color: var(--green); }
+.sval.blue { color: var(--accent); }
+.sval.gold { color: var(--gold); }
+
+.e110-vld { padding: 11px 20px; text-align: center; font-size: 0.78rem; font-weight: 700; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.e110-vld.ok { background: var(--green-light); color: var(--green); }
+.e110-vld.warn { background: var(--orange-light); color: var(--orange); }
+.e110-vld.err { background: var(--red-light); color: var(--red); }
+
+/* ── REG 1200/1210 ── */
+.reg-tabs { display: flex; gap: 3px; }
+.rtab { padding: 8px 17px; font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; border-radius: 9px 9px 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--surface2); color: var(--text3); transition: all 0.15s; }
+.rtab:hover { color: var(--text2); }
+.rtab.active { background: var(--surface); color: var(--accent2); border-color: var(--border2); font-weight: 800; }
+
+.rbody { background: var(--surface); border: 1px solid var(--border2); border-radius: 0 var(--radius) var(--radius) var(--radius); overflow: hidden; display: none; box-shadow: var(--shadow); }
+.rbody.active { display: block; }
+
+.rhdr { background: linear-gradient(90deg, #0f1e3a, #1a3468); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+.rhdr h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; color: #fff; }
+.rcode { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 20px; }
+
+.rform { padding: 16px 20px; }
+.rrow { display: flex; align-items: center; margin-bottom: 11px; gap: 12px; }
+.rlbl { width: 230px; font-size: 0.76rem; color: var(--text2); flex-shrink: 0; text-align: right; font-weight: 500; }
+.rlbl small { display: block; font-size: 0.62rem; color: var(--text3); font-weight: 400; }
+.rinp {
+  flex: 1;
+  max-width: 205px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-align: right;
+}
+.rinp.calc { background: var(--green-light); border-color: rgba(21,122,74,0.22); color: var(--green); font-weight: 700; }
+.rinp.ed { background: var(--surface); border-color: var(--border2); text-align: left; cursor: text; }
+.rinp.ed:focus { outline: 2px solid rgba(26,77,183,0.25); border-color: var(--accent); }
+.rinp:read-only { cursor: default; }
+
+/* ALERT (lembrete expandido) */
+.alert-ng { margin: 0 20px 16px; background: var(--red-light); border: 1px solid rgba(197,33,47,0.22); border-left: 4px solid var(--red); border-radius: var(--radius-sm); padding: 13px 16px; display: none; }
+.alert-ng .at { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.86rem; color: var(--red); display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.alert-ng .at span { font-size: 1.2rem; }
+.alert-ng .msg-content { margin-top: 8px; }
+.alert-ng .msg-content p { font-size: 0.74rem; color: #8a1020; line-height: 1.65; margin: 6px 0; padding-left: 12px; border-left: 2px solid rgba(197,33,47,0.3); }
+.alert-ng .msg-content strong { font-weight: 800; color: #a71e2c; }
+.alert-ng .checklist { margin: 12px 0 6px 0; padding-left: 24px; list-style: none; }
+.alert-ng .checklist li { font-size: 0.73rem; margin-bottom: 8px; position: relative; padding-left: 20px; color: #8a1020; }
+.alert-ng .checklist li:before { content: "⚠️"; position: absolute; left: 0; font-size: 0.7rem; }
+
+/* CONF TABLE */
+.ctbl { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.ctbl th { background: var(--surface2); color: var(--text2); padding: 8px 13px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+.ctbl td { padding: 8px 13px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.ctbl td.val { text-align: right; font-family: 'DM Mono', monospace; font-weight: 600; color: var(--accent); }
+.ctbl .rtot td { background: var(--gold-light); }
+.ctbl .rtot td.val { color: var(--gold); }
+
+.fnote { font-size: 0.7rem; color: var(--green); background: var(--green-light); border-left: 3px solid var(--green); padding: 7px 11px; border-radius: 5px; }
+
+/* OBRIG */
+.orow { display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; background: var(--surface2); border-top: 1px solid var(--border); }
+.olbl { font-size: 0.74rem; font-weight: 600; color: var(--text2); }
+.obadge { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.72rem; padding: 4px 16px; border-radius: 20px; letter-spacing: 1px; }
+.obadge.sim { background: var(--green-light); color: var(--green); border: 1px solid rgba(21,122,74,0.28); }
+.obadge.nao { background: var(--red-light); color: var(--red); border: 1px solid rgba(197,33,47,0.28); }
+
+.sec1210 { padding: 6px 20px; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; background: var(--accent-light); color: var(--accent2); border-left: 3px solid var(--accent); }
+
+/* NO DATA */
+.no-data { text-align: center; padding: 60px 20px; }
+.no-data .nd-ico { font-size: 4rem; margin-bottom: 14px; display: block; opacity: 0.65; }
+.no-data h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 8px; color: var(--text2); font-size: 1.05rem; }
+.no-data p { font-size: 0.8rem; line-height: 1.7; color: var(--text3); }
+
+/* DEBUG */
+.debug-c { background: #1a2233; border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; margin-top: 16px; display: none; max-height: 260px; overflow-y: auto; }
+.debug-c pre { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: #6688aa; white-space: pre-wrap; line-height: 1.7; }
+
+/* FOOTER */
+.footer { background: var(--surface); border-top: 1px solid var(--border); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 0.63rem; color: var(--text3); }
+.footer strong { color: var(--text2); }
+.footer-ico { font-size: 1rem; }
+
+.fade-in { animation: fi 0.3s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>📋 E110 - Apuração ICMS</h1>
-    <p>Extração automática dos valores do P9 — seção RESUMO DA APURAÇÃO DO IMPOSTO</p>
+
+<div class="topbar">
+  <div class="topbar-fuel">⛽</div>
+  <div class="topbar-brand">
+    <div class="topbar-title">SPED Fiscal — Apuração ICMS</div>
+    <div class="topbar-sub">E110 · REG 1200 · REG 1210 · Postos de Combustíveis</div>
   </div>
-
-  <div class="upload-card">
-    <div id="dropzone" class="dropzone">
-      <div class="dropzone-icon">📄📎</div>
-      <div class="dropzone-title">Arraste seu PDF do P9 ou clique para selecionar</div>
-      <div class="dropzone-sub">Busca os valores na seção "RESUMO DA APURAÇÃO DO IMPOSTO"</div>
-      <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
-    </div>
-    <div id="fileInfo" class="file-info" style="display: none;">
-      <span id="fileName"></span>
-      <button id="clearFileBtn" class="btn-secondary" style="padding:6px 16px;">🗑 Remover</button>
-    </div>
-    <div class="btn-group">
-      <button id="processBtn" class="btn btn-primary">🔍 Extrair e Preencher E110</button>
-      <button id="debugBtn" class="btn btn-secondary">🐛 Ver linhas do PDF</button>
-    </div>
-    <div id="statusBar" class="status-bar">
-      <div id="statusDot" class="status-dot"></div>
-      <span id="statusText">Aguardando PDF com o Resumo da Apuração</span>
-    </div>
+  <div class="tb-sep"></div>
+  <div class="topbar-badge">MG · RJ · SP · BA · CE · GO · TO</div>
+  <div class="topbar-posto" id="topbarPosto" style="display:none;">
+    <div class="topbar-posto-nome" id="topbarNome"></div>
+    <div class="topbar-posto-sub" id="topbarSub"></div>
   </div>
-
-  <div id="debugCard" class="debug-card">
-    <h3>🐛 Linhas reconstruídas da página do Resumo (ordem top→bottom)</h3>
-    <pre id="debugText"></pre>
-  </div>
-
-  <div id="e110Card" class="e110-card">
-    <div class="e110-header">
-      <h2>📊 REGISTRO E110 - ICMS</h2>
-      <p>Valores extraídos da seção "RESUMO DA APURAÇÃO DO IMPOSTO"</p>
-    </div>
-    <div id="contribArea" class="contrib-row"></div>
-
-    <div class="section-title">🔴 DÉBITO DO IMPOSTO</div>
-    <div class="field-row">
-      <div class="field-code">001</div>
-      <div class="field-label">Por saídas/prestações com débito do imposto<small>Valor fica antes do rótulo no P9 (linha acima)</small></div>
-      <div class="field-value"><input id="f001" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">003</div>
-      <div class="field-label">Estorno de créditos<small>Total Estornos Créditos (linha após rótulo)</small></div>
-      <div class="field-value"><input id="f003" type="text" readonly placeholder="0,00"></div>
-    </div>
-
-    <div class="section-title credit">🔵 CRÉDITO DO IMPOSTO</div>
-    <div class="field-row">
-      <div class="field-code">005</div>
-      <div class="field-label">Por entradas/aquisições com crédito do imposto</div>
-      <div class="field-value"><input id="f005" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">006</div>
-      <div class="field-label">Outros créditos<small>Total Outros Créditos</small></div>
-      <div class="field-value"><input id="f006" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">007</div>
-      <div class="field-label">Estorno de débitos<small>Total Estornos Débitos</small></div>
-      <div class="field-value"><input id="f007" type="text" readonly placeholder="0,00"></div>
-    </div>
-
-    <div class="section-title saldo">🟢 APURAÇÃO DO SALDO</div>
-    <div class="field-row">
-      <div class="field-code">009</div>
-      <div class="field-label">Saldo credor do período anterior<small>Valor pode vir antes ou depois do rótulo</small></div>
-      <div class="field-value"><input id="f009" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">011</div>
-      <div class="field-label">Saldo devedor (débito menos crédito)</div>
-      <div class="field-value"><input id="f011" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">012</div>
-      <div class="field-label">Deduções</div>
-      <div class="field-value"><input id="f012" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">013</div>
-      <div class="field-label">Imposto a recolher</div>
-      <div class="field-value"><input id="f013" type="text" readonly placeholder="0,00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-code">014</div>
-      <div class="field-label">Saldo credor (crédito menos débito) a transportar<small>Valor fica antes do rótulo no P9 (linha acima)</small></div>
-      <div class="field-value"><input id="f014" type="text" readonly placeholder="0,00" style="background:#ecfdf5;font-weight:800;"></div>
-    </div>
-
-    <div class="calc-panel">
-      <div style="font-weight:700;margin-bottom:12px;">📐 VERIFICAÇÃO AUTOMÁTICA</div>
-      <div id="calcGrid" class="calc-grid"></div>
-      <div id="validationMsg" class="validation-message"></div>
-    </div>
-    <div class="footer-actions">
-      <button id="copyE110Btn" class="btn-copy-e110">📋 Copiar todos os valores</button>
-    </div>
+  <div class="topbar-credit">
+    Criação <strong style="color:rgba(255,255,255,0.55);">Waldeci Ramos</strong><br>
+    Desenvolvimento &amp; Estudo da Ferramenta
   </div>
 </div>
 
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-title">🛢️ Importar Apuração</div>
+
+    <div class="drop-zone" id="dropzone">
+      <span class="dz-icon">🛢️</span>
+      <h3>PDF Modelo P9</h3>
+      <p>Arraste ou clique para selecionar<br>Extrai dados da 2ª página — Resumo</p>
+      <input type="file" id="fileInput" accept="application/pdf">
+    </div>
+
+    <div class="file-chip" id="fileChip">
+      <span>📄</span>
+      <span class="fc-name" id="fileName"></span>
+      <span class="fc-x" id="clearFile" title="Remover">✕</span>
+    </div>
+
+    <button class="btn-process" id="processBtn" onclick="processPDF()" disabled>
+      🔍 Processar e Preencher
+    </button>
+
+    <div class="sb-title" style="margin-top:4px;">📊 Resultado da Extração</div>
+    <div class="status-bar">
+      <div class="sdot" id="sdot"></div>
+      <span id="stxt">Aguardando PDF do Modelo P9</span>
+    </div>
+    <div class="val-chips" id="valChips">
+      <div class="vchip red"><label>001 Débito</label><span id="vc001">—</span></div>
+      <div class="vchip green"><label>005 Crédito</label><span id="vc005">—</span></div>
+      <div class="vchip blue"><label>009 Anterior</label><span id="vc009">—</span></div>
+      <div class="vchip gold"><label>014 Saldo</label><span id="vc014">—</span></div>
+    </div>
+
+    <button class="btn-sm" onclick="toggleDebug()" style="margin-top:auto;">🐛 Debug PDF</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- CONTRIB -->
+    <div class="contrib-card">
+      <div class="contrib-ico">🏪</div>
+      <div class="cc-f">
+        <label>Estabelecimento</label>
+        <div class="cc-nome" id="cc-nome">Aguardando importação...</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="cc-f"><label>CNPJ</label><span id="cc-cnpj">—</span></div>
+        <div class="cc-f"><label>Período</label><span id="cc-periodo"><span class="period-pill">—</span></span></div>
+      </div>
+      <div class="uf-box" id="cc-uf">—</div>
+    </div>
+
+    <!-- NO DATA -->
+    <div class="no-data fade-in" id="noData">
+      <span class="nd-ico">⛽</span>
+      <h3>Nenhuma apuração carregada</h3>
+      <p>Importe um PDF Modelo P9 pelo painel lateral.<br>
+      O sistema preencherá automaticamente o E110,<br>REG 1200 (MG091004 e MG091012) e REG 1210.</p>
+    </div>
+
+    <!-- E110 -->
+    <div id="e110W" style="display:none;" class="fade-in">
+      <div class="sec-lbl">⚡ Registro E110 — Apuração do ICMS</div>
+      <div class="e110-card">
+        <div class="e110-hdr">
+          <span style="font-size:1.2rem;">📊</span>
+          <h2>E110 — Apuração Mensal do ICMS</h2>
+          <div class="e110-htag">SPED EFD ICMS/IPI</div>
+          <div class="e110-hsub">RESUMO DA APURAÇÃO DO IMPOSTO</div>
+        </div>
+
+        <div class="e110-sec deb">🔴 Débito do Imposto</div>
+        <div class="e110-row">
+          <div class="e110-cod">001</div>
+          <div class="e110-lbl">Por saídas/prestações com débito do imposto</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e001" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">002</div>
+          <div class="e110-lbl">Outros débitos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e002" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">003</div>
+          <div class="e110-lbl">Estorno de créditos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e003" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sec cred">🟢 Crédito do Imposto</div>
+        <div class="e110-row">
+          <div class="e110-cod">005</div>
+          <div class="e110-lbl">Por entradas/aquisições com crédito do imposto</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e005" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">006</div>
+          <div class="e110-lbl">Outros créditos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e006" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">007</div>
+          <div class="e110-lbl">Estorno de débitos</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e007" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sec sld">🔵 Apuração do Saldo</div>
+        <div class="e110-row">
+          <div class="e110-cod">009</div>
+          <div class="e110-lbl">Saldo credor do período anterior</div>
+          <div class="e110-val-wrap"><input class="e110-inp sv" id="e009" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">011</div>
+          <div class="e110-lbl">Saldo devedor (débito menos crédito)</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e011" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">012</div>
+          <div class="e110-lbl">Deduções</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e012" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row">
+          <div class="e110-cod">013</div>
+          <div class="e110-lbl">Imposto a recolher</div>
+          <div class="e110-val-wrap"><input class="e110-inp" id="e013" readonly placeholder="0,00"></div>
+        </div>
+        <div class="e110-row" style="background:var(--accent-light);">
+          <div class="e110-cod" style="background:var(--accent-light);color:var(--accent);font-weight:800;">014</div>
+          <div class="e110-lbl" style="font-weight:700;color:var(--accent2);">Saldo credor a transportar para o período seguinte</div>
+          <div class="e110-val-wrap"><input class="e110-inp sv sv14" id="e014" readonly placeholder="0,00"></div>
+        </div>
+
+        <div class="e110-sum" id="e110sum"></div>
+        <div class="e110-vld" id="e110vld"></div>
+      </div>
+    </div>
+
+    <!-- REG BLOCK -->
+    <div id="regW" style="display:none;" class="fade-in">
+      <div class="sec-lbl">📁 Registros de Crédito — Bloco 1</div>
+      <div class="reg-tabs">
+        <div class="rtab active" onclick="showReg('ra')">📋 REG 1200 — MG091004</div>
+        <div class="rtab" onclick="showReg('rb')">📤 REG 1210</div>
+        <div class="rtab" onclick="showReg('rc')">🚛 REG 1200 — MG091012</div>
+      </div>
+
+      <!-- MG091004 -->
+      <div class="rbody active" id="ra">
+        <div class="rhdr">
+          <h3>⛽ Registro 1200 — Controle de Créditos Fiscais</h3>
+          <span class="rcode">MG091004</span>
+        </div>
+        <div class="rform">
+          <div class="rrow">
+            <span class="rlbl">Código de Ajuste</span>
+            <input class="rinp ed" id="a_cod" value="MG091004" style="font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="a_desc" value="Apropriação de crédito por saída com alíquota inferior à entrada" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">1. Saldo credor anterior <small>Campo 009</small></span>
+            <input class="rinp" id="a_sant" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">2. Créditos utilizados no período <small>Campo 001 — Débito saídas</small></span>
+            <input class="rinp" id="a_util" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">3. Crédito apropriado no mês <small>Campo 005 — Entradas</small></span>
+            <input class="rinp" id="a_cmes" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos recebidos por transferência</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">4. Saldo de crédito fiscal <small>009 + 005 − 001</small></span>
+            <input class="rinp calc" id="a_sfin" readonly placeholder="—">
+          </div>
+        </div>
+
+        <!-- ALERTA EXPANDIDO COM LEMBRETES -->
+        <div class="alert-ng" id="alertNG">
+          <div class="at"><span>🚫</span> NÃO GERAR REGISTRO 1200</div>
+          <div class="msg-content">
+            <p><strong>Saldo de crédito fiscal negativo</strong> → ICMS a pagar no período. Conforme regra, o Registro 1200 <strong>não deve ser preenchido</strong>.</p>
+            <p>✔️ Ação obrigatória no SPED: marque <strong>"NÃO"</strong> para o REG 1200 no Registro 1010 (Bloco 1).</p>
+            <ul class="checklist">
+              <li><strong>📄 E116 – Guia de Recolhimento:</strong> Verifique se a guia de ICMS (DAR/DARE) foi emitida com o valor do campo 013 (imposto a recolher).</li>
+              <li><strong>🧾 Entrada de NF – Zerar Base 2949 / 1949:</strong> Na Nota Fiscal de entrada (combustível), localize o valor referente a 2949/1949 e <strong>zere a base de cálculo</strong> (C170).</li>
+              <li><strong>⚙️ C190 – Alíquota, Base e Valor ICMS:</strong> Após zerar na C170, confirme que o <strong>C190</strong> (totais por CFOP) também reflete base zerada e valor ICMS zerado para os itens ajustados.</li>
+              <li><strong>🔄 Retorno à capa:</strong> Após os ajustes, volte ao cabeçalho do SPED e <strong>zere base de cálculo e valor ICMS</strong> nas entradas que utilizavam crédito indevido.</li>
+            </ul>
+            <p><em>📌 Lembrete automático gerado pelo sistema – verifique os registros antes de validar o arquivo EFD.</em></p>
+          </div>
+        </div>
+
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência — Resumo da Apuração</div>
+          <table class="ctbl">
+            <tr><th>009 — Saldo credor período anterior (1º campo)</th><td class="val" id="r009">—</td></tr>
+            <tr><th>001 — Débito saídas / Créditos utilizados (2º campo)</th><td class="val" id="rdeb">—</td></tr>
+            <tr><th>005 — Crédito apropriado / Entradas (3º campo)</th><td class="val" id="rcred">—</td></tr>
+            <tr class="rtot"><th><strong>Subtotal (009 + 005)</strong></th><td class="val" id="rsub">—</td></tr>
+            <tr><th>014 — Saldo credor a transportar — 009+005−001 (4º campo)</th><td class="val" id="rsld">—</td></tr>
+           </table>
+          <div class="fnote">✅ Fórmula: 009 (Saldo anterior) + 005 (Créditos Entradas) − 001 (Débito Saídas) = 014 (Saldo credor)</div>
+        </div>
+        <div class="orow">
+          <span class="olbl">📌 Obrigatoriedade Bloco 1 — Registro 1010 — REG.1200:</span>
+          <span class="obadge sim" id="obrig">SIM</span>
+        </div>
+      </div>
+
+      <!-- REG 1210 -->
+      <div class="rbody" id="rb">
+        <div class="rhdr">
+          <h3>📤 Registro 1210 — Utilização de Créditos Fiscais</h3>
+          <span class="rcode">MG03</span>
+        </div>
+        <div class="sec1210">Abatimento do Saldo Devedor na Apuração</div>
+        <div class="rform" style="padding-top:14px;">
+          <div class="rrow">
+            <span class="rlbl">Tipo de utilização</span>
+            <input class="rinp ed" id="b_tipo" value="MG03" style="max-width:85px;font-weight:800;color:var(--accent2);">
+            <input class="rinp ed" id="b_tdesc" value="Abatimento saldo devedor na apuração" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Número do documento</span>
+            <input class="rinp ed" id="b_doc" placeholder="Documento de referência" style="max-width:280px;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">Total crédito utilizado <small>Campo 001</small></span>
+            <input class="rinp calc" id="b_tcred" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Chave documento eletrônico</span>
+            <input class="rinp ed" id="b_chave" placeholder="NF-e / CT-e — chave de acesso" style="max-width:none;flex:1;">
+          </div>
+        </div>
+      </div>
+
+      <!-- MG091012 -->
+      <div class="rbody" id="rc">
+        <div class="rhdr">
+          <h3>🚛 Registro 1200 — Controle de Créditos CT-e</h3>
+          <span class="rcode">MG091012</span>
+        </div>
+        <div class="rform">
+          <div class="rrow">
+            <span class="rlbl">Código de Ajuste</span>
+            <input class="rinp ed" id="c_cod" value="MG091012" style="font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="c_desc" value="Apropriação de crédito por saída com diferimento" style="max-width:none;flex:1;">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Saldo de créditos anteriores</span>
+            <input class="rinp" id="c_sant" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Crédito apropriado no mês <small>CT-e CFOP 2353</small></span>
+            <input class="rinp" id="c_cmes" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos recebidos por transferência</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl">Créditos utilizados no período</span>
+            <input class="rinp" value="R$ 0,00" readonly>
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">Saldo de crédito fiscal</span>
+            <input class="rinp calc" id="c_sfin" readonly placeholder="—">
+          </div>
+        </div>
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">🚛 Créditos CT-e — CFOP 2.353</div>
+          <table class="ctbl">
+            <tr><th>Imposto creditado CFOP 2.353</th><td class="val" id="q2353">R$ 0,00</td></tr>
+            <tr class="rtot"><th><strong>Total crédito CT-e (MG091012)</strong></th><td class="val" id="qtot"><strong>—</strong></td></tr>
+            <tr><th>Saldo final a transportar</th><td class="val" id="qtrp">—</td></tr>
+           </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug-c" id="debugC"><pre id="debugT">Sem linhas carregadas.</pre></div>
+  </main>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span><span class="footer-ico">⛽</span> <strong>SPED Fiscal — Apuração ICMS</strong> · Postos de Combustíveis · E110 · REG 1200 · REG 1210</span>
+  <span>Criação <strong>Waldeci Ramos</strong> · Desenvolvimento &amp; Estudo da Ferramenta · Uso Interno</span>
+</div>
+
 <script>
+// ── BLOQUEIOS ────────────────────────────────────────────────────────────────
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && ['I','J','C','K'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+});
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-let currentFile = null;
-let lastDebugLines = [];
-let extractedValues = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
-let contribData = {nome:'—', cnpj:'—', periodo:'—'};
+// ── CADASTRO DE POSTOS ────────────────────────────────────────────────────────
+const postos = [
+  { cnpj: '20.415.295/0012-27', nome: 'Dom Pedro Betim 1', uf: 'MG' },
+  { cnpj: '20.415.295/0052-14', nome: 'Dom Pedro Betim 2', uf: 'MG' },
+];
 
-// ─── helpers ───────────────────────────────────────────────────────────────
+function lookupPosto(cnpj) {
+  return postos.find(p => p.cnpj.replace(/\D/g,'') === cnpj.replace(/\D/g,''));
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function parseMoney(s) {
   if (!s) return 0;
-  const clean = String(s).replace(/R\$\s*/gi,'').replace(/\./g,'').replace(',','.').trim();
-  const n = parseFloat(clean);
+  const n = parseFloat(String(s).replace(/R\$\s*/gi,'').replace(/\./g,'').replace(',','.').trim());
   return isNaN(n) ? 0 : n;
 }
-function formatMoney(v) {
-  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+function fmtBrl(v) { return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtShort(v) {
+  if (v >= 1000) return 'R$ ' + (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'k';
+  return fmtBrl(v);
 }
-function isMoney(s) {
-  return /^\d{1,3}(\.\d{3})*,\d{2}$/.test(s.trim()) || /^\d+,\d{2}$/.test(s.trim());
+function isMoney(s) { return /^\d{1,3}(\.\d{3})*,\d{2}$/.test(s.trim()) || /^\d+,\d{2}$/.test(s.trim()); }
+function normalize(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function setIn(id, v) { const e=document.getElementById(id); if(e){e.value=v; if(v&&v!=='R$ 0,00') e.classList.add('hv');} }
+function setTxt(id, v) { const e=document.getElementById(id); if(e) e.textContent=v; }
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function showReg(id) {
+  document.querySelectorAll('.rbody').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  ['ra','rb','rc'].forEach((r,i) => { if(r===id) document.querySelectorAll('.rtab')[i].classList.add('active'); });
 }
-function normalize(s) {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+function toggleDebug() { const c=document.getElementById('debugC'); c.style.display=c.style.display==='none'?'block':'none'; }
+
+// ── PDF ENGINE (extração resumo) ───────────────────────────────────────────────
+async function getPageItems(file, pageNum) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const page = await pdf.getPage(Math.min(pageNum, pdf.numPages));
+  return (await page.getTextContent()).items;
 }
 
-// ─── Step 1: extract all text items WITH position from the RESUMO page ──────
 async function getResumoItems(file) {
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-  for (let p = 1; p <= pdf.numPages; p++) {
+  for (let p=2; p<=pdf.numPages; p++) {
     const page = await pdf.getPage(p);
     const content = await page.getTextContent();
-    const joined = content.items.map(i=>i.str).join(' ');
-    const norm = normalize(joined);
-    if (norm.includes('resumo') && norm.includes('apuracao')) {
-      return content.items;
-    }
+    const j = content.items.map(i=>i.str).join(' ');
+    if (normalize(j).includes('resumo') && normalize(j).includes('apuracao')) return content.items;
   }
-  // fallback: last page
-  const page = await pdf.getPage(pdf.numPages);
-  const content = await page.getTextContent();
-  return content.items;
+  return (await (await pdf.getPage(Math.min(2,pdf.numPages))).getTextContent()).items;
 }
 
-// ─── Step 2: group items into visual lines by Y coordinate ──────────────────
 function buildLines(items) {
   const rows = [];
-  for (const item of items) {
-    const s = item.str;
-    if (!s || !s.trim()) continue;
-    const x = item.transform[4];
-    const y = item.transform[5];
-    let row = rows.find(r => Math.abs(r.y - y) < 3.5);
-    if (!row) { row = {y, cells:[]}; rows.push(row); }
-    row.cells.push({s: s.trim(), x});
+  for (const it of items) {
+    const s=it.str; if(!s||!s.trim()) continue;
+    const x=it.transform[4], y=it.transform[5];
+    let row=rows.find(r=>Math.abs(r.y-y)<3.5);
+    if(!row){row={y,cells:[]};rows.push(row);}
+    row.cells.push({s:s.trim(),x});
   }
-  rows.sort((a,b) => b.y - a.y);           // top → bottom (PDF Y is inverted)
-  rows.forEach(r => r.cells.sort((a,b) => a.x - b.x));
+  rows.sort((a,b)=>b.y-a.y);
+  rows.forEach(r=>r.cells.sort((a,b)=>a.x-b.x));
   return rows;
 }
 
-// ─── Step 3: flatten each line to a single string ───────────────────────────
-function lineText(row) { return row.cells.map(c=>c.s).join(' '); }
-
-// Get the last (rightmost = "Somas" column) money value from a line
-function lastMoney(row) {
-  const moneys = row.cells.filter(c => isMoney(c.s));
-  return moneys.length ? parseMoney(moneys[moneys.length-1].s) : null;
+function lineText(r) { return r.cells.map(c=>c.s).join(' '); }
+function lastMoney(r) {
+  const m=r.cells.filter(c=>isMoney(c.s));
+  return m.length?parseMoney(m[m.length-1].s):null;
 }
-
-// Get ALL money values on a line
-function allMoneys(row) {
-  return row.cells.filter(c => isMoney(c.s)).map(c => parseMoney(c.s));
-}
-
-// ─── Step 4: the smart extractor ────────────────────────────────────────────
-//
-// P9 RESUMO layout patterns (confirmed from user's paste):
-//
-//  Pattern A — value BEFORE label (value floats on line above):
-//    line i  : "172,32"                      ← this is 001
-//    line i+1: "001 - Por saídas/prestações..."
-//    line i+1: "004 - Sub-Total"
-//    line i  : "188.315,13"                  ← this is 014
-//    line i+1: "014 - Saldo credor..."
-//
-//  Pattern B — value AFTER label or on SAME line:
-//    "005 - Por entradas/aquisições com crédito do imposto 5.800,03"
-//    "009 - Saldo credor do período anterior 182.687,42"
-//    "011 - Saldo devedor (débito menos crédito) 0,00"
-//    "013 - Imposto a recolher 0,00"
-//
-//  Pattern C — value on SEPARATE line AFTER a "Total Xxx" label:
-//    "003 - Estorno de créditos (discriminar abaixo)"
-//    "0,00"
-//    "Total Estornos Créditos"
-//    ← so the money is 1-2 lines AFTER the "Total" label
-//    OR the "0,00" comes right after "003 -" row
-//
-// STRATEGY:
-//   For each field we define WHERE to look relative to the anchor keyword.
-//   - "before"  : look at lines ABOVE the anchor (line i-1, i-2)
-//   - "after"   : look at lines BELOW the anchor (line i+1, i+2)
-//   - "same"    : look on the same line (rightmost value)
-//   - "any"     : try same → after → before
 
 function extractValues(lines) {
-  const result = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+  const res={'001':0,'002':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
+  let rs=-1;
+  for(let i=0;i<lines.length;i++){const t=normalize(lineText(lines[i]));if(t.includes('resumo')&&t.includes('apuracao')){rs=i;break;}}
+  const L=rs>=0?lines.slice(rs):lines;
 
-  // Helper: find line index matching keyword
-  function findLine(keywords, startFrom=0) {
-    for (let i = startFrom; i < lines.length; i++) {
-      const t = normalize(lineText(lines[i]));
-      if (keywords.some(k => t.includes(normalize(k)))) return i;
-    }
-    return -1;
-  }
+  function fL(kws,from=0){for(let i=from;i<L.length;i++){const t=normalize(lineText(L[i]));if(kws.some(k=>t.includes(normalize(k))))return i;}return -1;}
+  function sk(idx,dir,st=3){for(let s=0;s<=st;s++){const i=idx+dir*s;if(i<0||i>=L.length)break;const v=lastMoney(L[i]);if(v!==null)return v;}return null;}
+  function fV(kws,{b=2,a=2}={}){const idx=fL(kws);if(idx===-1)return null;let v=lastMoney(L[idx]);if(v!==null)return v;v=sk(idx,+1,a);if(v!==null)return v;v=sk(idx,-1,b);if(v!==null)return v;return null;}
 
-  // Helper: find the first money value searching from lineIdx in a direction
-  // direction: +1 = downward (after), -1 = upward (before)
-  function seekMoney(lineIdx, direction, maxSteps=3) {
-    for (let step = 0; step <= maxSteps; step++) {
-      const idx = lineIdx + direction * step;
-      if (idx < 0 || idx >= lines.length) break;
-      const v = lastMoney(lines[idx]);
-      if (v !== null) return v;
-    }
-    return null;
-  }
-
-  // Helper: look same line first, then after, then before
-  function findValue(keywords, {before=2, after=2, startFrom=0} = {}) {
-    const idx = findLine(keywords, startFrom);
-    if (idx === -1) return null;
-
-    // Same line
-    let v = lastMoney(lines[idx]);
-    if (v !== null) return v;
-
-    // After (downward)
-    v = seekMoney(idx, +1, after);
-    if (v !== null) return v;
-
-    // Before (upward)
-    v = seekMoney(idx, -1, before);
-    if (v !== null) return v;
-
-    return null;
-  }
-
-  // ── Locate the RESUMO section to restrict our search window ──
-  let resumoStart = findLine(['resumo da apuracao', 'resumo da apuração']);
-  if (resumoStart === -1) resumoStart = 0;
-
-  const L = lines.slice(resumoStart);  // work only within Resumo section
-
-  // Redefine helpers to work on L
-  function fL(keywords, startFrom=0) {
-    for (let i = startFrom; i < L.length; i++) {
-      const t = normalize(lineText(L[i]));
-      if (keywords.some(k => t.includes(normalize(k)))) return i;
-    }
-    return -1;
-  }
-  function seekL(lineIdx, dir, steps=3) {
-    for (let s = 0; s <= steps; s++) {
-      const idx = lineIdx + dir * s;
-      if (idx < 0 || idx >= L.length) break;
-      const v = lastMoney(L[idx]);
-      if (v !== null) return v;
-    }
-    return null;
-  }
-  function fV(keywords, {before=2, after=2}={}) {
-    const idx = fL(keywords);
-    if (idx === -1) return null;
-    let v = lastMoney(L[idx]);
-    if (v !== null) return v;
-    v = seekL(idx, +1, after);   // look down first (most common)
-    if (v !== null) return v;
-    v = seekL(idx, -1, before);  // look up
-    if (v !== null) return v;
-    return null;
-  }
-
-  // ── 001: "Por saídas/prestações com débito do imposto"
-  //   Value (172,32) appears BEFORE the 001 label → search upward first
-  {
-    const idx = fL(['001 -', 'por saidas', 'por saídas']);
-    if (idx !== -1) {
-      // Try same line, then UP (before), then down
-      let v = lastMoney(L[idx]);
-      if (v === null) v = seekL(idx, -1, 3);  // look up
-      if (v === null) v = seekL(idx, +1, 2);  // look down
-      result['001'] = v ?? 0;
-    }
-  }
-
-  // ── 003: "Estorno de créditos" / "Total Estornos Créditos"
-  //   The 0,00 appears right after "003 -" or after "Total Estornos Créditos"
-  {
-    const idx = fL(['003 -', 'estorno de creditos', 'estorno de créditos']);
-    if (idx !== -1) {
-      let v = lastMoney(L[idx]);
-      if (v === null) v = seekL(idx, +1, 3);
-      if (v === null) v = seekL(idx, -1, 2);
-      result['003'] = v ?? 0;
-    }
-    // Also try "Total Estornos Créditos" as backup
-    if (!result['003']) {
-      const idx2 = fL(['total estornos creditos', 'total estornos créditos']);
-      if (idx2 !== -1) {
-        let v = lastMoney(L[idx2]);
-        if (v === null) v = seekL(idx2, +1, 2);
-        if (v === null) v = seekL(idx2, -1, 2);
-        result['003'] = v ?? 0;
-      }
-    }
-  }
-
-  // ── 005: "Por entradas/aquisições com crédito do imposto 5.800,03"
-  //   Value is typically on the SAME line (rightmost)
-  result['005'] = fV(['005 -', 'por entradas', 'por entradas/aquisicoes', 'credito do imposto'], {before:1, after:2}) ?? 0;
-
-  // ── 006: "Total Outros Créditos" — value same line or after
-  result['006'] = fV(['006 -', 'outros creditos', 'outros créditos', 'total outros creditos'], {before:1, after:2}) ?? 0;
-
-  // ── 007: "Total Estornos Débitos" — value same line or after
-  result['007'] = fV(['007 -', 'estorno de debitos', 'estorno de débitos', 'total estornos debitos'], {before:1, after:2}) ?? 0;
-
-  // ── 009: "Saldo credor do período anterior 182.687,42"
-  //   Value is typically on the SAME line or line after
-  result['009'] = fV(['009 -', 'saldo credor do periodo anterior', 'saldo credor do período anterior'], {before:1, after:2}) ?? 0;
-
-  // ── 011: "Saldo devedor (débito menos crédito) 0,00" — same line
-  result['011'] = fV(['011 -', 'saldo devedor'], {before:1, after:2}) ?? 0;
-
-  // ── 012: "Total Deduções" — value same or after
-  result['012'] = fV(['012 -', 'deducoes', 'deduções', 'total deducoes', 'total deduções'], {before:1, after:2}) ?? 0;
-
-  // ── 013: "Imposto a recolher 0,00" — same line
-  result['013'] = fV(['013 -', 'imposto a recolher'], {before:1, after:2}) ?? 0;
-
-  // ── 014: "Saldo credor (crédito menos débito) a transportar"
-  //   Value (188.315,13) appears BEFORE the 014 label → look UP first
-  {
-    const idx = fL(['014 -', 'transportar', 'credito menos debito', 'crédito menos débito']);
-    if (idx !== -1) {
-      let v = lastMoney(L[idx]);
-      if (v === null) v = seekL(idx, -1, 3);  // look up (value floats above)
-      if (v === null) v = seekL(idx, +1, 2);  // look down
-      result['014'] = v ?? 0;
-    }
-  }
-
-  return result;
+  {const idx=fL(['001 -','por saidas','por saídas']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,-1,3);if(v===null)v=sk(idx,+1,2);res['001']=v??0;}}
+  res['002']=fV(['002 -','outros debitos','outros débitos'],{b:1,a:2})??0;
+  {const idx=fL(['003 -','estorno de creditos','estorno de créditos','total estornos creditos']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,+1,3);if(v===null)v=sk(idx,-1,2);res['003']=v??0;}}
+  res['005']=fV(['005 -','por entradas','entradas/aquisicoes','entradas/aquisições'],{b:1,a:2})??0;
+  res['006']=fV(['006 -','outros creditos','outros créditos','total outros creditos'],{b:1,a:2})??0;
+  res['007']=fV(['007 -','estorno de debitos','estorno de débitos','total estornos debitos'],{b:1,a:2})??0;
+  res['009']=fV(['009 -','saldo credor do periodo anterior','saldo credor do período anterior'],{b:1,a:2})??0;
+  res['011']=fV(['011 -','saldo devedor'],{b:1,a:2})??0;
+  res['012']=fV(['012 -','deducoes','deduções','total deducoes'],{b:1,a:2})??0;
+  res['013']=fV(['013 -','imposto a recolher'],{b:1,a:2})??0;
+  {const idx=fL(['014 -','transportar','credito menos debito','crédito menos débito']);if(idx!==-1){let v=lastMoney(L[idx]);if(v===null)v=sk(idx,-1,3);if(v===null)v=sk(idx,+1,2);res['014']=v??0;}}
+  return res;
 }
 
-// ─── Step 5: extract contributor metadata from full page text ───────────────
 function extractMeta(items) {
-  const full = items.map(i=>i.str).join(' ');
-  const cnpjM = full.match(/CNPJ[:\s]*([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/i);
-  const perM  = full.match(/(?:Mês ou Período\/Ano:|Período\/Ano:)\s*([\d\/]+)/i)
-              || full.match(/\b(\d{2}\/\d{4})\b/);
-  // Contributor name: text near "Contribuinte:" or a long string before CNPJ
-  const nomeM = full.match(/Contribuinte[:\s]*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇ\s\.]+?)(?=\s{3,}|CNPJ|Inscr)/i);
-  return {
-    nome: nomeM ? nomeM[1].trim() : (full.match(/REDE\s+[\w\s]+LTDA/i)||['—'])[0],
-    cnpj: cnpjM ? cnpjM[1] : '—',
-    periodo: perM ? perM[1] : '—'
-  };
+  const f=items.map(i=>i.str).join(' ');
+  const cM=f.match(/CNPJ[:\s]*([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/i);
+  const pM=f.match(/(?:Mês ou Período\/Ano:|Período\/Ano:)\s*([\d\/]+)/i)||f.match(/\b(\d{2}\/\d{4})\b/);
+  const nM=f.match(/Contribuinte[:\s]*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][^\n]{4,60}?)(?=\s{2,}|CNPJ|Inscr)/i);
+  return { cnpj:cM?cM[1]:'—', periodo:pM?pM[1]:'—', nome:nM?nM[1].trim():'—' };
 }
 
-// ─── Main process ────────────────────────────────────────────────────────────
+function extractCTE(items) {
+  const f=items.map(i=>i.str).join(' ');
+  for(const p of [/2353\s+([\d\.]+,\d{2})/,/2\.353\s+([\d\.]+,\d{2})/]){const m=f.match(p);if(m)return parseMoney(m[1]);}
+  for(const r of buildLines(items)){const t=lineText(r);if(t.includes('2353')||t.includes('2.353')){const m=r.cells.filter(c=>isMoney(c.s));if(m.length)return parseMoney(m[m.length-1].s);}}
+  return 0;
+}
+
+// ── PROCESSO PRINCIPAL ─────────────────────────────────────────────────────────
+let currentFile = null;
+
 async function processPDF() {
-  if (!currentFile) { setStatus('warning','⚠️ Nenhum PDF selecionado.'); return; }
-  setStatus('warning','⏳ Lendo PDF e reconstruindo linhas posicionais...');
+  if (!currentFile) return;
+  setStatus('spin','⏳ Extraindo dados do PDF...');
+  document.getElementById('processBtn').disabled = true;
+
   try {
-    const items = await getResumoItems(currentFile);
-    if (!items.length) throw new Error('PDF sem conteúdo de texto extraível');
+    const p1 = await getPageItems(currentFile, 1);
+    const meta = extractMeta(p1);
+    const cte = extractCTE(p1);
+    const ri = await getResumoItems(currentFile);
+    const lines = buildLines(ri);
+    const v = extractValues(lines);
 
-    const lines = buildLines(items);
-
-    // Build debug string
-    lastDebugLines = lines.map((r,i) =>
+    document.getElementById('debugT').textContent = lines.map((r,i)=>
       `[${String(i).padStart(3,'0')}] Y=${Math.round(r.y).toString().padStart(4)} | ${r.cells.map(c=>`"${c.s}"@${Math.round(c.x)}`).join('  ')}`
-    );
+    ).join('\n');
 
-    contribData = extractMeta(items);
-    extractedValues = extractValues(lines);
+    const posto = lookupPosto(meta.cnpj);
+    const nome = posto ? posto.nome : meta.nome;
+    const uf   = posto ? posto.uf   : '??';
 
-    updateUI();
-    document.getElementById('e110Card').style.display = 'block';
-    document.getElementById('debugText').textContent = lastDebugLines.join('\n');
+    document.getElementById('topbarPosto').style.display = 'flex';
+    document.getElementById('topbarNome').textContent = nome;
+    document.getElementById('topbarSub').textContent = `${meta.cnpj} · ${meta.periodo} · ${uf}`;
 
-    const s = extractedValues;
-    setStatus('success',
-      `✅ Extraído! 001: ${formatMoney(s['001'])} | 005: ${formatMoney(s['005'])} | 009: ${formatMoney(s['009'])} | 014: ${formatMoney(s['014'])}`
-    );
+    document.getElementById('cc-nome').textContent = nome;
+    setTxt('cc-cnpj', meta.cnpj);
+    document.getElementById('cc-periodo').innerHTML = `<span class="period-pill">${meta.periodo}</span>`;
+    setTxt('cc-uf', uf);
+
+    ['001','002','003','005','006','007','009','011','012','013','014'].forEach(k => {
+      const el = document.getElementById('e'+k);
+      if (!el) return;
+      el.value = fmtBrl(v[k]);
+      el.className = 'e110-inp';
+      if (v[k] > 0) el.classList.add('hv');
+      if (k==='009') { el.className='e110-inp sv'; }
+      if (k==='014') { el.className='e110-inp sv sv14'; }
+    });
+
+    const totDeb  = v['001']+v['003'];
+    const totCred = v['005']+v['006']+v['007']+v['009'];
+    const saldo   = totCred - totDeb;
+    const credor  = saldo > 0 ? saldo : 0;
+    const devedor = saldo < 0 ? Math.abs(saldo) : 0;
+
+    document.getElementById('e110sum').innerHTML = `
+      <div class="sitem"><div class="slbl">🔴 Débitos 001+003</div><div class="sval red">${fmtBrl(totDeb)}</div></div>
+      <div class="sitem"><div class="slbl">🟢 Créditos 005+006+007+009</div><div class="sval green">${fmtBrl(totCred)}</div></div>
+      <div class="sitem"><div class="slbl">${saldo>=0?'🔵 Saldo Credor':'🔴 Saldo Devedor'}</div><div class="sval ${saldo>=0?'blue':'red'}">${fmtBrl(Math.abs(saldo))}</div></div>
+      <div class="sitem"><div class="slbl">🟡 014 Informado</div><div class="sval gold">${fmtBrl(v['014'])}</div></div>
+    `;
+
+    const vl = document.getElementById('e110vld');
+    const diff = Math.abs(credor-v['014']);
+    if(v['014']>0&&diff<1.0){vl.className='e110-vld ok';vl.innerHTML=`✅ CONFIRMADO — Saldo credor calculado ${fmtBrl(credor)} = Campo 014 ${fmtBrl(v['014'])}`;}
+    else if(v['014']>0){vl.className='e110-vld warn';vl.innerHTML=`⚠️ DIVERGÊNCIA — Calculado ${fmtBrl(credor)} · Campo 014 = ${fmtBrl(v['014'])} · Dif ${fmtBrl(diff)}`;}
+    else if(devedor>0){vl.className='e110-vld warn';vl.innerHTML=`ℹ️ Saldo Devedor ${fmtBrl(devedor)} — ICMS a recolher = ${fmtBrl(v['013'])}`;}
+    else{vl.className='e110-vld ok';vl.innerHTML=`📊 Débitos ${fmtBrl(totDeb)} · Créditos ${fmtBrl(totCred)} · Saldo ${fmtBrl(Math.abs(saldo))}`;}
+
+    const sf = v['009']+v['005']-v['001'];
+    setIn('a_sant', fmtBrl(v['009']));
+    setIn('a_util', fmtBrl(v['001']));
+    setIn('a_cmes', fmtBrl(v['005']));
+    setIn('a_sfin', fmtBrl(sf));
+    setTxt('r009', fmtBrl(v['009']));
+    setTxt('rdeb', fmtBrl(v['001']));
+    setTxt('rcred', fmtBrl(v['005']));
+    setTxt('rsub', fmtBrl(v['009']+v['005']));
+    setTxt('rsld', fmtBrl(sf));
+
+    setIn('b_tcred', fmtBrl(v['001']));
+    if(v['001']>0&&!document.getElementById('b_doc').value) document.getElementById('b_doc').value=`Apuração ICMS ${meta.periodo}`;
+
+    setIn('c_cmes', fmtBrl(cte));
+    setIn('c_sfin', fmtBrl(cte));
+    setTxt('q2353', fmtBrl(cte));
+    document.getElementById('qtot').innerHTML=`<strong>${fmtBrl(cte)}</strong>`;
+    setTxt('qtrp', fmtBrl(cte));
+
+    const ng = sf < 0;
+    document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
+    const ob = document.getElementById('obrig');
+    ob.textContent = ng ? 'NÃO' : 'SIM';
+    ob.className = 'obadge '+(ng?'nao':'sim');
+
+    document.getElementById('vc001').textContent = fmtShort(v['001']);
+    document.getElementById('vc005').textContent = fmtShort(v['005']);
+    document.getElementById('vc009').textContent = fmtShort(v['009']);
+    document.getElementById('vc014').textContent = fmtShort(v['014']);
+    document.getElementById('valChips').style.display = 'grid';
+
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('e110W').style.display = 'block';
+    document.getElementById('regW').style.display = 'block';
+
+    setStatus(ng?'spin':'ok', ng ? `⚠️ Saldo negativo — NÃO gerar REG 1200 (${nome})` : `✅ Extração concluída — ${nome}`);
+
   } catch(err) {
     console.error(err);
-    document.getElementById('debugText').textContent = lastDebugLines.join('\n') || 'Sem linhas capturadas.';
-    setStatus('error', `❌ Erro: ${err.message}`);
+    setStatus('err', `❌ Erro: ${err.message}`);
   }
-}
-
-// ─── UI update ───────────────────────────────────────────────────────────────
-function updateUI() {
-  ['001','003','005','006','007','009','011','012','013','014'].forEach(k => {
-    const inp = document.getElementById('f'+k);
-    inp.value = formatMoney(extractedValues[k]);
-    inp.className = extractedValues[k] > 0 ? 'found' : '';
-  });
-
-  document.getElementById('contribArea').innerHTML = `
-    <div class="contrib-cell"><label>CONTRIBUINTE</label><span>${contribData.nome}</span></div>
-    <div class="contrib-cell"><label>CNPJ</label><span>${contribData.cnpj}</span></div>
-    <div class="contrib-cell"><label>PERÍODO</label><span>${contribData.periodo}</span></div>
-  `;
-
-  const v = extractedValues;
-  const totalDeb  = v['001'] + v['003'];
-  const totalCred = v['005'] + v['006'] + v['007'] + v['009'];
-  const saldo     = totalCred - totalDeb;
-  const credor    = saldo > 0 ? saldo : 0;
-  const devedor   = saldo < 0 ? Math.abs(saldo) : 0;
-
-  document.getElementById('calcGrid').innerHTML = `
-    <div class="calc-item"><div class="calc-label-sm">Débitos (001+003)</div><div class="calc-number">R$ ${formatMoney(totalDeb)}</div></div>
-    <div class="calc-item"><div class="calc-label-sm">Créditos (005+006+007+009)</div><div class="calc-number">R$ ${formatMoney(totalCred)}</div></div>
-    <div class="calc-item"><div class="calc-label-sm">Saldo Calculado</div><div class="calc-number ${saldo>=0?'green':'red'}">R$ ${formatMoney(Math.abs(saldo))} ${saldo>=0?'(Credor)':'(Devedor)'}</div></div>
-    <div class="calc-item"><div class="calc-label-sm">014 Informado</div><div class="calc-number">R$ ${formatMoney(v['014'])}</div></div>
-  `;
-
-  const msg = document.getElementById('validationMsg');
-  const diff = Math.abs(credor - v['014']);
-  if (v['014'] > 0 && diff < 1.0) {
-    msg.innerHTML = `✅ CONFIRMADO! Saldo credor calculado R$ ${formatMoney(credor)} = campo 014 R$ ${formatMoney(v['014'])}`;
-    msg.style.cssText = 'background:#dcfce7;color:#166534;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
-  } else if (v['014'] > 0) {
-    msg.innerHTML = `⚠️ DIVERGÊNCIA: Calculado R$ ${formatMoney(credor)} | 014 = R$ ${formatMoney(v['014'])} | Dif R$ ${formatMoney(diff)}`;
-    msg.style.cssText = 'background:#fee2e2;color:#991b1b;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
-  } else if (devedor > 0) {
-    msg.innerHTML = `ℹ️ Saldo Devedor R$ ${formatMoney(devedor)} | ICMS a recolher = R$ ${formatMoney(v['013'])}`;
-    msg.style.cssText = 'background:#fef9c3;color:#854d0e;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
-  } else {
-    msg.innerHTML = `📊 Débitos R$ ${formatMoney(totalDeb)} | Créditos R$ ${formatMoney(totalCred)} | ${saldo>=0?'Credor':'Devedor'} R$ ${formatMoney(Math.abs(saldo))}`;
-    msg.style.cssText = 'background:#e6f0fa;color:#1e40af;margin-top:20px;padding:16px 20px;border-radius:20px;font-weight:600;text-align:center;';
-  }
+  document.getElementById('processBtn').disabled = false;
 }
 
 function setStatus(type, text) {
-  document.getElementById('statusText').innerHTML = text;
-  document.getElementById('statusDot').className = 'status-dot ' + (type||'');
+  document.getElementById('stxt').textContent = text;
+  const d = document.getElementById('sdot');
+  d.className = 'sdot';
+  if(type==='ok') d.classList.add('ok');
+  if(type==='err') d.classList.add('err');
+  if(type==='spin') d.classList.add('spin');
 }
 
-function resetAndHide() {
-  document.getElementById('e110Card').style.display = 'none';
-  document.getElementById('debugCard').style.display = 'none';
-  setStatus('', 'Aguardando PDF com o Resumo da Apuração');
-  extractedValues = {'001':0,'003':0,'005':0,'006':0,'007':0,'009':0,'011':0,'012':0,'013':0,'014':0};
-}
+// ── EVENTOS DE ARQUIVO ───────────────────────────────────────────────────────
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
 
-function copyAllValues() {
-  const labels = {'001':'Débitos','003':'Estorno de créditos','005':'Créditos','006':'Outros créditos',
-    '007':'Estorno de débitos','009':'Saldo credor anterior','011':'Saldo devedor',
-    '012':'Deduções','013':'ICMS a recolher','014':'Saldo credor a transportar'};
-  const lines = Object.keys(labels).map(k =>
-    `${k} - ${labels[k]}: R$ ${document.getElementById('f'+k).value}`
-  );
-  navigator.clipboard.writeText(lines.join('\n')).then(() => {
-    const btn = document.getElementById('copyE110Btn');
-    const orig = btn.innerText;
-    btn.innerText = '✅ Copiado!';
-    setTimeout(() => btn.innerText = orig, 1500);
-  });
-}
-
-// ─── Events ──────────────────────────────────────────────────────────────────
-const dropzone  = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault(); dropzone.classList.remove('drag-over');
+dz.addEventListener('click', () => fi.click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
   const f = e.dataTransfer.files[0];
-  if (f?.type === 'application/pdf') {
-    currentFile = f;
-    document.getElementById('fileName').innerText = `📄 ${f.name}`;
-    document.getElementById('fileInfo').style.display = 'flex';
-    resetAndHide();
-  }
+  if (f?.type === 'application/pdf') setFile(f);
 });
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) {
-    currentFile = fileInput.files[0];
-    document.getElementById('fileName').innerText = `📄 ${currentFile.name}`;
-    document.getElementById('fileInfo').style.display = 'flex';
-    resetAndHide();
-  }
+fi.addEventListener('change', () => { if(fi.files[0]) setFile(fi.files[0]); });
+document.getElementById('clearFile').addEventListener('click', () => {
+  currentFile=null; fi.value='';
+  document.getElementById('fileChip').style.display='none';
+  document.getElementById('processBtn').disabled=true;
+  document.getElementById('valChips').style.display='none';
+  setStatus('','Aguardando PDF do Modelo P9');
 });
-document.getElementById('clearFileBtn').addEventListener('click', () => {
-  currentFile = null; fileInput.value = '';
-  document.getElementById('fileInfo').style.display = 'none';
-  resetAndHide();
-});
-document.getElementById('processBtn').addEventListener('click', processPDF);
-document.getElementById('copyE110Btn').addEventListener('click', copyAllValues);
-document.getElementById('debugBtn').addEventListener('click', () => {
-  const card = document.getElementById('debugCard');
-  card.style.display = card.style.display === 'none' ? 'block' : 'none';
-  if (lastDebugLines.length)
-    document.getElementById('debugText').textContent = lastDebugLines.join('\n');
-});
+
+function setFile(f) {
+  currentFile = f;
+  document.getElementById('fileName').textContent = f.name;
+  document.getElementById('fileChip').style.display = 'flex';
+  document.getElementById('processBtn').disabled = false;
+  setStatus('','PDF carregado — clique em Processar');
+}
 </script>
 </body>
 </html>
