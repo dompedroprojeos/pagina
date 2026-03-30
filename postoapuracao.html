@@ -906,14 +906,26 @@ async function processPDF() {
     document.getElementById('e110W').style.display = 'block';
     document.getElementById('regW').style.display = 'block';
 
-    setStatus(ng?'spin':'ok', ng ? `⚠️ Saldo negativo — NÃO gerar REG 1200 (${nome})` : `✅ Extração concluída — ${nome}`);
+    setStatus(ng?'spin':'ok', ng ? `⚠️ Saldo negativo — NÃO gerar REG 1200  (${nome})` : `✅ Extração concluída — ${nome}`);
 
-  } catch(err) {
-    console.error(err);
-    setStatus('err', `❌ Erro: ${err.message}`);
-  }
-  document.getElementById('processBtn').disabled = false;
+// 🔍 ATENÇÃO: Verificação de saldos 2949 e 1949 no SPEED
+if (ng) {
+  console.warn(`⚠️ ATENÇÃO - Saldo negativo para ${nome}`);
+  console.warn(`→ Verificar se existem registros 2949 e 1949 com saldos no SPEED`);
+  console.warn(`→ Se houver, ZERAR as bases:`);
+  console.warn(`   • NF de Entrada → localizar a NF correspondente`);
+  console.warn(`   • C170 → zerar no analítico do item`);
+  console.warn(`   • C190 → zerar no analítico de documentos fiscais`);
+  console.warn(`   • Capa do documento → zerar também:`);
+  console.warn(`     - Base de ICMS`);
+  console.warn(`     - Valor do ICMS`);
 }
+
+} catch(err) {
+  console.error(err);
+  setStatus('err', `❌ Erro: ${err.message}`);
+}
+document.getElementById('processBtn').disabled = false;.
 
 function setStatus(type, text) {
   document.getElementById('stxt').textContent = text;
