@@ -297,7 +297,7 @@ body {
 
 .rform { padding: 16px 20px; }
 .rrow { display: flex; align-items: center; margin-bottom: 11px; gap: 12px; }
-.rlbl { width: 230px; font-size: 0.76rem; color: var(--text2); flex-shrink: 0; text-align: right; font-weight: 500; }
+.rlbl { width: 250px; font-size: 0.76rem; color: var(--text2); flex-shrink: 0; text-align: right; font-weight: 500; }
 .rlbl small { display: block; font-size: 0.62rem; color: var(--text3); font-weight: 400; }
 .rinp {
   flex: 1;
@@ -537,7 +537,7 @@ body {
         <div class="rtab" onclick="showReg('rc')">🚛 REG 1200 — MG091012</div>
       </div>
 
-      <!-- MG091004 -->
+      <!-- MG091004 - REORDENADO: 1. Saldo | 2. Crédito Apropriado | 3. Transferência | 4. Utilizado | 5. Saldo Final -->
       <div class="rbody active" id="ra">
         <div class="rhdr">
           <h3>⛽ Registro 1200 — Controle de Créditos Fiscais</h3>
@@ -554,19 +554,19 @@ body {
             <input class="rinp" id="a_sant" readonly placeholder="—">
           </div>
           <div class="rrow">
-            <span class="rlbl">2. Créditos utilizados no período <small>Campo 001 — Débito saídas</small></span>
-            <input class="rinp" id="a_util" readonly placeholder="—">
-          </div>
-          <div class="rrow">
-            <span class="rlbl">3. Crédito apropriado no mês <small>Campo 005 — Entradas</small></span>
+            <span class="rlbl">2. Crédito apropriado no mês <small>Campo 005 — Entradas</small></span>
             <input class="rinp" id="a_cmes" readonly placeholder="—">
           </div>
           <div class="rrow">
-            <span class="rlbl">Créditos recebidos por transferência</span>
-            <input class="rinp" value="R$ 0,00" readonly>
+            <span class="rlbl">3. Créditos recebidos por transferência <small>Informe se houver</small></span>
+            <input class="rinp ed" id="a_transf" value="R$ 0,00" placeholder="R$ 0,00">
           </div>
           <div class="rrow">
-            <span class="rlbl" style="color:var(--green);font-weight:700;">4. Saldo de crédito fiscal <small>009 + 005 − 001</small></span>
+            <span class="rlbl">4. Créditos utilizados no período <small>Campo 001 — Débito saídas</small></span>
+            <input class="rinp" id="a_util" readonly placeholder="—">
+          </div>
+          <div class="rrow">
+            <span class="rlbl" style="color:var(--green);font-weight:700;">5. Saldo de crédito fiscal <small>1 + 2 + 3 − 4</small></span>
             <input class="rinp calc" id="a_sfin" readonly placeholder="—">
           </div>
         </div>
@@ -575,7 +575,7 @@ body {
         <div class="alert-ng" id="alertNG">
           <div class="at"><span>🚫</span> NÃO GERAR REGISTRO 1200</div>
           <div class="msg-content">
-            <p><strong>Saldo de crédito fiscal negativo</strong> → ICMS a pagar no período. Conforme regra, o Registro 1200 <strong>não deve ser preenchido</strong>.</p>
+            <p><strong>Saldo de crédito fiscal negativo ou zerado</strong> → ICMS a pagar ou sem saldo credor. Conforme regra, o Registro 1200 <strong>não deve ser preenchido</strong>.</p>
             <p>✔️ Ação obrigatória no SPED: marque <strong>"NÃO"</strong> para o REG 1200 no Registro 1010 (Bloco 1).</p>
             <ul class="checklist">
               <li><strong>📄 E116 – Guia de Recolhimento:</strong> Verifique se a guia de ICMS (DAR/DARE) foi emitida com o valor do campo 013 (imposto a recolher).</li>
@@ -588,15 +588,15 @@ body {
         </div>
 
         <div style="padding:0 20px 16px;">
-          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência — Resumo da Apuração</div>
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência — Resumo da Apuração (Fórmula: 1 + 2 + 3 − 4)</div>
           <table class="ctbl">
-            <tr><th>009 — Saldo credor período anterior (1º campo)</th><td class="val" id="r009">—</td></tr>
-            <tr><th>001 — Débito saídas / Créditos utilizados (2º campo)</th><td class="val" id="rdeb">—</td></tr>
-            <tr><th>005 — Crédito apropriado / Entradas (3º campo)</th><td class="val" id="rcred">—</td></tr>
-            <tr class="rtot"><th><strong>Subtotal (009 + 005)</strong></th><td class="val" id="rsub">—</td></tr>
-            <tr><th>014 — Saldo credor a transportar — 009+005−001 (4º campo)</th><td class="val" id="rsld">—</td></tr>
-           </table>
-          <div class="fnote">✅ Fórmula: 009 (Saldo anterior) + 005 (Créditos Entradas) − 001 (Débito Saídas) = 014 (Saldo credor)</div>
+            <tr><th>1. Saldo credor período anterior (Campo 009)</th><td class="val" id="r009">—</td></tr>
+            <tr><th>2. Crédito apropriado / Entradas (Campo 005)</th><td class="val" id="rcred">—</td></tr>
+            <tr><th>3. ➕ Créditos por Transferência</th><td class="val" id="rtransf">R$ 0,00</td></tr>
+            <tr><th>4. ➖ Créditos Utilizados (Campo 001)</th><td class="val" id="rdeb">—</td></tr>
+            <tr class="rtot"><th><strong>= 5. Saldo de crédito fiscal</strong></th><td class="val" id="rsld">—</td></tr>
+          </table>
+          <div class="fnote">✅ Fórmula correta: Saldo Anterior (1) + Crédito Apropriado (2) + Transferências (3) − Utilizado (4) = Saldo Final (5)</div>
         </div>
         <div class="orow">
           <span class="olbl">📌 Obrigatoriedade Bloco 1 — Registro 1010 — REG.1200:</span>
@@ -671,7 +671,7 @@ body {
             <tr><th>Imposto creditado CFOP 2.353</th><td class="val" id="q2353">R$ 0,00</td></tr>
             <tr class="rtot"><th><strong>Total crédito CT-e (MG091012)</strong></th><td class="val" id="qtot"><strong>—</strong></td></tr>
             <tr><th>Saldo final a transportar</th><td class="val" id="qtrp">—</td></tr>
-           </table>
+          </table>
         </div>
       </div>
     </div>
@@ -874,16 +874,44 @@ async function processPDF() {
     else if(devedor>0){vl.className='e110-vld warn';vl.innerHTML=`ℹ️ Saldo Devedor ${fmtBrl(devedor)} — ICMS a recolher = ${fmtBrl(v['013'])}`;}
     else{vl.className='e110-vld ok';vl.innerHTML=`📊 Débitos ${fmtBrl(totDeb)} · Créditos ${fmtBrl(totCred)} · Saldo ${fmtBrl(Math.abs(saldo))}`;}
 
-    const sf = v['009']+v['005']-v['001'];
-    setIn('a_sant', fmtBrl(v['009']));
-    setIn('a_util', fmtBrl(v['001']));
-    setIn('a_cmes', fmtBrl(v['005']));
-    setIn('a_sfin', fmtBrl(sf));
-    setTxt('r009', fmtBrl(v['009']));
-    setTxt('rdeb', fmtBrl(v['001']));
-    setTxt('rcred', fmtBrl(v['005']));
-    setTxt('rsub', fmtBrl(v['009']+v['005']));
-    setTxt('rsld', fmtBrl(sf));
+    // --- CÁLCULO REG 1200 (MG091004) COM ORDEM CORRETA: 1. Saldo + 2. Crédito + 3. Transferência - 4. Utilizado ---
+    const transf = parseMoney(document.getElementById('a_transf').value);
+    const sf = v['009'] + v['005'] + transf - v['001'];
+    
+    // Preenche na ordem correta
+    setIn('a_sant', fmtBrl(v['009']));      // 1º - Saldo anterior
+    setIn('a_cmes', fmtBrl(v['005']));      // 2º - Crédito apropriado
+    // Transferência já tem seu valor (3º)
+    setIn('a_util', fmtBrl(v['001']));      // 4º - Utilizado
+    setIn('a_sfin', fmtBrl(sf));            // 5º - Saldo final
+    
+    // Atualiza tabela de conferência na ordem correta
+    setTxt('r009', fmtBrl(v['009']));       // 1º
+    setTxt('rcred', fmtBrl(v['005']));      // 2º
+    setTxt('rtransf', fmtBrl(transf));      // 3º
+    setTxt('rdeb', fmtBrl(v['001']));       // 4º
+    setTxt('rsld', fmtBrl(sf));             // 5º
+
+    // Atualiza transferência ao digitar
+    const transfInput = document.getElementById('a_transf');
+    // Remove event listener anterior se existir para evitar duplicação
+    const newTransfInput = transfInput.cloneNode(true);
+    transfInput.parentNode.replaceChild(newTransfInput, transfInput);
+    const finalTransfInput = document.getElementById('a_transf');
+    
+    finalTransfInput.addEventListener('input', function() {
+        const val = parseMoney(this.value);
+        const newSf = v['009'] + v['005'] + val - v['001'];
+        setIn('a_sfin', fmtBrl(newSf));
+        setTxt('rsld', fmtBrl(newSf));
+        setTxt('rtransf', fmtBrl(val));
+        // Reavaliar alerta e obrigatoriedade
+        const ng = newSf <= 0;
+        document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
+        const ob = document.getElementById('obrig');
+        ob.textContent = ng ? 'NÃO' : 'SIM';
+        ob.className = 'obadge '+(ng?'nao':'sim');
+    });
 
     setIn('b_tcred', fmtBrl(v['001']));
     if(v['001']>0&&!document.getElementById('b_doc').value) document.getElementById('b_doc').value=`Apuração ICMS ${meta.periodo}`;
@@ -894,7 +922,7 @@ async function processPDF() {
     document.getElementById('qtot').innerHTML=`<strong>${fmtBrl(cte)}</strong>`;
     setTxt('qtrp', fmtBrl(cte));
 
-    const ng = sf < 0;
+    const ng = sf <= 0;
     document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
     const ob = document.getElementById('obrig');
     ob.textContent = ng ? 'NÃO' : 'SIM';
