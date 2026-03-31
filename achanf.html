@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador SPED Fiscal - Pesquisa por Valores</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f2b3d 0%, #1e4a6e 100%);
+            color: white;
+            padding: 24px 32px;
+            border-bottom: 1px solid #2c6288;
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 0.95rem;
+        }
+
+        .upload-area {
+            background: #f8fafc;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .file-label {
+            background: #1e4a6e;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .file-label:hover {
+            background: #0f3b57;
+        }
+
+        .file-info {
+            font-size: 0.85rem;
+            color: #475569;
+            background: #eef2ff;
+            padding: 6px 14px;
+            border-radius: 30px;
+        }
+
+        .search-panel {
+            background: white;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .search-group {
+            flex: 2;
+            min-width: 220px;
+        }
+
+        .search-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #5b6e8c;
+            margin-bottom: 6px;
+        }
+
+        .search-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .search-group input:focus {
+            outline: none;
+            border-color: #1e4a6e;
+            box-shadow: 0 0 0 3px rgba(30, 74, 110, 0.2);
+        }
+
+        .btn-search {
+            background: #0f2b3d;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-search:hover {
+            background: #1e4a6e;
+            transform: translateY(-1px);
+        }
+
+        .stats-bar {
+            background: #f1f5f9;
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .results-container {
+            padding: 24px 32px;
+            background: #ffffff;
+        }
+
+        .result-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .result-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            background: #f9fafb;
+            padding: 18px 24px;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nf-badge {
+            font-family: monospace;
+            background: #e6f0fa;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #0f3b57;
+        }
+
+        .valor-destacado {
+            background: #eef2ff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #0f2b3d;
+            font-size: 1rem;
+        }
+
+        .card-body {
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            background: white;
+        }
+
+        .info-group {
+            border-left: 3px solid #cbdff2;
+            padding-left: 14px;
+        }
+
+        .info-group strong {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #5b6e8c;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        .info-group span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #0f2b3d;
+            word-break: break-word;
+        }
+
+        .produtos-table {
+            margin-top: 16px;
+            background: #fefefe;
+            border-radius: 16px;
+            border: 1px solid #edf2f7;
+            overflow-x: auto;
+        }
+
+        .produtos-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .produtos-table th {
+            background: #f1f5f9;
+            padding: 12px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .produtos-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f8;
+            color: #1f2a44;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            padding: 16px 32px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #64748b;
+            background: #fafcff;
+        }
+
+        @media (max-width: 680px) {
+            .upload-area, .search-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📄 Analisador SPED Fiscal ICMS/IPI</h1>
+        <p>Importe o arquivo .txt (layout SPED) e busque notas fiscais por valor aproximado ou exato. Exiba CNPJ, número da NF, produtos e informações completas.</p>
+    </div>
+
+    <div class="upload-area">
+        <input type="file" id="fileInput" accept=".txt" style="display: none;">
+        <button class="file-label" id="uploadBtn">📂 Selecionar arquivo SPED</button>
+        <div id="fileStatus" class="file-info">Nenhum arquivo carregado</div>
+        <div style="flex:1"></div>
+        <div id="recordCount" class="file-info">Registros C100: 0</div>
+    </div>
+
+    <div class="search-panel">
+        <div class="search-group">
+            <label>🔎 Valor da Nota Fiscal (R$)</label>
+            <input type="text" id="searchValue" placeholder="Ex: 51149,30  ou 139,54  ou 2780,00" value="">
+        </div>
+        <button class="btn-search" id="searchBtn">🔍 Localizar notas</button>
+        <button class="btn-search" id="resetBtn" style="background:#6c757d;">🔄 Limpar</button>
+    </div>
+
+    <div class="stats-bar" id="statsBar">
+        <span>📌 Clique em buscar para filtrar pelas notas que contêm valor aproximado</span>
+        <span id="resultCount"></span>
+    </div>
+
+    <div class="results-container" id="resultsContainer">
+        <div class="empty-state">
+            📂 Aguardando carregamento do arquivo SPED. Selecione o arquivo .txt para iniciar.
+        </div>
+    </div>
+    <footer>
+        Ferramenta para consulta de notas fiscais (C100) no arquivo SPED Fiscal. Busca por valor total da NF (campo "VALOR_TOTAL_NF").
+        Exibe empresa emitente, CNPJ, número da NF, itens/produtos e detalhes de C170.
+    </footer>
+</div>
+
+<script>
+    // Estrutura para armazenar todas as notas fiscais (bloco C100) do arquivo
+    let allInvoices = [];      // array de objetos nota
+    let rawTextContent = "";
+    let fileLoaded = false;
+
+    // Helper: parse de valor numérico a partir de string BR (vírgula decimal)
+    function parseDecimalBR(valueStr) {
+        if (!valueStr || valueStr.trim() === "") return 0;
+        let cleaned = valueStr.trim().replace(/\./g, '').replace(',', '.');
+        let num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+    }
+
+    // Função principal: processa o conteúdo do arquivo e extrai todas as notas do bloco C100
+    function processSpedFile(content) {
+        const lines = content.split(/\r?\n/);
+        const invoices = [];
+        
+        // Percorre as linhas para encontrar registros C100
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line === "") continue;
+            const fields = line.split('|');
+            if (fields.length < 3) continue;
+            const reg = fields[1]; // campo registro normalmente está no índice 1
+            if (reg === 'C100') {
+                // Formato C100: |C100|IND_OPER|IND_EMIT|COD_PART|COD_MOD|COD_SIT|SER|NUM_DOC|CHV_NFE|DT_DOC|DT_E_S|VL_DOC|IND_PGTO|VL_DESC|VL_ABAT_NT|VL_MERC|IND_FRT|VL_FRT|VL_SEG|VL_OUT_DA|VL_BC_ICMS|VL_ICMS|VL_BC_ICMS_ST|VL_ICMS_ST|VL_IPI|VL_PIS|VL_COFINS|VL_PIS_ST|VL_COFINS_ST| ... 
+                // Índices importantes (considerando pipe inicial vazio)
+                // fields[0] = vazio antes do primeiro pipe? Na verdade split gera primeiro elemento vazio se linha começa com |
+                let idx = 0;
+                if (fields[0] === "") idx = 1; // ajuste pois a linha começa com |
+                const regCode = fields[idx];
+                if (regCode !== 'C100') continue;
+                
+                // Extrair dados baseados nos índices conhecidos
+                // Exemplo de mapeamento baseado no layout:
+                // |C100|IND_OPER|IND_EMIT|COD_PART|COD_MOD|COD_SIT|SER|NUM_DOC|CHV_NFE|DT_DOC|DT_E_S|VL_DOC|...
+                const indOper = fields[idx+1] || "";
+                const indEmit = fields[idx+2] || "";
+                const codPart = fields[idx+3] || "";
+                const codMod = fields[idx+4] || "";
+                const codSit = fields[idx+5] || "";
+                const serie = fields[idx+6] || "";
+                const numDoc = fields[idx+7] || "";
+                const chaveNfe = fields[idx+8] || "";
+                const dtDoc = fields[idx+9] || "";
+                const dtES = fields[idx+10] || "";
+                const vlDocRaw = fields[idx+11] || "0";
+                const vlDoc = parseDecimalBR(vlDocRaw);
+                // outros campos para exibição complementar
+                const vlMercRaw = fields[idx+15] || "0";
+                const vlMerc = parseDecimalBR(vlMercRaw);
+                
+                // Capturar informações adicionais de linhas subsequentes: produtos (C170) e também podemos recuperar dados do emitente via 0150 (COD_PART)
+                // Para enriquecer, vamos armazenar o cod_part e depois buscar o nome do participante nos registros 0150
+                // Também vamos coletar os itens (C170) associados a esta nota (ocorrem logo após C100 até próximo C100)
+                let items = [];
+                let j = i+1;
+                while (j < lines.length) {
+                    const nextLine = lines[j].trim();
+                    if (nextLine === "") { j++; continue; }
+                    const nextFields = nextLine.split('|');
+                    const nextReg = nextFields[1] || (nextFields[0] === "" ? nextFields[1] : nextFields[0]);
+                    if (nextReg === 'C100') break;
+                    if (nextReg === 'C170') {
+                        // |C170|NUM_ITEM|COD_ITEM|DESCR_COMPL|QTD|UNID|VL_ITEM|VL_DESC|...
+                        let idx2 = 0;
+                        if (nextFields[0] === "") idx2 = 1;
+                        const codItem = nextFields[idx2+2] || "";
+                        const descr = nextFields[idx2+3] || "";
+                        const qtdRaw = nextFields[idx2+4] || "0";
+                        const unid = nextFields[idx2+5] || "";
+                        const vlItemRaw = nextFields[idx2+6] || "0";
+                        const vlItem = parseDecimalBR(vlItemRaw);
+                        items.push({
+                            codigo: codItem,
+                            descricao: descr,
+                            quantidade: parseDecimalBR(qtdRaw),
+                            unidade: unid,
+                            valor: vlItem
+                        });
+                    }
+                    j++;
+                }
+                
+                // Objeto nota
+                invoices.push({
+                    linhaInicio: i,
+                    codPart: codPart,
+                    numDoc: numDoc,
+                    serie: serie,
+                    chaveNfe: chaveNfe,
+                    dtDoc: dtDoc,
+                    vlDoc: vlDoc,
+                    vlMerc: vlMerc,
+                    codMod: codMod,
+                    indOper: indOper,
+                    indEmit: indEmit,
+                    items: items,
+                    rawCodPart: codPart
+                });
+            }
+        }
+        
+        // Agora vamos mapear os participantes (0150) para enriquecer os nomes dos fornecedores/emitentes
+        const participants = new Map(); // key = cod_part, value = { nome, cnpj, endereco }
+        for (const line of lines) {
+            const fields = line.split('|');
+            if (fields.length < 2) continue;
+            let regIdx = (fields[0] === "") ? 1 : 0;
+            const reg = fields[regIdx];
+            if (reg === '0150') {
+                // |0150|COD_PART|NOME|... outros dados...
+                let start = (fields[0] === "") ? 1 : 0;
+                const codPart = fields[start+1] || "";
+                const nome = fields[start+2] || "";
+                const cnpj = fields[start+3] || "";   // pode ter CNPJ ou CPF
+                participants.set(codPart, { nome, cnpj });
+            }
+        }
+        
+        // Associar nome do participante a cada nota
+        for (let inv of invoices) {
+            const partData = participants.get(inv.codPart);
+            if (partData) {
+                inv.participanteNome = partData.nome;
+                inv.participanteCnpj = partData.cnpj;
+            } else {
+                inv.participanteNome = inv.codPart;
+                inv.participanteCnpj = "";
+            }
+        }
+        
+        return invoices;
+    }
+    
+    // Função para buscar notas cujo valor (vlDoc) esteja próximo ou igual ao valor informado
+    function searchInvoicesByValue(searchVal) {
+        if (!fileLoaded || allInvoices.length === 0) return [];
+        if (searchVal === "" || isNaN(searchVal)) return [];
+        const target = parseFloat(searchVal);
+        if (isNaN(target)) return [];
+        
+        // Busca por correspondência exata ou diferença muito pequena (tratamento de float)
+        const matched = allInvoices.filter(inv => {
+            // Aceita diferença menor que 0.01 centavos
+            return Math.abs(inv.vlDoc - target) < 0.009;
+        });
+        return matched;
+    }
+    
+    // Renderizar os resultados na tela
+    function renderResults(invoices, searchTerm) {
+        const container = document.getElementById('resultsContainer');
+        const resultCountSpan = document.getElementById('resultCount');
+        if (!invoices.length) {
+            container.innerHTML = `<div class="empty-state">🔍 Nenhuma nota fiscal encontrada com valor igual a <strong>${searchTerm}</strong>.<br>Verifique se o arquivo está carregado e tente outro valor.</div>`;
+            resultCountSpan.innerText = `Resultados: 0`;
+            return;
+        }
+        
+        resultCountSpan.innerText = `Resultados: ${invoices.length} nota(s)`;
+        
+        let html = '';
+        for (const inv of invoices) {
+            // Formatação do valor
+            const valorFormatado = inv.vlDoc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const valorMercFormatado = inv.vlMerc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            html += `
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="nf-badge">📄 NF ${inv.serie || ''} ${inv.numDoc || '---'}</div>
+                    <div class="valor-destacado">💰 ${valorFormatado}</div>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        <strong>🏢 Empresa (Emitente/Fornecedor)</strong>
+                        <span>${escapeHtml(inv.participanteNome) || 'Não identificado'}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>📇 CNPJ/CPF</strong>
+                        <span>${escapeHtml(inv.participanteCnpj) || '---'}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>🔢 Número da NF / Série</strong>
+                        <span>${escapeHtml(inv.numDoc)}  |  Série: ${escapeHtml(inv.serie)}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>📅 Data do Documento</strong>
+                        <span>${formatDate(inv.dtDoc)}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>⚙️ Código do Participante (0150)</strong>
+                        <span>${escapeHtml(inv.codPart)}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>💵 Valor Mercadorias (VL_MERC)</strong>
+                        <span>${valorMercFormatado}</span>
+                    </div>
+                    <div class="info-group">
+                        <strong>🔑 Chave NFe</strong>
+                        <span style="font-size:0.75rem; font-family:monospace;">${escapeHtml(inv.chaveNfe) || 'Não informada'}</span>
+                    </div>
+                </div>
+                ${inv.items.length ? `
+                <div class="produtos-table">
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Unid</th><th>Valor Unit.</th></tr>
+                        </thead>
+                        <tbody>
+                            ${inv.items.map(item => `
+                            <tr>
+                                <td>${escapeHtml(item.codigo)}</td>
+                                <td>${escapeHtml(item.descricao)}</td>
+                                <td>${item.quantidade.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                                <td>${escapeHtml(item.unidade)}</td>
+                                <td>${item.valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ` : '<div style="padding: 12px 24px 20px 24px; color:#6c757d; font-size:0.8rem;">📦 Nenhum item (C170) detalhado no bloco.</div>'}
+            </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr || dateStr.length !== 8) return dateStr || '---';
+        // formato provável: DDMMYYYY ou YYYYMMDD? No SPED geralmente DDMMYYYY
+        // Exemplo: 14102024 -> 14/10/2024
+        if (dateStr.length === 8 && !isNaN(dateStr)) {
+            const dia = dateStr.substring(0,2);
+            const mes = dateStr.substring(2,4);
+            const ano = dateStr.substring(4,8);
+            return `${dia}/${mes}/${ano}`;
+        }
+        return dateStr;
+    }
+    
+    // Carregar arquivo e processar
+    function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            rawTextContent = content;
+            allInvoices = processSpedFile(content);
+            fileLoaded = true;
+            document.getElementById('fileStatus').innerHTML = `📄 Arquivo: ${file.name} (${allInvoices.length} notas encontradas)`;
+            document.getElementById('recordCount').innerHTML = `Registros C100: ${allInvoices.length}`;
+            // limpar resultados anteriores
+            document.getElementById('resultsContainer').innerHTML = `<div class="empty-state">✅ Arquivo carregado! Utilize o campo de busca por valor para localizar notas fiscais.</div>`;
+            document.getElementById('resultCount').innerText = '';
+            document.getElementById('searchValue').value = '';
+        };
+        reader.onerror = function() {
+            alert('Erro ao ler o arquivo');
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+    
+    // Eventos DOM
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            loadFile(e.target.files[0]);
+        }
+    });
+    
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        if (!fileLoaded) {
+            alert('Por favor, carregue um arquivo SPED primeiro.');
+            return;
+        }
+        let searchRaw = document.getElementById('searchValue').value.trim();
+        if (searchRaw === "") {
+            alert('Digite um valor para busca (ex: 51149,30)');
+            return;
+        }
+        // converte vírgula para ponto temporariamente
+        let numericSearch = searchRaw.replace(/\./g, '').replace(',', '.');
+        let numValue = parseFloat(numericSearch);
+        if (isNaN(numValue)) {
+            alert('Valor inválido. Utilize apenas números e vírgula decimal (ex: 139,54)');
+            return;
+        }
+        const results = searchInvoicesByValue(numValue);
+        renderResults(results, searchRaw);
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        document.getElementById('searchValue').value = '';
+        if (fileLoaded) {
+            document.getElementById('resultsContainer').innerHTML = `<div class="empty-state">🔎 Busca limpa. Digite um valor e clique em "Localizar notas" para exibir os resultados.</div>`;
+            document.getElementById('resultCount').innerText = '';
+        } else {
+            document.getElementById('resultsContainer').innerHTML = `<div class="empty-state">📂 Nenhum arquivo carregado. Selecione um arquivo .txt do SPED Fiscal.</div>`;
+        }
+    });
+    
+    // Mensagem inicial
+    if (!fileLoaded) {
+        document.getElementById('resultsContainer').innerHTML = `<div class="empty-state">📁 Selecione o arquivo SPED .txt (layout bloco C100). Após o carregamento, use o campo de busca para encontrar notas por valor total (R$).<br><br>Exemplos de valores presentes no seu arquivo: 51149,30  |  139,54  |  2780,00  |  835,12</div>`;
+    }
+</script>
+</body>
+</html>
