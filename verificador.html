@@ -1,1987 +1,599 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise de Perdas - Rede Dom Pedro</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Reset e estilos base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            line-height: 1.375;
-            position: relative;
-            min-height: 100vh;
-            padding-bottom: 60px;
-        }
-
-        /* ESTILOS PARA IMPRESSÃO A4 COMPLETA - COM QUEBRAS DE PÁGINA */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 0.5cm;
-            }
-            
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 9pt !important;
-                line-height: 1.2 !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-            
-            /* OCULTA TUDO QUE NÃO É RESULTADO */
-            header,
-            .input-area,
-            .btn,
-            .button-group,
-            .search-container,
-            .btn-scroll,
-            footer,
-            .help-popup,
-            .help-overlay,
-            .btn-help {
-                display: none !important;
-            }
-            
-            /* MOSTRA APENAS OS RESULTADOS */
-            .table-container {
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                background: white !important;
-            }
-            
-            /* CABEÇALHO ESPECIAL PARA IMPRESSÃO */
-            .print-header {
-                display: block !important;
-                text-align: center;
-                margin-bottom: 10px;
-                border-bottom: 2px solid #333;
-                padding-bottom: 5px;
-                page-break-after: avoid !important;
-            }
-            
-            .print-header h1 {
-                font-size: 14pt !important;
-                margin: 0 0 3px 0 !important;
-                color: black !important;
-            }
-            
-            .print-header .subtitle {
-                font-size: 8pt;
-                color: #666;
-            }
-            
-            /* SEÇÃO DO CABEÇALHO COM PRIMEIRO PRODUTO JUNTO */
-            .header-completo {
-                page-break-after: avoid !important;
-                margin-bottom: 15px !important;
-            }
-            
-            /* QUEBRA DE PÁGINA PARA CADA PRODUTO A PARTIR DO SEGUNDO */
-            .empresa-section {
-                page-break-before: always !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                break-before: page !important;
-                margin-top: 0 !important;
-                padding-top: 5px !important;
-                border: none !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-                background: white !important;
-            }
-            
-            /* PRIMEIRO PRODUTO NÃO COMEÇA EM NOVA PÁGINA - FICA JUNTO COM CABEÇALHO */
-            .empresa-section:first-of-type {
-                page-break-before: auto !important;
-                break-before: auto !important;
-                margin-top: 10px !important;
-            }
-            
-            /* ESTILO ESPECIAL PARA CABEÇALHO + PRIMEIRO PRODUTO */
-            .header-completo + .empresa-section:first-of-type {
-                page-break-before: auto !important;
-                break-before: auto !important;
-                margin-top: 0 !important;
-                padding-top: 0 !important;
-            }
-            
-            /* AJUSTA O CONTAINER DO CABEÇALHO GERAL */
-            .header-geral {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                margin-bottom: 10px !important;
-            }
-            
-            /* EVITA QUE A TABELA SE QUEBRE ENTRE PÁGINAS */
-            table {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            
-            /* EVITA QUE LINHAS SE SEPAREM */
-            tr {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            
-            /* AJUSTA TAMANHO DAS SEÇÕES */
-            .empresa-section h3 {
-                margin-top: 5px !important;
-                page-break-after: avoid !important;
-                background: #e0e0e0 !important;
-                color: black !important;
-                padding: 8px !important;
-                margin: 0 0 8px 0 !important;
-                font-size: 10pt !important;
-            }
-            
-            /* CABEÇALHO DA EMPRESA - AJUSTADO */
-            .header-empresa h3 {
-                page-break-after: avoid !important;
-                margin: 0 0 5px 0 !important;
-                padding: 8px !important;
-                background: #d0d0d0 !important;
-            }
-            
-            /* AJUSTA TABELAS PARA CABER EM A4 */
-            table {
-                width: 100% !important;
-                max-width: 100% !important;
-                font-size: 6.5pt !important;
-                border-collapse: collapse;
-                table-layout: fixed;
-                page-break-inside: avoid !important;
-                margin-bottom: 10px !important;
-            }
-            
-            th, td {
-                padding: 2px 1px !important;
-                border: 0.5pt solid #999 !important;
-                text-align: center;
-                word-wrap: break-word;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                page-break-inside: avoid !important;
-            }
-            
-            th {
-                background: #f0f0f0 !important;
-                color: black !important;
-                font-size: 6pt !important;
-                padding: 3px 1px !important;
-                font-weight: bold;
-            }
-            
-            /* LARGURAS FIXAS PARA COLUNAS */
-            td:nth-child(1) { width: 8% !important; }  /* Data */
-            td:nth-child(2), td:nth-child(6) { width: 3% !important; }  /* Med */
-            td:nth-child(3), td:nth-child(7) { width: 7% !important; }  /* Litragens */
-            td:nth-child(4) { width: 6% !important; }  /* Entrada */
-            td:nth-child(5) { width: 6% !important; }  /* Estoque */
-            td:nth-child(8), td:nth-child(9) { width: 6% !important; }  /* Saídas */
-            td:nth-child(10) { width: 7% !important; } /* Diferença */
-            td:nth-child(11), td:nth-child(12) { width: 8% !important; } /* Tipo e Obs */
-            
-            /* REDUZ ESPAÇAMENTOS */
-            .info-combustivel {
-                padding: 3px !important;
-                margin: 2px 0 !important;
-                font-size: 7pt !important;
-                border-left: 2px solid #999 !important;
-                page-break-inside: avoid !important;
-            }
-            
-            .estatisticas {
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 4px !important;
-                margin: 5px 0 !important;
-                page-break-inside: avoid !important;
-            }
-            
-            .estatistica-item {
-                padding: 3px !important;
-                font-size: 6.5pt !important;
-                page-break-inside: avoid !important;
-            }
-            
-            .estatistica-valor {
-                font-size: 12px !important;
-            }
-            
-            .estatistica-label {
-                font-size: 6pt !important;
-            }
-            
-            /* PAINÉIS DE ALERTA NA IMPRESSÃO */
-            .alerta-panel {
-                padding: 4px !important;
-                margin: 4px 0 !important;
-                font-size: 7pt !important;
-                border: 0.5pt solid #999 !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            
-            .alerta-panel h4 {
-                font-size: 8pt !important;
-                margin: 0 0 3px 0 !important;
-            }
-            
-            /* CORES PARA IMPRESSÃO PRETO E BRANCO */
-            .verde-forte {
-                background-color: #e0f0e0 !important;
-                color: black !important;
-                font-weight: bold;
-                border-left: 2px solid #006400 !important;
-            }
-            
-            .vermelho-forte {
-                background-color: #f0e0e0 !important;
-                color: black !important;
-                font-weight: bold;
-                border-left: 2px solid #8B0000 !important;
-            }
-            
-            .falta-medida-alerta {
-                background-color: #e0f0ff !important;
-                color: black !important;
-                font-weight: bold;
-                border-left: 2px solid #00008B !important;
-            }
-            
-            /* SÍMBOLOS PARA IDENTIFICAR CORES NA IMPRESSÃO */
-            .verde-forte::after {
-                content: " ▲";
-                color: #006400;
-                font-size: 5pt;
-            }
-            
-            .vermelho-forte::after {
-                content: " ▼";
-                color: #8B0000;
-                font-size: 5pt;
-            }
-            
-            .falta-medida-alerta::before {
-                content: "⚠ ";
-                color: #00008B;
-            }
-            
-            /* EVITA QUEBRAS EM ELEMENTOS IMPORTANTES */
-            .total-row,
-            .grand-total-row {
-                page-break-inside: avoid;
-                break-inside: avoid;
-                background-color: #e0e0e0 !important;
-            }
-            
-            /* LIMITA ALTURA MÁXIMA DAS LINHAS */
-            tr {
-                max-height: 15px !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            
-            /* RODAPÉ DE IMPRESSÃO */
-            body::after {
-                content: "WaldeciRamos@2025";
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                text-align: center;
-                font-size: 8pt;
-                color: #666;
-                padding: 5px 0;
-                background: #f0f0f0;
-                border-top: 1px solid #ccc;
-            }
-            
-            body {
-                padding-bottom: 20px !important;
-            }
-            
-            /* GARANTE QUE TÍTULOS NÃO FIQUEM SOZINHOS NO FINAL DA PÁGINA */
-            h3, h4 {
-                page-break-after: avoid !important;
-            }
-            
-            /* GARANTE QUE TABELAS NÃO SEJAM CORTADAS */
-            table {
-                page-break-before: avoid !important;
-            }
-            
-            /* SE O CONTEÚDO FOR MUITO LONGO, PERMITE QUEBRA MAS MANTÉM CABEÇALHO */
-            thead {
-                display: table-header-group !important;
-            }
-            
-            tfoot {
-                display: table-footer-group !important;
-            }
-        }
-
-        /* PreLoader */
-        #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .loader .progress-bar {
-            width: 200px;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .loader .progress-bar::after {
-            content: '';
-            display: block;
-            width: 0%;
-            height: 100%;
-            background: #3498db;
-            animation: progress 2s linear forwards;
-        }
-
-        @keyframes progress {
-            to { width: 100%; }
-        }
-
-        .loader .title {
-            margin-top: 15px;
-            font-size: 20px;
-            color: #3498db;
-        }
-
-        /* Cabeçalho e Rodapé */
-        header, footer {
-            background: linear-gradient(135deg, #ff7f50 0%, #ff4500 100%);
-            color: #f4f4f9;
-            padding: 15px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: relative;
-        }
-
-        header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px 20px;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-container img {
-            height: 50px;
-            margin-right: 10px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #f4f4f9;
-            text-align: center;
-        }
-
-        footer {
-            padding: 10px 0;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            font-size: 12px;
-        }
-
-        /* Container principal */
-        .container {
-            max-width: 1400px;
-            margin: 15px auto;
-            padding: 15px;
-            border-radius: 6px;
-            background-color: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Campo de busca */
-        .search-container {
-            margin-bottom: 15px;
-            text-align: center;
-            position: relative;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .search-container input {
-            padding: 8px 30px 8px 12px;
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        .search-container input:focus {
-            border-color: #3498db;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-
-        .search-container .search-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #3498db;
-            font-size: 14px;
-        }
-
-        /* Área de entrada de dados */
-        .input-area {
-            margin-bottom: 15px;
-            background-color: #f7f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #e0e0e0;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 12px;
-            transition: border 0.3s;
-            resize: vertical;
-            font-family: monospace;
-        }
-
-        textarea:focus {
-            border-color: #3498db;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-
-        /* Botões */
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            font-size: 11px;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            min-width: 90px;
-        }
-
-        .btn-process {
-            background-color: #3498db;
-        }
-
-        .btn-process:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-clear {
-            background-color: #e74c3c;
-        }
-
-        .btn-clear:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-export {
-            background-color: #27ae60;
-        }
-
-        .btn-export:hover {
-            background-color: #219653;
-        }
-
-        .btn-print {
-            background-color: #9b59b6;
-        }
-
-        .btn-print:hover {
-            background-color: #8e44ad;
-        }
-
-        .btn-help {
-            background-color: #f39c12;
-        }
-
-        .btn-help:hover {
-            background-color: #d68910;
-        }
-
-        .btn-scroll {
-            position: fixed;
-            right: 15px;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background-color: #2c3e50;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            z-index: 100;
-        }
-
-        .btn-scroll-up {
-            bottom: 60px;
-        }
-
-        .btn-scroll-down {
-            top: 60px;
-        }
-
-        /* Tabelas */
-        .table-container {
-            overflow-x: auto;
-            margin-top: 15px;
-            border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-            background: white;
-            padding: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 11px;
-        }
-
-        th, td {
-            padding: 6px 4px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #34495e;
-            color: white;
-            font-weight: 600;
-            font-size: 10px;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .total-row {
-            font-weight: bold;
-            background-color: #e3f2fd;
-        }
-
-        .grand-total-row {
-            font-weight: bold;
-            background-color: #2c3e50;
-            color: white;
-            font-size: 11px;
-        }
-
-        /* Destaque para alertas */
-        .verde-forte {
-            background-color: #28a745 !important;
-            color: white !important;
-            font-weight: bold;
-        }
-
-        .vermelho-forte {
-            background-color: #dc3545 !important;
-            color: white !important;
-            font-weight: bold;
-        }
-
-        .falta-medida-alerta {
-            background-color: #007bff !important;
-            color: white !important;
-            font-weight: bold;
-        }
-
-        .alerta-normal {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .alerta-atencao {
-            background-color: #fff3cd;
-            color: #856404;
-            font-weight: bold;
-        }
-
-        .alerta-critico {
-            background-color: #f8d7da;
-            color: #721c24;
-            font-weight: bold;
-        }
-
-        /* Cabeçalhos de empresa */
-        .empresa-section {
-            margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 15px;
-            background: white;
-        }
-
-        .empresa-section h3 {
-            margin: 0 0 8px 0;
-            padding: 8px 10px;
-            background-color: #34495e;
-            color: white;
-            border-radius: 4px 4px 0 0;
-            font-size: 14px;
-        }
-
-        .info-combustivel {
-            background-color: #f8f9fa;
-            padding: 8px 10px;
-            margin: 5px 0 10px 0;
-            border-left: 3px solid #3498db;
-            font-size: 12px;
-            border-radius: 4px;
-        }
-
-        /* Painel de alertas */
-        .alerta-panel {
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-
-        .alerta-panel.critico {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-        }
-
-        .alerta-panel.falta-medida {
-            background-color: #d1ecf1;
-            border-color: #bee5eb;
-        }
-
-        .alerta-panel h4 {
-            margin: 0 0 8px 0;
-            color: #856404;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .alerta-panel.critico h4 {
-            color: #721c24;
-        }
-
-        .alerta-panel.falta-medida h4 {
-            color: #0c5460;
-        }
-
-        /* Estatísticas */
-        .estatisticas {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 8px;
-            margin: 10px 0;
-        }
-
-        .estatistica-item {
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            text-align: center;
-            border: 1px solid #e0e0e0;
-        }
-
-        .estatistica-valor {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .estatistica-label {
-            font-size: 11px;
-            color: #6c757d;
-            margin-top: 3px;
-        }
-
-        /* Classes para impressão - escondidas na tela */
-        .print-header {
-            display: none;
-        }
-        
-        /* Classe para controlar quebra de página na visualização web */
-        @media screen {
-            .empresa-section {
-                page-break-before: auto;
-                break-before: auto;
-            }
-            
-            .header-completo {
-                margin-bottom: 20px;
-            }
-        }
-
-        /* ESTILOS PARA O POPUP DE AJUDA */
-        .help-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-        }
-
-        .help-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 800px;
-            max-height: 85vh;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            overflow: hidden;
-            animation: popupFadeIn 0.3s ease;
-        }
-
-        @keyframes popupFadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -40%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        .help-header {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .help-header h2 {
-            margin: 0;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .help-header h2 i {
-            font-size: 24px;
-        }
-
-        .close-help {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .close-help:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .help-content {
-            padding: 25px;
-            max-height: calc(85vh - 80px);
-            overflow-y: auto;
-        }
-
-        .help-step {
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-        }
-
-        .help-step h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 16px;
-        }
-
-        .help-step h3 i {
-            color: #3498db;
-        }
-
-        .help-step p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .image-gallery {
-            position: relative;
-            margin: 20px 0;
-            background: #f5f5f5;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .image-container {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .help-image {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 6px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid #ddd;
-        }
-
-        .image-caption {
-            margin-top: 10px;
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .image-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .nav-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .nav-btn:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
-        }
-
-        .nav-btn:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .image-counter {
-            font-weight: 500;
-            color: #2c3e50;
-            background: #ecf0f1;
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-
-        .help-tip {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .help-tip h4 {
-            color: #856404;
-            margin: 0 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .help-tip p {
-            color: #856404;
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .help-footer {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #7f8c8d;
-            font-size: 13px;
-        }
-
-        .help-footer i {
-            color: #e74c3c;
-        }
-
-        /* Instruções passo a passo */
-        .instructions {
-            margin: 20px 0;
-        }
-
-        .instruction-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 6px;
-            border-left: 3px solid #3498db;
-        }
-
-        .instruction-number {
-            background: #3498db;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .instruction-text {
-            flex: 1;
-        }
-
-        .instruction-text strong {
-            color: #2c3e50;
-        }
-
-        .shortcut {
-            background: #e3f2fd;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-weight: bold;
-            color: #1565c0;
-            border: 1px solid #bbdefb;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisador ICMS – Conciliação Simplificada</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#0f1117; --surface:#181c27; --surface2:#1f2435; --border:#2c3250;
+    --accent:#f0a500; --green:#3ecf8e; --red:#f04040; --blue:#4fa8ff;
+    --text:#e8eaf0; --muted:#7a8099;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;min-height:100vh;display:flex;flex-direction:column}
+  
+  /* Header */
+  header{background:var(--surface);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .badge{background:var(--accent);color:#000;font-family:var(--mono);font-weight:600;font-size:11px;padding:3px 9px;border-radius:3px;letter-spacing:.06em}
+  header h1{font-size:14px;font-weight:500}
+  header .sub{color:var(--muted);font-size:11px;margin-left:auto;font-family:var(--mono)}
+  
+  /* Área de entrada - colapsável */
+  .inputs-section{background:var(--surface);border-bottom:1px solid var(--border)}
+  .inputs-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;cursor:pointer;background:var(--surface2);transition:background 0.2s}
+  .inputs-header:hover{background:var(--border)}
+  .inputs-header h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+  .inputs-header .toggle-icon{font-size:16px;transition:transform 0.2s}
+  .inputs-header.collapsed .toggle-icon{transform:rotate(-90deg)}
+  .inputs-container{display:grid;grid-template-columns:1fr 1fr 1fr;max-height:400px;overflow:hidden;transition:max-height 0.3s ease, padding 0.3s ease}
+  .inputs-container.collapsed{max-height:0;padding:0}
+  .panel{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+  .panel:last-child{border-right:none}
+  .ph{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .ph .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .ph h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+  .ph .hint{font-size:9px;color:var(--muted);margin-left:auto}
+  textarea{flex:1;background:var(--bg);color:#c7d0e8;font-family:var(--mono);font-size:10px;line-height:1.6;border:none;resize:none;padding:10px 12px;outline:none;min-height:180px}
+  textarea::placeholder{color:#3a405a}
+  .toolbar{background:var(--surface2);border-top:1px solid var(--border);padding:6px 12px;display:flex;gap:6px;align-items:center;flex-shrink:0}
+  button{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 12px;border:none;border-radius:3px;cursor:pointer;transition:opacity .15s}
+  button:hover{opacity:.82}
+  .btn-run{background:var(--accent);color:#000}
+  .btn-clr{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .btn-csv{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+  .btn-toggle{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:10px;padding:4px 10px}
+  
+  /* Área de resultados */
+  .results-section{flex:1;display:flex;flex-direction:column;min-height:0}
+  .results-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .results-header h2{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .tag{font-size:10px;font-family:var(--mono);padding:3px 10px;border-radius:20px;font-weight:600}
+  .tok{background:#0d3d28;color:var(--green);border:1px solid #1a6644}
+  .terr{background:#3d1010;color:var(--red);border:1px solid #6e2020}
+  .results-content{flex:1;overflow-y:auto;padding:16px 20px}
+  
+  /* Cards e KPIs */
+  .kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+  .kpi-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+  .kpi-card .title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .kpi-card .values{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px}
+  .kpi-card .value{font-family:var(--mono);font-size:18px;font-weight:600}
+  .kpi-card .delta{font-family:var(--mono);font-size:13px;padding:4px 8px;border-radius:4px}
+  .delta.ok{background:rgba(62,207,142,0.15);color:var(--green)}
+  .delta.err{background:rgba(240,64,64,0.15);color:var(--red)}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .status-badge.success{background:rgba(62,207,142,0.15);color:var(--green)}
+  .status-badge.warning{background:rgba(240,165,0,0.15);color:var(--accent)}
+  .status-badge.error{background:rgba(240,64,64,0.15);color:var(--red)}
+  
+  /* Tabelas */
+  .section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin:20px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+  .section-title:first-of-type{margin-top:0}
+  .table-wrapper{overflow-x:auto;margin-bottom:20px;border-radius:6px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{background:var(--surface2);color:var(--muted);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+  td{font-family:var(--mono);font-size:11px;padding:7px 10px;border-bottom:1px solid var(--border)}
+  td.r{text-align:right}
+  td.cf{color:var(--blue);font-weight:600}
+  tr:hover td{background:rgba(255,255,255,.03)}
+  .total-row{background:rgba(240,165,0,0.1);font-weight:bold}
+  .total-row td{border-top:2px solid var(--accent)}
+  .warning-row{background:rgba(255,180,71,0.08)}
+  .error-row{background:rgba(240,64,64,0.08)}
+  .status-ok{color:var(--green);font-weight:600}
+  .status-warn{color:#ffb347;font-weight:600}
+  .status-error{color:var(--red);font-weight:600}
+  .obs-cell{font-size:10px;max-width:380px;color:var(--muted);line-height:1.4}
+  .obs-cell strong{color:var(--accent)}
+  .obs-cell .highlight{color:#ffb347;font-weight:600}
+  
+  /* Abas */
+  .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
+  .tab-btn{background:transparent;border:none;padding:8px 20px;cursor:pointer;font-size:12px;font-weight:600;border-radius:6px 6px 0 0;color:var(--muted)}
+  .tab-btn.active{background:var(--accent);color:#000}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  
+  /* Legenda */
+  .legend{background:var(--surface2);border-radius:6px;padding:12px 16px;margin-top:20px;font-size:10px;display:flex;flex-wrap:wrap;gap:16px}
+  .legend-item{display:flex;align-items:center;gap:6px}
+  .legend-dot{width:10px;height:10px;border-radius:2px}
+  
+  /* Scroll */
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:var(--surface)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
 </head>
 <body>
-    <!-- PreLoader -->
-    <div id="preloader">
-        <div class="loader">
-            <div class="progress-bar"></div>
-            <span class="title">Carregando...</span>
-        </div>
+
+<header>
+  <span class="badge">ICMS P9</span>
+  <h1>Conciliação Fiscal — Apuração Contábil x SPED</h1>
+  <span class="sub">Valores Contábeis | Base de Cálculo | ICMS (Crédito/Débito)</span>
+</header>
+
+<div class="inputs-section">
+  <div class="inputs-header" onclick="toggleInputs()">
+    <h2>
+      <span>📋</span> DADOS PARA ANÁLISE
+    </h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="inputs-container" id="inputsContainer">
+    <div class="panel">
+      <div class="ph">
+        <div class="dot" style="background:var(--accent)"></div>
+        <h3 style="color:var(--accent)">📄 APURAÇÃO CONTÁBIL (P9)</h3>
+        <span class="hint">Cole o MODELO P9 completo</span>
+      </div>
+      <textarea id="txt-p9" placeholder="Cole o texto completo do MODELO P9:
+
+ENTRADAS (ValorContabil, BaseICMS, CFOP, ICMS, Isentas, Outras):
+19.460,00 19.460,00 1102 3.502,80 0,00 0,00
+6.598,43 0,00 1253 0,00 6.598,43 0,00
+250,00 0,00 1303 0,00 250,00 0,00
+120.317,62 0,00 1353 0,00 0,00 120.317,62
+
+SAÍDAS:
+65.533,81 65.533,81 5102 11.795,90 0,00 0,00
+687,00 0,00 5405 0,00 0,00 687,00
+2.055.587,04 0,00 5656 0,00 0,00 2.055.587,04"></textarea>
+      <div class="toolbar">
+        <button class="btn-clr" onclick="cl('p9')">Limpar</button>
+      </div>
     </div>
+    <div class="panel">
+      <div class="ph">
+        <div class="dot" style="background:var(--green)"></div>
+        <h3 style="color:var(--green)">📥 SPED ENTRADAS</h3>
+        <span class="hint">CST CFOP ALIQ ICMS 0 0 TOTAL_OP BASE_ICMS</span>
+      </div>
+      <textarea id="txt-ent" placeholder="Cole o resumo SPED de ENTRADAS:
 
-    <!-- Overlay para o popup de ajuda -->
-    <div class="help-overlay" onclick="closeHelpPopup()"></div>
-
-    <!-- Popup de ajuda -->
-    <div class="help-popup">
-        <div class="help-header">
-            <h2><i class="fas fa-question-circle"></i> Como Tirar o Relatório do AutoSystem</h2>
-            <button class="close-help" onclick="closeHelpPopup()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="help-content">
-            <div class="help-step">
-                <h3><i class="fas fa-map-signs"></i> Passo 1: Localizar o Relatório</h3>
-                <div class="instructions">
-                    <div class="instruction-item">
-                        <div class="instruction-number">1</div>
-                        <div class="instruction-text">
-                            No <strong>AutoSystem</strong>, vá para o menu: <br>
-                            <strong>Estoque→ Relatórios → Medição de Tanque → Medição de Tanque por período</strong>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="image-gallery">
-                    <div class="image-container">
-                        <img src="relatorio.png" alt="Caminho do relatório no AutoSystem" class="help-image" id="help-image">
-                        <div class="image-caption" id="image-caption">Figura 1: Caminho para encontrar o relatório</div>
-                    </div>
-                    
-                    <div class="image-nav">
-                        <button class="nav-btn" id="prev-btn" onclick="prevImage()">
-                            <i class="fas fa-arrow-left"></i> Anterior
-                        </button>
-                        <div class="image-counter">
-                            <span id="current-img">1</span> de <span id="total-imgs">4</span>
-                        </div>
-                        <button class="nav-btn" id="next-btn" onclick="nextImage()">
-                            Próxima <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="help-step">
-                <h3><i class="fas fa-cog"></i> Passo 2: Configurar o Relatório</h3>
-                <div class="instructions">
-                    <div class="instruction-item">
-                        <div class="instruction-number">1</div>
-                        <div class="instruction-text">
-                            Selecione o <strong>período desejado</strong> (mínimo 5 dias)
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">2</div>
-                        <div class="instruction-text">
-                            Escolha a <strong>empresa/postos</strong> que deseja analisar
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">3</div>
-                        <div class="instruction-text">
-                            Selecione os <strong>produtos/combustíveis</strong> desejados
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">4</div>
-                        <div class="instruction-text">
-                            Clique em <strong>"Gerar Relatório"</strong> ou similar
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="help-step">
-                <h3><i class="fas fa-clipboard"></i> Passo 3: Copiar os Dados</h3>
-                <div class="instructions">
-                    <div class="instruction-item">
-                        <div class="instruction-number">1</div>
-                        <div class="instruction-text">
-                            Quando o relatório aparecer na tela, pressione 
-                            <span class="shortcut">Ctrl + A</span> para selecionar tudo
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">2</div>
-                        <div class="instruction-text">
-                            Pressione <span class="shortcut">Ctrl + C</span> para copiar
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">3</div>
-                        <div class="instruction-text">
-                            Dentro do campo da página... 
-                            <strong>"Cole os dados do relatório nela..."</strong>
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-number">4</div>
-                        <div class="instruction-text">
-                            Clique em <button class="btn btn-process" style="padding: 3px 8px; font-size: 10px;">
-                                <i class="fas fa-cogs"></i> Analisar Dados
-                            </button> para processar
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="help-tip">
-                <h4><i class="fas fa-lightbulb"></i> Dica Importante</h4>
-                <p>Certifique-se de que o relatório tenha pelo menos 5 dias de dados para uma análise mais precisa. 
-                O sistema funciona melhor com períodos de 7 a 30 dias.</p>
-            </div>
-            
-            <div class="help-footer">
-                <p><i class="fas fa-exclamation-circle"></i> Se o relatório não aparecer conforme as imagens, 
-                verifique se está usando a versão mais recente do AutoSystem.</p>
-            </div>
-        </div>
+000 1102 18,00 3.502,80 0,00 0,00 19.460,00 19.460,00
+041 1253 0,00 0,00 0,00 0,00 6.598,43 0,00
+041 1353 0,00 0,00 0,00 0,00 120.317,62 0,00"></textarea>
+      <div class="toolbar">
+        <button class="btn-clr" onclick="cl('ent')">Limpar</button>
+      </div>
     </div>
+    <div class="panel">
+      <div class="ph">
+        <div class="dot" style="background:var(--blue)"></div>
+        <h3 style="color:var(--blue)">📤 SPED SAÍDAS</h3>
+        <span class="hint">CST CFOP ALIQ ICMS 0 0 SIT TOTAL_OP BASE_ICMS</span>
+      </div>
+      <textarea id="txt-sai" placeholder="Cole o resumo SPED de SAÍDAS:
 
-    <header>
-        <div class="logo-container">
-            <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Logo Rede Dom Pedro">
-            <h1><i class="fas fa-gas-pump"></i> Análise de Perdas - Rede Dom Pedro</h1>
-        </div>
-        <button class="btn-scroll btn-scroll-down" onclick="scrollToBottom()">
-            <i class="fas fa-chevron-down"></i>
-        </button>
-    </header>
-
-    <div class="container">
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar por produto..." onkeyup="filterResults()">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-
-        <div class="input-area">
-            <textarea id="data-input" placeholder="Cole os dados do relatório aqui..."></textarea>
-            <div class="button-group">
-                <button class="btn btn-help" onclick="openHelpPopup()">
-                    <i class="fas fa-question-circle"></i> Como Tirar Relatório
-                </button>
-                <button class="btn btn-process" onclick="processData()">
-                    <i class="fas fa-cogs"></i> Analisar Dados
-                </button>
-                <button class="btn btn-clear" onclick="clearData()">
-                    <i class="fas fa-trash-alt"></i> Limpar
-                </button>
-                <button class="btn btn-print" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
-                <button class="btn btn-export" onclick="exportData()">
-                    <i class="fas fa-file-export"></i> Exportar
-                </button>
-            </div>
-        </div>
-
-        <div id="tabela-container" class="table-container"></div>
+000 5102 18,00 11.795,90 0,00 0,00 00 65.533,81 65.533,81
+041 5909 0,00 0,00 0,00 0,00 00 95.793,18 0,00
+060 5405 0,00 0,00 0,00 0,00 00 687,00 0,00
+060 5656 0,00 0,00 0,00 0,00 00 27.669,14 0,00
+061 5656 0,00 0,00 0,00 0,00 00 2.027.917,90 0,00
+061 5667 0,00 0,00 0,00 0,00 00 2.093.248,38 0,00
+061 6656 0,00 0,00 0,00 0,00 00 5.325,44 0,00"></textarea>
+      <div class="toolbar">
+        <button class="btn-clr" onclick="cl('sai')">Limpar</button>
+        <button class="btn-run" onclick="analisar()">▶ Analisar</button>
+        <button class="btn-csv" onclick="exportCSV()">⬇ CSV</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <footer>
-        <p>&copy; 2023 Rede Dom Pedro - Sistema de Análise de Perdas</p>
-        <button class="btn-scroll btn-scroll-up" onclick="scrollToTop()">
-            <i class="fas fa-chevron-up"></i>
-        </button>
-    </footer>
+<div class="results-section" id="resultsSection" style="display:none">
+  <div class="results-header">
+    <h2>
+      <span>📊</span> RESULTADO DA CONCILIAÇÃO
+    </h2>
+    <div style="display:flex; gap:8px">
+      <button class="btn-toggle" onclick="toggleInputs()">✎ Editar dados</button>
+      <button class="btn-clr" onclick="novaAnalise()">🔄 Nova análise</button>
+    </div>
+  </div>
+  <div class="results-content" id="resultsContent"></div>
+</div>
 
-    <script>
-        // Configuração das imagens do tutorial
-        const helpImages = [
-            {
-                src: 'relatorio.png',
-                caption: 'Figura 1: Caminho para encontrar o relatório no AutoSystem'
-            },
-            {
-                src: 'relatorio2.png',
-                caption: 'Figura 2: Configuração do período, empresa e produtos'
-            },
-            {
-                src: 'relatorio3.png',
-                caption: 'Figura 3: Relatório gerado - pronto para copiar (Ctrl+A, Ctrl+C)'
-            },
-            {
-                src: 'relatorio4.png',
-                caption: 'Figura 4: Dados colados no sistema - pronto para análise'
-            }
-        ];
+<script>
+const EPS = 0.05;
+const cl = (id) => document.getElementById('txt-'+id).value = '';
+const fBR = (n) => (typeof n === 'number' ? n : 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const pBR = (s) => parseFloat((s||'0').replace(/\./g,'').replace(',','.')) || 0;
+const sign = (d) => (d>=0?'+':'')+fBR(d);
 
-        let currentImageIndex = 0;
+let globalSpedRows = [];
 
-        // Funções para o popup de ajuda
-        function openHelpPopup() {
-            document.querySelector('.help-overlay').style.display = 'block';
-            document.querySelector('.help-popup').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            updateImageDisplay();
-        }
+function toggleInputs() {
+  const container = document.getElementById('inputsContainer');
+  const header = document.querySelector('.inputs-header');
+  container.classList.toggle('collapsed');
+  header.classList.toggle('collapsed');
+}
 
-        function closeHelpPopup() {
-            document.querySelector('.help-overlay').style.display = 'none';
-            document.querySelector('.help-popup').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
+function novaAnalise() {
+  document.getElementById('resultsSection').style.display = 'none';
+  const container = document.getElementById('inputsContainer');
+  const header = document.querySelector('.inputs-header');
+  container.classList.remove('collapsed');
+  header.classList.remove('collapsed');
+}
 
-        function updateImageDisplay() {
-            const imageElement = document.getElementById('help-image');
-            const captionElement = document.getElementById('image-caption');
-            const currentImgElement = document.getElementById('current-img');
-            const totalImgsElement = document.getElementById('total-imgs');
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            
-            // Atualiza imagem e legenda
-            imageElement.src = helpImages[currentImageIndex].src;
-            imageElement.alt = helpImages[currentImageIndex].caption;
-            captionElement.textContent = helpImages[currentImageIndex].caption;
-            
-            // Atualiza contador
-            currentImgElement.textContent = currentImageIndex + 1;
-            totalImgsElement.textContent = helpImages.length;
-            
-            // Habilita/desabilita botões
-            prevBtn.disabled = currentImageIndex === 0;
-            nextBtn.disabled = currentImageIndex === helpImages.length - 1;
-        }
+function parseP9(txt) {
+  const entradas = {};
+  const saidas = {};
+  let fase = null;
+  const lines = txt.split('\n');
+  
+  for (let raw of lines) {
+    let l = raw.trim();
+    if (!l) continue;
+    
+    // Pula linhas de cabeçalho que não são dados numéricos
+    if (/^Operações\s+com|^CODIFICAÇÃO|^Contábil\s+Fiscal|^Valores\s+Contábeis|^ICMS\s*-\s*VALORES|^Base\s+de\s+Cálculo|Isentas\/N\.Tributadas|Outras$|^Sub-Total|^TOTAIS|^Do\s+Estado|^De\s+Outros|^Para\s+o\s+Estado|^Para\s+Outros|^Para\s+o\s+Exterior|^Do\s+Exterior|^[0-9]\.000\s+Do|^[0-9]\.000\s+Para|^RESUMO|^APURAÇÃO|^SALDO|^INFORMAÇÕES|^GUIAS|^OBSERVAÇÕES/i.test(l)) {
+      continue;
+    }
+    
+    // Detecta seção ENTRADAS (com ou sem espaços entre letras)
+    if (/E\s*N\s*T\s*R\s*A\s*D\s*A\s*S/i.test(l)) {
+      fase = 'ent';
+      continue;
+    }
+    
+    // Detecta seção SAÍDAS (com ou sem espaços entre letras)
+    if (/S\s*A\s*[IÍ]\s*D\s*A\s*S/i.test(l)) {
+      fase = 'sai';
+      continue;
+    }
+    
+    // Se a linha contém números e estamos em uma fase, processa como dados
+    if (fase === 'ent' || fase === 'sai') {
+      // Verifica se a linha tem pelo menos um número (pode ser valor contábil)
+      if (!/[0-9]/.test(l)) continue;
+      
+      const tokens = l.split(/\s+/);
+      if (tokens.length < 4) continue;
+      
+      // Procura o CFOP (4 dígitos)
+      const idxCFOP = tokens.findIndex(t => /^\d{4}$/.test(t));
+      if (idxCFOP === -1) continue;
+      
+      const cfop = tokens[idxCFOP];
+      
+      // O primeiro token é sempre o Valor Contábil
+      const valorContabil = pBR(tokens[0]);
+      // O segundo token é a Base de ICMS
+      const baseIcms = pBR(tokens[1]);
+      // O ICMS está 1 posição após o CFOP
+      const icms = pBR(tokens[idxCFOP + 1] || '0');
+      
+      const target = fase === 'ent' ? entradas : saidas;
+      if (!target[cfop]) {
+        target[cfop] = { cfop, totalOp: 0, baseIcms: 0, icms: 0 };
+      }
+      target[cfop].totalOp += valorContabil;
+      target[cfop].baseIcms += baseIcms;
+      target[cfop].icms += icms;
+    }
+  }
+  
+  return { entradas, saidas };
+}
+function parseSped(txt, tipo) {
+  const rows = [];
+  const lines = txt.split('\n');
+  
+  for (let raw of lines) {
+    let l = raw.trim();
+    if (!l) continue;
+    
+    if (/^(CST|RESUMO|TOTAL|SITUA|PÁGINA|PERÍODO|CONTRIBUINTE|CNPJ|INSCRIÇÃO|Data|Município|Razão|CFOP|Base|Alíquota|Este|INFORMAÇÃO|Nome|CPF|Hashcode)/i.test(l)) {
+      continue;
+    }
+    
+    const parts = l.split(/\s+/);
+    if (parts.length < 7) continue;
+    
+    let cfopIndex = -1;
+    for (let i = 0; i < parts.length; i++) {
+      if (/^\d{4}$/.test(parts[i])) {
+        cfopIndex = i;
+        break;
+      }
+    }
+    
+    if (cfopIndex === -1) continue;
+    
+    const cfop = parts[cfopIndex];
+    const cst = parts[0];
+    const aliq = pBR(parts[cfopIndex + 1] || '0');
+    const icms = pBR(parts[cfopIndex + 2] || '0');
+    
+    let totalOp = 0;
+    let baseIcms = 0;
+    
+    if (tipo === 'E') {
+      if (parts[cfopIndex + 5]) totalOp = pBR(parts[cfopIndex + 5]);
+      if (parts[cfopIndex + 6]) baseIcms = pBR(parts[cfopIndex + 6]);
+    } else {
+      if (parts[cfopIndex + 6]) totalOp = pBR(parts[cfopIndex + 6]);
+      if (parts[cfopIndex + 7]) baseIcms = pBR(parts[cfopIndex + 7]);
+    }
+    
+    rows.push({ cst, cfop, aliq, icms, totalOp, baseIcms, tipo });
+  }
+  
+  return rows;
+}
 
-        function nextImage() {
-            if (currentImageIndex < helpImages.length - 1) {
-                currentImageIndex++;
-                updateImageDisplay();
-            }
-        }
+function groupSpedByCFOP(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    if (!map.has(r.cfop)) {
+      map.set(r.cfop, { cfop: r.cfop, totalOp: 0, baseIcms: 0, icms: 0 });
+    }
+    const g = map.get(r.cfop);
+    g.totalOp += r.totalOp;
+    g.baseIcms += r.baseIcms;
+    g.icms += r.icms;
+  }
+  return Array.from(map.values()).sort((a, b) => a.cfop.localeCompare(b.cfop));
+}
 
-        function prevImage() {
-            if (currentImageIndex > 0) {
-                currentImageIndex--;
-                updateImageDisplay();
-            }
-        }
+function getObservacaoEspecial(cfop, p9, sped, deltaTotal, deltaBase, deltaIcms, hasP9Only, hasSpedOnly, valoresConferem) {
+  // Regra especial para CFOP 1303 - Nota de Telecomunicação
+  if (cfop === '1303') {
+    let baseMsg = '';
+    
+    if (valoresConferem) {
+      baseMsg = '📡 Nota de Telecomunicação - Valores conferem entre Apuração e SPED. Tudo OK.';
+    } else if (hasP9Only && !hasSpedOnly) {
+      baseMsg = '📡 Nota de Telecomunicação - Presente apenas na Apuração Contábil. Verificar se o SPED capturou corretamente o documento fiscal.';
+    } else if (hasSpedOnly && !hasP9Only) {
+      baseMsg = '📡 Nota de Telecomunicação - Presente apenas no SPED. Verificar se foi considerado na Apuração Contábil.';
+    } else {
+      baseMsg = `📡 Nota de Telecomunicação - Divergência nos valores. Diferenças: Total=${sign(deltaTotal)} | Base=${sign(deltaBase)} | ICMS=${sign(deltaIcms)}. Verificar manualmente.`;
+    }
+    
+    // Adicionar instruções sobre modelos de nota fiscal
+    const instrucoes = `
+      \n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n
+      🔍 <strong>INSTRUÇÃO DE LANÇAMENTO NO AUTO SYSTEM:</strong>\n
+      • Se a nota fiscal for <strong class="highlight">MODELO 21</strong> (Serviços de Comunicação):\n
+        → O lançamento deve ser feito na <strong class="highlight">SEGUNDA ABA (COMUNICAÇÃO)</strong> do SPED.\n
+      • Se a nota fiscal for <strong class="highlight">MODELO 22</strong> (Serviços de Telecomunicação):\n
+        → O lançamento deve ser feito na <strong class="highlight">PRIMEIRA ABA (TELECOMUNICAÇÃO)</strong> do SPED.\n
+      • Se a nota fiscal for <strong class="highlight">MODELO 62</strong> (NF-e / NF Fatura Eletrônica):\n
+        → O lançamento é feito normalmente na aba de <strong class="highlight">DOCUMENTOS FISCAIS</strong> (último campo do SPED).\n
+      ⚠️ <strong>IMPORTANTE:</strong> Verifique o modelo da nota fiscal no momento do lançamento para garantir que o SPED capture corretamente os valores.
+      \n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    
+    return baseMsg + instrucoes;
+  }
+  
+  // Regra especial para CFOP 1949 e 2949 - Zerar bases
+  if (cfop === '1949' || cfop === '2949') {
+    if (sped.baseIcms !== 0 || sped.icms !== 0) {
+      return '⚠️ ATENÇÃO: Base de Cálculo e/ou ICMS devem ser ZERADOS no SPED para este CFOP. Ajustar lançamento.';
+    }
+    if (p9.baseIcms !== 0 || p9.icms !== 0) {
+      return '⚠️ ATENÇÃO: Base de Cálculo e/ou ICMS devem ser ZERADOS na Apuração para este CFOP. Verificar lançamento.';
+    }
+    return '✅ OK - Operação sem incidência de ICMS (bases devem permanecer zeradas)';
+  }
+  
+  // Regras padrão
+  if (hasP9Only && Math.abs(p9.icms) < EPS) {
+    return 'Operação isenta/não tributada - presente apenas na apuração contábil';
+  } 
+  else if (hasSpedOnly) {
+    return '⚠️ Presente no SPED mas não na apuração contábil - verificar lançamento fiscal';
+  }
+  else if (valoresConferem) {
+    return '✅ Valores conferem entre Apuração e SPED';
+  }
+  else {
+    let obs = `Diferenças: Total=${sign(deltaTotal)} | Base=${sign(deltaBase)} | ICMS=${sign(deltaIcms)}`;
+    
+    // Adicionar observação específica para CFOPs 1949/2949 mesmo em divergência
+    if (cfop === '1949' || cfop === '2949') {
+      obs += ' - Este CFOP exige bases zeradas. Verificar se há valores indevidos.';
+    }
+    
+    return obs;
+  }
+}
 
-        // Fechar popup com ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.querySelector('.help-popup').style.display === 'block') {
-                closeHelpPopup();
-            }
-        });
+function renderTabelaConciliacao(p9Map, spedGroup, tipo) {
+  const tipoLabel = tipo === 'ent' ? 'ENTRADAS' : 'SAÍDAS';
+  const icmsLabel = tipo === 'ent' ? 'Crédito' : 'Débito';
+  
+  const allCfops = new Set();
+  Object.keys(p9Map).forEach(c => allCfops.add(c));
+  spedGroup.forEach(s => allCfops.add(s.cfop));
+  const cfopsList = [...allCfops].sort((a,b) => a.localeCompare(b));
+  
+  if (cfopsList.length === 0) return '<div class="msg">Nenhum CFOP encontrado</div>';
+  
+  let html = `<thead>\n<tr>\n
+    <th>CFOP</th><th>Valores Contábeis</th><th>Base de Cálculo</th><th>ICMS ${icmsLabel}</th>\n
+    <th>Total Operação</th><th>Base ICMS</th><th>ICMS ${icmsLabel}</th><th>Status</th><th>Observação</th>\n
+    </tr></thead><tbody>`;
+  
+  let sumP9Total=0, sumP9Base=0, sumP9Icms=0, sumSpedTotal=0, sumSpedBase=0, sumSpedIcms=0;
+  
+  for (const cfop of cfopsList) {
+    const p9 = p9Map[cfop] || { totalOp: 0, baseIcms: 0, icms: 0 };
+    const sped = spedGroup.find(s => s.cfop === cfop) || { totalOp: 0, baseIcms: 0, icms: 0 };
+    
+    const deltaTotal = p9.totalOp - sped.totalOp;
+    const deltaBase = p9.baseIcms - sped.baseIcms;
+    const deltaIcms = p9.icms - sped.icms;
+    
+    const hasP9Only = (p9.totalOp !== 0 || p9.baseIcms !== 0) && sped.totalOp === 0 && sped.baseIcms === 0;
+    const hasSpedOnly = (sped.totalOp !== 0 || sped.baseIcms !== 0) && p9.totalOp === 0 && p9.baseIcms === 0;
+    const valoresConferem = Math.abs(deltaTotal) < EPS && Math.abs(deltaBase) < EPS && Math.abs(deltaIcms) < EPS;
+    
+    let status = '';
+    let rowClass = '';
+    
+    // Regra especial para CFOP 1303 - status baseado na comparação real dos valores
+    if (cfop === '1303') {
+      if (valoresConferem) {
+        status = '✔ OK';
+        rowClass = '';
+      } else if (hasP9Only && !hasSpedOnly) {
+        status = '⚠️ VERIFICAR';
+        rowClass = 'warning-row';
+      } else if (hasSpedOnly && !hasP9Only) {
+        status = '⚠️ VERIFICAR';
+        rowClass = 'warning-row';
+      } else {
+        status = '✘ DIVERGÊNCIA';
+        rowClass = 'error-row';
+      }
+    }
+    // Regra especial para CFOP 1949/2949
+    else if ((cfop === '1949' || cfop === '2949') && (sped.baseIcms !== 0 || sped.icms !== 0 || p9.baseIcms !== 0 || p9.icms !== 0)) {
+      status = '⚠️ BASES DEVEM SER ZERADAS';
+      rowClass = 'error-row';
+    }
+    // Regras padrão
+    else if (hasP9Only && Math.abs(p9.icms) < EPS) {
+      status = '✔ OK (Isenta)';
+      rowClass = '';
+    } else if (hasSpedOnly) {
+      status = '⚠️ VERIFICAR';
+      rowClass = 'warning-row';
+    } else if (valoresConferem) {
+      status = '✔ OK';
+      rowClass = '';
+    } else {
+      status = '✘ DIVERGÊNCIA';
+      rowClass = 'error-row';
+    }
+    
+    const observacao = getObservacaoEspecial(cfop, p9, sped, deltaTotal, deltaBase, deltaIcms, hasP9Only, hasSpedOnly, valoresConferem);
+    
+    sumP9Total += p9.totalOp; sumP9Base += p9.baseIcms; sumP9Icms += p9.icms;
+    sumSpedTotal += sped.totalOp; sumSpedBase += sped.baseIcms; sumSpedIcms += sped.icms;
+    
+    html += `<tr class="${rowClass}">
+      <td class="cf">${cfop}</td>
+      <td class="r">${fBR(p9.totalOp)}</td>
+      <td class="r">${fBR(p9.baseIcms)}</td>
+      <td class="r">${fBR(p9.icms)}</td>
+      <td class="r">${fBR(sped.totalOp)}</td>
+      <td class="r">${fBR(sped.baseIcms)}</td>
+      <td class="r">${fBR(sped.icms)}</td>
+      <td class="${status.includes('OK')?'status-ok':(status.includes('VERIFICAR')?'status-warn':'status-error')}">${status}</td>
+      <td class="obs-cell">${observacao}</td>
+    </tr>`;
+  }
+  
+  const totalOk = Math.abs(sumP9Icms - sumSpedIcms) < EPS;
+  html += `<tr class="total-row">\n
+    <td><strong>TOTAL</strong></td>\n
+    <td class="r"><strong>${fBR(sumP9Total)}</strong></td>\n
+    <td class="r"><strong>${fBR(sumP9Base)}</strong></td>\n
+    <td class="r"><strong>${fBR(sumP9Icms)}</strong></td>\n
+    <td class="r"><strong>${fBR(sumSpedTotal)}</strong></td>\n
+    <td class="r"><strong>${fBR(sumSpedBase)}</strong></td>\n
+    <td class="r"><strong>${fBR(sumSpedIcms)}</strong></td>\n
+    <td class="${totalOk?'status-ok':'status-error'}"><strong>${totalOk?'✔ CONCILIA':'✘ DIVERGÊNCIA'}</strong></td>\n
+    <td class="obs-cell">${totalOk ? 'Totais conferem' : `Δ Total: ${sign(sumP9Total - sumSpedTotal)} | Δ ICMS: ${sign(sumP9Icms - sumSpedIcms)}`}</td>\n
+    </tr></tbody>`;
+  
+  return html;
+}
 
-        // Desabilitar menu de contexto (botão direito)
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            alert('Menu de contexto desativado nesta página.');
-            return false;
-        });
+function analisar() {
+  const p9Text = document.getElementById('txt-p9').value;
+  const spedEntText = document.getElementById('txt-ent').value;
+  const spedSaiText = document.getElementById('txt-sai').value;
+  
+  if (!p9Text.trim()) {
+    alert('Por favor, cole os dados da Apuração Contábil (P9)');
+    return;
+  }
+  
+  const p9Data = parseP9(p9Text);
+  const spedEntRows = parseSped(spedEntText, 'E');
+  const spedSaiRows = parseSped(spedSaiText, 'S');
+  globalSpedRows = [...spedEntRows.map(r => ({ ...r, tipo: 'E' })), ...spedSaiRows.map(r => ({ ...r, tipo: 'S' }))];
+  
+  const spedEntGroup = groupSpedByCFOP(spedEntRows);
+  const spedSaiGroup = groupSpedByCFOP(spedSaiRows);
+  
+  const totalP9Ent = Object.values(p9Data.entradas).reduce((s,i)=>s+i.totalOp,0);
+  const totalP9EntIcms = Object.values(p9Data.entradas).reduce((s,i)=>s+i.icms,0);
+  const totalP9Sai = Object.values(p9Data.saidas).reduce((s,i)=>s+i.totalOp,0);
+  const totalP9SaiIcms = Object.values(p9Data.saidas).reduce((s,i)=>s+i.icms,0);
+  
+  const totalSpedEnt = spedEntRows.reduce((s,r)=>s+r.totalOp,0);
+  const totalSpedEntIcms = spedEntRows.reduce((s,r)=>s+r.icms,0);
+  const totalSpedSai = spedSaiRows.reduce((s,r)=>s+r.totalOp,0);
+  const totalSpedSaiIcms = spedSaiRows.reduce((s,r)=>s+r.icms,0);
+  
+  const deltaEntIcms = totalP9EntIcms - totalSpedEntIcms;
+  const deltaSaiIcms = totalP9SaiIcms - totalSpedSaiIcms;
+  const allOk = Math.abs(deltaEntIcms) < EPS && Math.abs(deltaSaiIcms) < EPS;
+  
+  let html = `
+    <div class="kpis-grid">
+      <div class="kpi-card"><div class="title">📥 ENTRADAS</div>
+        <div class="values"><div><div style="font-size:10px;color:var(--muted)">Apuração</div><div class="value">${fBR(totalP9Ent)}</div><div style="font-size:11px">ICMS: ${fBR(totalP9EntIcms)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted)">SPED</div><div class="value">${fBR(totalSpedEnt)}</div><div style="font-size:11px">ICMS: ${fBR(totalSpedEntIcms)}</div></div>
+        <div class="delta ${Math.abs(deltaEntIcms)<EPS?'ok':'err'}">Δ ICMS: ${sign(deltaEntIcms)}</div></div></div>
+      <div class="kpi-card"><div class="title">📤 SAÍDAS</div>
+        <div class="values"><div><div style="font-size:10px;color:var(--muted)">Apuração</div><div class="value">${fBR(totalP9Sai)}</div><div style="font-size:11px">ICMS: ${fBR(totalP9SaiIcms)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted)">SPED</div><div class="value">${fBR(totalSpedSai)}</div><div style="font-size:11px">ICMS: ${fBR(totalSpedSaiIcms)}</div></div>
+        <div class="delta ${Math.abs(deltaSaiIcms)<EPS?'ok':'err'}">Δ ICMS: ${sign(deltaSaiIcms)}</div></div></div>
+      <div class="kpi-card"><div class="title">🏁 STATUS GERAL</div>
+        <div><div class="status-badge ${allOk?'success':'error'}" style="font-size:16px;padding:8px 16px">${allOk?'✓ CONCILIAÇÃO OK':'✗ DIVERGÊNCIA IDENTIFICADA'}</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted)">${allOk?'Todos os valores conferem entre Apuração e SPED':'Verifique os CFOPs com divergência nas tabelas abaixo'}</div></div></div>
+    </div>
+    
+    <div class="tabs"><button class="tab-btn active" onclick="showTab(\'entradas\')">📥 ENTRADAS</button><button class="tab-btn" onclick="showTab(\'saidas\')">📤 SAÍDAS</button></div>
+    
+    <div id="tab-entradas" class="tab-content active"><div class="section-title">📥 CONCILIAÇÃO DE ENTRADAS</div><div class="table-wrapper">\n<table>${renderTabelaConciliacao(p9Data.entradas, spedEntGroup, 'ent')}</table>\n</div></div>
+    
+    <div id="tab-saidas" class="tab-content"><div class="section-title">📤 CONCILIAÇÃO DE SAÍDAS</div><div class="table-wrapper">\n<table>${renderTabelaConciliacao(p9Data.saidas, spedSaiGroup, 'sai')}</table>\n</div></div>
+    
+    <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span>✔ OK - Valores conferem</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffb347"></div><span>⚠ Verificar - Necessita atenção manual</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span>✘ Divergência - Diferença nos valores</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span>📡 CFOP 1303 - Nota de Telecomunicação</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4fa8ff"></div><span>⚠️ CFOP 1949/2949 - Exigem bases zeradas</span></div></div>`;
+  
+  document.getElementById('resultsContent').innerHTML = html;
+  document.getElementById('resultsSection').style.display = 'flex';
+  document.getElementById('inputsContainer').classList.add('collapsed');
+  document.querySelector('.inputs-header').classList.add('collapsed');
+  document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+  
+  window.showTab = function(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
+  };
+}
 
-        // Desabilitar F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        document.addEventListener('keydown', function(e) {
-            // F12
-            if (e.keyCode === 123) {
-                e.preventDefault();
-                alert('Tecla F12 desativada.');
-                return false;
-            }
-            // Ctrl+Shift+I
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+J
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+U
-            if (e.ctrlKey && e.keyCode === 85) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Dicionário de empresas
-        const empresasNomes = {
-            "50": "DOM PEDRO ITAGUARA",
-            "2": "DOM PEDRO 1",
-            "3": "DOM PEDRO ITATIAIUÇU",
-            "4": "DOM PEDRO LEME",
-            "5": "DOM PEDRO PINDA ROTA NORTE",
-            "6": "DOM PEDRO 2",
-            "7": "DOM PEDRO POUSO ALEGRE",
-            "8": "DOM PEDRO ATIBAIA",
-            "9": "DOM PEDRO ITAPEVA",
-            "10": "DOM PEDRO CAETANÓPOLIS",
-            "11": "DOM PEDRO BETIM 1 ROTA SUL",
-            "13": "DOM PEDRO TURIM",
-            "14": "DOM PEDRO SANTA LUZIA",
-            "15": "DOM PEDRO SALINAS",
-            "17": "DOM PEDRO APARECIDA",
-            "18": "DOM PEDRO MURIAÉ",
-            "19": "DOM PEDRO PARAOPEBA",
-            "20": "DOM PEDRO CONTAGEM NORTE",
-            "21": "DOM PEDRO CONTAGEM SUL",
-            "22": "DOM PEDRO CAMBUÍ",
-            "24": "DOM PEDRO GUARA RODOV.",
-            "25": "DOM PEDRO PINDA ROTA SUL",
-            "26": "DOM PEDRO MIRACATU ROTA NORTE",
-            "27": "DOM PEDRO JK ESTIVA SUL",
-            "28": "DOM PEDRO ALIANÇA",
-            "29": "DOM PEDRO OLIVEIRA",
-            "30": "DOM PEDRO CAMBUÍ URBANO 1",
-            "31": "DOM PEDRO JAGUAQUARA",
-            "32": "DOM PEDRO SÃO GONÇALO",
-            "33": "DOM PEDRO NOVA SERRANA",
-            "34": "DOM PEDRO IGARATINGA",
-            "35": "DOM PEDRO CARMÓPOLIS",
-            "36": "DOM PEDRO BETIM 2 ROTA SUL",
-            "37": "DOM PEDRO PARAGOMINAS",
-            "41": "DOM PEDRO DIVISA ALEGRE",
-            "42": "DOM PEDRO CAMBUÍ URBANO 2",
-            "43": "DOM PEDRO CONTAGEM FERNÃO DIAS",
-            "44": "DOM PEDRO CACHOEIRA DE PAJEÚ",
-            "45": "DOM PEDRO TOCANTINS",
-            "48": "DOM PEDRO SANTO ESTEVÃO",
-            "49": "DOM PEDRO SÃO GONÇALO URB.",
-            "51": "DOM PEDRO SENADOR AMARAL",
-            "54": "DOM PEDRO LORENA",
-            "55": "DOM PEDRO DIVISA ALEGRE 2",
-            "56": "DOM PEDRO INCONFIDENTES",
-            "57": "DOM PEDRO JUIZ DE FORA URBANO",
-            "58": "DOM PEDRO BUENO BRANDÃO",
-            "59": "DOM PEDRO POUSO ALEGRE URBANO",
-            "60": "DOM PEDRO CAMANDUCAIA URBANO 1",
-            "61": "DOM PEDRO OURO FINO",
-            "63": "DOM PEDRO CAMANDUCAIA URBANO 2",
-            "64": "DOM PEDRO GUARÁ URBANO 2",
-            "65": "DOM PEDRO GUARÁ URBANO 3",
-            "66": "DOM PEDRO BRAGANÇA URBANO",
-            "67": "DOM PEDRO JACAREÍ URBANO",
-            "68": "DOM PEDRO ATIBAIA URBANO",
-            "69": "DOM PEDRO POUSO ALEGRE URB 2",
-            "70": "DOM PEDRO EXTREMA URBANO",
-            "77": "DOM PEDRO POUSO ALEGRE URB 3",
-            "78": "DOM PEDRO SALES OLIVEIRA",
-            "79": "DOM PEDRO VITÓRIA DA CONQUISTA",
-            "80": "DOM PEDRO JUIZ DE FORA RODOVIA",
-            "81": "DOM PEDRO MONTES CLAROS",
-            "82": "DOM PEDRO VARGEM",
-            "83": "DOM PEDRO SÃO JORGE",
-            "86": "DOM PEDRO S. JOSÉ DOS CAMPOS URB",
-            "87": "DOM PEDRO FREI INOCÊNCIO",
-            "88": "DOM PEDRO BRAGANÇA RODOVIA",
-            "89": "DOM PEDRO BARRA MANSA NORTE",
-            "90": "DOM PEDRO BARRA MANSA SUL",
-            "91": "DOM PEDRO CONSELHEIRA LAFAIETE",
-            "92": "DOM PEDRO PLANALTO",
-            "93": "DOM PEDRO SANTO ESTEVÃO 2",
-            "94": "DOM PEDRO SANTO ESTEVÃO 3",
-            "95": "DOM PEDRO SÃO CRISTÓVÃO",
-            "96": "DOM PEDRO BARREIRAS",
-            "97": "DOM PEDRO DE POSTOS LTDA DP ITABERABA",
-            "98": "DOM PEDRO DE POSTOS LTDA DP VALENCA",
-            "99": "DOM PEDRO SAO GONCALO RODOVIA 2",
-            "100": "DOM PEDRO SAO GONCALO RODOVIA 3",
-            "102": "DOM PEDRO RUSSAS",
-            "103": "DOM PEDRO INHAPIM",
-            "104": "DOM PEDRO LUZ"
-        };
-
-        // Esconde o preloader
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                document.getElementById('preloader').style.display = 'none';
-            }, 1000);
-        });
-
-        // Variáveis globais
-        let allProductsData = [];
-
-        // FUNÇÃO PRINCIPAL DE PROCESSAMENTO (MANTIDA A MESMA)
-        function processData() {
-            console.log('Iniciando processamento...');
-            const input = document.getElementById('data-input').value;
-            const tabelaContainer = document.getElementById('tabela-container');
-            
-            tabelaContainer.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">Processando dados...</p>';
-            
-            setTimeout(() => {
-                try {
-                    analisarDadosMultiplosCombustiveis(input);
-                } catch (error) {
-                    console.error('Erro no processamento:', error);
-                    tabelaContainer.innerHTML = `
-                        <div class="alerta-panel critico">
-                            <h4><i class="fas fa-exclamation-triangle"></i> Erro no Processamento</h4>
-                            <p>Ocorreu um erro: ${error.message}</p>
-                            <p>Verifique se os dados foram colados corretamente.</p>
-                        </div>
-                    `;
-                }
-            }, 100);
-        }
-
-        function analisarDadosMultiplosCombustiveis(texto) {
-            console.log('Analisando dados com múltiplos combustíveis...');
-            const linhas = texto.split('\n');
-            const tabelaContainer = document.getElementById('tabela-container');
-            
-            allProductsData = [];
-            
-            let empresaCodigo = null;
-            let empresaNome = null;
-            let periodoInfo = null;
-            let produtoAtual = null;
-            let dadosProdutoAtual = [];
-            
-            // Variáveis para estatísticas gerais
-            let estatisticasGerais = {
-                totalProdutos: 0,
-                totalDiasAnalisados: 0,
-                diasCriticos: 0,
-                produtosSemMedicao: [],
-                produtosComFaltaMedida: [] // Array para armazenar produtos que têm falta de medida
-            };
-            
-            // Processa cada linha
-            for (let i = 0; i < linhas.length; i++) {
-                const linha = linhas[i].trim();
-                
-                // Procura por informações da empresa
-                if (linha.includes("Empresa:") && linha.includes("DP")) {
-                    const match = linha.match(/Empresa:\s*(\d+)\s*-\s*(DP[^|]+)/i);
-                    if (match) {
-                        empresaCodigo = match[1].trim();
-                        empresaNome = empresasNomes[empresaCodigo] || match[2].trim();
-                    }
-                }
-                
-                // Procura por informação de período
-                else if (linha.includes("Período:")) {
-                    periodoInfo = linha.replace("Período:", "").trim();
-                }
-                
-                // Procura por novo combustível
-                else if (linha.includes("Combustível:")) {
-                    const combustivelMatch = linha.match(/Combustível:\s*\d+\s*-\s*([^|]+)/i);
-                    if (combustivelMatch) {
-                        // Se havia um produto sendo processado, salva ele
-                        if (produtoAtual && dadosProdutoAtual.length > 0) {
-                            salvarProdutoProcessado(produtoAtual, dadosProdutoAtual, estatisticasGerais);
-                            dadosProdutoAtual = [];
-                        }
-                        
-                        produtoAtual = combustivelMatch[1].trim();
-                        estatisticasGerais.totalProdutos++;
-                    }
-                }
-                
-                // Procura por linhas de dados
-                else if (linha.startsWith('|') && /\d{2}\/\d{2}\/\d{4}/.test(linha)) {
-                    const linhaLimpa = linha.replace(/^\||\|$/g, '').trim();
-                    const partes = linhaLimpa.split('|').map(p => p.trim());
-                    
-                    if (partes.length >= 9) {
-                        const data = partes[0];
-                        
-                        // Parse dos valores
-                        const medInicial = partes[1] || '0';
-                        const litragemInicial = parseNumber(partes[2]);
-                        const entrada = parseNumber(partes[3]);
-                        const estoque = parseNumber(partes[4]);
-                        const medFinal = partes[5] || '0';
-                        const litragemFinal = parseNumber(partes[6]);
-                        const saidaBomba = parseNumber(partes[7]);
-                        const saidaTanque = parseNumber(partes[8]);
-                        const diferencaRelatorio = partes.length > 9 ? parseNumber(partes[9]) : 0;
-                        
-                        // Calcula a diferença correta
-                        const diferencaCalculada = saidaBomba - saidaTanque;
-                        
-                        // Verifica falta de medida
-                        const faltaMedida = litragemFinal === 0;
-                        
-                        // Verifica perda crítica
-                        const perdaCritica = diferencaCalculada < -2000;
-                        
-                        // Classifica
-                        let tipo = '';
-                        let cor = '';
-                        let status = '';
-                        
-                        if (faltaMedida) {
-                            tipo = 'FALTA MEDIDA';
-                            cor = 'falta-medida-alerta';
-                            status = 'Litragem Final = 0,000';
-                        } else if (diferencaCalculada > 0) {
-                            tipo = 'SOBRA';
-                            cor = 'verde-forte';
-                            status = `Bomba > Tanque em ${formatNumber(diferencaCalculada)} L`;
-                        } else if (diferencaCalculada < 0) {
-                            tipo = 'PERDA';
-                            cor = 'vermelho-forte';
-                            status = `Tanque > Bomba em ${formatNumber(Math.abs(diferencaCalculada))} L`;
-                            
-                            if (perdaCritica) {
-                                estatisticasGerais.diasCriticos++;
-                            }
-                        } else {
-                            tipo = 'ZERO';
-                            status = 'Sem diferença';
-                        }
-                        
-                        // Armazena dados do produto atual
-                        dadosProdutoAtual.push({
-                            data,
-                            medInicial,
-                            litragemInicial: litragemInicial,
-                            entrada,
-                            estoque,
-                            medFinal,
-                            litragemFinal,
-                            saidaBomba,
-                            saidaTanque,
-                            diferenca: diferencaCalculada,
-                            diferencaRelatorio,
-                            tipo,
-                            cor,
-                            status,
-                            faltaMedida,
-                            perdaCritica
-                        });
-                        
-                        estatisticasGerais.totalDiasAnalisados++;
-                    }
-                }
-            }
-            
-            // Salva o último produto processado
-            if (produtoAtual && dadosProdutoAtual.length > 0) {
-                salvarProdutoProcessado(produtoAtual, dadosProdutoAtual, estatisticasGerais);
-            }
-            
-            // Verifica se encontrou dados
-            if (allProductsData.length === 0) {
-                tabelaContainer.innerHTML = `
-                    <div class="alerta-panel">
-                        <h4><i class="fas fa-exclamation-circle"></i> Nenhum dado encontrado</h4>
-                        <p>Verifique se:</p>
-                        <ol>
-                            <li>Os dados foram colados completamente</li>
-                            <li>O formato corresponde ao exemplo mostrado</li>
-                            <li>As linhas começam com | e contém datas no formato DD/MM/AAAA</li>
-                        </ol>
-                    </div>
-                `;
-                return;
-            }
-            
-            console.log(`Processados ${allProductsData.length} produtos`);
-            
-            // Monta o HTML do resultado
-            let html = '';
-            
-            // CRIAR UM CONTAINER ESPECIAL PARA CABEÇALHO + PRIMEIRO PRODUTO JUNTOS
-            html += `<div class="header-completo">`;
-            
-            // Adiciona cabeçalho de impressão
-            html += `
-                <div class="print-header">
-                    <h1>RELATÓRIO DE ANÁLISE DE PERDAS</h1>
-                    <div class="subtitle">
-                        Rede Dom Pedro | ${empresaNome || 'Empresa não identificada'} | 
-                        ${periodoInfo || ''} | Data: ${new Date().toLocaleDateString('pt-BR')}
-                    </div>
-                </div>
-            `;
-            
-            // Cabeçalho da empresa
-            html += `<div class="header-geral">`;
-            html += `<div class="header-empresa">`;
-            html += `<h3><i class="fas fa-building"></i> ${empresaNome || 'Empresa não identificada'}</h3>`;
-            
-            // Informações gerais
-            html += `<div class="info-combustivel">`;
-            if (periodoInfo) html += `<div><strong>Período:</strong> ${periodoInfo}</div>`;
-            html += `<div><strong>Data da análise:</strong> ${new Date().toLocaleDateString('pt-BR')}</div>`;
-            html += `</div>`;
-            
-            // Painel de resumo geral (APENAS Produtos e Dias sem Medição)
-            html += `<div class="alerta-panel">`;
-            html += `<h4><i class="fas fa-chart-pie"></i> RESUMO GERAL</h4>`;
-            html += `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">`;
-            html += `<div style="text-align: center; padding: 8px; background: #e3f2fd; border-radius: 4px;">
-                        <div style="font-size: 16px; font-weight: bold; color: #1565c0;">${allProductsData.length}</div>
-                        <div style="font-size: 11px; color: #666;">Produtos</div>
-                     </div>`;
-            
-            // Conta total de dias sem medida
-            let totalDiasSemMedicao = 0;
-            estatisticasGerais.produtosComFaltaMedida.forEach(p => {
-                totalDiasSemMedicao += p.dias;
-            });
-            
-            html += `<div style="text-align: center; padding: 8px; background: ${totalDiasSemMedicao > 0 ? '#fff3cd' : '#e8f5e8'}; border-radius: 4px;">
-                        <div style="font-size: 16px; font-weight: bold; color: ${totalDiasSemMedicao > 0 ? '#f57c00' : '#2e7d32'};">${totalDiasSemMedicao}</div>
-                        <div style="font-size: 11px; color: #666;">Dias sem Medição</div>
-                     </div>`;
-            html += `</div>`;
-            
-            // Lista produtos que têm falta de medida
-            if (estatisticasGerais.produtosComFaltaMedida.length > 0) {
-                html += `<div style="margin-top: 10px; padding: 8px; background-color: #fff8e1; border-radius: 4px; border-left: 4px solid #ffb300;">`;
-                html += `<p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #e65100;">Produtos com falta de medição:</p>`;
-                html += `<ul style="margin: 0; padding-left: 20px;">`;
-                estatisticasGerais.produtosComFaltaMedida.forEach(p => {
-                    html += `<li style="font-size: 11px; margin-bottom: 2px;">
-                                <strong>${p.nome}</strong>: ${p.dias} dia(s) - ${p.dias === 1 ? p.datas[0] : 'Ver detalhes abaixo'}
-                             </li>`;
-                });
-                html += `</ul>`;
-                html += `<p style="margin: 5px 0 0 0; font-size: 11px; color: #666; font-style: italic;">
-                            ⚠ As datas específicas estão destacadas em azul nas tabelas abaixo
-                         </p>`;
-                html += `</div>`;
-            }
-            
-            html += `</div>`;
-            html += `</div>`; // Fecha header-geral
-            html += `</div>`; // Fecha header-completo
-            
-            // Para cada produto, gera uma seção separada
-            allProductsData.forEach((produto, index) => {
-                html += gerarHTMLProduto(produto, index + 1);
-            });
-            
-            // Atualiza o container
-            tabelaContainer.innerHTML = html;
-            
-            console.log('Processamento concluído com sucesso!');
-        }
-
-        function salvarProdutoProcessado(nomeProduto, dadosProduto, estatisticasGerais) {
-            console.log(`Salvando dados do produto: ${nomeProduto}`);
-            
-            // Calcula totais para este produto
-            let totalEntradas = 0;
-            let totalSaidaBomba = 0;
-            let totalSaidaTanque = 0;
-            let alertasCriticos = [];
-            let diasSemMedicao = [];
-            let diasCriticosProduto = 0;
-            let diasFaltaMedidaProduto = 0;
-            
-            dadosProduto.forEach(d => {
-                totalEntradas += d.entrada;
-                totalSaidaBomba += d.saidaBomba;
-                totalSaidaTanque += d.saidaTanque;
-                
-                if (d.faltaMedida) {
-                    diasFaltaMedidaProduto++;
-                    diasSemMedicao.push(d.data);
-                }
-                
-                if (d.perdaCritica) {
-                    diasCriticosProduto++;
-                    alertasCriticos.push({ data: d.data, perda: Math.abs(d.diferenca) });
-                }
-            });
-            
-            const totalDiferencaProduto = totalSaidaBomba - totalSaidaTanque;
-            
-            // Armazena dados do produto
-            allProductsData.push({
-                nome: nomeProduto,
-                dados: dadosProduto,
-                estatisticas: {
-                    totalDias: dadosProduto.length,
-                    totalEntradas,
-                    totalSaidaBomba,
-                    totalSaidaTanque,
-                    totalDiferenca: totalDiferencaProduto,
-                    diasCriticos: diasCriticosProduto,
-                    diasFaltaMedida: diasFaltaMedidaProduto,
-                    alertasCriticos,
-                    diasSemMedicao: diasSemMedicao
-                }
-            });
-            
-            // Adiciona à lista de produtos com falta de medida se houver
-            if (diasFaltaMedidaProduto > 0) {
-                estatisticasGerais.produtosComFaltaMedida.push({
-                    nome: nomeProduto,
-                    dias: diasFaltaMedidaProduto,
-                    datas: diasSemMedicao
-                });
-            }
-        }
-
-        function gerarHTMLProduto(produto, numero) {
-            let html = '';
-            const dados = produto.dados;
-            const estatisticas = produto.estatisticas;
-            
-            // Seção do produto - A primeira não terá quebra de página
-            html += `<div class="empresa-section produto-item" style="margin-top: 30px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px;">`;
-            
-            // Cabeçalho do produto
-            html += `<h3 style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;">
-                        <i class="fas fa-gas-pump"></i> PRODUTO ${numero}: ${produto.nome}
-                     </h3>`;
-            
-            // Informações do produto
-            html += `<div class="info-combustivel">`;
-            html += `<div><strong>Total de dias analisados:</strong> ${estatisticas.totalDias}</div>`;
-            html += `<div><strong>Entradas totais:</strong> ${formatNumber(estatisticas.totalEntradas)} L</div>`;
-            html += `<div><strong>Saída Escritural:</strong> ${formatNumber(estatisticas.totalSaidaBomba)} L</div>`;
-            html += `<div><strong>Saída Medição TQ:</strong> ${formatNumber(estatisticas.totalSaidaTanque)} L</div>`;
-            html += `</div>`;
-            
-            // Painel de alertas - Falta de Medida
-            if (estatisticas.diasSemMedicao.length > 0) {
-                html += `<div class="alerta-panel falta-medida">`;
-                html += `<h4><i class="fas fa-exclamation-triangle"></i> FALTA DE LANÇAMENTO DE MEDIDA</h4>`;
-                html += `<p><strong>${estatisticas.diasSemMedicao.length} dia(s) com litragem final = 0,000</strong></p>`;
-                html += `<p><strong>Datas:</strong> ${estatisticas.diasSemMedicao.join(', ')}</p>`;
-                html += `<p><em>Ação necessária: Lançar a medida do tanque para estes dias.</em></p>`;
-                html += `</div>`;
-            }
-            
-            // Painel de alertas - Perdas Críticas
-            if (estatisticas.alertasCriticos.length > 0) {
-                html += `<div class="alerta-panel critico">`;
-                html += `<h4><i class="fas fa-exclamation-triangle"></i> PERDAS CRÍTICAS (> 2.000 L)</h4>`;
-                html += `<p><strong>${estatisticas.alertasCriticos.length} dia(s) com perda crítica</strong></p>`;
-                html += `<ul>`;
-                estatisticas.alertasCriticos.forEach(a => {
-                    html += `<li><strong>${a.data}</strong>: ${formatNumber(a.perda)} L de perda</li>`;
-                });
-                html += `</ul>`;
-                html += `<p><em>Ação necessária: Investigar possíveis vazamentos ou erros de medição.</em></p>`;
-                html += `</div>`;
-            }
-            
-            // Estatísticas do produto (APENAS 3 ITENS)
-            html += `<div class="estatisticas">`;
-            html += `
-                <div class="estatistica-item">
-                    <div class="estatistica-valor">${estatisticas.totalDias}</div>
-                    <div class="estatistica-label">Dias Analisados</div>
-                </div>
-                <div class="estatistica-item">
-                    <div class="estatistica-valor ${estatisticas.totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}">
-                        ${formatNumber(estatisticas.totalDiferenca)}
-                    </div>
-                    <div class="estatistica-label">Diferença Total (L)</div>
-                </div>
-                <div class="estatistica-item">
-                    <div class="estatistica-valor falta-medida-alerta">${estatisticas.diasFaltaMedida}</div>
-                    <div class="estatistica-label">Dias sem Medição</div>
-                </div>
-            `;
-            html += `</div>`;
-            
-            // Tabela de dados do produto (SEM A COLUNA ACUM.)
-            html += `<table>`;
-            html += `
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Med.Inicial</th>
-                        <th>Lit.Inicial</th>
-                        <th>Entrada</th>
-                        <th>Estoque</th>
-                        <th>Med.Final</th>
-                        <th>Lit.Final</th>
-                        <th>Saída (Escritural)</th>
-                        <th>Saída-TQ(Medida)</th>
-                        <th>Diferença</th>
-                        <th>Tipo</th>
-                        <th>Observações</th>
-                    </tr>
-                </thead>
-                <tbody>
-            `;
-            
-            // Adiciona cada linha de dados
-            dados.forEach(d => {
-                const classeLitragemFinal = d.faltaMedida ? 'falta-medida-alerta' : '';
-                
-                html += `<tr>`;
-                html += `<td>${d.data}</td>`;
-                html += `<td>${d.medInicial}</td>`;
-                html += `<td>${formatNumber(d.litragemInicial)}</td>`;
-                html += `<td>${formatNumber(d.entrada)}</td>`;
-                html += `<td>${formatNumber(d.estoque)}</td>`;
-                html += `<td>${d.medFinal}</td>`;
-                html += `<td class="${classeLitragemFinal}">${formatNumber(d.litragemFinal)}</td>`;
-                html += `<td>${formatNumber(d.saidaBomba)}</td>`;
-                html += `<td>${formatNumber(d.saidaTanque)}</td>`;
-                html += `<td class="${d.cor}">${formatNumber(d.diferenca)}</td>`;
-                html += `<td class="${d.cor}"><strong>${d.tipo}</strong></td>`;
-                html += `<td style="text-align: left; font-size: 10px;">${d.status}</td>`;
-                html += `</tr>`;
-            });
-            
-            // Linha de totais do produto
-            html += `<tr class="total-row">`;
-            html += `<td><strong>TOTAIS</strong></td>`;
-            html += `<td colspan="2"></td>`;
-            html += `<td><strong>${formatNumber(estatisticas.totalEntradas)}</strong></td>`;
-            html += `<td></td>`;
-            html += `<td colspan="2"></td>`;
-            html += `<td><strong>${formatNumber(estatisticas.totalSaidaBomba)}</strong></td>`;
-            html += `<td><strong>${formatNumber(estatisticas.totalSaidaTanque)}</strong></td>`;
-            html += `<td class="${estatisticas.totalDiferenca > 0 ? 'verde-forte' : 'vermelho-forte'}">
-                        <strong>${formatNumber(estatisticas.totalDiferenca)}</strong>
-                     </td>`;
-            html += `<td colspan="2"></td>`;
-            html += `</tr>`;
-            
-            html += `</tbody></table>`;
-            
-            // Resumo final do produto (SEM PERDA/SOBRA TOTAIS)
-            html += `<div class="info-combustivel" style="margin-top: 15px; background-color: #f0f7ff; border-left: 3px solid #3498db;">`;
-            html += `<h4><i class="fas fa-chart-bar"></i> RESUMO DO PRODUTO</h4>`;
-            html += `<p><strong>Diferença Total:</strong> `;
-            if (estatisticas.totalDiferenca > 0) {
-                html += `<span class="verde-forte" style="padding: 2px 5px;">SOBRA de ${formatNumber(estatisticas.totalDiferenca)} L</span>`;
-            } else if (estatisticas.totalDiferenca < 0) {
-                html += `<span class="vermelho-forte" style="padding: 2px 5px;">PERDA de ${formatNumber(Math.abs(estatisticas.totalDiferenca))} L</span>`;
-            } else {
-                html += `<span>Sem diferença</span>`;
-            }
-            html += `</p>`;
-            
-            if (estatisticas.diasFaltaMedida > 0) {
-                html += `<p><strong>Atenção:</strong> ${estatisticas.diasFaltaMedida} dia(s) sem lançamento de medida do tanque.</p>`;
-            }
-            html += `</div>`;
-            
-            html += `</div>`;
-            
-            return html;
-        }
-
-        // Funções auxiliares (MANTIDAS AS MESMAS)
-        function parseNumber(valor) {
-            if (!valor || valor === '0,000' || valor === '0.000' || valor === '0') return 0;
-            let texto = valor.toString().trim();
-            texto = texto.replace(/\./g, '').replace(',', '.');
-            return parseFloat(texto) || 0;
-        }
-
-        function formatNumber(num) {
-            return num.toLocaleString('pt-BR', {
-                minimumFractionDigits: 3,
-                maximumFractionDigits: 3
-            });
-        }
-
-        function clearData() {
-            document.getElementById('data-input').value = '';
-            document.getElementById('tabela-container').innerHTML = '';
-            allProductsData = [];
-        }
-
-        function filterResults() {
-            const input = document.getElementById('search-input').value.toLowerCase();
-            const produtos = document.querySelectorAll('.empresa-section h3');
-            
-            produtos.forEach(produtoHeader => {
-                const produto = produtoHeader.textContent.toLowerCase();
-                const produtoSection = produtoHeader.closest('.empresa-section');
-                if (produtoSection) {
-                    produtoSection.style.display = produto.includes(input) ? '' : 'none';
-                }
-            });
-        }
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function scrollToBottom() {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        function exportData() {
-            if (allProductsData.length === 0) {
-                alert('Não há dados para exportar! Analise os dados primeiro.');
-                return;
-            }
-            
-            let texto = `RELATÓRIO DE ANÁLISE DE PERDAS - REDE DOM PEDRO\n`;
-            texto += `==================================================\n\n`;
-            
-            allProductsData.forEach((produto, index) => {
-                texto += `PRODUTO ${index + 1}: ${produto.nome}\n`;
-                texto += `Dias analisados: ${produto.estatisticas.totalDias}\n`;
-                texto += `Diferença total: ${formatNumber(produto.estatisticas.totalDiferenca)} L\n`;
-                texto += `Dias sem medida: ${produto.estatisticas.diasFaltaMedida}\n`;
-                texto += `Dias críticos: ${produto.estatisticas.diasCriticos}\n\n`;
-                
-                texto += `DETALHAMENTO DIÁRIO:\n`;
-                texto += `Data       | Bomba     | Tanque    | Diferença | Tipo\n`;
-                texto += `---------------------------------------------------\n`;
-                
-                produto.dados.forEach(d => {
-                    texto += `${d.data} | ${formatNumber(d.saidaBomba).padStart(9)} | ${formatNumber(d.saidaTanque).padStart(9)} | ${formatNumber(d.diferenca).padStart(9)} | ${d.tipo}\n`;
-                });
-                
-                texto += `\n${'='.repeat(80)}\n\n`;
-            });
-            
-            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Analise_Perdas_Multiplos_Produtos_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    </script>
+function exportCSV() {
+  if (!globalSpedRows.length) return alert('Primeiro realize uma análise para gerar os dados.');
+  const headers = ['Tipo', 'CST', 'CFOP', 'Aliquota', 'ICMS', 'TotalOperacao', 'BaseICMS'];
+  const lines = globalSpedRows.map(r => `${r.tipo};${r.cst};${r.cfop};${r.aliq};${r.icms};${r.totalOp};${r.baseIcms}`);
+  const csv = '\uFEFF' + headers.join(';') + '\n' + lines.join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'conciliacao_icms.csv';
+  a.click();
+}
+</script>
 </body>
 </html>
