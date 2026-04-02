@@ -1,4 +1,5 @@
-	<!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -152,6 +153,7 @@
         .card-icon.search { background-color: #b2dfdb; color: #00796b; }
         .card-icon.process { background-color: #c8e6c9; color: #388e3c; }
         .card-icon.compare { background-color: #ffe0b2; color: #f57c00; }
+        .card-icon.nfe-search { background-color: #e1bee7; color: #7b1fa2; }
 
         .card-title {
             font-size: 1.2rem;
@@ -272,7 +274,17 @@
             transform: translateY(-2px);
         }
 
-        .nfe-table, .summary-table, .compare-table {
+        .btn-purple {
+            background-color: #7b1fa2;
+            color: #fff;
+        }
+
+        .btn-purple:hover {
+            background-color: #6a1b9a;
+            transform: translateY(-2px);
+        }
+
+        .nfe-table, .summary-table, .compare-table, .details-table {
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
@@ -284,13 +296,15 @@
 
         body.dark-mode .nfe-table,
         body.dark-mode .summary-table,
-        body.dark-mode .compare-table {
+        body.dark-mode .compare-table,
+        body.dark-mode .details-table {
             background: #2a2a2a;
         }
 
         .nfe-table th,
         .summary-table th,
-        .compare-table th {
+        .compare-table th,
+        .details-table th {
             background: #0288d1;
             color: #fff;
             padding: 0.8rem 1rem;
@@ -301,14 +315,16 @@
 
         .nfe-table td,
         .summary-table td,
-        .compare-table td {
+        .compare-table td,
+        .details-table td {
             padding: 0.8rem 1rem;
             border-bottom: 1px solid #ddd;
         }
 
         body.dark-mode .nfe-table td,
         body.dark-mode .summary-table td,
-        body.dark-mode .compare-table td {
+        body.dark-mode .compare-table td,
+        body.dark-mode .details-table td {
             border-bottom: 1px solid #444;
         }
 
@@ -554,13 +570,103 @@
             color: #666;
         }
 
+        .summary-clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .summary-clickable-row:hover {
+            background-color: #e3f2fd !important;
+        }
+
+        body.dark-mode .summary-clickable-row:hover {
+            background-color: #1e3a5f !important;
+        }
+
+        .summary-clickable-row i {
+            margin-right: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .details-row {
+            display: none;
+        }
+
+        .details-row.show {
+            display: table-row;
+        }
+
+        .details-cell {
+            padding: 0 !important;
+            background-color: #f9f9f9;
+        }
+
+        body.dark-mode .details-cell {
+            background-color: #1f1f1f;
+        }
+
+        .details-inner {
+            padding: 1rem;
+        }
+
+        .details-table {
+            margin: 0;
+            width: 100%;
+        }
+
+        .details-table th {
+            background-color: #e0e0e0;
+            color: #333;
+            font-size: 0.8rem;
+            padding: 0.5rem;
+        }
+
+        body.dark-mode .details-table th {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+
+        .expand-icon {
+            font-size: 0.9rem;
+        }
+
+        .search-nfe-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .search-nfe-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+
+        .search-nfe-input:focus {
+            outline: none;
+            border-color: #7b1fa2;
+        }
+
+        .highlight-nfe {
+            background-color: #ffeb3b !important;
+            transition: background-color 0.5s ease;
+        }
+
+        body.dark-mode .highlight-nfe {
+            background-color: #f9a825 !important;
+        }
+
         @media (max-width: 1400px) {
             .nfe-table th,
             .nfe-table td,
             .summary-table th,
             .summary-table td,
             .compare-table th,
-            .compare-table td {
+            .compare-table td,
+            .details-table th,
+            .details-table td {
                 padding: 0.6rem 0.8rem;
             }
         }
@@ -569,7 +675,7 @@
             .header-content {
                 flex-direction: column;
             }
-            .nfe-table, .summary-table, .compare-table {
+            .nfe-table, .summary-table, .compare-table, .details-table {
                 font-size: 0.7rem;
                 display: block;
                 overflow-x: auto;
@@ -580,6 +686,9 @@
             }
             .stats-cards {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .search-nfe-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -597,9 +706,9 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button id="exportCSVButton" class="header-btn">
+                <button id="exportDetailsCSVButton" class="header-btn">
                     <i class="fas fa-file-csv"></i>
-                    Exportar CSV
+                    Exportar Detalhes CSV
                 </button>
                 <button id="exportButton" class="header-btn">
                     <i class="fas fa-download"></i>
@@ -681,6 +790,29 @@
             </div>
         </div>
 
+        <!-- Nova Área de Busca por NFe -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="card-icon nfe-search">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div>
+                    <div class="card-title">Buscar Nota Fiscal</div>
+                    <div class="card-description">Localize uma NFe e veja em qual produto ela está agrupada</div>
+                </div>
+            </div>
+            <div class="search-nfe-container">
+                <input type="text" id="nfeSearchInput" class="search-nfe-input" placeholder="Digite o número da NFe..." />
+                <button id="searchNfeButton" class="btn btn-purple" style="width: auto; padding: 0.8rem 1.5rem;">
+                    <i class="fas fa-search"></i> Buscar NFe
+                </button>
+                <button id="clearSearchButton" class="btn btn-warning" style="width: auto; padding: 0.8rem 1.5rem;">
+                    <i class="fas fa-times"></i> Limpar
+                </button>
+            </div>
+            <div id="searchResultMessage" style="margin-top: 0.5rem; font-size: 0.8rem; display: none;"></div>
+        </div>
+
         <!-- Área para colar dados de referência -->
         <div class="reference-data-area">
             <div class="comparison-header">
@@ -756,8 +888,11 @@
     </footer>
 
     <script>
-        let processedXmlData = []; // Dados processados dos XMLs
-        let referenceDataList = []; // Dados de referência colados
+        let processedXmlData = [];
+        let referenceDataList = [];
+        let detalhamentoRows = [];
+        let allTableRows = [];
+        let nfeToProductMap = new Map(); // Mapeia NFe para código do produto
 
         function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function scrollToBottom() { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }
@@ -839,12 +974,96 @@
             return nomeUpper.includes('DIESEL') && (nomeUpper.includes('S10') || nomeUpper.includes('S 10'));
         }
 
+        function searchByNFe() {
+            const nfeNumber = document.getElementById('nfeSearchInput').value.trim();
+            const resultMessage = document.getElementById('searchResultMessage');
+            
+            if (!nfeNumber) {
+                resultMessage.style.display = 'block';
+                resultMessage.innerHTML = '<span style="color: #f57c00;"><i class="fas fa-exclamation-triangle"></i> Digite um número de NFe para buscar.</span>';
+                resultMessage.style.color = '#f57c00';
+                setTimeout(() => { resultMessage.style.display = 'none'; }, 3000);
+                return;
+            }
+            
+            if (nfeToProductMap.size === 0) {
+                resultMessage.style.display = 'block';
+                resultMessage.innerHTML = '<span style="color: #c62828;"><i class="fas fa-exclamation-circle"></i> Nenhum dado processado. Processe os arquivos XML primeiro.</span>';
+                resultMessage.style.color = '#c62828';
+                setTimeout(() => { resultMessage.style.display = 'none'; }, 3000);
+                return;
+            }
+            
+            const productCode = nfeToProductMap.get(nfeNumber);
+            
+            if (productCode) {
+                // Remove highlight anterior
+                const previousHighlight = document.querySelector('.highlight-nfe');
+                if (previousHighlight) {
+                    previousHighlight.classList.remove('highlight-nfe');
+                }
+                
+                // Encontra a linha do produto
+                const sanitizedCode = productCode.replace(/[^a-zA-Z0-9]/g, '_');
+                const productRow = document.getElementById(`row-${sanitizedCode}`);
+                const detailsRow = document.getElementById(`details-${sanitizedCode}`);
+                const icon = document.getElementById(`icon-${sanitizedCode}`);
+                
+                if (productRow) {
+                    // Expande a linha de detalhes
+                    if (detailsRow && !detailsRow.classList.contains('show')) {
+                        detailsRow.classList.add('show');
+                        if (icon) icon.className = 'fas fa-minus-circle expand-icon';
+                    }
+                    
+                    // Adiciona destaque na linha do produto
+                    productRow.classList.add('highlight-nfe');
+                    
+                    // Rola até a linha
+                    productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    resultMessage.style.display = 'block';
+                    resultMessage.innerHTML = `<span style="color: #2e7d32;"><i class="fas fa-check-circle"></i> NFe ${nfeNumber} encontrada no produto: ${productRow.cells[1]?.innerText || 'Produto'}</span>`;
+                    resultMessage.style.color = '#2e7d32';
+                    
+                    // Remove destaque após 5 segundos
+                    setTimeout(() => {
+                        productRow.classList.remove('highlight-nfe');
+                        resultMessage.style.display = 'none';
+                    }, 5000);
+                } else {
+                    resultMessage.style.display = 'block';
+                    resultMessage.innerHTML = `<span style="color: #f57c00;"><i class="fas fa-exclamation-triangle"></i> NFe ${nfeNumber} encontrada no mapa mas linha não localizada.</span>`;
+                    resultMessage.style.color = '#f57c00';
+                    setTimeout(() => { resultMessage.style.display = 'none'; }, 3000);
+                }
+            } else {
+                resultMessage.style.display = 'block';
+                resultMessage.innerHTML = `<span style="color: #c62828;"><i class="fas fa-times-circle"></i> NFe ${nfeNumber} não encontrada nos dados processados.</span>`;
+                resultMessage.style.color = '#c62828';
+                setTimeout(() => { resultMessage.style.display = 'none'; }, 3000);
+            }
+        }
+        
+        function clearSearch() {
+            document.getElementById('nfeSearchInput').value = '';
+            const previousHighlight = document.querySelector('.highlight-nfe');
+            if (previousHighlight) {
+                previousHighlight.classList.remove('highlight-nfe');
+            }
+            const resultMessage = document.getElementById('searchResultMessage');
+            resultMessage.style.display = 'none';
+        }
+
         // Processar XMLs
         document.getElementById('processButton').addEventListener('click', function() {
             const files = fileInput.files;
             outputDiv.innerHTML = '';
             comparisonArea.style.display = 'none';
             processedXmlData = [];
+            detalhamentoRows = [];
+            allTableRows = [];
+            nfeToProductMap.clear();
 
             if (files.length === 0) {
                 outputDiv.innerHTML = '<p style="color: red; text-align: center;">Nenhum arquivo selecionado.</p>';
@@ -933,6 +1152,28 @@
                                 infAdFisco, isDiesel, cfop
                             };
                             tableRows.push(rowData);
+                            allTableRows.push(rowData);
+                            
+                            // Mapeia NFe para código do produto
+                            nfeToProductMap.set(nNF, cProd);
+                            
+                            detalhamentoRows.push({
+                                nomePosto: nomePosto,
+                                cnpj: cnpj,
+                                uf: uf,
+                                nNF: nNF,
+                                serie: serie,
+                                dataEmissao: dataEmissao,
+                                xProd: xProd,
+                                cProd: cProd,
+                                qCom: qCom,
+                                vNF: notaValorNF,
+                                aliquota: aliquota,
+                                baseCalculo: baseCalculo,
+                                valorCredito: valorCredito,
+                                cfop: cfop,
+                                infAdFisco: infAdFisco.substring(0, 100)
+                            });
                             
                             totalQuantidadeGeral += qCom;
                             totalBaseCalculoGeral += baseCalculo;
@@ -945,7 +1186,7 @@
                                 dieselS10Summary.totalCredito += valorCredito;
                             }
 
-                            const key = `${xProd}|${cProd}|${aliquota}|${tipoICMS}`;
+                            const key = `${cProd}`;
                             if (!todosProdutos[key]) {
                                 todosProdutos[key] = {
                                     produto: xProd,
@@ -956,19 +1197,19 @@
                                     totalBaseCalculo: 0,
                                     totalCredito: 0,
                                     totalValorNF: 0,
-                                    notasUtilizadas: new Set()
+                                    lancamentos: []
                                 };
                             }
                             todosProdutos[key].totalQuantidade += qCom;
                             todosProdutos[key].totalBaseCalculo += baseCalculo;
                             todosProdutos[key].totalCredito += valorCredito;
+                            todosProdutos[key].totalValorNF += notaValorNF;
                             
-                            if (!todosProdutos[key].notasUtilizadas.has(chaveNota)) {
-                                todosProdutos[key].notasUtilizadas.add(chaveNota);
-                                todosProdutos[key].totalValorNF += notaValorNF;
-                            }
+                            todosProdutos[key].lancamentos.push({
+                                nomePosto, nNF, serie, dataEmissao, xProd,
+                                qCom, vNF: notaValorNF, aliquota, baseCalculo, valorCredito, cfop
+                            });
 
-                            // Armazenar para comparação
                             processedXmlData.push({
                                 nNF: nNF,
                                 produto: xProd,
@@ -986,12 +1227,8 @@
 
                     processedFiles++;
                     if (processedFiles === files.length) {
-                        for (let key in todosProdutos) {
-                            delete todosProdutos[key].notasUtilizadas;
-                        }
                         renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, notasUnicasMap, totalQuantidadeGeral, totalBaseCalculoGeral, totalCreditoGeral, files.length);
                         
-                        // Se já houver dados de referência, comparar automaticamente
                         if (referenceDataList.length > 0) {
                             performComparison();
                         }
@@ -1001,7 +1238,6 @@
             });
         });
 
-        // Função para processar dados colados
         function parseReferenceData(text) {
             const lines = text.split('\n');
             const data = [];
@@ -1010,7 +1246,6 @@
                 const trimmedLine = line.trim();
                 if (trimmedLine === '') continue;
                 
-                // Suporta separadores: | ou tab ou espaço
                 let parts;
                 if (trimmedLine.includes('|')) {
                     parts = trimmedLine.split('|').map(p => p.trim());
@@ -1034,7 +1269,6 @@
             return data;
         }
 
-        // Função para realizar comparação
         function performComparison() {
             if (processedXmlData.length === 0) {
                 alert('Nenhum dado de XML processado. Processe os arquivos XML primeiro.');
@@ -1056,7 +1290,6 @@
                 refMap.set(ref.nfe, ref);
             }
             
-            // Encontrar correspondências
             const allNfes = new Set([...xmlMap.keys(), ...refMap.keys()]);
             const divergences = [];
             const matches = [];
@@ -1068,7 +1301,6 @@
                 const ref = refMap.get(nfe);
                 
                 if (xml && ref) {
-                    // Verificar divergências
                     const valorDiff = Math.abs(xml.valorTotal - ref.valor);
                     const icmsDiff = Math.abs(xml.valorCredito - ref.icms);
                     const baseDiff = Math.abs(xml.baseCalculo - ref.baseCalculo);
@@ -1181,7 +1413,6 @@
                             <tbody id="comparisonTableBody">
             `;
             
-            // Divergências
             for (const item of divergences) {
                 html += `
                     <tr class="divergence">
@@ -1198,7 +1429,6 @@
                 `;
             }
             
-            // Conformes
             for (const item of matches) {
                 html += `
                     <tr class="match">
@@ -1215,7 +1445,6 @@
                 `;
             }
             
-            // Faltam no XML
             for (const item of missingInXml) {
                 html += `
                     <tr class="missing-in-xml">
@@ -1232,7 +1461,6 @@
                 `;
             }
             
-            // Faltam na Referência
             for (const item of missingInRef) {
                 html += `
                     <tr class="missing-in-ref">
@@ -1259,7 +1487,6 @@
             comparisonArea.innerHTML = html;
             comparisonArea.style.display = 'block';
             
-            // Adicionar filtro
             document.getElementById('filterComparison').addEventListener('change', function(e) {
                 const filter = e.target.value;
                 const rows = document.querySelectorAll('#comparisonTableBody tr');
@@ -1279,7 +1506,6 @@
             });
         }
         
-        // Botão de comparação
         document.getElementById('compareWithReference').addEventListener('click', function() {
             const textarea = document.getElementById('referenceData');
             const text = textarea.value;
@@ -1304,7 +1530,6 @@
             performComparison();
         });
         
-        // Carregar exemplo
         document.getElementById('loadExampleButton').addEventListener('click', function() {
             const example = `51513 | DIESEL | 3869.71 | 830.75 | 3038.96
 50754 | DIESEL S10 | 3611.46 | 768.26 | 2843.20
@@ -1319,12 +1544,33 @@
             document.getElementById('referenceData').value = example;
         });
         
-        // Limpar referência
         document.getElementById('clearReferenceButton').addEventListener('click', function() {
             document.getElementById('referenceData').value = '';
             referenceDataList = [];
             comparisonArea.style.display = 'none';
         });
+        
+        // Eventos de busca por NFe
+        document.getElementById('searchNfeButton').addEventListener('click', searchByNFe);
+        document.getElementById('clearSearchButton').addEventListener('click', clearSearch);
+        document.getElementById('nfeSearchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchByNFe();
+            }
+        });
+        
+        function toggleProductDetails(productCode) {
+            const detailsRow = document.getElementById(`details-${productCode}`);
+            const icon = document.getElementById(`icon-${productCode}`);
+            
+            if (detailsRow.classList.contains('show')) {
+                detailsRow.classList.remove('show');
+                icon.className = 'fas fa-plus-circle expand-icon';
+            } else {
+                detailsRow.classList.add('show');
+                icon.className = 'fas fa-minus-circle expand-icon';
+            }
+        }
         
         function renderResults(tableRows, todosProdutos, dieselS10Summary, dieselS10Items, notasUnicasMap, totalQuantidadeGeral, totalBaseCalculoGeral, totalCreditoGeral, totalFiles) {
             let totalValorNotasCorreto = 0;
@@ -1352,9 +1598,9 @@
                             <td class="align-right"><strong>R$ ${dieselS10Summary.totalBaseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td></tr>
                             <tr style="background-color: #ff980020;"><td><strong>💵 Total Valor de Crédito (vICMSMonoRet)</strong></td>
                             <td class="align-right"><strong style="color: #2e7d32;">R$ ${dieselS10Summary.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td></tr>
-                            <tr><td>📦 Total Valor das Notas (vNF - SOMA DAS NOTAS COM DIESEL S10)</td>
+                            <tr style="background-color: #ff980020;"><td>📦 Total Valor das Notas (vNF - SOMA DAS NOTAS COM DIESEL S10)</td>
                             <td class="align-right">R$ ${dieselS10Summary.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
-                            <tr><td><strong>📈 Preço Médio por Litro</strong></td>
+                            <tr style="background-color: #ff980020;"><td><strong>📈 Preço Médio por Litro</strong></td>
                             <td class="align-right">R$ ${dieselS10Summary.totalQuantidade > 0 ? (dieselS10Summary.totalValorNF / dieselS10Summary.totalQuantidade).toLocaleString('pt-BR', { minimumFractionDigits: 3 }) : '0,000'}</td></tr>
                         </tbody>
                     </table>
@@ -1372,9 +1618,10 @@
 
             for (const row of tableRows) {
                 const highlightClass = row.isDiesel ? 'highlight-row' : '';
+                const nNFDisplay = row.nNF;
                 html += `<tr class="${highlightClass}">
                     <td>${row.nomePosto}</td><td>${row.cnpj}</td><td>${row.uf}</td>
-                    <td class="align-center">${row.nNF}${row.isDiesel ? ' 🎯' : ''}</td>
+                    <td class="align-center">${nNFDisplay}</td>
                     <td>${row.serie}</td><td>${row.dataEmissao}</td>
                     <td>${row.xProd}</td><td>${row.cProd}</td>
                     <td class="align-right">${row.qCom.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}</td>
@@ -1397,32 +1644,86 @@
                 <td colspan="2"></td>
             </tr></tfoot></table></div>`;
 
-            html += `<h2 style="text-align: center; margin-top: 2rem;">📊 RESUMO POR PRODUTO</h2>
-            <div style="overflow-x: auto;"><table class="summary-table"><thead><tr>
-                <th>Produto</th><th>Código</th><th>Alíquota</th><th>Tipo ICMS</th>
-                <th class="align-right">Total Quantidade (L)</th>
-                <th class="align-right">Total Base Cálculo (R$)</th>
-                <th class="align-right">Total Valor Crédito (R$)</th>
-                <th class="align-right">Total Valor NF (R$)</th>
-            </tr></thead><tbody>`;
+            html += `<h2 style="text-align: center; margin-top: 2rem;">📊 RESUMO POR PRODUTO (AGRUPADO POR CÓDIGO)</h2>
+            <div style="overflow-x: auto;">
+                <table class="summary-table" id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"></th>
+                            <th>Produto</th><th>Código</th><th>Alíquota</th><th>Tipo ICMS</th>
+                            <th class="align-right">Total Quantidade (L)</th>
+                            <th class="align-right">Total Base Cálculo (R$)</th>
+                            <th class="align-right">Total Valor Crédito (R$)</th>
+                            <th class="align-right">Total Valor NF (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
             
             const sorted = Object.values(todosProdutos).sort((a, b) => b.totalCredito - a.totalCredito);
             for (const p of sorted) {
                 const isDiesel = p.codigo === '2309' || (p.produto.toUpperCase().includes('DIESEL') && p.produto.toUpperCase().includes('S10'));
-                html += `<tr ${isDiesel ? 'style="background-color: #ff980020;"' : ''}>
-                    <td><strong>${p.produto}${isDiesel ? ' 🎯' : ''}</strong></td>
-                    <td class="align-center">${p.codigo}${isDiesel ? ' ⛽' : ''}</td>
-                    <td class="align-center">${p.aliquota}%</td>
-                    <td class="align-center">${p.tipoICMS}</td>
-                    <td class="align-right">${p.totalQuantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</td>
-                    <td class="align-right">R$ ${p.totalBaseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td class="align-right">R$ ${p.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td class="align-right">R$ ${p.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                </tr>`;
+                const sanitizedCode = p.codigo.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                html += `
+                    <tr id="row-${sanitizedCode}" class="summary-clickable-row" onclick="toggleProductDetails('${sanitizedCode}')" ${isDiesel ? 'style="background-color: #ff980020;"' : ''}>
+                        <td class="align-center"><i class="fas fa-plus-circle expand-icon" id="icon-${sanitizedCode}"></i></td>
+                        <td><strong>${p.produto}${isDiesel ? ' 🎯' : ''}</strong></td>
+                        <td class="align-center">${p.codigo}${isDiesel ? ' ⛽' : ''}</td>
+                        <td class="align-center">${p.aliquota}%</td>
+                        <td class="align-center">${p.tipoICMS}</td>
+                        <td class="align-right">${p.totalQuantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</td>
+                        <td class="align-right">R$ ${p.totalBaseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${p.totalCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="align-right">R$ ${p.totalValorNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr id="details-${sanitizedCode}" class="details-row">
+                        <td colspan="9" class="details-cell">
+                            <div class="details-inner">
+                                <table class="details-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Posto</th>
+                                            <th>Nº NFe</th>
+                                            <th>Série</th>
+                                            <th>Data</th>
+                                            <th class="align-right">Qtd (L)</th>
+                                            <th class="align-right">Valor NF (R$)</th>
+                                            <th class="align-right">Alíquota</th>
+                                            <th class="align-right">Base Cálculo (R$)</th>
+                                            <th class="align-right">Crédito (R$)</th>
+                                            <th>CFOP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                
+                for (const lanc of p.lancamentos) {
+                    html += `
+                        <tr>
+                            <td>${lanc.nomePosto}</td>
+                            <td class="align-center">${lanc.nNF}</td>
+                            <td class="align-center">${lanc.serie}</td>
+                            <td>${lanc.dataEmissao}</td>
+                            <td class="align-right">${lanc.qCom.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}</td>
+                            <td class="align-right">R$ ${lanc.vNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td class="align-right">${lanc.aliquota}%</td>
+                            <td class="align-right">R$ ${lanc.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td class="align-right">R$ ${lanc.valorCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td class="align-center">${lanc.cfop || '-'}</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
             
             html += `</tbody><tfoot><tr class="total-cell">
-                <td colspan="4" class="align-right"><strong>TOTAL GERAL:</strong></td>
+                <td colspan="5" class="align-right"><strong>TOTAL GERAL:</strong></td>
                 <td class="align-right"><strong>${totalQuantidadeGeral.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} L</strong></td>
                 <td class="align-right"><strong>R$ ${totalBaseCalculoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                 <td class="align-right"><strong>R$ ${totalCreditoGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
@@ -1446,23 +1747,37 @@
             outputDiv.innerHTML = html;
         }
 
-        // Exportar CSV
-        document.getElementById('exportCSVButton').addEventListener('click', function() {
-            if (processedXmlData.length === 0) {
-                alert('Nenhum dado processado para exportar. Processe os arquivos XML primeiro.');
+        document.getElementById('exportDetailsCSVButton').addEventListener('click', function() {
+            if (detalhamentoRows.length === 0) {
+                alert('Nenhum dado para exportar. Processe os arquivos XML primeiro.');
                 return;
             }
 
-            const headers = ['NFe', 'Produto', 'Valor Total (R$)', 'Valor Crédito (R$)', 'Base Cálculo (R$)'];
+            const headers = [
+                'Nome do Posto', 'CNPJ', 'UF', 'Nº NFe', 'Série', 'Data Emissão',
+                'Produto', 'Código', 'Quantidade (L)', 'Valor Total (vNF)', 'Alíquota',
+                'Base Cálculo', 'Valor Crédito', 'CFOP', 'Info Adicional'
+            ];
+            
             const csvRows = [headers];
             
-            for (const row of processedXmlData) {
+            for (const row of detalhamentoRows) {
                 csvRows.push([
+                    row.nomePosto,
+                    row.cnpj,
+                    row.uf,
                     row.nNF,
-                    row.produto,
-                    row.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
+                    row.serie,
+                    row.dataEmissao,
+                    row.xProd,
+                    row.cProd,
+                    row.qCom.toLocaleString('pt-BR', { minimumFractionDigits: 3 }).replace(/\./g, ','),
+                    row.vNF.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
+                    row.aliquota,
+                    row.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
                     row.valorCredito.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ','),
-                    row.baseCalculo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace(/\./g, ',')
+                    row.cfop || '',
+                    row.infAdFisco
                 ]);
             }
             
@@ -1471,7 +1786,7 @@
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.href = url;
-            link.setAttribute('download', `relatorio_nfe_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+            link.setAttribute('download', `detalhamento_nfe_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
