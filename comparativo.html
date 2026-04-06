@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DPNET vs AutoSystem | Análise de Diferenças de Caixa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            padding: 30px 24px;
+            min-height: 100vh;
+        }
+
+        .main-card {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .hero {
+            background: linear-gradient(115deg, #0b2b40 0%, #1b4f6e 100%);
+            padding: 32px 32px 24px 32px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero h1 small {
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 400;
+        }
+
+        .verse {
+            margin-top: 14px;
+            font-style: italic;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            border-left: 3px solid #ffcf4a;
+            padding-left: 18px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 0 20px 20px 0;
+            width: fit-content;
+        }
+
+        .flex-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 28px 28px 20px 28px;
+            background: #fefefe;
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .input-box {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .input-box label {
+            font-weight: 700;
+            color: #1e2f3a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 260px;
+            padding: 16px;
+            border-radius: 20px;
+            border: 1.5px solid #cbdde6;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12.5px;
+            line-height: 1.45;
+            background: #fdfdf5;
+            resize: vertical;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #2c7da0;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+            background: #ffffff;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            padding: 18px 28px 32px 28px;
+            background: #ffffff;
+            border-top: 1px solid #eef3f8;
+        }
+
+        button {
+            background: #1f6392;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 44px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: #0e4a6e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary {
+            background: #2c7a4d;
+        }
+        .btn-secondary:hover { background: #1f5e3b; }
+
+        .btn-warning {
+            background: #b45309;
+        }
+        .btn-warning:hover { background: #9b3f06; }
+
+        .btn-danger {
+            background: #9b2c2c;
+        }
+
+        .result-area {
+            padding: 20px 28px 32px 28px;
+            background: #f8fafc;
+            display: none;
+            border-top: 1px solid #e2edf2;
+        }
+
+        .info-header {
+            background: #e6f4fa;
+            border-radius: 24px;
+            padding: 16px 24px;
+            margin-bottom: 28px;
+            border-left: 6px solid #1f6392;
+            font-weight: 500;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        }
+
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 880px;
+        }
+
+        .comp-table th {
+            background: #1e3b4a;
+            color: white;
+            padding: 14px 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .comp-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e4edf2;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .comp-table tr:hover {
+            background: #fef9e6;
+        }
+
+        .highlight-row {
+            background: #fff2df !important;
+            border-left: 4px solid #f5a623;
+        }
+
+        .valor-neg {
+            color: #c52828;
+            font-weight: 700;
+        }
+        .valor-pos {
+            color: #2b7a3e;
+            font-weight: 700;
+        }
+
+        .badge-missing {
+            background: #ffe3e3;
+            color: #ac2c2c;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-ok {
+            background: #dff0e4;
+            color: #1e6f3f;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .totals-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            margin-top: 30px;
+            background: #eef3f6;
+            border-radius: 24px;
+            padding: 20px 28px;
+        }
+
+        .total-card {
+            background: white;
+            border-radius: 28px;
+            padding: 12px 24px;
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .total-card span {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .footer-note {
+            background: #0c2a36;
+            color: #adccdb;
+            text-align: center;
+            padding: 14px;
+            font-size: 0.7rem;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .action-bar, .flex-inputs, .loader, .hero .verse, button {
+                display: none;
+            }
+            .result-area {
+                display: block !important;
+            }
+            .main-card {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="main-card">
+    <div class="hero">
+        <h1>
+            🧾 DPNET · INFORMAÇÕES ON-LINE 
+            <small>vs AutoSystem</small>
+        </h1>
+        <div class="verse" id="dailyVerse">📖 “O justo anda na sua integridade; bem-aventurados são os seus filhos depois dele.” — Provérbios 20:7</div>
+        <p style="margin-top: 12px; font-size: 0.85rem;">🔍 Análise de diferenças de caixa | Dom Pedro de Juiz de Fora - Urbano</p>
+    </div>
+
+    <div class="flex-inputs">
+        <div class="input-box">
+            <label>📋 DPNET (layout original)</label>
+            <textarea id="dpnetRaw" placeholder="Cole exatamente como no relatório&#10;Exemplo:&#10;01/01/2026&#10;01&#10;-1,20&#10;+detalhes&#10;01/01/2026&#10;02&#10;-32,85&#10;Falta tratada..."></textarea>
+        </div>
+        <div class="input-box">
+            <label>⚙️ AUTOSYSTEM (CSV / TAB)</label>
+            <textarea id="autosysRaw" placeholder="Cole o relatório do AutoSystem (com colunas separadas por TAB)&#10;Exemplo:&#10;Empresa: Dom Pedro&#10;Período: 01/01/2026 a 31/01/2026&#10;Data	Turno	Sobra	Falta	Geral&#10;2026-01-01	1	0,00	1,20	-1,20"></textarea>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button id="compareBtn">🔎 COMPARAR DIFERENÇAS</button>
+        <button id="exportCsvBtn" class="btn-secondary">📎 Exportar CSV</button>
+        <button id="printBtn" class="btn-warning">🖨️ Imprimir</button>
+        <button id="clearBtn" class="btn-danger" style="display: none;">🗑️ Nova Análise</button>
+    </div>
+    <div class="loader" id="loadingSpinner">⏳ Processando dados, aguarde...</div>
+
+    <div id="resultsPanel" class="result-area">
+        <div id="infoHeader" class="info-header"></div>
+        <div class="table-wrapper">
+            <table class="comp-table" id="comparisonTable">
+                <thead>
+                    <tr><th>Data (DD/MM/AAAA)</th><th>Turno</th><th>Valor DPNET</th><th>Valor AutoSystem</th><th>Diferença (Dpnet - Auto)</th><th>Status / Observação</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div id="totalsContainer" class="totals-grid"></div>
+    </div>
+    <div class="footer-note">Projeto executado por WAR · Análise fiel aos registros · 2026</div>
+</div>
+
+<script>
+    // ---------- VERSÍCULO DINÂMICO ----------
+    const verses = [
+        "🌸 “Este é o dia que o Senhor fez; regozijemo-nos e alegremo-nos nele.” — Salmos 118:24",
+        "💪 “Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus” — Isaías 41:10",
+        "🕊️ “Tudo posso naquele que me fortalece.” — Filipenses 4:13",
+        "🌟 “Porque Deus não nos deu o espírito de temor, mas de fortaleza, amor e moderação.” — 2 Timóteo 1:7",
+        "⚡ “Esforçai-vos e animai-vos; não temais, nem vos espanteis” — Deuteronômio 31:6",
+        "🎉 “Alegrai-vos sempre no Senhor; outra vez digo, alegrai-vos.” — Filipenses 4:4",
+        "🙏 “Não andeis ansiosos por coisa alguma; antes, as vossas petições sejam em tudo conhecidas diante de Deus” — Filipenses 4:6"
+    ];
+    document.getElementById('dailyVerse').innerText = verses[new Date().getDay()] || verses[0];
+
+    // ========== 1. PARSER ESPECÍFICO DO DPNET (layout da descrição) ==========
+    // Formato exato: 
+    // Data (dd/mm/aaaa) -> linha com data
+    // Próxima linha: turno (1 ou 2 dígitos, ex: 01 ou 1)
+    // Próxima linha: valor (ex: -1,20 ou 32,85) -> diferença de caixa
+    // Depois podem vir linhas de detalhes/justificativa ("+detalhes", "Falta tratada...") que devem ser ignoradas
+    // E então repete.
+    function parseDpnetStrict(text) {
+        const lines = text.split(/\r?\n/);
+        const map = new Map(); // key = "YYYY-MM-DD|TURNO" -> valor acumulado (soma diferenças)
+        let i = 0;
+        const totalLines = lines.length;
+        
+        while (i < totalLines) {
+            let line = lines[i].trim();
+            if (line === "") { i++; continue; }
+            
+            // 1) Detecta data no formato dd/mm/aaaa
+            const dateMatch = line.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (dateMatch) {
+                const day = dateMatch[1];
+                const month = dateMatch[2];
+                const year = dateMatch[3];
+                const isoDate = `${year}-${month}-${day}`;
+                i++;
+                // após a data, esperamos o turno (próxima linha não vazia)
+                while (i < totalLines && lines[i].trim() === "") i++;
+                if (i >= totalLines) break;
+                let turnoRaw = lines[i].trim();
+                // suporta turno "01" ou "1" ou "02"
+                let turnoNum = parseInt(turnoRaw, 10);
+                if (isNaN(turnoNum)) {
+                    // se não for número, pode ser que tenha detalhe extra? Mas pelo padrão deve ser turno.
+                    i++;
+                    continue;
+                }
+                const turno = turnoNum.toString().padStart(2, '0');
+                i++;
+                // agora próximo campo não vazio deve ser o valor (diferença)
+                while (i < totalLines && lines[i].trim() === "") i++;
+                if (i >= totalLines) break;
+                let valorStr = lines[i].trim();
+                // extrai valor no formato brasileiro: pode ter ponto milhar? Ex: -1,20 ou 32,85 ou -32,85
+                // Remove possíveis espaços e substitui vírgula por ponto
+                let cleanVal = valorStr.replace(/\./g, '').replace(',', '.');
+                let valorNum = parseFloat(cleanVal);
+                if (isNaN(valorNum)) {
+                    // tenta extrair número mesmo com caracteres estranhos
+                    const numberMatch = valorStr.match(/(-?\d+[\.,]\d+)/);
+                    if (numberMatch) {
+                        let tmp = numberMatch[1].replace(/\./g, '').replace(',', '.');
+                        valorNum = parseFloat(tmp);
+                    } else {
+                        valorNum = 0;
+                    }
+                }
+                const key = `${isoDate}|${turno}`;
+                const current = map.get(key) || 0;
+                map.set(key, current + valorNum);
+                // pula as próximas linhas de justificativa/detalhes até chegar em outra data ou fim
+                i++;
+                // avança enquanto não encontrar uma nova data (dd/mm/aaaa) e não for fim
+                while (i < totalLines) {
+                    const nextLine = lines[i].trim();
+                    if (nextLine === "") { i++; continue; }
+                    // se for data, paramos (sem consumir a data, volta loop principal)
+                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(nextLine)) {
+                        break;
+                    }
+                    // se for turno (apenas números) mas não tem data antes? por segurança, se for só número de 1-2 dígitos mas não é data, pode ser novo ciclo? melhor parar quando encontrar padrão numérico de turno? 
+                    // Vamos tratar: ignoramos qualquer detalhe e seguimos
+                    i++;
+                }
+                continue;
+            } else {
+                i++;
+            }
+        }
+        return map;
+    }
+
+    // ========== 2. PARSER AUTOSYSTEM (TAB separado) ==========
+    // Estrutura: colunas esperadas: Data (YYYY-MM-DD) | Turno | Sobra | Falta | Geral
+    // Pode conter cabeçalhos, linhas totais.
+    function parseAutoSystemAdvanced(text) {
+        const lines = text.split(/\r?\n/);
+        const dataMap = new Map(); // key "YYYY-MM-DD|TURNO"
+        let empresaInfo = "";
+        let periodoInfo = "";
+        
+        for (let line of lines) {
+            line = line.trim();
+            if (line === "") continue;
+            
+            if (line.includes("Empresa:")) {
+                const empMatch = line.match(/Empresa:\s*(.+)/);
+                if (empMatch) empresaInfo = empMatch[1];
+                continue;
+            }
+            if (line.includes("Período:")) {
+                const perMatch = line.match(/Período:\s*(.+)/);
+                if (perMatch) periodoInfo = perMatch[1];
+                continue;
+            }
+            // pula cabeçalhos óbvios
+            if (line.toLowerCase().includes("data") && line.includes("Turno")) continue;
+            if (line.startsWith("Subtotal") || line.startsWith("Total")) continue;
+            
+            // separa por TAB
+            const fields = line.split(/\t/);
+            if (fields.length >= 4) {
+                let dateRaw = fields[0].trim();
+                let turnoRaw = fields[1].trim();
+                let sobraRaw = fields[2] ? fields[2].trim() : "";
+                let faltaRaw = fields[3] ? fields[3].trim() : "";
+                let geralRaw = fields[4] ? fields[4].trim() : "";
+                
+                // valida data YYYY-MM-DD
+                if (!dateRaw.match(/^\d{4}-\d{2}-\d{2}$/)) continue;
+                let turnoNum = parseInt(turnoRaw, 10);
+                if (isNaN(turnoNum)) continue;
+                const turnoKey = turnoNum.toString().padStart(2, '0');
+                let valor = 0;
+                // prioridade: campo Geral se existir e não vazio
+                if (geralRaw !== "" && geralRaw !== "0,00" && geralRaw !== "0.00") {
+                    let numStr = geralRaw.replace(/\./g, '').replace(',', '.');
+                    valor = parseFloat(numStr);
+                    if (isNaN(valor)) valor = 0;
+                } 
+                // senão usa lógica sobra/falta
+                else if (sobraRaw !== "" && sobraRaw !== "0,00") {
+                    let sobraNum = parseFloat(sobraRaw.replace(/\./g, '').replace(',', '.'));
+                    valor = isNaN(sobraNum) ? 0 : sobraNum;
+                } 
+                else if (faltaRaw !== "" && faltaRaw !== "0,00") {
+                    let faltaNum = parseFloat(faltaRaw.replace(/\./g, '').replace(',', '.'));
+                    valor = isNaN(faltaNum) ? 0 : -faltaNum;   // falta representa valor negativo
+                }
+                
+                const key = `${dateRaw}|${turnoKey}`;
+                const prev = dataMap.get(key) || 0;
+                dataMap.set(key, prev + valor);
+            }
+        }
+        return { dataMap, empresaInfo, periodoInfo };
+    }
+    
+    // ========== 3. COMPARAÇÃO PRINCIPAL ==========
+    let lastComparison = {
+        rows: [],
+        totalDpnet: 0,
+        totalAutosys: 0,
+        totalDiff: 0,
+        divergenciasCount: 0,
+        empresa: "",
+        periodo: ""
+    };
+    
+    async function runComparison() {
+        const dpnetText = document.getElementById('dpnetRaw').value;
+        const autosysText = document.getElementById('autosysRaw').value;
+        
+        if (!dpnetText.trim() || !autosysText.trim()) {
+            alert("⚠️ Por favor, cole os dados do DPNET e do AutoSystem antes de comparar.");
+            return;
+        }
+        
+        const loader = document.getElementById('loadingSpinner');
+        const resultsDiv = document.getElementById('resultsPanel');
+        loader.style.display = "block";
+        resultsDiv.style.display = "none";
+        
+        // delay para UI
+        await new Promise(r => setTimeout(r, 50));
+        
+        try {
+            const dpnetMap = parseDpnetStrict(dpnetText);
+            const { dataMap: autosysMap, empresaInfo, periodoInfo } = parseAutoSystemAdvanced(autosysText);
+            
+            // Unir todas as chaves
+            const allKeysSet = new Set();
+            for (let k of dpnetMap.keys()) allKeysSet.add(k);
+            for (let k of autosysMap.keys()) allKeysSet.add(k);
+            const sortedKeys = Array.from(allKeysSet).sort();
+            
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = "";
+            let totalDp = 0, totalAuto = 0, diffCountAbove5 = 0;
+            const rowsData = [];
+            
+            for (let key of sortedKeys) {
+                const [dateIso, turno] = key.split('|');
+                const valDp = dpnetMap.has(key) ? dpnetMap.get(key) : null;
+                const valAs = autosysMap.has(key) ? autosysMap.get(key) : null;
+                
+                let diff = null;
+                let obsText = "";
+                let rowClass = "";
+                let diffFormatted = "";
+                
+                if (valDp !== null && valAs !== null) {
+                    diff = valDp - valAs;
+                    const absDiff = Math.abs(diff);
+                    if (absDiff > 5) {
+                        diffCountAbove5++;
+                        rowClass = "highlight-row";
+                        obsText = diff > 0 ? "⚠️ Dpnet maior que AutoSystem" : "⚠️ AutoSystem maior que Dpnet";
+                    } else {
+                        obsText = "✓ Convergente";
+                    }
+                    diffFormatted = diff.toFixed(2);
+                } 
+                else if (valDp !== null && valAs === null) {
+                    diff = valDp;
+                    diffFormatted = `+${valDp.toFixed(2)}`;
+                    obsText = "❌ Ausente no AutoSystem";
+                    rowClass = "highlight-row";
+                    diffCountAbove5++;
+                } 
+                else if (valDp === null && valAs !== null) {
+                    diff = -valAs;
+                    diffFormatted = `${(-valAs).toFixed(2)}`;
+                    obsText = "❌ Ausente no Dpnet";
+                    rowClass = "highlight-row";
+                    diffCountAbove5++;
+                } else {
+                    obsText = "Ambos ausentes (inválido)";
+                }
+                
+                const formatDateBr = (iso) => {
+                    if (!iso) return "";
+                    const [year, month, day] = iso.split('-');
+                    return `${day}/${month}/${year}`;
+                };
+                
+                const formatMoney = (value) => {
+                    if (value === null) return "<span style='color:#9e7e5e;'>—</span>";
+                    const valNum = value;
+                    const formatted = valNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const className = valNum < 0 ? "valor-neg" : (valNum > 0 ? "valor-pos" : "");
+                    return `<span class="${className}">R$ ${formatted}</span>`;
+                };
+                
+                const diffDisplay = (diff !== null && !isNaN(diff)) ? 
+                    `<span class="${diff < 0 ? 'valor-neg' : (diff > 0 ? 'valor-pos' : '')}">R$ ${diff.toFixed(2)}</span>` : "-";
+                
+                const statusHtml = obsText.includes("❌") ? `<span class="badge-missing">${obsText}</span>` : 
+                                    (obsText === "✓ Convergente" ? `<span class="badge-ok">✓ OK</span>` : `<span class="badge-missing">${obsText}</span>`);
+                
+                const row = document.createElement('tr');
+                if (rowClass) row.classList.add(rowClass);
+                row.innerHTML = `
+                    <td>${formatDateBr(dateIso)}</td>
+                    <td><strong>${turno}</strong></td>
+                    <td>${formatMoney(valDp)}</td>
+                    <td>${formatMoney(valAs)}</td>
+                    <td>${diffDisplay}</td>
+                    <td>${statusHtml}</td>
+                `;
+                tbody.appendChild(row);
+                
+                rowsData.push({
+                    Data: formatDateBr(dateIso),
+                    Turno: turno,
+                    "Valor DPNET": valDp !== null ? valDp.toFixed(2).replace('.', ',') : "---",
+                    "Valor AutoSystem": valAs !== null ? valAs.toFixed(2).replace('.', ',') : "---",
+                    "Diferença (R$)": diff !== null ? diff.toFixed(2).replace('.', ',') : "",
+                    Observação: obsText
+                });
+                
+                if (valDp !== null) totalDp += valDp;
+                if (valAs !== null) totalAuto += valAs;
+            }
+            
+            const totalDiffValue = totalDp - totalAuto;
+            // atualizar info
+            const infoDiv = document.getElementById('infoHeader');
+            infoDiv.innerHTML = `
+                <strong>🏢 Empresa:</strong> ${empresaInfo || "Dom Pedro de Juiz de Fora - Urbano"} &nbsp;|&nbsp;
+                <strong>📅 Período:</strong> ${periodoInfo || "Conforme relatório"}<br>
+                <small>✅ Comparação baseada nos registros de diferença de caixa (DPNET vs AutoSystem)</small>
+            `;
+            
+            const totalsDiv = document.getElementById('totalsContainer');
+            totalsDiv.innerHTML = `
+                <div class="total-card"><strong>📌 Total DPNET</strong><span class="${totalDp < 0 ? 'valor-neg' : (totalDp>0 ? 'valor-pos' : '')}">R$ ${totalDp.toFixed(2)}</span></div>
+                <div class="total-card"><strong>📌 Total AutoSystem</strong><span class="${totalAuto < 0 ? 'valor-neg' : (totalAuto>0 ? 'valor-pos' : '')}">R$ ${totalAuto.toFixed(2)}</span></div>
+                <div class="total-card"><strong>⚖️ Diferença Total</strong><span class="${totalDiffValue < 0 ? 'valor-neg' : (totalDiffValue>0 ? 'valor-pos' : '')}">R$ ${totalDiffValue.toFixed(2)}</span></div>
+                <div class="total-card"><strong>⚠️ Divergências > R$ 5</strong><span>${diffCountAbove5}</span></div>
+            `;
+            
+            lastComparison = {
+                rows: rowsData,
+                totalDpnet: totalDp,
+                totalAutosys: totalAuto,
+                totalDiff: totalDiffValue,
+                divergenciasCount: diffCountAbove5,
+                empresa: empresaInfo,
+                periodo: periodoInfo
+            };
+            
+            resultsDiv.style.display = "block";
+            document.getElementById('clearBtn').style.display = "inline-flex";
+            document.getElementById('compareBtn').style.display = "none";
+        } catch (err) {
+            console.error(err);
+            alert("Erro durante análise: " + err.message);
+        } finally {
+            loader.style.display = "none";
+        }
+    }
+    
+    function exportToCSV() {
+        if (lastComparison.rows.length === 0) {
+            alert("Nenhuma comparação disponível. Execute a análise primeiro.");
+            return;
+        }
+        const csvRows = [
+            ["Data", "Turno", "Valor DPNET", "Valor AutoSystem", "Diferença (R$)", "Observação"]
+        ];
+        for (let row of lastComparison.rows) {
+            csvRows.push([
+                row.Data, row.Turno, row["Valor DPNET"], row["Valor AutoSystem"], row["Diferença (R$)"], row.Observação
+            ]);
+        }
+        const csvContent = csvRows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "comparacao_caixa_dpnet_autosystem.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    function printReport() {
+        if (lastComparison.rows.length === 0) {
+            alert("Nenhuma comparação carregada.");
+            return;
+        }
+        window.print();
+    }
+    
+    function resetAll() {
+        document.getElementById('dpnetRaw').value = "";
+        document.getElementById('autosysRaw').value = "";
+        document.getElementById('resultsPanel').style.display = "none";
+        document.getElementById('clearBtn').style.display = "none";
+        document.getElementById('compareBtn').style.display = "inline-flex";
+        lastComparison.rows = [];
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+    }
+    
+    // Event listeners
+    document.getElementById('compareBtn').addEventListener('click', runComparison);
+    document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
+    document.getElementById('printBtn').addEventListener('click', printReport);
+    document.getElementById('clearBtn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>
