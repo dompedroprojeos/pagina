@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Notas Fiscais - Entradas</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #e9ecef;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #1e466e;
+        }
+        .sub {
+            color: #495057;
+            border-left: 4px solid #0d6efd;
+            padding-left: 16px;
+            margin-bottom: 30px;
+        }
+        .entrada-area {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        textarea {
+            width: 100%;
+            height: 280px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 16px;
+            background: #fff;
+            resize: vertical;
+        }
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #0b5ed7;
+            transform: scale(1.02);
+        }
+        .filtro-area {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            background: #f1f3f5;
+            padding: 12px 20px;
+            border-radius: 40px;
+        }
+        .filtro-area label {
+            font-weight: bold;
+        }
+        select, input {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+        }
+        .result-table {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #1e466e;
+            color: white;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .total-row {
+            background: #e2e3e5;
+            font-weight: bold;
+        }
+        .aviso {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 16px;
+            margin: 16px 0;
+        }
+        footer {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📋 Organizador de Notas Fiscais (Entradas)</h1>
+    <div class="sub">Cole o relatório "Detalhamento de Movimento de Entradas" → Clique em processar → Dados organizados em tabela.</div>
+
+    <div class="entrada-area">
+        <label for="rawData">📌 Cole aqui o relatório completo (incluindo cabeçalho e todas as linhas):</label>
+        <textarea id="rawData" placeholder="Cole o texto inteiro do relatório (exatamente como no sistema).&#10;Exemplo:&#10;XP TRANSPORTES LTDA ...&#10;Detalhamento de Movimento de Entradas - Por Produtos&#10;Produto: 1 - DIESEL COMUM&#10;201		02/01/2026			21							44971 ..."></textarea>
+        <button id="processarBtn">🔧 ORGANIZAR E PROCESSAR</button>
+    </div>
+
+    <div id="resultadoContainer" style="display: none;">
+        <div class="filtro-area">
+            <span>🔍 Filtrar por Produto:</span>
+            <select id="filtroProduto"></select>
+            <button id="limparFiltroBtn" class="btn-secondary" style="background:#6c757d; margin:0; padding:5px 16px;">Limpar Filtro</button>
+        </div>
+        <div class="stats" id="statsInfo"></div>
+        <div class="result-table" id="tabelaResultado"></div>
+    </div>
+    <footer>✅ Os dados são extraídos automaticamente: Código, Data, Fornecedor, Documento, Produto, Valor Contábil, CFOP, CST PIS, Valor PIS, CST COFINS, Valor COFINS.</footer>
+</div>
+
+<script>
+    function processarRelatorio() {
+        const texto = document.getElementById('rawData').value;
+        if (!texto.trim()) {
+            alert("Por favor, cole o relatório primeiro.");
+            return;
+        }
+
+        // Padrão para identificar linhas de detalhe (começa com número, depois tab ou espaços, data)
+        // Exemplo: "201		02/01/2026			21							44971			128			1		27101921		1.566,00"
+        const linhas = texto.split(/\r?\n/);
+        let produtosMap = new Map(); // nome do produto -> array de linhas
+        let produtoAtual = "";
+        
+        // Regex para capturar linhas de detalhe (início com dígitos, depois espaços/tab, depois data)
+        const regexDetalhe = /^(\d+)\s+(\d{2}\/\d{2}\/\d{4})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d.,]+)\s+([\d.,]+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+(\d+)\s+(\d+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)/;
+        // Versão mais flexível: captura grupos principais separados por espaços/tabs
+        // Vamos usar split por espaços em branco e reconstruir
+        
+        for (let i = 0; i < linhas.length; i++) {
+            let line = linhas[i];
+            // Identifica linha de produto: "Produto: 1 - DIESEL COMUM"
+            if (line.includes("Produto:") && (line.includes("-") || line.includes("SERVICOS"))) {
+                let matchProd = line.match(/Produto:\s*(\d+)\s*-\s*(.+)/);
+                if (matchProd) {
+                    produtoAtual = matchProd[2].trim();
+                    if (!produtosMap.has(produtoAtual)) {
+                        produtosMap.set(produtoAtual, []);
+                    }
+                } else if (line.includes("SERVICOS")) {
+                    produtoAtual = "SERVICOS - SERVIÇOS TOMADOS";
+                    if (!produtosMap.has(produtoAtual)) {
+                        produtosMap.set(produtoAtual, []);
+                    }
+                }
+                continue;
+            }
+            
+            // Se não há produto definido, pula
+            if (!produtoAtual) continue;
+            
+            // Tenta parsear linha de detalhe: inicia com número (código) e tem data no formato dd/mm/aaaa
+            // Exemplo: "201		02/01/2026			21							44971			128			1		27101921		1.566,00		1.566,00"
+            // Vamos usar split por espaços e tabs, ignorando vazios
+            const partes = line.split(/\s+/).filter(p => p.length > 0);
+            if (partes.length < 15) continue;
+            // Verifica se a segunda parte parece data
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(partes[1])) continue;
+            
+            // Extração baseada nas colunas típicas do relatório:
+            // Colunas: Codigo, Data, Fornecedor, Doc, Acumulador, ProdutoID, NCM, ValorProduto, ValorContabil, CFOP, ?, CST_PIS, ?, Valor_PIS, ?, CST_COFINS, ?, Valor_COFINS
+            // Mapeamento prático:
+            let codigo = partes[0];
+            let data = partes[1];
+            let fornecedor = partes[2];
+            let documento = partes[3];
+            let acumulador = partes[4];
+            let produtoId = partes[5];
+            let ncm = partes[6];
+            let valorProduto = limparValor(partes[7]);
+            let valorContabil = limparValor(partes[8]);
+            let cfop = partes[9];
+            let cstPis = partes[11] || "";
+            let valorPis = partes[13] ? limparValor(partes[13]) : 0;
+            let cstCofins = partes[15] || "";
+            let valorCofins = partes[17] ? limparValor(partes[17]) : 0;
+            
+            // Adiciona ao array do produto atual
+            produtosMap.get(produtoAtual).push({
+                codigo, data, fornecedor, documento, acumulador, produtoId, ncm,
+                valorProduto, valorContabil, cfop, cstPis, valorPis, cstCofins, valorCofins,
+                produtoNome: produtoAtual
+            });
+        }
+        
+        if (produtosMap.size === 0) {
+            document.getElementById('tabelaResultado').innerHTML = '<div class="aviso">Nenhuma linha de produto foi encontrada. Verifique se o relatório está completo (com "Produto: X - NOME").</div>';
+            document.getElementById('resultadoContainer').style.display = 'block';
+            return;
+        }
+        
+        // Gerar opções de filtro
+        const selectFiltro = document.getElementById('filtroProduto');
+        selectFiltro.innerHTML = '<option value="">-- Todos os produtos --</option>';
+        let produtosOrdenados = Array.from(produtosMap.keys()).sort();
+        produtosOrdenados.forEach(prod => {
+            let option = document.createElement('option');
+            option.value = prod;
+            option.textContent = `${prod} (${produtosMap.get(prod).length} itens)`;
+            selectFiltro.appendChild(option);
+        });
+        
+        // Função para exibir tabela com ou sem filtro
+        function exibirTabela(produtoFiltro = "") {
+            let todosItens = [];
+            for (let [nomeProd, itens] of produtosMap.entries()) {
+                if (produtoFiltro === "" || nomeProd === produtoFiltro) {
+                    todosItens.push(...itens);
+                }
+            }
+            
+            if (todosItens.length === 0) {
+                document.getElementById('tabelaResultado').innerHTML = '<div class="aviso">Nenhum item encontrado para o filtro selecionado.</div>';
+                document.getElementById('statsInfo').innerHTML = '';
+                return;
+            }
+            
+            let somaContabil = 0;
+            let somaPis = 0;
+            let somaCofins = 0;
+            
+            let html = `<table><thead><tr>
+                <th>Produto</th><th>Código</th><th>Data</th><th>Fornecedor</th><th>Documento</th>
+                <th>NCM</th><th>Valor Contábil (R$)</th><th>CFOP</th>
+                <th>CST PIS</th><th>Valor PIS (R$)</th>
+                <th>CST COFINS</th><th>Valor COFINS (R$)</th>
+            </tr></thead><tbody>`;
+            
+            for (const item of todosItens) {
+                somaContabil += item.valorContabil;
+                somaPis += item.valorPis;
+                somaCofins += item.valorCofins;
+                html += `<tr>
+                    <td>${escapeHtml(item.produtoNome)}</td>
+                    <td>${item.codigo}</td>
+                    <td>${item.data}</td>
+                    <td>${item.fornecedor}</td>
+                    <td>${item.documento}</td>
+                    <td>${item.ncm}</td>
+                    <td style="text-align:right">${formatarMoeda(item.valorContabil)}</td>
+                    <td>${item.cfop}</td>
+                    <td>${item.cstPis}</td>
+                    <td style="text-align:right">${formatarMoeda(item.valorPis)}</td>
+                    <td>${item.cstCofins}</td>
+                    <td style="text-align:right">${formatarMoeda(item.valorCofins)}</td>
+                </tr>`;
+            }
+            html += `<tr class="total-row">
+                <td colspan="6"><strong>TOTAIS</strong></td>
+                <td style="text-align:right"><strong>${formatarMoeda(somaContabil)}</strong></td>
+                <td></td>
+                <td></td>
+                <td style="text-align:right"><strong>${formatarMoeda(somaPis)}</strong></td>
+                <td></td>
+                <td style="text-align:right"><strong>${formatarMoeda(somaCofins)}</strong></td>
+            </tr>`;
+            html += `</tbody></table>`;
+            document.getElementById('tabelaResultado').innerHTML = html;
+            document.getElementById('statsInfo').innerHTML = `📊 Total de itens exibidos: ${todosItens.length} | 💰 Soma Valor Contábil: ${formatarMoeda(somaContabil)} | PIS: ${formatarMoeda(somaPis)} | COFINS: ${formatarMoeda(somaCofins)}`;
+        }
+        
+        // Eventos de filtro
+        const filtroSelect = document.getElementById('filtroProduto');
+        const limparBtn = document.getElementById('limparFiltroBtn');
+        
+        const handleFilter = () => {
+            exibirTabela(filtroSelect.value);
+        };
+        filtroSelect.addEventListener('change', handleFilter);
+        limparBtn.addEventListener('click', () => {
+            filtroSelect.value = "";
+            exibirTabela("");
+        });
+        
+        // Mostra container de resultado e exibe sem filtro
+        document.getElementById('resultadoContainer').style.display = 'block';
+        exibirTabela("");
+    }
+    
+    function limparValor(val) {
+        if (!val) return 0;
+        if (typeof val !== 'string') val = String(val);
+        let limpo = val.replace(/\./g, '').replace(',', '.');
+        let num = parseFloat(limpo);
+        return isNaN(num) ? 0 : num;
+    }
+    
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    document.getElementById('processarBtn').addEventListener('click', processarRelatorio);
+</script>
+</body>
+</html>
