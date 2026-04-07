@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador NF-e - Contabilidade vs XML</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.8;
+        }
+
+        .painel-duplo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 280px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #0f3460;
+        }
+
+        .btn-processar {
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto 30px auto;
+            transition: transform 0.2s;
+        }
+
+        .btn-processar:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-limpar {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .resultado-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            display: none;
+        }
+
+        .resultado-area.show {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filtros {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-filtro {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-filtro.todos { background: #0f3460; color: white; }
+        .btn-filtro.conferem { background: #28a745; color: white; }
+        .btn-filtro.divergentes { background: #ffc107; color: #333; }
+        .btn-filtro.nao-encontrados { background: #dc3545; color: white; }
+        .btn-filtro.active { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 2px solid white; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #00b4d8;
+        }
+
+        .stat-card .label { font-size: 11px; color: #666; }
+        .stat-card .value { font-size: 1.3rem; font-weight: bold; color: #0f3460; }
+        .stat-card .value.danger { color: #dc3545; }
+        .stat-card .value.success { color: #28a745; }
+
+        .legenda {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legenda-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .legenda-cor { width: 16px; height: 16px; border-radius: 4px; }
+
+        .tabela-wrapper {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #0f3460;
+            color: white;
+            padding: 12px 8px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover { background: #f5f5f5; }
+
+        .status-conferem { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .status-divergencia { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+        .status-nao-encontrado { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: #333; }
+        .badge-danger { background: #dc3545; color: white; }
+        .badge-info { background: #17a2b8; color: white; cursor: pointer; }
+
+        .btn-detalhes {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .btn-detalhes:hover { background: #138496; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 900px;
+            max-height: 80%;
+            overflow: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close:hover { color: black; }
+
+        .info-filtro {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 Comparador de Notas Fiscais</h1>
+        <p>Compare os dados da Contabilidade com os XMLs das NFs | Identifique divergências automaticamente</p>
+    </div>
+
+    <div class="painel-duplo">
+        <div class="card">
+            <div class="card-header">📋 1. DADOS DA CONTABILIDADE</div>
+            <div class="card-body">
+                <textarea id="contabilidade" placeholder="Cole aqui os dados da Contabilidade (formato CSV/TAB com cabeçalho)"></textarea>
+                <button class="btn-limpar" onclick="limparContabilidade()">🗑️ Limpar</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">📄 2. DADOS DO XML</div>
+            <div class="card-body">
+                <textarea id="xml" placeholder="Cole aqui os dados do XML (formato TAB com cabeçalho)"></textarea>
+                <button class="btn-limpar" onclick="limparXML()">🗑️ Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-processar" onclick="processarComparacao()">🔍 PROCESSAR COMPARAÇÃO</button>
+
+    <div class="resultado-area" id="resultado">
+        <div class="legenda">
+            <div class="legenda-item"><div class="legenda-cor" style="background:#d4edda; border-left:4px solid #28a745;"></div> ✅ Valores conferem</div>
+            <div class="legenda-item"><div class="legenda-cor" style="background:#fff3cd; border-left:4px solid #ffc107;"></div> ⚠️ Divergência de valor</div>
+            <div class="legenda-item"><div class="legenda-cor" style="background:#f8d7da; border-left:4px solid #dc3545;"></div> ❌ NF não encontrada</div>
+        </div>
+
+        <div class="filtros">
+            <button class="btn-filtro todos active" onclick="filtrar('todos')">📋 TODOS</button>
+            <button class="btn-filtro conferem" onclick="filtrar('conferem')">✅ APENAS CONFEREM</button>
+            <button class="btn-filtro divergentes" onclick="filtrar('divergentes')">⚠️ APENAS DIVERGENTES</button>
+            <button class="btn-filtro nao-encontrados" onclick="filtrar('nao-encontrados')">❌ APENAS NÃO ENCONTRADOS</button>
+        </div>
+
+        <div id="infoFiltro" class="info-filtro"></div>
+        <div id="stats"></div>
+        <div class="tabela-wrapper" id="tabela"></div>
+    </div>
+
+    <footer>✅ A comparação é feita pelo número do documento (Nº NFe) | Clique em "Detalhes" para ver os itens individuais de cada NF</footer>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Detalhes da NF</h3>
+            <span class="close" onclick="fecharModal()">&times;</span>
+        </div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+    let dadosAgrupados = [];
+    let filtroAtual = 'todos';
+    let detalhesContabMap = new Map();
+    let detalhesXMLMap = new Map();
+
+    function limparValor(valor) {
+        if (!valor) return 0;
+        let str = String(valor).trim().replace(/\./g, '').replace(',', '.');
+        return parseFloat(str) || 0;
+    }
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function parseContabilidadeAgrupado(texto) {
+        const linhas = texto.split(/\r?\n/);
+        const mapAgregado = new Map();
+        let cabecalhoEncontrado = false;
+        let colunas = [];
+
+        for (let linha of linhas) {
+            linha = linha.trim();
+            if (!linha) continue;
+
+            const partes = linha.split(/\t+|\s{2,}/).filter(p => p.trim().length > 0);
+            if (partes.length < 6) continue;
+
+            if (!cabecalhoEncontrado) {
+                if (partes.includes('Documento') || partes.includes('Produto')) {
+                    cabecalhoEncontrado = true;
+                    colunas = partes;
+                }
+                continue;
+            }
+
+            let idxDocumento = colunas.indexOf('Documento');
+            let idxValor = colunas.indexOf('Valor Contábil (R$)');
+            let idxProduto = colunas.indexOf('Produto');
+            let idxData = colunas.indexOf('Data');
+            let idxFornecedor = colunas.indexOf('Fornecedor');
+
+            if (idxDocumento === -1) {
+                idxDocumento = 4;
+                idxValor = 6;
+                idxProduto = 0;
+                idxData = 2;
+                idxFornecedor = 3;
+            }
+
+            const documento = partes[idxDocumento];
+            if (!documento || documento === 'Documento') continue;
+
+            const valor = limparValor(partes[idxValor] || '0');
+            const produto = partes[idxProduto] || '-';
+            const data = partes[idxData] || '-';
+            const fornecedor = partes[idxFornecedor] || '-';
+
+            if (!mapAgregado.has(documento)) {
+                mapAgregado.set(documento, { total: 0, itens: [], data: data, fornecedor: fornecedor });
+            }
+            const registro = mapAgregado.get(documento);
+            registro.total += valor;
+            registro.itens.push({ produto, valor, data, fornecedor });
+        }
+        return mapAgregado;
+    }
+
+    function parseXMLAgrupado(texto) {
+        const linhas = texto.split(/\r?\n/);
+        const mapAgregado = new Map();
+        let cabecalhoEncontrado = false;
+
+        for (let linha of linhas) {
+            linha = linha.trim();
+            if (!linha) continue;
+
+            if (!cabecalhoEncontrado && (linha.includes('Posto') || linha.includes('CNPJ'))) {
+                cabecalhoEncontrado = true;
+                continue;
+            }
+            if (!cabecalhoEncontrado) continue;
+
+            const partes = linha.split(/\t+/);
+            if (partes.length < 10) continue;
+
+            const nfe = partes[3]?.trim();
+            if (!nfe || nfe === 'Nº NFe') continue;
+
+            const valor = limparValor(partes[9] || '0');
+            const produto = partes[6] || '-';
+            const quantidade = partes[8] || '-';
+            const data = partes[5] || '-';
+            const posto = partes[0] || '';
+            const cnpj = partes[1] || '';
+
+            if (!mapAgregado.has(nfe)) {
+                mapAgregado.set(nfe, { total: 0, itens: [], posto: posto, cnpj: cnpj, data: data });
+            }
+            const registro = mapAgregado.get(nfe);
+            registro.total += valor;
+            registro.itens.push({ produto, valor, quantidade, data });
+        }
+        return mapAgregado;
+    }
+
+    function mostrarDetalhes(nfe, tipo) {
+        let dados, title;
+        if (tipo === 'contab') {
+            dados = detalhesContabMap.get(nfe);
+            title = `📋 Detalhes da Contabilidade - NF ${nfe}`;
+        } else {
+            dados = detalhesXMLMap.get(nfe);
+            title = `📋 Detalhes do XML - NF ${nfe}`;
+        }
+        
+        if (!dados || !dados.itens) return;
+
+        let html = `<table style="width:100%; font-size:12px; border-collapse:collapse;">
+            <thead><tr style="background:#0f3460; color:white;">
+                <th>Produto</th><th>Valor (R$)</th>${tipo === 'xml' ? '<th>Quantidade</th>' : ''}<th>Data</th>
+            </tr></thead><tbody>`;
+
+        for (const item of dados.itens) {
+            html += `<tr>
+                <td>${item.produto}</td>
+                <td style="text-align:right">R$ ${formatarMoeda(item.valor)}</td>
+                ${tipo === 'xml' ? `<td style="text-align:right">${item.quantidade}</td>` : ''}
+                <td>${item.data || dados.data}</td>
+            </tr>`;
+        }
+
+        html += `<tr style="background:#e9ecef; font-weight:bold;">
+            <td style="text-align:right">TOTAL:</td>
+            <td style="text-align:right; color:#28a745;">R$ ${formatarMoeda(dados.total)}</td>
+            ${tipo === 'xml' ? '<td></td>' : ''}
+            <td></td>
+        </tr></tbody></tr>`;
+
+        document.getElementById('modalTitle').innerHTML = title;
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('modal').style.display = 'block';
+    }
+
+    function fecharModal() { document.getElementById('modal').style.display = 'none'; }
+    window.onclick = function(e) { if (e.target === document.getElementById('modal')) fecharModal(); }
+
+    function filtrar(tipo) {
+        filtroAtual = tipo;
+        document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.btn-filtro.${tipo === 'todos' ? 'todos' : tipo === 'conferem' ? 'conferem' : tipo === 'divergentes' ? 'divergentes' : 'nao-encontrados'}`).classList.add('active');
+        
+        let dadosFiltrados = dadosAgrupados;
+        if (tipo === 'conferem') dadosFiltrados = dadosAgrupados.filter(d => d.status === 'conferem');
+        else if (tipo === 'divergentes') dadosFiltrados = dadosAgrupados.filter(d => d.status === 'divergencia');
+        else if (tipo === 'nao-encontrados') dadosFiltrados = dadosAgrupados.filter(d => d.status === 'nao-encontrado');
+        
+        document.getElementById('infoFiltro').innerHTML = tipo === 'todos' ? '📋 Mostrando TODOS os registros' :
+            tipo === 'conferem' ? `✅ Mostrando APENAS registros que CONFEREM (${dadosFiltrados.length})` :
+            tipo === 'divergentes' ? `⚠️ Mostrando APENAS registros DIVERGENTES (${dadosFiltrados.length})` :
+            `❌ Mostrando APENAS registros NÃO ENCONTRADOS (${dadosFiltrados.length})`;
+        
+        renderizarTabela(dadosFiltrados);
+    }
+
+    function renderizarTabela(dados) {
+        if (dados.length === 0) {
+            document.getElementById('tabela').innerHTML = '<div style="text-align:center; padding:40px;">Nenhum registro encontrado para este filtro</div>';
+            return;
+        }
+
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Status</th><th>Nº NF</th><th>Posto</th><th>CNPJ</th>
+                    <th>Valor XML (R$)</th><th>Valor Contab (R$)</th><th>Diferença (R$)</th>
+                    <th>Detalhes</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        for (const item of dados) {
+            html += `<tr class="${item.rowClass}">
+                <td><span class="badge ${item.badgeClass}">${item.statusText}</span></td>
+                <td><strong>${item.nfe}</strong></td>
+                <td>${item.posto}</td>
+                <td>${item.cnpj}</td>
+                <td style="text-align:right; font-weight:bold;">R$ ${formatarMoeda(item.valorXML)}</td>
+                <td style="text-align:right; font-weight:bold;">${item.valorContab}</td>
+                <td style="text-align:right; font-weight:bold; ${item.diferencaCor}">${item.diferencaDisplay}</td>
+                <td style="text-align:center;">
+                    <button class="btn-detalhes" onclick="mostrarDetalhes('${item.nfe}', 'xml')">📄 XML</button>
+                    ${item.temContab ? `<button class="btn-detalhes" onclick="mostrarDetalhes('${item.nfe}', 'contab')" style="background:#28a745;">📋 Contab</button>` : ''}
+                </td>
+            </tr>`;
+        }
+
+        html += `</tbody>能在`;
+        document.getElementById('tabela').innerHTML = html;
+    }
+
+    function processarComparacao() {
+        const textoContab = document.getElementById('contabilidade').value;
+        const textoXML = document.getElementById('xml').value;
+
+        if (!textoContab.trim()) return alert('⚠️ Cole os dados da Contabilidade!');
+        if (!textoXML.trim()) return alert('⚠️ Cole os dados do XML!');
+
+        const mapContab = parseContabilidadeAgrupado(textoContab);
+        const mapXML = parseXMLAgrupado(textoXML);
+
+        if (mapContab.size === 0) return alert('❌ Nenhum dado válido na Contabilidade');
+        if (mapXML.size === 0) return alert('❌ Nenhum dado válido no XML');
+
+        detalhesContabMap = mapContab;
+        detalhesXMLMap = mapXML;
+
+        let somaXML = 0, somaContab = 0, conferem = 0, divergencias = 0, naoEncontrados = 0;
+        dadosAgrupados = [];
+
+        for (const [nfe, xml] of mapXML) {
+            const contab = mapContab.get(nfe);
+            let status = '', rowClass = '', badgeClass = '', statusText = '';
+            let valorContab = 0, diferenca = 0, diferencaDisplay = '', diferencaCor = '';
+            
+            somaXML += xml.total;
+
+            if (contab) {
+                valorContab = contab.total;
+                somaContab += valorContab;
+                diferenca = xml.total - valorContab;
+                
+                if (Math.abs(diferenca) < 0.01) {
+                    status = 'conferem';
+                    rowClass = 'status-conferem';
+                    badgeClass = 'badge-success';
+                    statusText = '✅ CONFEREM';
+                    diferencaDisplay = 'R$ 0,00';
+                    diferencaCor = 'color:#28a745';
+                    conferem++;
+                } else {
+                    status = 'divergencia';
+                    rowClass = 'status-divergencia';
+                    badgeClass = 'badge-warning';
+                    statusText = '⚠️ DIVERGÊNCIA';
+                    diferencaDisplay = `R$ ${formatarMoeda(diferenca)}`;
+                    diferencaCor = 'color:#dc3545';
+                    divergencias++;
+                }
+            } else {
+                status = 'nao-encontrado';
+                rowClass = 'status-nao-encontrado';
+                badgeClass = 'badge-danger';
+                statusText = '❌ NÃO ENCONTRADA';
+                diferencaDisplay = '---';
+                diferencaCor = 'color:#dc3545';
+                naoEncontrados++;
+            }
+            
+            dadosAgrupados.push({
+                nfe: nfe,
+                posto: xml.posto,
+                cnpj: xml.cnpj,
+                valorXML: xml.total,
+                valorContab: contab ? `R$ ${formatarMoeda(valorContab)}` : '-',
+                diferencaDisplay: diferencaDisplay,
+                diferencaCor: diferencaCor,
+                status: status,
+                rowClass: rowClass,
+                badgeClass: badgeClass,
+                statusText: statusText,
+                temContab: !!contab
+            });
+        }
+
+        document.getElementById('stats').innerHTML = `
+            <div class="stats">
+                <div class="stat-card"><div class="label">📊 Total NFs XML</div><div class="value">${mapXML.size}</div></div>
+                <div class="stat-card"><div class="label">✅ Conferem</div><div class="value success">${conferem}</div></div>
+                <div class="stat-card"><div class="label">⚠️ Divergências</div><div class="value ${divergencias > 0 ? 'danger' : ''}">${divergencias}</div></div>
+                <div class="stat-card"><div class="label">❌ Não encontrados</div><div class="value ${naoEncontrados > 0 ? 'danger' : ''}">${naoEncontrados}</div></div>
+                <div class="stat-card"><div class="label">💰 Soma XML</div><div class="value">R$ ${formatarMoeda(somaXML)}</div></div>
+                <div class="stat-card"><div class="label">💰 Soma Contab</div><div class="value">R$ ${formatarMoeda(somaContab)}</div></div>
+                <div class="stat-card"><div class="label">📉 Diferença Total</div><div class="value ${(somaXML - somaContab) !== 0 ? 'danger' : 'success'}">R$ ${formatarMoeda(somaXML - somaContab)}</div></div>
+            </div>
+        `;
+
+        document.getElementById('resultado').classList.add('show');
+        filtrar(filtroAtual);
+    }
+
+    function limparContabilidade() { document.getElementById('contabilidade').value = ''; }
+    function limparXML() { document.getElementById('xml').value = ''; }
+</script>
+</body>
+</html>
