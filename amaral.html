@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Alinhamento de Dados - NFe vs Contabilidade</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 24px;
+        }
+        
+        /* Cabeçalho do Sistema */
+        .system-header {
+            background: linear-gradient(135deg, #1e466e, #2c5a8c);
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .system-header::before {
+            content: "📊";
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            font-size: 120px;
+            opacity: 0.1;
+        }
+        .system-header h1 {
+            font-size: 1.8rem;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .system-header h1 span {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+        .system-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .system-header .creator {
+            margin-top: 12px;
+            font-size: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .sub {
+            color: #495057;
+            border-left: 4px solid #0d6efd;
+            padding-left: 16px;
+            margin-bottom: 30px;
+        }
+        .entrada-area {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        textarea {
+            width: 100%;
+            height: 250px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 16px;
+            background: #fff;
+            resize: vertical;
+        }
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0b5ed7;
+            transform: scale(1.02);
+        }
+        .btn-excel {
+            background: #28a745;
+        }
+        .btn-excel:hover {
+            background: #218838;
+        }
+        .filtro-area {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            background: #f1f3f5;
+            padding: 15px 20px;
+            border-radius: 16px;
+        }
+        .filtro-produtos {
+            flex: 3;
+            min-width: 280px;
+        }
+        .filtro-produtos label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #1e466e;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            transition: 0.2s;
+        }
+        .checkbox-group label:hover {
+            background: #e7f1ff;
+        }
+        .checkbox-group input {
+            margin: 0;
+            cursor: pointer;
+        }
+        .filtro-acoes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .btn-filtro {
+            padding: 8px 18px;
+            font-size: 12px;
+            margin-top: 0;
+        }
+        .btn-limpar {
+            background: #6c757d;
+        }
+        .btn-todos {
+            background: #28a745;
+        }
+        .btn-nenhum {
+            background: #dc3545;
+        }
+        .result-table {
+            overflow-x: auto;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #1e466e;
+            color: white;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .multi-produto {
+            background-color: #fff8e1 !important;
+        }
+        .total-row {
+            background: #e2e3e5;
+            font-weight: bold;
+        }
+        .aviso {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 16px;
+            margin: 16px 0;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            background: #e7f1ff;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        .badge-multi {
+            background: #ffc107;
+            color: #856404;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+        .expand-btn {
+            cursor: pointer;
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            line-height: 20px;
+            text-align: center;
+            background: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+        .sem-expand {
+            display: inline-block;
+            width: 22px;
+            text-align: center;
+            color: #adb5bd;
+        }
+        .detalhes-row {
+            background: #fffef7;
+            display: none;
+        }
+        .detalhes-row.mostrar {
+            display: table-row;
+        }
+        .detalhes-cell {
+            padding: 0 !important;
+        }
+        .detalhes-inner {
+            padding: 12px;
+            background: #fffef7;
+            border-top: 1px solid #ffc107;
+        }
+        .produto-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0e6d2;
+            font-size: 11px;
+        }
+        .produto-item:last-child {
+            border-bottom: none;
+        }
+        .total-documento {
+            background: #e7f1ff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .documento-destaque {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .busca-produto {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .busca-produto input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        /* Rodapé */
+        .system-footer {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e466e, #2c5a8c);
+            border-radius: 16px;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+        }
+        .system-footer p {
+            margin: 5px 0;
+        }
+        .system-footer .version {
+            opacity: 0.7;
+            font-size: 11px;
+        }
+        
+        .btn-excel {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Cabeçalho do Sistema -->
+    <div class="system-header">
+        <h1>
+            📋 Sistema de Alinhamento de Dados
+            <span>NFe vs Contabilidade</span>
+        </h1>
+        <p>Ferramenta profissional para validação e conciliação de notas fiscais de entrada</p>
+        <div class="creator">
+            <span>🔧 Desenvolvido por: Waldeci Ramos</span>
+            <span>📅 Versão 1.0 - 2026</span>
+            <span>🏢 Amaral Contabilidade</span>
+        </div>
+    </div>
+
+    <div class="entrada-area">
+        <label for="rawData">📌 Cole aqui o relatório "Detalhamento de Movimento de Entradas":</label>
+        <textarea id="rawData" placeholder="Cole o texto inteiro do relatório..."></textarea>
+        <button id="processarBtn">🔧 PROCESSAR E ALINHAR</button>
+        <button id="exportarBtn" class="btn-excel" style="display:none">📎 EXPORTAR CSV</button>
+    </div>
+
+    <div id="resultadoContainer" style="display: none;">
+        <div class="filtro-area">
+            <div class="filtro-produtos">
+                <label>🎯 Filtrar por Produto (selecione vários):</label>
+                <div class="busca-produto">
+                    <input type="text" id="buscaProduto" placeholder="🔍 Buscar produto...">
+                </div>
+                <div class="checkbox-group" id="checkboxProdutos"></div>
+                <div style="margin-top: 8px; font-size: 11px; color: #666;">
+                    💡 Ao filtrar, a expansão mostrará APENAS os produtos selecionados
+                </div>
+            </div>
+            <div class="filtro-acoes">
+                <button id="btnFiltrar" class="btn-filtro">🔍 Filtrar</button>
+                <button id="btnLimparFiltro" class="btn-filtro btn-limpar">Limpar</button>
+                <button id="btnSelecionarTodos" class="btn-filtro btn-todos">Todos</button>
+                <button id="btnDeselecionarTodos" class="btn-filtro btn-nenhum">Nenhum</button>
+            </div>
+        </div>
+        <div class="stats" id="statsInfo"></div>
+        <div class="result-table" id="tabelaResultado"></div>
+    </div>
+
+    <!-- Rodapé -->
+    <div class="system-footer">
+        <p>✅ Sistema de Alinhamento de Dados | Conciliação Fiscal NFe vs Contabilidade</p>
+        <p>📊 Desenvolvido para otimizar a validação de notas fiscais de entrada</p>
+        <p class="version">© 2026 Waldeci Ramos - Amaral Contabilidade - Todos os direitos reservados</p>
+    </div>
+</div>
+
+<script>
+    let todosDocumentos = [];
+    let documentosAtuais = [];
+    let todosProdutosLista = [];
+    let filtroAtivo = [];
+    
+    // Função para formatar valor no padrão brasileiro: 2.252,32
+    function formatarValorBR(valor) {
+        return valor.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    function processarRelatorio() {
+        const texto = document.getElementById('rawData').value;
+        if (!texto.trim()) {
+            alert("Cole o relatório primeiro.");
+            return;
+        }
+
+        const linhas = texto.split(/\r?\n/);
+        let produtoAtual = "";
+        let itensBrutos = [];
+        
+        for (let i = 0; i < linhas.length; i++) {
+            let line = linhas[i];
+            
+            if (line.includes("Produto:") && line.includes("-")) {
+                let matchProd = line.match(/Produto:\s*(\d+)\s*-\s*(.+)/);
+                if (matchProd) {
+                    produtoAtual = matchProd[2].trim();
+                }
+                continue;
+            }
+            
+            if (line.includes("SERVICOS") && !produtoAtual) {
+                produtoAtual = "SERVICOS - SERVIÇOS TOMADOS";
+                continue;
+            }
+            
+            if (!produtoAtual) continue;
+            
+            const partes = line.split(/\s+/).filter(p => p.length > 0);
+            if (partes.length < 8) continue;
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(partes[1])) continue;
+            
+            let documento = partes[3];
+            let data = partes[1];
+            let valorContabil = limparValor(partes[8] || "0");
+            let cfop = partes[9] || "";
+            
+            let cstPis = "";
+            for (let j = 10; j < partes.length; j++) {
+                if (partes[j] === "50" || partes[j] === "01" || partes[j] === "03") {
+                    cstPis = partes[j];
+                    break;
+                }
+            }
+            
+            itensBrutos.push({
+                produto: produtoAtual,
+                documento: documento,
+                data: data,
+                valor: valorContabil,
+                cfop: cfop,
+                cstPis: cstPis
+            });
+        }
+        
+        if (itensBrutos.length === 0) {
+            document.getElementById('tabelaResultado').innerHTML = '<div class="aviso">Nenhum dado encontrado.</div>';
+            document.getElementById('resultadoContainer').style.display = 'block';
+            return;
+        }
+        
+        // Agrupar por documento
+        let mapDoc = new Map();
+        for (const item of itensBrutos) {
+            if (!mapDoc.has(item.documento)) {
+                mapDoc.set(item.documento, {
+                    documento: item.documento,
+                    data: item.data,
+                    cfop: item.cfop,
+                    cstPis: item.cstPis,
+                    total: 0,
+                    produtos: [],
+                    itens: []
+                });
+            }
+            const grupo = mapDoc.get(item.documento);
+            grupo.total += item.valor;
+            grupo.produtos.push(item.produto);
+            grupo.itens.push({ produto: item.produto, valor: item.valor });
+        }
+        
+        todosDocumentos = Array.from(mapDoc.values());
+        todosDocumentos.sort((a, b) => a.documento.localeCompare(b.documento));
+        
+        // Criar lista única de produtos em ORDEM ALFABÉTICA
+        let produtosSet = new Set();
+        for (const doc of todosDocumentos) {
+            for (const item of doc.itens) {
+                produtosSet.add(item.produto);
+            }
+        }
+        todosProdutosLista = Array.from(produtosSet).sort((a, b) => a.localeCompare(b));
+        
+        // Criar checkboxes
+        renderCheckboxes(todosProdutosLista);
+        
+        // Configurar busca
+        document.getElementById('buscaProduto').addEventListener('input', function(e) {
+            const termo = e.target.value.toLowerCase();
+            const filtrados = todosProdutosLista.filter(p => p.toLowerCase().includes(termo));
+            renderCheckboxes(filtrados);
+        });
+        
+        document.getElementById('resultadoContainer').style.display = 'block';
+        document.getElementById('exportarBtn').style.display = 'inline-block';
+        
+        // Exibir todos
+        filtroAtivo = [];
+        documentosAtuais = [...todosDocumentos];
+        renderTabela(documentosAtuais, filtroAtivo);
+        atualizarStats(documentosAtuais);
+    }
+    
+    function renderCheckboxes(produtos) {
+        const container = document.getElementById('checkboxProdutos');
+        container.innerHTML = '';
+        for (const prod of produtos) {
+            let label = document.createElement('label');
+            let checked = filtroAtivo.includes(prod) ? 'checked' : '';
+            label.innerHTML = `<input type="checkbox" value="${escapeHtml(prod)}" class="produto-checkbox" ${checked}> ${escapeHtml(prod)}`;
+            container.appendChild(label);
+        }
+    }
+    
+    function renderTabela(documentos, filtroProdutos = []) {
+        let html = `<table>
+            <thead>
+                <tr><th style="width:40px"></th><th>Documento</th><th>Data</th><th>Produto(s)</th><th>Total (R$)</th><th>CFOP</th><th>CST PIS</th></tr>
+            </thead>
+            <tbody>`;
+        
+        for (let i = 0; i < documentos.length; i++) {
+            const doc = documentos[i];
+            
+            // Filtrar itens do documento com base no filtro ativo
+            let itensFiltrados = doc.itens;
+            let produtosFiltrados = doc.produtos;
+            let totalFiltrado = doc.total;
+            
+            if (filtroProdutos.length > 0) {
+                itensFiltrados = doc.itens.filter(item => filtroProdutos.includes(item.produto));
+                produtosFiltrados = itensFiltrados.map(item => item.produto);
+                totalFiltrado = itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
+            }
+            
+            const isMulti = doc.itens.length > 1;
+            const produtosStr = produtosFiltrados.join(', ');
+            const rowClass = isMulti ? 'multi-produto' : '';
+            
+            const expandBtn = (doc.itens.length > 1) 
+                ? `<div class="expand-btn" onclick="toggleDetalhes(this, ${i})">➕</div>`
+                : `<div class="sem-expand">•</div>`;
+            
+            let badgeInfo = '';
+            if (isMulti) {
+                badgeInfo = `<span class="badge-multi">${doc.itens.length}</span>`;
+            }
+            if (filtroProdutos.length > 0 && itensFiltrados.length < doc.itens.length) {
+                badgeInfo += `<span class="badge-multi" style="background:#28a745; color:white;">filtrado: ${itensFiltrados.length}</span>`;
+            }
+            
+            html += `<tr id="row_${i}" class="${rowClass}">
+                <td style="text-align:center">${expandBtn}</td>
+                <td class="documento-destaque">${doc.documento}</td>
+                <td>${doc.data}</td>
+                <td>${produtosStr.length > 55 ? produtosStr.substring(0,55)+'...' : produtosStr}${badgeInfo}</td>
+                <td style="text-align:right; font-weight:bold; color:#28a745">R$ ${formatarValorBR(totalFiltrado)}</td>
+                <td>${doc.cfop || '-'}</td>
+                <td>${doc.cstPis || '-'}</td>
+              </tr>`;
+            
+            // Linha de detalhes expansível
+            if (doc.itens.length > 1) {
+                let itensParaExibir = (filtroProdutos.length > 0) ? itensFiltrados : doc.itens;
+                
+                html += `<tr id="detalhes_${i}" class="detalhes-row">
+                    <td colspan="7" class="detalhes-cell">
+                        <div class="detalhes-inner">
+                            <div style="margin-bottom:8px; font-weight:bold;">📦 Produtos do documento ${doc.documento}:</div>`;
+                
+                if (itensParaExibir.length === 0 && filtroProdutos.length > 0) {
+                    html += `<div style="padding: 8px; color: #999; text-align: center;">Nenhum produto selecionado no filtro está neste documento</div>`;
+                } else {
+                    for (const item of itensParaExibir) {
+                        html += `<div class="produto-item">
+                            <span>📄 ${escapeHtml(item.produto)}</span>
+                            <span style="font-weight:bold">R$ ${formatarValorBR(item.valor)}</span>
+                        </div>`;
+                    }
+                    if (filtroProdutos.length > 0 && totalFiltrado < doc.total) {
+                        html += `<div style="font-size: 11px; color: #666; margin-top: 5px; padding: 4px; background: #f0f0f0; border-radius: 6px;">
+                            ⚠️ Este documento tem outros produtos não selecionados no filtro
+                        </div>`;
+                    }
+                }
+                
+                html += `<div class="total-documento">💰 TOTAL ${filtroProdutos.length > 0 ? 'DOS PRODUTOS FILTRADOS' : 'DO DOCUMENTO'}: R$ ${formatarValorBR(totalFiltrado)}</div>
+                        </div>
+                     </td>
+                  </tr>`;
+            }
+        }
+        
+        let totalGeral = documentos.reduce((s, d) => {
+            if (filtroProdutos.length > 0) {
+                let itensFiltrados = d.itens.filter(item => filtroProdutos.includes(item.produto));
+                return s + itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
+            }
+            return s + d.total;
+        }, 0);
+        
+        let totalItens = documentos.reduce((s, d) => {
+            if (filtroProdutos.length > 0) {
+                return s + d.itens.filter(item => filtroProdutos.includes(item.produto)).length;
+            }
+            return s + d.itens.length;
+        }, 0);
+        
+        html += `<tr class="total-row">
+            <td colspan="3"><strong>TOTAIS GERAIS</strong></td>
+            <td><strong>${totalItens} itens / ${documentos.length} documentos</strong></td>
+            <td style="text-align:right"><strong>R$ ${formatarValorBR(totalGeral)}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+        </tbody>
+     </table>`;
+        
+        document.getElementById('tabelaResultado').innerHTML = html;
+        atualizarStats(documentos, totalGeral, totalItens);
+    }
+    
+    function atualizarStats(documentos, totalGeral, totalItens) {
+        if (!totalGeral) {
+            totalGeral = documentos.reduce((s, d) => s + d.total, 0);
+            totalItens = documentos.reduce((s, d) => s + d.itens.length, 0);
+        }
+        document.getElementById('statsInfo').innerHTML = `
+            <span>📊 ${documentos.length} documentos agrupados</span>
+            <span>📦 ${totalItens} itens processados</span>
+            <span>💰 Total Geral: <strong style="color:#28a745">R$ ${formatarValorBR(totalGeral)}</strong></span>
+        `;
+        documentosAtuais = documentos;
+    }
+    
+    function toggleDetalhes(btn, idx) {
+        const detalhesRow = document.getElementById(`detalhes_${idx}`);
+        if (!detalhesRow) return;
+        
+        if (detalhesRow.classList.contains('mostrar')) {
+            detalhesRow.classList.remove('mostrar');
+            btn.innerHTML = '➕';
+            btn.style.background = '#0d6efd';
+        } else {
+            detalhesRow.classList.add('mostrar');
+            btn.innerHTML = '➖';
+            btn.style.background = '#dc3545';
+        }
+    }
+    
+    function exportarCSV() {
+        if (!documentosAtuais || documentosAtuais.length === 0) {
+            alert("Nenhum dado para exportar.");
+            return;
+        }
+        
+        // Cabeçalho do CSV com separador ponto e vírgula
+        let csvContent = "\uFEFFDocumento;Data;Produto(s);Total (R$)\n";
+        
+        for (const doc of documentosAtuais) {
+            let produtosStr = doc.produtos.join(' | ');
+            let total = doc.total;
+            
+            if (filtroAtivo.length > 0) {
+                let itensFiltrados = doc.itens.filter(item => filtroAtivo.includes(item.produto));
+                if (itensFiltrados.length > 0) {
+                    produtosStr = itensFiltrados.map(item => item.produto).join(' | ');
+                    total = itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
+                }
+            }
+            
+            // Formatação do valor no padrão brasileiro para CSV
+            let totalFormatado = total.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            let linha = `"${doc.documento}";"${doc.data}";"${produtosStr}";"${totalFormatado}"`;
+            csvContent += linha + "\n";
+        }
+        
+        // Download do arquivo
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', `documentos_fiscais_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    function aplicarFiltro() {
+        const checkboxes = document.querySelectorAll('.produto-checkbox:checked');
+        filtroAtivo = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (filtroAtivo.length === 0) {
+            documentosAtuais = [...todosDocumentos];
+        } else {
+            documentosAtuais = todosDocumentos.filter(doc => 
+                doc.itens.some(item => filtroAtivo.includes(item.produto))
+            );
+        }
+        renderTabela(documentosAtuais, filtroAtivo);
+    }
+    
+    function limparFiltro() {
+        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('buscaProduto').value = '';
+        filtroAtivo = [];
+        renderCheckboxes(todosProdutosLista);
+        documentosAtuais = [...todosDocumentos];
+        renderTabela(documentosAtuais, []);
+    }
+    
+    function selecionarTodos() {
+        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = true);
+        aplicarFiltro();
+    }
+    
+    function deselecionarTodos() {
+        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = false);
+        filtroAtivo = [];
+        documentosAtuais = [...todosDocumentos];
+        renderTabela(documentosAtuais, []);
+    }
+    
+    function limparValor(val) {
+        if (!val) return 0;
+        let limpo = String(val).replace(/\./g, '').replace(',', '.');
+        let num = parseFloat(limpo);
+        return isNaN(num) ? 0 : num;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Eventos
+    document.getElementById('processarBtn').addEventListener('click', processarRelatorio);
+    document.getElementById('exportarBtn').addEventListener('click', exportarCSV);
+    document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltro);
+    document.getElementById('btnLimparFiltro').addEventListener('click', limparFiltro);
+    document.getElementById('btnSelecionarTodos').addEventListener('click', selecionarTodos);
+    document.getElementById('btnDeselecionarTodos').addEventListener('click', deselecionarTodos);
+    
+    window.toggleDetalhes = toggleDetalhes;
+</script>
+</body>
+</html>
