@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDP Transportes - Validador Fiscal (Amaral x XML)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d2137;
+    --navy2: #132d47;
+    --blue: #1a4a6e;
+    --accent: #e8a020;
+    --accent2: #f5b940;
+    --surface: #f4f7fb;
+    --surface2: #eef2f8;
+    --border: #dce4ef;
+    --text: #1a2a3a;
+    --muted: #6b7e93;
+    --white: #ffffff;
+    --green: #1a7a50;
+    --greenlight: #e6f5ee;
+    --red: #b91c1c;
+    --redlight: #fef2f2;
+    --orange: #c2410c;
+    --orangelight: #fff7ed;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Syne', sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(13,33,55,0.10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--navy);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(232,160,32,0.04) 60px, rgba(232,160,32,0.04) 61px);
+  }
+  .page-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 32px 24px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+  }
+  .header-logo {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-family: var(--display);
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .header-text h1 span { color: var(--accent); }
+  .header-text p {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 5px;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(232,160,32,0.15);
+    border: 1px solid rgba(232,160,32,0.3);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 6px 14px;
+    border-radius: 40px;
+    white-space: nowrap;
+  }
+
+  .page-body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 32px 48px;
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-header-icon {
+    width: 32px; height: 32px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+  }
+  .card-header-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy);
+  }
+  .card-header-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .card-body { padding: 20px 24px; }
+
+  textarea {
+    width: 100%;
+    height: 200px;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.5;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,160,32,0.15);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 22px;
+    border-radius: 40px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--blue); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(13,33,55,0.25); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+  .btn-compare {
+    background: var(--accent);
+    color: var(--navy);
+    font-weight: 800;
+  }
+  .btn-compare:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* Filtros */
+  .filters-bar {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    padding: 6px 16px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--mono);
+    background: var(--white);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn.active {
+    background: var(--navy);
+    color: var(--white);
+    border-color: var(--navy);
+  }
+  .filter-btn:hover:not(.active) {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+
+  /* Resultados */
+  .results-card {
+    background: var(--white);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 24px;
+  }
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    padding: 20px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 800px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-card.error {
+    background: var(--redlight);
+    border-color: var(--red);
+  }
+  .stat-card.warning {
+    background: var(--orangelight);
+    border-color: var(--orange);
+  }
+  .stat-card.success {
+    background: var(--greenlight);
+    border-color: var(--green);
+  }
+  .stat-card.total {
+    background: var(--navy);
+    border-color: var(--navy);
+  }
+  .stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .stat-card.error .stat-label { color: var(--red); }
+  .stat-card.warning .stat-label { color: var(--orange); }
+  .stat-card.total .stat-label { color: rgba(255,255,255,0.6); }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-card.error .stat-value { color: var(--red); }
+  .stat-card.warning .stat-value { color: var(--orange); }
+  .stat-card.total .stat-value { color: var(--accent2); }
+
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  thead th {
+    background: var(--navy);
+    color: rgba(255,255,255,0.7);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 2px solid rgba(232,160,32,0.4);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover td { background: #fef8ec; }
+  td {
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .doc-number {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .value {
+    font-family: var(--mono);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .value-match { color: var(--green); }
+  .value-mismatch { color: var(--red); font-weight: 700; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-ok { background: var(--greenlight); color: var(--green); }
+  .badge-error { background: var(--redlight); color: var(--red); }
+  .badge-missing { background: var(--orangelight); color: var(--orange); }
+  .prod-list {
+    font-size: 0.7rem;
+    color: var(--muted);
+    max-width: 250px;
+  }
+  .prod-list strong {
+    color: var(--navy);
+    font-weight: 600;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .section-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--navy);
+    margin: 0 24px 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-inner">
+    <div class="header-logo">DP</div>
+    <div class="header-text">
+      <h1>RDP <span>Validador Fiscal</span></h1>
+      <p>COMPARAÇÃO: AMARAL CONTÁBIL x XML PROCESSADO (MATRIZ)</p>
+    </div>
+    <div class="header-badge">🔍 Matriz = XML | Comparar = Validar</div>
+  </div>
+</div>
+
+<div class="page-body">
+
+  <!-- Campo 1: Amaral Contábil -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📊</div>
+      <div class="card-header-title">1. Dados AMARAL CONTÁBIL</div>
+      <div class="card-header-sub">Cole o CSV exportado do sistema Amaral (colunas: Documento (NF) | Data | Produto | Valor Base PIS | CFOP)</div>
+    </div>
+    <div class="card-body">
+      <textarea id="amaralData" placeholder="Cole aqui o CSV do Amaral Contábil...&#10;&#10;Exemplo:&#10;44971	02/01/2026	DIESEL COMUM	1244,18	2-653&#10;51514	02/01/2026	DIESEL COMUM	2125	1-653"></textarea>
+    </div>
+  </div>
+
+  <!-- Campo 2: XML Processado (Matriz) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📄</div>
+      <div class="card-header-title">2. Dados XML Processado (MATRIZ)</div>
+      <div class="card-header-sub">Cole o CSV exportado dos XMLs (colunas: Posto | CNPJ | UF | Nº NFe | Série | Data | Produto | Código | Quantidade (L) | Valor (R$) | Alíquota | Base (R$) | Crédito (R$) | CFOP)</div>
+    </div>
+    <div class="card-body">
+      <textarea id="xmlData" placeholder="Cole aqui o CSV dos XMLs processados..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-compare" id="compareBtn">🔍 COMPARAR E VALIDAR</button>
+        <button class="btn btn-secondary" id="clearBtn">✕ Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área de Resultados -->
+  <div id="resultsArea" style="display: none;">
+    <div class="results-card">
+      <div class="summary-strip">
+        <div class="stat-card success">
+          <div class="stat-label">✅ Notas OK</div>
+          <div class="stat-value" id="okCount">0</div>
+        </div>
+        <div class="stat-card error">
+          <div class="stat-label">🔴 Divergências</div>
+          <div class="stat-value" id="divergenceCount">0</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">⚠️ Faltam no Amaral</div>
+          <div class="stat-value" id="missingInAmaralCount">0</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">⚠️ Extras no Amaral</div>
+          <div class="stat-value" id="extraInAmaralCount">0</div>
+        </div>
+        <div class="stat-card total">
+          <div class="stat-label">💰 Diferença Total</div>
+          <div class="stat-value" id="totalDiffValue">R$ 0,00</div>
+        </div>
+      </div>
+      
+      <!-- Totais por fonte -->
+      <div style="display: flex; gap: 24px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap;">
+        <div style="font-family: var(--mono); font-size: 0.8rem;">
+          📊 <strong>Total XML (Matriz):</strong> <span id="totalXMLValue" style="color: var(--navy); font-weight: 700;">R$ 0,00</span>
+        </div>
+        <div style="font-family: var(--mono); font-size: 0.8rem;">
+          📋 <strong>Total Amaral:</strong> <span id="totalAmaralValue" style="color: var(--navy); font-weight: 700;">R$ 0,00</span>
+        </div>
+        <div style="font-family: var(--mono); font-size: 0.8rem;">
+          🔄 <strong>Diferença (XML - Amaral):</strong> <span id="diffTotalValue" style="font-weight: 700;">R$ 0,00</span>
+        </div>
+      </div>
+      
+      <!-- Filtros -->
+      <div class="filters-bar">
+        <span style="font-size: 0.7rem; font-weight: 600; color: var(--muted);">FILTRAR:</span>
+        <button class="filter-btn active" data-filter="all">📋 Todos</button>
+        <button class="filter-btn" data-filter="ok">✅ OK</button>
+        <button class="filter-btn" data-filter="divergence">🔴 Divergências</button>
+        <button class="filter-btn" data-filter="missing">⚠️ Faltam no Amaral</button>
+        <button class="filter-btn" data-filter="extra">⚠️ Extras no Amaral</button>
+      </div>
+      
+      <div class="table-scroll" style="padding: 0 24px 24px 24px;">
+        <table id="comparisonTable">
+          <thead>
+            <tr>
+              <th>Documento (NF)</th>
+              <th>Produtos no XML</th>
+              <th>Produtos no Amaral</th>
+              <th>Valor XML (Matriz)</th>
+              <th>Valor Amaral</th>
+              <th>Diferença</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonTableBody">
+            <tr><td colspan="7"><div class="empty-state"><div class="es-icon">📂</div><p>Nenhuma comparação realizada ainda</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const amaralTextarea = document.getElementById('amaralData');
+  const xmlTextarea = document.getElementById('xmlData');
+  const compareBtn = document.getElementById('compareBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const resultsArea = document.getElementById('resultsArea');
+  const comparisonTableBody = document.getElementById('comparisonTableBody');
+  
+  const okCountSpan = document.getElementById('okCount');
+  const divergenceCountSpan = document.getElementById('divergenceCount');
+  const missingInAmaralCountSpan = document.getElementById('missingInAmaralCount');
+  const extraInAmaralCountSpan = document.getElementById('extraInAmaralCount');
+  const totalDiffValueSpan = document.getElementById('totalDiffValue');
+  const totalXMLValueSpan = document.getElementById('totalXMLValue');
+  const totalAmaralValueSpan = document.getElementById('totalAmaralValue');
+  const diffTotalValueSpan = document.getElementById('diffTotalValue');
+
+  let currentResults = []; // Armazena os resultados para filtro
+  let currentFilter = 'all';
+
+  // Função para converter string de número brasileiro (1.234,56) para float
+  function parseBRLNumber(str) {
+    if (!str) return 0;
+    let cleaned = str.toString().trim().replace(/\./g, '').replace(',', '.');
+    let num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+
+  // Extrai dados do CSV do Amaral (com produtos)
+  function extrairAmaralCompleto(text) {
+    const lines = text.split(/\r?\n/);
+    const map = new Map(); // documento -> { total, produtos: Set }
+    
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      
+      let parts;
+      if (line.includes('\t')) parts = line.split('\t');
+      else parts = line.split(/\s{2,}/);
+      
+      if (parts.length < 4) continue;
+      
+      const documento = parts[0].trim();
+      const produto = parts[2] ? parts[2].trim() : 'N/I';
+      let valorStr = parts[3].trim();
+      const valor = parseBRLNumber(valorStr);
+      
+      if (documento && valor > 0) {
+        if (!map.has(documento)) {
+          map.set(documento, { total: 0, produtos: new Set() });
+        }
+        const entry = map.get(documento);
+        entry.total += valor;
+        if (produto && produto !== 'N/I') entry.produtos.add(produto);
+      }
+    }
+    
+    return map;
+  }
+
+  // Extrai dados do XML (com produtos)
+  function extrairXMLCompleto(text) {
+    const lines = text.split(/\r?\n/);
+    const map = new Map(); // Nº NFe -> { total, produtos: Set }
+    
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      
+      let parts;
+      if (line.includes('\t')) parts = line.split('\t');
+      else parts = line.split(/\s{2,}/);
+      
+      if (parts.length < 12) continue;
+      
+      if (parts[0].toLowerCase().includes('posto') || parts[0].toLowerCase().includes('cnpj')) {
+        continue;
+      }
+      
+      const documento = parts[3] ? parts[3].trim() : '';
+      const produto = parts[6] ? parts[6].trim() : 'N/I';
+      const baseStr = parts[11] ? parts[11].trim() : '0';
+      const valor = parseBRLNumber(baseStr);
+      
+      if (documento && valor > 0) {
+        if (!map.has(documento)) {
+          map.set(documento, { total: 0, produtos: new Set() });
+        }
+        const entry = map.get(documento);
+        entry.total += valor;
+        if (produto && produto !== 'N/I') entry.produtos.add(produto);
+      }
+    }
+    
+    return map;
+  }
+
+  function formatMoney(value) {
+    return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderTable(results) {
+    if (results.length === 0) {
+      comparisonTableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="es-icon">📂</div><p>Nenhum resultado para o filtro selecionado</p></div></td></tr>';
+      return;
+    }
+    
+    let html = '';
+    for (const r of results) {
+      const diffColor = Math.abs(r.diff) < 0.01 ? 'value-match' : (r.diff !== 0 ? 'value-mismatch' : '');
+      
+      // Produtos XML
+      const xmlProdutos = r.produtosXML.size > 0 
+        ? Array.from(r.produtosXML).slice(0, 3).map(p => `<strong>${p.length > 30 ? p.slice(0,27)+'...' : p}</strong>`).join('<br>') + (r.produtosXML.size > 3 ? `<br><span style="font-size:0.65rem;">+${r.produtosXML.size-3} outros</span>` : '')
+        : '<span style="color:var(--muted);">-</span>';
+      
+      // Produtos Amaral
+      const amaralProdutos = r.produtosAmaral.size > 0 
+        ? Array.from(r.produtosAmaral).slice(0, 3).map(p => `<strong>${p.length > 30 ? p.slice(0,27)+'...' : p}</strong>`).join('<br>') + (r.produtosAmaral.size > 3 ? `<br><span style="font-size:0.65rem;">+${r.produtosAmaral.size-3} outros</span>` : '')
+        : '<span style="color:var(--muted);">-</span>';
+      
+      let statusBadge = '';
+      if (r.status === 'ok') statusBadge = '<span class="badge badge-ok">✅ OK</span>';
+      else if (r.status === 'divergence') statusBadge = `<span class="badge badge-error">🔴 Divergência de R$ ${formatMoney(r.absDiff)}</span>`;
+      else if (r.status === 'missing') statusBadge = '<span class="badge badge-missing">⚠️ Faltando no Amaral</span>';
+      else if (r.status === 'extra') statusBadge = '<span class="badge badge-missing">⚠️ Extra no Amaral</span>';
+      
+      html += `
+        <tr>
+          <td class="doc-number">${r.nota}</td>
+          <td class="prod-list">${xmlProdutos}</td>
+          <td class="prod-list">${amaralProdutos}</td>
+          <td class="value ${r.status === 'ok' || r.status === 'missing' ? 'value-match' : ''}">R$ ${formatMoney(r.valorXML)}</td>
+          <td class="value ${r.status === 'ok' || r.status === 'extra' ? 'value-match' : ''}">R$ ${formatMoney(r.valorAmaral)}</td>
+          <td class="value ${diffColor}">${r.diff !== 0 ? `R$ ${formatMoney(Math.abs(r.diff))}` : 'R$ 0,00'}</td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    }
+    comparisonTableBody.innerHTML = html;
+  }
+
+  function applyFilter() {
+    if (!currentResults.length) return;
+    
+    let filtered = [];
+    for (const r of currentResults) {
+      if (currentFilter === 'all') filtered.push(r);
+      else if (currentFilter === 'ok' && r.status === 'ok') filtered.push(r);
+      else if (currentFilter === 'divergence' && r.status === 'divergence') filtered.push(r);
+      else if (currentFilter === 'missing' && r.status === 'missing') filtered.push(r);
+      else if (currentFilter === 'extra' && r.status === 'extra') filtered.push(r);
+    }
+    renderTable(filtered);
+  }
+
+  function setupFilters() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        applyFilter();
+      });
+    });
+  }
+
+  function compare() {
+    const amaralText = amaralTextarea.value;
+    const xmlText = xmlTextarea.value;
+    
+    if (!amaralText.trim()) {
+      alert("Por favor, cole os dados do Amaral Contábil.");
+      return;
+    }
+    if (!xmlText.trim()) {
+      alert("Por favor, cole os dados dos XMLs processados (Matriz).");
+      return;
+    }
+    
+    const amaralMap = extrairAmaralCompleto(amaralText);
+    const xmlMap = extrairXMLCompleto(xmlText);
+    
+    if (xmlMap.size === 0) {
+      alert("Nenhum dado válido encontrado nos XMLs. Verifique o formato.");
+      return;
+    }
+    
+    if (amaralMap.size === 0) {
+      alert("Nenhum dado válido encontrado no Amaral. Verifique o formato.");
+      return;
+    }
+    
+    // Calcular totais
+    let totalXML = 0;
+    let totalAmaral = 0;
+    for (const [_, data] of xmlMap) totalXML += data.total;
+    for (const [_, data] of amaralMap) totalAmaral += data.total;
+    const diffTotal = totalXML - totalAmaral;
+    
+    totalXMLValueSpan.textContent = `R$ ${formatMoney(totalXML)}`;
+    totalAmaralValueSpan.textContent = `R$ ${formatMoney(totalAmaral)}`;
+    diffTotalValueSpan.textContent = `R$ ${formatMoney(diffTotal)}`;
+    diffTotalValueSpan.style.color = diffTotal >= 0 ? 'var(--green)' : 'var(--red)';
+    
+    // Coletar todas as notas únicas
+    const allNotes = new Set([...xmlMap.keys(), ...amaralMap.keys()]);
+    const results = [];
+    let okCount = 0;
+    let divergenceCount = 0;
+    let missingCount = 0;
+    let extraCount = 0;
+    let totalDivergence = 0;
+    
+    const sortedNotes = Array.from(allNotes).sort((a, b) => {
+      const numA = parseInt(a) || 0;
+      const numB = parseInt(b) || 0;
+      return numA - numB;
+    });
+    
+    for (const nota of sortedNotes) {
+      const xmlData = xmlMap.get(nota) || { total: 0, produtos: new Set() };
+      const amaralData = amaralMap.get(nota) || { total: 0, produtos: new Set() };
+      const valorXML = xmlData.total;
+      const valorAmaral = amaralData.total;
+      const diff = valorXML - valorAmaral;
+      const absDiff = Math.abs(diff);
+      
+      let status = '';
+      
+      if (valorXML > 0 && valorAmaral > 0) {
+        if (Math.abs(diff) < 0.01) {
+          status = 'ok';
+          okCount++;
+        } else {
+          status = 'divergence';
+          divergenceCount++;
+          totalDivergence += absDiff;
+        }
+      } else if (valorXML > 0 && valorAmaral === 0) {
+        status = 'missing';
+        missingCount++;
+        totalDivergence += valorXML;
+      } else if (valorXML === 0 && valorAmaral > 0) {
+        status = 'extra';
+        extraCount++;
+        totalDivergence += valorAmaral;
+      }
+      
+      results.push({
+        nota,
+        valorXML,
+        valorAmaral,
+        diff,
+        absDiff,
+        status,
+        produtosXML: xmlData.produtos,
+        produtosAmaral: amaralData.produtos
+      });
+    }
+    
+    currentResults = results;
+    
+    // Atualizar resumo
+    okCountSpan.textContent = okCount;
+    divergenceCountSpan.textContent = divergenceCount;
+    missingInAmaralCountSpan.textContent = missingCount;
+    extraInAmaralCountSpan.textContent = extraCount;
+    totalDiffValueSpan.textContent = `R$ ${formatMoney(totalDivergence)}`;
+    
+    // Resetar filtro e renderizar
+    currentFilter = 'all';
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.filter === 'all') btn.classList.add('active');
+    });
+    renderTable(results);
+    
+    resultsArea.style.display = 'block';
+    resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setupFilters();
+  }
+
+  function clearAll() {
+    amaralTextarea.value = '';
+    xmlTextarea.value = '';
+    resultsArea.style.display = 'none';
+    currentResults = [];
+    comparisonTableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="es-icon">📂</div><p>Nenhuma comparação realizada ainda</p></div></td></tr>';
+    okCountSpan.textContent = '0';
+    divergenceCountSpan.textContent = '0';
+    missingInAmaralCountSpan.textContent = '0';
+    extraInAmaralCountSpan.textContent = '0';
+    totalDiffValueSpan.textContent = 'R$ 0,00';
+    totalXMLValueSpan.textContent = 'R$ 0,00';
+    totalAmaralValueSpan.textContent = 'R$ 0,00';
+    diffTotalValueSpan.textContent = 'R$ 0,00';
+  }
+
+  compareBtn.addEventListener('click', compare);
+  clearBtn.addEventListener('click', clearAll);
+})();
+</script>
+</body>
+</html>
