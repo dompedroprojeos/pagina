@@ -1,779 +1,983 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Alinhamento de Dados - NFe vs Contabilidade</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            padding: 24px;
-        }
-        
-        /* Cabeçalho do Sistema */
-        .system-header {
-            background: linear-gradient(135deg, #1e466e, #2c5a8c);
-            border-radius: 20px;
-            padding: 25px 30px;
-            margin-bottom: 25px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        .system-header::before {
-            content: "📊";
-            position: absolute;
-            right: -20px;
-            top: -20px;
-            font-size: 120px;
-            opacity: 0.1;
-        }
-        .system-header h1 {
-            font-size: 1.8rem;
-            margin: 0 0 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .system-header h1 span {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-        }
-        .system-header p {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        .system-header .creator {
-            margin-top: 12px;
-            font-size: 12px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            padding-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        
-        .sub {
-            color: #495057;
-            border-left: 4px solid #0d6efd;
-            padding-left: 16px;
-            margin-bottom: 30px;
-        }
-        .entrada-area {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 25px;
-            border: 1px solid #dee2e6;
-        }
-        textarea {
-            width: 100%;
-            height: 250px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            padding: 12px;
-            border: 1px solid #ced4da;
-            border-radius: 16px;
-            background: #fff;
-            resize: vertical;
-        }
-        button {
-            background: #0d6efd;
-            color: white;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 14px;
-            margin-top: 15px;
-            margin-right: 10px;
-        }
-        button:hover {
-            background: #0b5ed7;
-            transform: scale(1.02);
-        }
-        .btn-excel {
-            background: #28a745;
-        }
-        .btn-excel:hover {
-            background: #218838;
-        }
-        .filtro-area {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            margin: 20px 0;
-            background: #f1f3f5;
-            padding: 15px 20px;
-            border-radius: 16px;
-        }
-        .filtro-produtos {
-            flex: 3;
-            min-width: 280px;
-        }
-        .filtro-produtos label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: #1e466e;
-        }
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-height: 140px;
-            overflow-y: auto;
-            padding: 10px;
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-        }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: normal;
-            font-size: 12px;
-            cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: #f8f9fa;
-            transition: 0.2s;
-        }
-        .checkbox-group label:hover {
-            background: #e7f1ff;
-        }
-        .checkbox-group input {
-            margin: 0;
-            cursor: pointer;
-        }
-        .filtro-acoes {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        .btn-filtro {
-            padding: 8px 18px;
-            font-size: 12px;
-            margin-top: 0;
-        }
-        .btn-limpar {
-            background: #6c757d;
-        }
-        .btn-todos {
-            background: #28a745;
-        }
-        .btn-nenhum {
-            background: #dc3545;
-        }
-        .result-table {
-            overflow-x: auto;
-            margin-top: 20px;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px 10px;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background: #1e466e;
-            color: white;
-            position: sticky;
-            top: 0;
-            font-weight: 600;
-        }
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .multi-produto {
-            background-color: #fff8e1 !important;
-        }
-        .total-row {
-            background: #e2e3e5;
-            font-weight: bold;
-        }
-        .aviso {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 16px;
-            margin: 16px 0;
-        }
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 15px 0;
-            background: #e7f1ff;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 13px;
-        }
-        .badge-multi {
-            background: #ffc107;
-            color: #856404;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: 6px;
-        }
-        .expand-btn {
-            cursor: pointer;
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            line-height: 20px;
-            text-align: center;
-            background: #0d6efd;
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-        }
-        .sem-expand {
-            display: inline-block;
-            width: 22px;
-            text-align: center;
-            color: #adb5bd;
-        }
-        .detalhes-row {
-            background: #fffef7;
-            display: none;
-        }
-        .detalhes-row.mostrar {
-            display: table-row;
-        }
-        .detalhes-cell {
-            padding: 0 !important;
-        }
-        .detalhes-inner {
-            padding: 12px;
-            background: #fffef7;
-            border-top: 1px solid #ffc107;
-        }
-        .produto-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #f0e6d2;
-            font-size: 11px;
-        }
-        .produto-item:last-child {
-            border-bottom: none;
-        }
-        .total-documento {
-            background: #e7f1ff;
-            padding: 6px 10px;
-            border-radius: 8px;
-            margin-top: 8px;
-            text-align: right;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .documento-destaque {
-            font-weight: bold;
-            color: #0d6efd;
-        }
-        .busca-produto {
-            margin-bottom: 10px;
-            width: 100%;
-        }
-        .busca-produto input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        
-        /* Rodapé */
-        .system-footer {
-            margin-top: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1e466e, #2c5a8c);
-            border-radius: 16px;
-            color: white;
-            text-align: center;
-            font-size: 12px;
-        }
-        .system-footer p {
-            margin: 5px 0;
-        }
-        .system-footer .version {
-            opacity: 0.7;
-            font-size: 11px;
-        }
-        
-        .btn-excel {
-            background: #28a745;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDP Transportes - Movimento de Entradas</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d2137;
+    --navy2: #132d47;
+    --blue: #1a4a6e;
+    --accent: #e8a020;
+    --accent2: #f5b940;
+    --surface: #f4f7fb;
+    --surface2: #eef2f8;
+    --border: #dce4ef;
+    --text: #1a2a3a;
+    --muted: #6b7e93;
+    --white: #ffffff;
+    --green: #1a7a50;
+    --greenlight: #e6f5ee;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Syne', sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(13,33,55,0.10);
+    --shadow-lg: 0 8px 40px rgba(13,33,55,0.16);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--navy);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      rgba(232,160,32,0.04) 60px,
+      rgba(232,160,32,0.04) 61px
+    );
+  }
+  .page-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 32px 24px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+  }
+  .header-logo {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-family: var(--display);
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .header-text h1 span { color: var(--accent); }
+  .header-text p {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 5px;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(232,160,32,0.15);
+    border: 1px solid rgba(232,160,32,0.3);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 6px 14px;
+    border-radius: 40px;
+    white-space: nowrap;
+  }
+
+  /* ── LAYOUT ── */
+  .page-body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 32px 48px;
+  }
+
+  /* ── INPUT CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-header-icon {
+    width: 32px; height: 32px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+  }
+  .card-header-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy);
+  }
+  .card-header-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .card-body { padding: 20px 24px; }
+
+  textarea#rawData {
+    width: 100%;
+    height: 180px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.6;
+  }
+  textarea#rawData:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,160,32,0.15);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 22px;
+    border-radius: 40px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--blue); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(13,33,55,0.25); }
+  .btn-export {
+    background: var(--green);
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .btn-export:hover { background: #155f3e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,122,80,0.25); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+
+  /* ── FILTROS ── */
+  .filters-card {
+    background: var(--white);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 18px 24px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .filters-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filters-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 640px) { .filters-grid { grid-template-columns: 1fr; } }
+
+  .filter-group label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .filter-input-wrap { position: relative; }
+  .filter-input-wrap .fi-icon {
+    position: absolute;
+    left: 11px; top: 50%; transform: translateY(-50%);
+    font-size: 0.85rem;
+    pointer-events: none;
+    color: var(--muted);
+  }
+  .filter-input-wrap input,
+  .filter-input-wrap select {
+    width: 100%;
+    padding: 9px 12px 9px 32px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+  }
+  .filter-input-wrap input:focus,
+  .filter-input-wrap select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,160,32,0.12);
+    background: var(--white);
+  }
+
+  /* ── SUMMARY STRIP ── */
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 700px) { .summary-strip { grid-template-columns: 1fr 1fr; } }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-card.highlight {
+    background: var(--navy);
+    border-color: var(--navy);
+  }
+  .stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .stat-card.highlight .stat-label { color: rgba(255,255,255,0.55); }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-card.highlight .stat-value { color: var(--accent2); }
+
+  /* ── TABLE AREA ── */
+  .table-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    min-width: 680px;
+  }
+  thead th {
+    background: var(--navy);
+    color: rgba(255,255,255,0.7);
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid rgba(232,160,32,0.4);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  thead th:first-child { padding-left: 20px; }
+
+  tbody tr { transition: background 0.12s; }
+  tbody tr:nth-child(even) td { background: var(--surface); }
+  tbody tr:hover td { background: #fef8ec !important; }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  td:first-child { padding-left: 20px; }
+
+  .col-doc {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .col-date {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+  .col-value {
+    font-family: var(--mono);
+    font-weight: 600;
+    text-align: right;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .col-cfop {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .col-expand { width: 36px; text-align: center; }
+
+  /* produto chips */
+  .prod-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .prod-chip {
+    background: var(--surface2);
+    color: var(--blue);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* expand button */
+  .expand-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.75rem;
+    transition: all 0.15s;
+    font-weight: 700;
+  }
+  .expand-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232,160,32,0.06);
+  }
+  .expand-btn.open {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--white);
+    transform: rotate(45deg);
+  }
+
+  /* detail row */
+  .detail-row td {
+    background: #f0f6ff !important;
+    padding: 0;
+  }
+  .detail-inner {
+    padding: 14px 20px 14px 52px;
+    display: none;
+    border-top: 1px dashed var(--border);
+  }
+  .detail-inner.open { display: block; }
+  .detail-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .detail-table {
+    width: auto;
+    min-width: unset;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .detail-table th {
+    background: var(--navy2);
+    font-size: 0.65rem;
+    padding: 7px 12px;
+    position: static;
+    font-weight: 600;
+  }
+  .detail-table td {
+    padding: 7px 12px;
+    background: var(--white) !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-table tr:last-child td { border-bottom: none; }
+  .detail-table .dt-total td {
+    background: var(--surface2) !important;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  /* empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .es-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* produto breakdown */
+  .prod-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .prod-badge {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .prod-badge strong { color: var(--navy); font-family: var(--mono); }
+  .prod-badge span { color: var(--muted); font-size: 0.68rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  #resultArea { display: none; }
+
+  .section-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--navy);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
 </head>
 <body>
-<div class="container">
-    <!-- Cabeçalho do Sistema -->
-    <div class="system-header">
-        <h1>
-            📋 Sistema de Alinhamento de Dados
-            <span>NFe vs Contabilidade</span>
-        </h1>
-        <p>Ferramenta profissional para validação e conciliação de notas fiscais de entrada</p>
-        <div class="creator">
-            <span>🔧 Desenvolvido por: Waldeci Ramos</span>
-            <span>📅 Versão 1.0 - 2026</span>
-            <span>🏢 Amaral Contabilidade</span>
-        </div>
-    </div>
 
-    <div class="entrada-area">
-        <label for="rawData">📌 Cole aqui o relatório "Detalhamento de Movimento de Entradas":</label>
-        <textarea id="rawData" placeholder="Cole o texto inteiro do relatório..."></textarea>
-        <button id="processarBtn">🔧 PROCESSAR E ALINHAR</button>
-        <button id="exportarBtn" class="btn-excel" style="display:none">📎 EXPORTAR CSV</button>
+<div class="page-header">
+  <div class="header-inner">
+    <div class="header-logo">DP</div>
+    <div class="header-text">
+      <h1>RDP <span>Rede Dom Pedro de Postos </span> LTDA</h1>
+      <p>MOVIMENTO DE ENTRADAS · LANÇAMENTOS AMARAL CONTÁBIL</p>
     </div>
-
-    <div id="resultadoContainer" style="display: none;">
-        <div class="filtro-area">
-            <div class="filtro-produtos">
-                <label>🎯 Filtrar por Produto (selecione vários):</label>
-                <div class="busca-produto">
-                    <input type="text" id="buscaProduto" placeholder="🔍 Buscar produto...">
-                </div>
-                <div class="checkbox-group" id="checkboxProdutos"></div>
-                <div style="margin-top: 8px; font-size: 11px; color: #666;">
-                    💡 Ao filtrar, a expansão mostrará APENAS os produtos selecionados
-                </div>
-            </div>
-            <div class="filtro-acoes">
-                <button id="btnFiltrar" class="btn-filtro">🔍 Filtrar</button>
-                <button id="btnLimparFiltro" class="btn-filtro btn-limpar">Limpar</button>
-                <button id="btnSelecionarTodos" class="btn-filtro btn-todos">Todos</button>
-                <button id="btnDeselecionarTodos" class="btn-filtro btn-nenhum">Nenhum</button>
-            </div>
-        </div>
-        <div class="stats" id="statsInfo"></div>
-        <div class="result-table" id="tabelaResultado"></div>
-    </div>
-
-    <!-- Rodapé -->
-    <div class="system-footer">
-        <p>✅ Sistema de Alinhamento de Dados | Conciliação Fiscal NFe vs Contabilidade</p>
-        <p>📊 Desenvolvido para otimizar a validação de notas fiscais de entrada</p>
-        <p class="version">© 2026 Waldeci Ramos - Amaral Contabilidade - Todos os direitos reservados</p>
-    </div>
+    <div class="header-badge">⚡ Processador de NFs</div>
+  </div>
 </div>
 
+<div class="page-body">
+
+  <!-- INPUT -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div class="card-header-title">Colar Relatório Bruto</div>
+      <div class="card-header-sub">Cole o conteúdo do Detalhamento de Movimento de Entradas</div>
+    </div>
+    <div class="card-body">
+      <textarea id="rawData" placeholder="Cole aqui o conteúdo exportado do sistema..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="processBtn">▶ Processar Relatório</button>
+        <button class="btn btn-secondary" id="clearBtn">✕ Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters-card" id="filtersArea">
+    <div class="filters-title">🔍 Filtros</div>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Buscar por Documento (NF)</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">#</span>
+          <input type="text" id="docFilter" placeholder="Ex: 44971, 70...">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Filtrar por Produto</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">📦</span>
+          <select id="produtoFilter">
+            <option value="todos">Todos os produtos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultArea">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:12px; flex-wrap:wrap;">
+      <div class="section-title" style="margin-bottom:0; flex:1; min-width:120px;">📊 Resumo</div>
+      <button class="btn btn-export" id="exportCsvBtn">⬇ Exportar CSV</button>
+    </div>
+    <div class="summary-strip">
+      <div class="stat-card">
+        <div class="stat-label">Documentos exibidos</div>
+        <div class="stat-value" id="itemCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Produtos distintos</div>
+        <div class="stat-value" id="prodCount">0</div>
+      </div>
+      <div class="stat-card highlight">
+        <div class="stat-label">Total Geral (Base PIS)</div>
+        <div class="stat-value" id="grandTotal">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div id="prodBreakdown" class="prod-breakdown"></div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-expand"></th>
+              <th>Documento (NF)</th>
+              <th>Data</th>
+              <th>Produto(s)</th>
+              <th style="text-align:right">Total (R$)</th>
+              <th>CFOP</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="6"><div class="empty-state"><div class="es-icon">📂</div><p>Nenhum dado processado ainda</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-body -->
+
 <script>
-    let todosDocumentos = [];
-    let documentosAtuais = [];
-    let todosProdutosLista = [];
-    let filtroAtivo = [];
-    
-    // Função para formatar valor no padrão brasileiro: 2.252,32
-    function formatarValorBR(valor) {
-        return valor.toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-    
-    function processarRelatorio() {
-        const texto = document.getElementById('rawData').value;
-        if (!texto.trim()) {
-            alert("Cole o relatório primeiro.");
-            return;
+(function() {
+
+  const textarea   = document.getElementById('rawData');
+  const processBtn = document.getElementById('processBtn');
+  const clearBtn   = document.getElementById('clearBtn');
+  const resultArea = document.getElementById('resultArea');
+  const filtersArea= document.getElementById('filtersArea');
+  const tableBody  = document.getElementById('tableBody');
+  const itemCountEl= document.getElementById('itemCount');
+  const prodCountEl= document.getElementById('prodCount');
+  const grandTotalEl= document.getElementById('grandTotal');
+  const produtoFilter= document.getElementById('produtoFilter');
+  const docFilter  = document.getElementById('docFilter');
+  const prodBreakdown= document.getElementById('prodBreakdown');
+
+  let gruposOriginais = [];
+
+  /* ── EXTRAÇÃO ── */
+  function extrairItens(rawText) {
+    const lines = rawText.split(/\r?\n/);
+    const items = [];
+    let currentProductName = "Produto não identificado";
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      const prodMatch = line.match(/^Produto:\s*\S+\s*-\s*(.+)$/);
+      if (prodMatch) { currentProductName = prodMatch[1].trim(); continue; }
+
+      // SERVIÇOS
+      // Estrutura: seq  data  cod_forn  documento  ...  SERVICOS  ...  valor  valor  cfop  cst  50  01  basePIS ...
+      if (line.includes("SERVICOS") && line.match(/\d{2}\/\d{2}\/\d{4}/)) {
+        const tk = line.split(/\s+/);
+        // tokens[0]=seq, tokens[1]=data, tokens[2]=cod_forn, tokens[3]=documento_nf
+        const data      = tk[1];
+        const documento = tk[3]; // número da NF real
+        let cfop = '', valorBase = 0;
+        for (let j = 0; j < tk.length; j++) {
+          if (/^\d{1}-\d{3}$/.test(tk[j])) {
+            cfop = tk[j];
+            // busca 50 01 valor após cfop
+            for (let k = j + 1; k < tk.length; k++) {
+              if (tk[k] === "50" && tk[k+1] === "01" && tk[k+2] && /^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(tk[k+2])) {
+                valorBase = parseFloat(tk[k+2].replace(/\./g,'').replace(',','.'));
+                break;
+              }
+            }
+            break;
+          }
+        }
+        // fallback: pega primeiro valor monetário se não achou pela sequência 50 01
+        if (valorBase === 0) {
+          for (let k = 0; k < tk.length; k++) {
+            if (/^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(tk[k])) {
+              valorBase = parseFloat(tk[k].replace(/\./g,'').replace(',','.'));
+              break;
+            }
+          }
+        }
+        if (data && documento && valorBase > 0) {
+          items.push({ documento, data, produto: "SERVIÇOS TOMADOS", total: valorBase, cfop: cfop || 'N/I' });
+        }
+        continue;
+      }
+
+      const tokens = line.split(/\s+/);
+      if (tokens.length >= 8 && /^\d+$/.test(tokens[0]) && /\d{2}\/\d{2}\/\d{4}/.test(tokens[1])) {
+        const data = tokens[1];
+        const documento = tokens[3];
+        let cfop = "", valorBase = 0;
+
+        for (let j = 0; j < tokens.length; j++) {
+          if (/^\d{1}-\d{3}$/.test(tokens[j])) {
+            cfop = tokens[j];
+            for (let k = j + 1; k < tokens.length; k++) {
+              if (tokens[k] === "50" && tokens[k+1] === "01" && tokens[k+2] && /^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(tokens[k+2])) {
+                valorBase = parseFloat(tokens[k+2].replace(/\./g,'').replace(',','.'));
+                break;
+              }
+            }
+            break;
+          }
         }
 
-        const linhas = texto.split(/\r?\n/);
-        let produtoAtual = "";
-        let itensBrutos = [];
-        
-        for (let i = 0; i < linhas.length; i++) {
-            let line = linhas[i];
-            
-            if (line.includes("Produto:") && line.includes("-")) {
-                let matchProd = line.match(/Produto:\s*(\d+)\s*-\s*(.+)/);
-                if (matchProd) {
-                    produtoAtual = matchProd[2].trim();
-                }
-                continue;
-            }
-            
-            if (line.includes("SERVICOS") && !produtoAtual) {
-                produtoAtual = "SERVICOS - SERVIÇOS TOMADOS";
-                continue;
-            }
-            
-            if (!produtoAtual) continue;
-            
-            const partes = line.split(/\s+/).filter(p => p.length > 0);
-            if (partes.length < 8) continue;
-            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(partes[1])) continue;
-            
-            let documento = partes[3];
-            let data = partes[1];
-            let valorContabil = limparValor(partes[8] || "0");
-            let cfop = partes[9] || "";
-            
-            let cstPis = "";
-            for (let j = 10; j < partes.length; j++) {
-                if (partes[j] === "50" || partes[j] === "01" || partes[j] === "03") {
-                    cstPis = partes[j];
-                    break;
-                }
-            }
-            
-            itensBrutos.push({
-                produto: produtoAtual,
-                documento: documento,
-                data: data,
-                valor: valorContabil,
-                cfop: cfop,
-                cstPis: cstPis
-            });
+        if (valorBase > 0) {
+          items.push({ documento, data, produto: currentProductName, total: valorBase, cfop: cfop || 'N/I' });
         }
-        
-        if (itensBrutos.length === 0) {
-            document.getElementById('tabelaResultado').innerHTML = '<div class="aviso">Nenhum dado encontrado.</div>';
-            document.getElementById('resultadoContainer').style.display = 'block';
-            return;
-        }
-        
-        // Agrupar por documento
-        let mapDoc = new Map();
-        for (const item of itensBrutos) {
-            if (!mapDoc.has(item.documento)) {
-                mapDoc.set(item.documento, {
-                    documento: item.documento,
-                    data: item.data,
-                    cfop: item.cfop,
-                    cstPis: item.cstPis,
-                    total: 0,
-                    produtos: [],
-                    itens: []
-                });
-            }
-            const grupo = mapDoc.get(item.documento);
-            grupo.total += item.valor;
-            grupo.produtos.push(item.produto);
-            grupo.itens.push({ produto: item.produto, valor: item.valor });
-        }
-        
-        todosDocumentos = Array.from(mapDoc.values());
-        todosDocumentos.sort((a, b) => a.documento.localeCompare(b.documento));
-        
-        // Criar lista única de produtos em ORDEM ALFABÉTICA
-        let produtosSet = new Set();
-        for (const doc of todosDocumentos) {
-            for (const item of doc.itens) {
-                produtosSet.add(item.produto);
-            }
-        }
-        todosProdutosLista = Array.from(produtosSet).sort((a, b) => a.localeCompare(b));
-        
-        // Criar checkboxes
-        renderCheckboxes(todosProdutosLista);
-        
-        // Configurar busca
-        document.getElementById('buscaProduto').addEventListener('input', function(e) {
-            const termo = e.target.value.toLowerCase();
-            const filtrados = todosProdutosLista.filter(p => p.toLowerCase().includes(termo));
-            renderCheckboxes(filtrados);
-        });
-        
-        document.getElementById('resultadoContainer').style.display = 'block';
-        document.getElementById('exportarBtn').style.display = 'inline-block';
-        
-        // Exibir todos
-        filtroAtivo = [];
-        documentosAtuais = [...todosDocumentos];
-        renderTabela(documentosAtuais, filtroAtivo);
-        atualizarStats(documentosAtuais);
+      }
     }
-    
-    function renderCheckboxes(produtos) {
-        const container = document.getElementById('checkboxProdutos');
-        container.innerHTML = '';
-        for (const prod of produtos) {
-            let label = document.createElement('label');
-            let checked = filtroAtivo.includes(prod) ? 'checked' : '';
-            label.innerHTML = `<input type="checkbox" value="${escapeHtml(prod)}" class="produto-checkbox" ${checked}> ${escapeHtml(prod)}`;
-            container.appendChild(label);
-        }
+    return items;
+  }
+
+  /* ── AGRUPAMENTO ── */
+  function agruparPorDocumento(items) {
+    const map = new Map();
+    for (const item of items) {
+      if (!map.has(item.documento)) {
+        map.set(item.documento, { documento: item.documento, data: item.data, produtos: [], cfop: item.cfop, total: 0, itens: [] });
+      }
+      const g = map.get(item.documento);
+      if (!g.produtos.includes(item.produto)) g.produtos.push(item.produto);
+      g.total += item.total;
+      g.itens.push(item);
     }
-    
-    function renderTabela(documentos, filtroProdutos = []) {
-        let html = `<table>
-            <thead>
-                <tr><th style="width:40px"></th><th>Documento</th><th>Data</th><th>Produto(s)</th><th>Total (R$)</th><th>CFOP</th><th>CST PIS</th></tr>
-            </thead>
-            <tbody>`;
-        
-        for (let i = 0; i < documentos.length; i++) {
-            const doc = documentos[i];
-            
-            // Filtrar itens do documento com base no filtro ativo
-            let itensFiltrados = doc.itens;
-            let produtosFiltrados = doc.produtos;
-            let totalFiltrado = doc.total;
-            
-            if (filtroProdutos.length > 0) {
-                itensFiltrados = doc.itens.filter(item => filtroProdutos.includes(item.produto));
-                produtosFiltrados = itensFiltrados.map(item => item.produto);
-                totalFiltrado = itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
-            }
-            
-            const isMulti = doc.itens.length > 1;
-            const produtosStr = produtosFiltrados.join(', ');
-            const rowClass = isMulti ? 'multi-produto' : '';
-            
-            const expandBtn = (doc.itens.length > 1) 
-                ? `<div class="expand-btn" onclick="toggleDetalhes(this, ${i})">➕</div>`
-                : `<div class="sem-expand">•</div>`;
-            
-            let badgeInfo = '';
-            if (isMulti) {
-                badgeInfo = `<span class="badge-multi">${doc.itens.length}</span>`;
-            }
-            if (filtroProdutos.length > 0 && itensFiltrados.length < doc.itens.length) {
-                badgeInfo += `<span class="badge-multi" style="background:#28a745; color:white;">filtrado: ${itensFiltrados.length}</span>`;
-            }
-            
-            html += `<tr id="row_${i}" class="${rowClass}">
-                <td style="text-align:center">${expandBtn}</td>
-                <td class="documento-destaque">${doc.documento}</td>
-                <td>${doc.data}</td>
-                <td>${produtosStr.length > 55 ? produtosStr.substring(0,55)+'...' : produtosStr}${badgeInfo}</td>
-                <td style="text-align:right; font-weight:bold; color:#28a745">R$ ${formatarValorBR(totalFiltrado)}</td>
-                <td>${doc.cfop || '-'}</td>
-                <td>${doc.cstPis || '-'}</td>
-              </tr>`;
-            
-            // Linha de detalhes expansível
-            if (doc.itens.length > 1) {
-                let itensParaExibir = (filtroProdutos.length > 0) ? itensFiltrados : doc.itens;
-                
-                html += `<tr id="detalhes_${i}" class="detalhes-row">
-                    <td colspan="7" class="detalhes-cell">
-                        <div class="detalhes-inner">
-                            <div style="margin-bottom:8px; font-weight:bold;">📦 Produtos do documento ${doc.documento}:</div>`;
-                
-                if (itensParaExibir.length === 0 && filtroProdutos.length > 0) {
-                    html += `<div style="padding: 8px; color: #999; text-align: center;">Nenhum produto selecionado no filtro está neste documento</div>`;
-                } else {
-                    for (const item of itensParaExibir) {
-                        html += `<div class="produto-item">
-                            <span>📄 ${escapeHtml(item.produto)}</span>
-                            <span style="font-weight:bold">R$ ${formatarValorBR(item.valor)}</span>
-                        </div>`;
-                    }
-                    if (filtroProdutos.length > 0 && totalFiltrado < doc.total) {
-                        html += `<div style="font-size: 11px; color: #666; margin-top: 5px; padding: 4px; background: #f0f0f0; border-radius: 6px;">
-                            ⚠️ Este documento tem outros produtos não selecionados no filtro
-                        </div>`;
-                    }
-                }
-                
-                html += `<div class="total-documento">💰 TOTAL ${filtroProdutos.length > 0 ? 'DOS PRODUTOS FILTRADOS' : 'DO DOCUMENTO'}: R$ ${formatarValorBR(totalFiltrado)}</div>
-                        </div>
-                     </td>
-                  </tr>`;
-            }
-        }
-        
-        let totalGeral = documentos.reduce((s, d) => {
-            if (filtroProdutos.length > 0) {
-                let itensFiltrados = d.itens.filter(item => filtroProdutos.includes(item.produto));
-                return s + itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
-            }
-            return s + d.total;
-        }, 0);
-        
-        let totalItens = documentos.reduce((s, d) => {
-            if (filtroProdutos.length > 0) {
-                return s + d.itens.filter(item => filtroProdutos.includes(item.produto)).length;
-            }
-            return s + d.itens.length;
-        }, 0);
-        
-        html += `<tr class="total-row">
-            <td colspan="3"><strong>TOTAIS GERAIS</strong></td>
-            <td><strong>${totalItens} itens / ${documentos.length} documentos</strong></td>
-            <td style="text-align:right"><strong>R$ ${formatarValorBR(totalGeral)}</strong></td>
-            <td colspan="2"></td>
-          </tr>
-        </tbody>
-     </table>`;
-        
-        document.getElementById('tabelaResultado').innerHTML = html;
-        atualizarStats(documentos, totalGeral, totalItens);
+    return Array.from(map.values()).sort((a,b)=> new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')));
+  }
+
+  /* ── FILTROS ── */
+  function popularFiltros(grupos) {
+    const all = new Set();
+    grupos.forEach(g => g.produtos.forEach(p => all.add(p)));
+    produtoFilter.innerHTML = '<option value="todos">Todos os produtos</option>';
+    [...all].sort().forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = p.length > 55 ? p.slice(0,55)+'…' : p;
+      produtoFilter.appendChild(opt);
+    });
+  }
+
+  /* ── RENDER ── */
+  function render() {
+    const filtProd = produtoFilter.value;
+    const filtDoc  = docFilter.value.trim().toLowerCase();
+
+    let grupos = gruposOriginais;
+
+    // Filtro produto: somente NFs que contenham esse produto
+    if (filtProd !== 'todos') {
+      grupos = grupos.filter(g => g.produtos.includes(filtProd));
     }
-    
-    function atualizarStats(documentos, totalGeral, totalItens) {
-        if (!totalGeral) {
-            totalGeral = documentos.reduce((s, d) => s + d.total, 0);
-            totalItens = documentos.reduce((s, d) => s + d.itens.length, 0);
-        }
-        document.getElementById('statsInfo').innerHTML = `
-            <span>📊 ${documentos.length} documentos agrupados</span>
-            <span>📦 ${totalItens} itens processados</span>
-            <span>💰 Total Geral: <strong style="color:#28a745">R$ ${formatarValorBR(totalGeral)}</strong></span>
-        `;
-        documentosAtuais = documentos;
+
+    // Filtro documento
+    if (filtDoc) {
+      grupos = grupos.filter(g => g.documento.toLowerCase().includes(filtDoc));
     }
-    
-    function toggleDetalhes(btn, idx) {
-        const detalhesRow = document.getElementById(`detalhes_${idx}`);
-        if (!detalhesRow) return;
-        
-        if (detalhesRow.classList.contains('mostrar')) {
-            detalhesRow.classList.remove('mostrar');
-            btn.innerHTML = '➕';
-            btn.style.background = '#0d6efd';
-        } else {
-            detalhesRow.classList.add('mostrar');
-            btn.innerHTML = '➖';
-            btn.style.background = '#dc3545';
-        }
+
+    tableBody.innerHTML = '';
+
+    if (grupos.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🔍</div><p>Nenhum resultado para o filtro selecionado</p></div></td></tr>';
+      itemCountEl.textContent = '0';
+      prodCountEl.textContent = '0';
+      grandTotalEl.textContent = 'R$ 0,00';
+      prodBreakdown.innerHTML = '';
+      return;
     }
-    
-    function exportarCSV() {
-        if (!documentosAtuais || documentosAtuais.length === 0) {
-            alert("Nenhum dado para exportar.");
-            return;
-        }
-        
-        // Cabeçalho do CSV com separador ponto e vírgula
-        let csvContent = "\uFEFFDocumento;Data;Produto(s);Total (R$)\n";
-        
-        for (const doc of documentosAtuais) {
-            let produtosStr = doc.produtos.join(' | ');
-            let total = doc.total;
-            
-            if (filtroAtivo.length > 0) {
-                let itensFiltrados = doc.itens.filter(item => filtroAtivo.includes(item.produto));
-                if (itensFiltrados.length > 0) {
-                    produtosStr = itensFiltrados.map(item => item.produto).join(' | ');
-                    total = itensFiltrados.reduce((sum, item) => sum + item.valor, 0);
-                }
-            }
-            
-            // Formatação do valor no padrão brasileiro para CSV
-            let totalFormatado = total.toLocaleString('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            
-            let linha = `"${doc.documento}";"${doc.data}";"${produtosStr}";"${totalFormatado}"`;
-            csvContent += linha + "\n";
-        }
-        
-        // Download do arquivo
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute('download', `documentos_fiscais_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-    
-    function aplicarFiltro() {
-        const checkboxes = document.querySelectorAll('.produto-checkbox:checked');
-        filtroAtivo = Array.from(checkboxes).map(cb => cb.value);
-        
-        if (filtroAtivo.length === 0) {
-            documentosAtuais = [...todosDocumentos];
-        } else {
-            documentosAtuais = todosDocumentos.filter(doc => 
-                doc.itens.some(item => filtroAtivo.includes(item.produto))
-            );
-        }
-        renderTabela(documentosAtuais, filtroAtivo);
-    }
-    
-    function limparFiltro() {
-        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = false);
-        document.getElementById('buscaProduto').value = '';
-        filtroAtivo = [];
-        renderCheckboxes(todosProdutosLista);
-        documentosAtuais = [...todosDocumentos];
-        renderTabela(documentosAtuais, []);
-    }
-    
-    function selecionarTodos() {
-        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = true);
-        aplicarFiltro();
-    }
-    
-    function deselecionarTodos() {
-        document.querySelectorAll('.produto-checkbox').forEach(cb => cb.checked = false);
-        filtroAtivo = [];
-        documentosAtuais = [...todosDocumentos];
-        renderTabela(documentosAtuais, []);
-    }
-    
-    function limparValor(val) {
-        if (!val) return 0;
-        let limpo = String(val).replace(/\./g, '').replace(',', '.');
-        let num = parseFloat(limpo);
-        return isNaN(num) ? 0 : num;
-    }
-    
-    function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    // Eventos
-    document.getElementById('processarBtn').addEventListener('click', processarRelatorio);
-    document.getElementById('exportarBtn').addEventListener('click', exportarCSV);
-    document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltro);
-    document.getElementById('btnLimparFiltro').addEventListener('click', limparFiltro);
-    document.getElementById('btnSelecionarTodos').addEventListener('click', selecionarTodos);
-    document.getElementById('btnDeselecionarTodos').addEventListener('click', deselecionarTodos);
-    
-    window.toggleDetalhes = toggleDetalhes;
+
+    let totalGeral = 0;
+    const totaisProd = new Map();
+
+    grupos.forEach((grupo, idx) => {
+      // Se há filtro de produto, somar apenas desse produto; senão total do grupo
+      let valorExibido = grupo.total;
+      let itensExibidos = grupo.itens;
+
+      if (filtProd !== 'todos') {
+        itensExibidos = grupo.itens.filter(i => i.produto === filtProd);
+        valorExibido  = itensExibidos.reduce((s,i) => s + i.total, 0);
+      }
+
+      totalGeral += valorExibido;
+
+      // Totais por produto para breakdown
+      (filtProd !== 'todos' ? [filtProd] : grupo.produtos).forEach(prod => {
+        const v = grupo.itens.filter(i=>i.produto===prod).reduce((s,i)=>s+i.total,0);
+        totaisProd.set(prod, (totaisProd.get(prod)||0) + v);
+      });
+
+      const temMultiplos = grupo.itens.length > 1;
+      const produtosExibidos = filtProd !== 'todos' ? [filtProd] : grupo.produtos;
+
+      const chipsHtml = produtosExibidos.map(p =>
+        `<span class="prod-chip" title="${esc(p)}">${esc(p.length > 30 ? p.slice(0,30)+'…' : p)}</span>`
+      ).join('');
+
+      const expandBtn = temMultiplos
+        ? `<button class="expand-btn" data-idx="${idx}" title="Expandir itens">+</button>`
+        : `<span style="display:inline-block;width:26px"></span>`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="col-expand">${expandBtn}</td>
+        <td class="col-doc">${esc(grupo.documento)}</td>
+        <td class="col-date">${esc(grupo.data)}</td>
+        <td><div class="prod-chips">${chipsHtml}</div></td>
+        <td class="col-value">R$ ${fmt(valorExibido)}</td>
+        <td class="col-cfop">${esc(grupo.cfop)}</td>
+      `;
+      tableBody.appendChild(tr);
+
+      // Detail row
+      const trDetail = document.createElement('tr');
+      trDetail.classList.add('detail-row');
+      const detailItens = filtProd !== 'todos' ? itensExibidos : grupo.itens;
+      const rowsHtml = detailItens.map(item => `
+        <tr>
+          <td>${esc(item.produto)}</td>
+          <td style="text-align:right; font-family:var(--mono); color:var(--green)">R$ ${fmt(item.total)}</td>
+          <td style="font-family:var(--mono); color:var(--muted); font-size:0.72rem">${esc(item.cfop)}</td>
+        </tr>
+      `).join('');
+      const totalRow = `<tr class="dt-total"><td>Total NF ${esc(grupo.documento)}</td><td style="text-align:right; font-family:var(--mono)">R$ ${fmt(valorExibido)}</td><td></td></tr>`;
+
+      trDetail.innerHTML = `<td colspan="6"><div class="detail-inner" id="detail-${idx}">
+        <div class="detail-title">Itens da NF ${esc(grupo.documento)}</div>
+        <table class="detail-table">
+          <thead><tr><th>Produto</th><th style="text-align:right">Valor (Base PIS)</th><th>CFOP</th></tr></thead>
+          <tbody>${rowsHtml}${totalRow}</tbody>
+        </table>
+      </div></td>`;
+      tableBody.appendChild(trDetail);
+    });
+
+    // Bind expand buttons
+    document.querySelectorAll('.expand-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const idx = this.dataset.idx;
+        const detail = document.getElementById('detail-' + idx);
+        const open = detail.classList.toggle('open');
+        this.classList.toggle('open', open);
+        this.textContent = open ? '+' : '+';
+      });
+    });
+
+    // Stats
+    itemCountEl.textContent = grupos.length;
+    const prodDistinct = new Set(grupos.flatMap(g => filtProd !== 'todos' ? [filtProd] : g.produtos));
+    prodCountEl.textContent = prodDistinct.size;
+    grandTotalEl.textContent = 'R$ ' + fmt(totalGeral);
+
+    // Breakdown
+    const sorted = [...totaisProd.entries()].sort((a,b)=>b[1]-a[1]);
+    prodBreakdown.innerHTML = sorted.map(([p, v]) => `
+      <div class="prod-badge">
+        <strong>R$ ${fmt(v)}</strong>
+        <span title="${esc(p)}">${esc(p.length > 35 ? p.slice(0,35)+'…' : p)}</span>
+      </div>
+    `).join('');
+  }
+
+  /* ── PROCESS ── */
+  function processData() {
+    const raw = textarea.value;
+    if (!raw.trim()) { alert("Por favor, cole os dados do relatório."); return; }
+
+    const items = extrairItens(raw);
+    if (!items.length) { alert("Nenhum item encontrado. Verifique o formato do relatório."); return; }
+
+    gruposOriginais = agruparPorDocumento(items);
+    if (!gruposOriginais.length) { alert("Nenhum documento agrupado."); return; }
+
+    popularFiltros(gruposOriginais);
+    docFilter.value = '';
+    produtoFilter.value = 'todos';
+
+    filtersArea.style.display = 'block';
+    resultArea.style.display = 'block';
+
+    // Ocultar textarea após processar
+    textarea.style.display = 'none';
+    processBtn.style.display = 'none';
+
+    render();
+  }
+
+  function clearAll() {
+    gruposOriginais = [];
+    textarea.value = '';
+    textarea.style.display = '';
+    processBtn.style.display = '';
+    filtersArea.style.display = 'none';
+    resultArea.style.display = 'none';
+    tableBody.innerHTML = '';
+    produtoFilter.innerHTML = '<option value="todos">Todos os produtos</option>';
+    docFilter.value = '';
+  }
+
+  /* ── HELPERS ── */
+  function fmt(v) { return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function esc(s) {
+    if (!s) return '';
+    return s.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');
+  }
+
+  /* ── CSV EXPORT ── */
+  function exportCsv() {
+    const filtProd = produtoFilter.value;
+    const filtDoc  = docFilter.value.trim().toLowerCase();
+
+    let grupos = gruposOriginais;
+    if (filtProd !== 'todos') grupos = grupos.filter(g => g.produtos.includes(filtProd));
+    if (filtDoc) grupos = grupos.filter(g => g.documento.toLowerCase().includes(filtDoc));
+
+    if (!grupos.length) { alert('Nenhum dado para exportar.'); return; }
+
+    const BOM = '\uFEFF'; // UTF-8 BOM para Excel reconhecer acentos
+    const sep = ';';
+    const rows = [];
+
+    // Cabeçalho detalhado (um item por linha)
+    rows.push(['Documento (NF)', 'Data', 'Produto', 'Valor Base PIS', 'CFOP'].join(sep));
+
+    grupos.forEach(grupo => {
+      const itensExibidos = filtProd !== 'todos'
+        ? grupo.itens.filter(i => i.produto === filtProd)
+        : grupo.itens;
+
+      itensExibidos.forEach(item => {
+        const valorStr = item.total.toFixed(2).replace('.', ',');
+        rows.push([
+          grupo.documento,
+          grupo.data,
+          '"' + item.produto.replace(/"/g, '""') + '"',
+          valorStr,
+          grupo.cfop
+        ].join(sep));
+      });
+    });
+
+    // Linha de total
+    const totalGeral = grupos.reduce((s, g) => {
+      const itens = filtProd !== 'todos' ? g.itens.filter(i => i.produto === filtProd) : g.itens;
+      return s + itens.reduce((ss, i) => ss + i.total, 0);
+    }, 0);
+    rows.push(['', '', '"TOTAL GERAL"', totalGeral.toFixed(2).replace('.', ','), ''].join(sep));
+
+    const csvContent = BOM + rows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g,'-');
+    link.href = url;
+    link.download = `xp_transportes_entradas_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  processBtn.addEventListener('click', processData);
+  clearBtn.addEventListener('click', clearAll);
+  produtoFilter.addEventListener('change', render);
+  docFilter.addEventListener('input', render);
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+})();
 </script>
 </body>
 </html>
