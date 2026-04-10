@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador ICMS — Apuração vs SPED</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f7;min-height:100vh;padding:24px 16px}
+    .wrap{max-width:1300px;margin:0 auto}
+
+    .hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:16px;padding:2rem 2.5rem;margin-bottom:1.5rem;text-align:center;color:#fff}
+    .hero h1{font-size:1.8rem;font-weight:600;margin-bottom:.4rem}
+    .hero p{font-size:.9rem;opacity:.7}
+    .badge-hero{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 16px;font-size:.75rem;margin-bottom:.8rem;color:rgba(255,255,255,.85);letter-spacing:.05em}
+
+    .input-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+    @media(max-width:700px){.input-grid{grid-template-columns:1fr}}
+
+    .icard{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .icard-header{padding:.75rem 1rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+    .icard-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .icard-header h3{font-size:.82rem;font-weight:600;color:#1a1a2e}
+    .icard-header small{font-size:.7rem;color:#888;display:block}
+    textarea{width:100%;height:190px;padding:10px 12px;border:none;background:#fafafa;font-family:'Courier New',monospace;font-size:11.5px;resize:vertical;color:#333;outline:none}
+    textarea:focus{background:#fff}
+    textarea::placeholder{color:#bbb}
+
+    .btn-validate{width:100%;background:linear-gradient(135deg,#0f3460,#533483);color:#fff;border:none;padding:15px;font-size:1rem;font-weight:600;border-radius:12px;cursor:pointer;margin-bottom:1.5rem;letter-spacing:.02em;transition:opacity .2s;box-shadow:0 4px 16px rgba(15,52,96,.3)}
+    .btn-validate:hover{opacity:.9}
+    .btn-toggle{background:#fff;border:1px solid #e0e0e0;color:#555;padding:8px 20px;border-radius:20px;font-size:.8rem;cursor:pointer;margin-bottom:1.2rem;display:block;margin-left:auto;margin-right:auto}
+    .btn-toggle:hover{background:#f5f5f5}
+
+    .spin{display:none;text-align:center;padding:2rem}
+    .spinner{width:36px;height:36px;border:3px solid #e0e0e0;border-top:3px solid #0f3460;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .rcard{background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:1rem;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .rcard-head{padding:1rem 1.25rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+    .rcard-head h3{font-size:.9rem;font-weight:600;color:#1a1a2e;display:flex;align-items:center;gap:8px}
+
+    .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:1.25rem}
+    @media(max-width:600px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+    .scard{background:#f7f8fc;border-radius:10px;padding:.9rem 1rem;text-align:center}
+    .scard .num{font-size:1.6rem;font-weight:700;margin:.2rem 0}
+    .scard .lbl{font-size:.7rem;color:#888}
+    .ok{color:#1a9e6a}
+    .err{color:#d64545}
+    .warn{color:#c97a10}
+
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{border:1px solid #eee;padding:8px 11px;text-align:right;white-space:nowrap}
+    th{background:#f8f8f8;font-weight:600;font-size:11px;color:#666;text-align:center}
+    td:first-child,th:first-child{text-align:left}
+    tr:hover td{background:#fafbff}
+    .cfop-badge{display:inline-block;background:#f0f2ff;border:1px solid #d0d4f0;border-radius:6px;padding:2px 9px;font-size:11.5px;font-weight:600;color:#3a3a8a}
+    .cell-ok{color:#1a9e6a;font-weight:600}
+    .cell-err{color:#d64545;font-weight:600}
+
+    .div-block{border-left:3px solid #d64545;background:#fff5f5;padding:11px 14px;border-radius:0 8px 8px 0;margin-bottom:8px}
+    .div-block.warn-b{border-left-color:#c97a10;background:#fffbf0}
+    .div-title{font-size:.8rem;font-weight:700;color:#d64545;margin-bottom:3px}
+    .div-title.warn-t{color:#c97a10}
+    .div-body{font-size:.78rem;color:#555;line-height:1.7}
+
+    .total-bar{background:linear-gradient(135deg,#0f3460,#533483);color:#fff;border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin:0 1.25rem 1.25rem}
+    .total-bar .ti{font-size:.75rem;opacity:.75}
+    .total-bar .tv{font-size:1.3rem;font-weight:700}
+    .total-bar .tg{text-align:right}
+
+    .tag{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:600}
+    .tag-e{background:#fff0f0;color:#d64545;border:1px solid #fdc5c5}
+    .tag-ok{background:#f0fff7;color:#1a9e6a;border:1px solid #b2f0d8}
+    .tag-w{background:#fffbee;color:#c97a10;border:1px solid #fde9a0}
+
+    .fonte-note{font-size:10.5px;color:#aaa;padding:.5rem 1.25rem;border-top:1px solid #f5f5f5;border-bottom:1px solid #f5f5f5;background:#fafafa}
+
+    .section-divider{display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem}
+    .section-divider span{font-size:.8rem;font-weight:600;color:#888;white-space:nowrap;text-transform:uppercase;letter-spacing:.06em}
+    .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
+
+    .divs-pad{padding:1rem 1.25rem}
+
+    .total-acum{background:linear-gradient(135deg,#0f3460,#533483);border-radius:12px;padding:1.2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;color:#fff}
+    .total-acum .ta-left{}
+    .total-acum .ta-title{font-size:.85rem;font-weight:600;opacity:.9}
+    .total-acum .ta-sub{font-size:.72rem;opacity:.6;margin-top:2px}
+    .total-acum .ta-val{font-size:1.8rem;font-weight:700}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="badge-hero">Fiscal · ICMS</div>
+    <h1>📊 Validador de Apuração ICMS</h1>
+    <p>Compare Apuração (Modelo P9) com SPED Entradas e Saídas por CFOP</p>
+  </div>
+
+  <div id="toggle-wrap" style="display:none;text-align:center">
+    <button class="btn-toggle" onclick="toggleInputs()">▲ Expandir campos de entrada</button>
+  </div>
+
+  <div id="input-area">
+    <div class="input-grid">
+      <div class="icard">
+        <div class="icard-header">
+          <div class="icard-icon" style="background:#eeeffe">📋</div>
+          <div><h3>Apuração ICMS</h3><small>Modelo P9 — Entradas e Saídas</small></div>
+        </div>
+        <textarea id="apuracao" placeholder="Cole aqui os dados da Apuração ICMS (ENTRADAS e SAÍDAS)..."></textarea>
+      </div>
+      <div class="icard">
+        <div class="icard-header">
+          <div class="icard-icon" style="background:#eef7ff">📥</div>
+          <div><h3>SPED — Entradas</h3><small>Resumo por CST/CFOP</small></div>
+        </div>
+        <textarea id="spedEntradas" placeholder="Cole aqui os dados do SPED de ENTRADAS..."></textarea>
+      </div>
+      <div class="icard">
+        <div class="icard-header">
+          <div class="icard-icon" style="background:#edfff5">📤</div>
+          <div><h3>SPED — Saídas</h3><small>Resumo por CST/CFOP</small></div>
+        </div>
+        <textarea id="spedSaidas" placeholder="Cole aqui os dados do SPED de SAÍDAS..."></textarea>
+      </div>
+    </div>
+    <button class="btn-validate" onclick="validar()">🔍 Validar e comparar dados</button>
+  </div>
+
+  <div class="spin" id="spin"><div class="spinner"></div><p style="font-size:.85rem;color:#888">Processando...</p></div>
+  <div id="results"></div>
+
+</div>
+<script>
+function converterBR(v){if(!v||v===''||v==='-')return 0;let n=v.toString().trim().replace(/\./g,'').replace(',','.');let r=parseFloat(n);return isNaN(r)?0:r}
+
+function extrairApuracoes(texto){
+  const entradas={},saidas={};
+  const linhas=texto.split('\n');
+  let sec=null;
+  for(let l of linhas){
+    l=l.trim();
+    if(l.includes('E N T R A D A S')||l.includes('ENTRADAS')){sec='e';continue}
+    if(l.includes('S A Í D A S')||l.includes('SAÍDAS')){sec='s';continue}
+    if(!l||l.includes('TOTAIS')||l.includes('SUB-TOTAIS'))continue;
+    const m=l.match(/^(\d{4})\s+/);
+    if(m&&sec){
+      const cfop=m[1];const p=l.split(/\s+/);
+      if(sec==='e'&&p.length>=4)entradas[cfop]={cfop,valor_contabil:converterBR(p[1]),base_calculo:converterBR(p[2]),imposto_creditado:converterBR(p[3])};
+      else if(sec==='s'&&p.length>=4)saidas[cfop]={cfop,valor_contabil:converterBR(p[1]),base_calculo:converterBR(p[2]),imposto_debitado:converterBR(p[3])};
+    }
+  }
+  return{entradas,saidas}
+}
+
+function extrairSped(texto){
+  const dados={};
+  const linhas=texto.split('\n');
+  for(let l of linhas){
+    l=l.trim();
+    if(!l||l.includes('TOTAL')||l.includes('RESUMO')||l.includes('Página'))continue;
+    const p=l.split(/\s+/);
+    for(let i=0;i<p.length-4;i++){
+      if(p[i]&&/^\d{3}$/.test(p[i])&&p[i+1]&&/^\d{4}$/.test(p[i+1])){
+        const cfop=p[i+1];
+        const vo=converterBR(p[i+3]),bc=converterBR(p[i+4]),vi=converterBR(p[i+5]);
+        if(!dados[cfop])dados[cfop]={cfop,total_operacao:0,base_calculo_icms:0,total_icms:0,quantidade:0};
+        dados[cfop].total_operacao+=vo;dados[cfop].base_calculo_icms+=bc;dados[cfop].total_icms+=vi;dados[cfop].quantidade++;
+        break;
+      }
+    }
+  }
+  return dados;
+}
+
+function compararEntradas(aE,sE){
+  const divs=[];const all=new Set([...Object.keys(aE),...Object.keys(sE)]);
+  for(const cfop of all){
+    const a=aE[cfop]||{valor_contabil:0,base_calculo:0,imposto_creditado:0};
+    const s=sE[cfop]||{total_operacao:0,base_calculo_icms:0,total_icms:0};
+    if(Math.abs(a.valor_contabil-s.total_operacao)>0.01)divs.push({cfop,campo:'Valor Contábil ↔ Total Operação',va:a.valor_contabil,vs:s.total_operacao,dif:Math.abs(a.valor_contabil-s.total_operacao)});
+    if(Math.abs(a.base_calculo-s.base_calculo_icms)>0.01)divs.push({cfop,campo:'Base de Cálculo ↔ Base ICMS',va:a.base_calculo,vs:s.base_calculo_icms,dif:Math.abs(a.base_calculo-s.base_calculo_icms)});
+    if(Math.abs(a.imposto_creditado-s.total_icms)>0.01)divs.push({cfop,campo:'Imposto Creditado ↔ Total ICMS',va:a.imposto_creditado,vs:s.total_icms,dif:Math.abs(a.imposto_creditado-s.total_icms)});
+  }
+  return divs;
+}
+
+function compararSaidas(aS,sS){
+  const divs=[];const all=new Set([...Object.keys(aS),...Object.keys(sS)]);
+  for(const cfop of all){
+    const a=aS[cfop]||{valor_contabil:0,base_calculo:0,imposto_debitado:0};
+    const s=sS[cfop]||{total_operacao:0,base_calculo_icms:0,total_icms:0};
+    if(Math.abs(a.valor_contabil-s.total_operacao)>0.01)divs.push({cfop,campo:'Valor Contábil ↔ Total Operação',va:a.valor_contabil,vs:s.total_operacao,dif:Math.abs(a.valor_contabil-s.total_operacao)});
+    if(Math.abs(a.base_calculo-s.base_calculo_icms)>0.01)divs.push({cfop,campo:'Base de Cálculo ↔ Base ICMS',va:a.base_calculo,vs:s.base_calculo_icms,dif:Math.abs(a.base_calculo-s.base_calculo_icms)});
+    if(Math.abs(a.imposto_debitado-s.total_icms)>0.01)divs.push({cfop,campo:'Imposto Debitado ↔ Total ICMS',va:a.imposto_debitado,vs:s.total_icms,dif:Math.abs(a.imposto_debitado-s.total_icms)});
+  }
+  return divs;
+}
+
+function validarRegras(aE,aS,sE,sS){
+  const n=[];
+  if(aE['1303']&&aE['1303'].base_calculo>0&&(!sE['1303']||sE['1303'].base_calculo_icms===0))
+    n.push({tipo:'warn',msg:'CFOP 1303 (Telecomunicação): possui base de cálculo na Apuração mas não encontrado no SPED de Entradas. Verificar NF de telecomunicação.'});
+  ['2949','1949'].forEach(c=>{
+    if(sE[c]&&sE[c].total_icms>0)n.push({tipo:'err',msg:`CFOP ${c}: possui ICMS no SPED de Entradas (R$ ${fmt(sE[c].total_icms)}). Este CFOP não pode ter ICMS — base deve ser zerada.`});
+    if(aE[c]&&aE[c].imposto_creditado>0)n.push({tipo:'err',msg:`CFOP ${c}: possui imposto creditado na Apuração (R$ ${fmt(aE[c].imposto_creditado)}). Este CFOP não pode ter crédito de ICMS.`});
+  });
+  ['5929'].forEach(c=>{
+    if(sE[c]&&(sE[c].total_operacao>0||sE[c].base_calculo_icms>0||sE[c].total_icms>0))n.push({tipo:'err',msg:`CFOP ${c}: possui valores no SPED de Entradas. Este CFOP não pode ter valores preenchidos.`});
+    if(sS[c]&&(sS[c].total_operacao>0||sS[c].base_calculo_icms>0||sS[c].total_icms>0))n.push({tipo:'err',msg:`CFOP ${c}: possui valores no SPED de Saídas. Este CFOP não pode ter valores preenchidos.`});
+  });
+  return n;
+}
+
+function fmt(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function gerarTabela(apuData,spData,tipo){
+  const all=new Set([...Object.keys(apuData),...Object.keys(spData)]);
+  if(all.size===0)return '<p style="padding:1rem;font-size:.8rem;color:#aaa">Nenhum dado encontrado.</p>';
+  const campoImp=tipo==='E'?'imposto_creditado':'imposto_debitado';
+  const labelImp=tipo==='E'?'Imposto Creditado':'Imposto Debitado';
+  let t=`<div class="tbl-wrap"><table><thead>
+    <tr>
+      <th rowspan="2">CFOP</th>
+      <th colspan="2">Valor Contábil ↔ Total Operação</th>
+      <th colspan="2">Base de Cálculo ↔ Base ICMS</th>
+      <th colspan="2">${labelImp} ↔ Total ICMS</th>
+      <th rowspan="2">Qtd</th>
+    </tr>
+    <tr>
+      <th>Apuração</th><th>SPED</th>
+      <th>Apuração</th><th>SPED</th>
+      <th>Apuração</th><th>SPED</th>
+    </tr></thead><tbody>`;
+  for(const cfop of Array.from(all).sort()){
+    const a=apuData[cfop]||{valor_contabil:0,base_calculo:0,[campoImp]:0};
+    const s=spData[cfop]||{total_operacao:0,base_calculo_icms:0,total_icms:0,quantidade:0};
+    const okV=Math.abs(a.valor_contabil-s.total_operacao)<=0.01;
+    const okB=Math.abs(a.base_calculo-s.base_calculo_icms)<=0.01;
+    const okI=Math.abs(a[campoImp]-s.total_icms)<=0.01;
+    t+=`<tr>
+      <td><span class="cfop-badge">${cfop}</span></td>
+      <td class="${okV?'cell-ok':'cell-err'}">R$ ${fmt(a.valor_contabil)}</td>
+      <td class="${okV?'cell-ok':'cell-err'}">R$ ${fmt(s.total_operacao)}</td>
+      <td class="${okB?'cell-ok':'cell-err'}">R$ ${fmt(a.base_calculo)}</td>
+      <td class="${okB?'cell-ok':'cell-err'}">R$ ${fmt(s.base_calculo_icms)}</td>
+      <td class="${okI?'cell-ok':'cell-err'}">R$ ${fmt(a[campoImp])}</td>
+      <td class="${okI?'cell-ok':'cell-err'}">R$ ${fmt(s.total_icms)}</td>
+      <td style="text-align:center;color:#aaa">${s.quantidade||0}</td>
+    </tr>`;
+  }
+  t+=`</tbody></table></div>`;
+  return t;
+}
+
+function gerarDivs(divs){
+  if(!divs.length)return`<div style="padding:1rem 1.25rem;font-size:.82rem;color:#1a9e6a">✅ Nenhuma divergência encontrada nesta seção.</div>`;
+  let h=`<div class="divs-pad">`;
+  for(const d of divs){
+    h+=`<div class="div-block">
+      <div class="div-title">CFOP ${d.cfop} — ${d.campo}</div>
+      <div class="div-body">
+        Apuração: <strong>R$ ${fmt(d.va)}</strong> &nbsp;|&nbsp;
+        SPED: <strong>R$ ${fmt(d.vs)}</strong> &nbsp;|&nbsp;
+        Diferença: <strong>R$ ${fmt(d.dif)}</strong>
+      </div>
+    </div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+function somarDivs(divs){return divs.reduce((acc,d)=>acc+d.dif,0)}
+
+function toggleInputs(){
+  document.getElementById('input-area').style.display='';
+  document.getElementById('toggle-wrap').style.display='none';
+}
+
+function validar(){
+  const sp=document.getElementById('spin');
+  const re=document.getElementById('results');
+  sp.style.display='block';re.innerHTML='';
+  setTimeout(()=>{
+    try{
+      const apTxt=document.getElementById('apuracao').value;
+      const seTxt=document.getElementById('spedEntradas').value;
+      const ssTxt=document.getElementById('spedSaidas').value;
+      if(!apTxt)throw new Error('Cole os dados da Apuração ICMS antes de validar.');
+
+      const {entradas:aE,saidas:aS}=extrairApuracoes(apTxt);
+      const sE=extrairSped(seTxt);
+      const sS=extrairSped(ssTxt);
+
+      const dE=compararEntradas(aE,sE);
+      const dS=compararSaidas(aS,sS);
+      const nt=validarRegras(aE,aS,sE,sS);
+      const totalDivs=dE.length+dS.length;
+      const totalErrors=nt.filter(n=>n.tipo==='err').length;
+      const totalWarns=nt.filter(n=>n.tipo==='warn').length;
+      const somaDifE=somarDivs(dE);
+      const somaDifS=somarDivs(dS);
+      const somaTot=somaDifE+somaDifS;
+
+      document.getElementById('input-area').style.display='none';
+      document.getElementById('toggle-wrap').style.display='block';
+
+      let html='';
+
+      html+=`<div class="rcard">
+        <div class="rcard-head"><h3>📊 Resumo da validação</h3>
+          ${totalDivs===0&&nt.length===0?`<span class="tag tag-ok">✅ Sem divergências</span>`:`<span class="tag tag-e">⚠️ ${totalDivs} divergência(s)</span>`}
+        </div>
+        <div class="summary-grid">
+          <div class="scard"><div class="lbl">Divergências — Entradas</div><div class="num ${dE.length===0?'ok':'err'}">${dE.length}</div></div>
+          <div class="scard"><div class="lbl">Divergências — Saídas</div><div class="num ${dS.length===0?'ok':'err'}">${dS.length}</div></div>
+          <div class="scard"><div class="lbl">Erros de regras</div><div class="num ${totalErrors===0?'ok':'err'}">${totalErrors}</div></div>
+          <div class="scard"><div class="lbl">Alertas</div><div class="num ${totalWarns===0?'ok':'warn'}">${totalWarns}</div></div>
+        </div>
+      </div>`;
+
+      html+=`<div class="section-divider"><span>Entradas</span></div>`;
+      html+=`<div class="rcard">
+        <div class="rcard-head">
+          <h3>📥 Comparação — Entradas</h3>
+          ${dE.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dE.length} divergência(s)</span>`}
+        </div>
+        <div class="fonte-note">Apuração: Valor Contábil / Base de Cálculo / Imposto Creditado &nbsp;·&nbsp; SPED: Total Operação / Base ICMS / Total ICMS</div>
+        ${gerarTabela(aE,sE,'E')}
+      </div>`;
+
+      if(dE.length>0){
+        html+=`<div class="rcard">
+          <div class="rcard-head"><h3>⚠️ Divergências nas entradas</h3><span class="tag tag-e">${dE.length}</span></div>
+          ${gerarDivs(dE)}
+          <div class="total-bar">
+            <div><div class="ti">Total das diferenças — Entradas</div></div>
+            <div class="tg"><div class="tv">R$ ${fmt(somaDifE)}</div><div class="ti">${dE.length} ocorrência(s)</div></div>
+          </div>
+        </div>`;
+      }
+
+      html+=`<div class="section-divider"><span>Saídas</span></div>`;
+      html+=`<div class="rcard">
+        <div class="rcard-head">
+          <h3>📤 Comparação — Saídas</h3>
+          ${dS.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dS.length} divergência(s)</span>`}
+        </div>
+        <div class="fonte-note">Apuração: Valor Contábil / Base de Cálculo / Imposto Debitado &nbsp;·&nbsp; SPED: Total Operação / Base ICMS / Total ICMS</div>
+        ${gerarTabela(aS,sS,'S')}
+      </div>`;
+
+      if(dS.length>0){
+        html+=`<div class="rcard">
+          <div class="rcard-head"><h3>⚠️ Divergências nas saídas</h3><span class="tag tag-e">${dS.length}</span></div>
+          ${gerarDivs(dS)}
+          <div class="total-bar">
+            <div><div class="ti">Total das diferenças — Saídas</div></div>
+            <div class="tg"><div class="tv">R$ ${fmt(somaDifS)}</div><div class="ti">${dS.length} ocorrência(s)</div></div>
+          </div>
+        </div>`;
+      }
+
+      if(totalDivs>0){
+        html+=`<div class="total-acum">
+          <div class="ta-left">
+            <div class="ta-title">Total acumulado de divergências</div>
+            <div class="ta-sub">${dE.length} de entradas + ${dS.length} de saídas = ${totalDivs} ocorrências no total</div>
+          </div>
+          <div><div class="ta-val">R$ ${fmt(somaTot)}</div></div>
+        </div>`;
+      }
+
+      if(nt.length>0){
+        html+=`<div class="section-divider"><span>Validação de regras</span></div>`;
+        html+=`<div class="rcard"><div class="rcard-head"><h3>🔔 Alertas e erros de regras</h3><span class="tag tag-e">${nt.length}</span></div><div class="divs-pad">`;
+        for(const n of nt){
+          html+=`<div class="div-block ${n.tipo==='warn'?'warn-b':''}">
+            <div class="div-title ${n.tipo==='warn'?'warn-t':''}">${n.tipo==='err'?'❌ Erro':'⚠️ Atenção'}</div>
+            <div class="div-body">${n.msg}</div>
+          </div>`;
+        }
+        html+=`</div></div>`;
+      }
+
+      if(totalDivs===0&&nt.length===0){
+        html+=`<div style="text-align:center;padding:2rem;background:#f0fff7;border-radius:14px;border:1px solid #b2f0d8;color:#1a9e6a;font-size:1rem;font-weight:600">✅ Nenhuma divergência encontrada. Todos os dados estão consistentes!</div>`;
+      }
+
+      re.innerHTML=html;
+    }catch(e){
+      re.innerHTML=`<div class="rcard"><div class="rcard-head"><h3>❌ Erro</h3></div><div class="divs-pad"><div class="div-block">${e.message}</div></div></div>`;
+    }finally{sp.style.display='none'}
+  },120);
+}
+</script>
+</body>
+</html>
