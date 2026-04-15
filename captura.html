@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador ICMS + Gerador de Apuração Fiscal - SPED</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f7;min-height:100vh;padding:24px 16px}
+    .wrap{max-width:1400px;margin:0 auto}
+
+    .hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:16px;padding:2rem 2.5rem;margin-bottom:1.5rem;text-align:center;color:#fff}
+    .hero h1{font-size:1.8rem;font-weight:600;margin-bottom:.4rem}
+    .hero p{font-size:.9rem;opacity:.7}
+    .badge-hero{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 16px;font-size:.75rem;margin-bottom:.8rem}
+
+    .input-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+    @media(max-width:700px){.input-grid{grid-template-columns:1fr}}
+
+    .icard{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .icard-header{padding:.75rem 1rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+    .icard-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .icard-header h3{font-size:.82rem;font-weight:600;color:#1a1a2e}
+    .icard-header small{font-size:.7rem;color:#888}
+    textarea{width:100%;height:190px;padding:10px 12px;border:none;background:#fafafa;font-family:'Courier New',monospace;font-size:11.5px;resize:vertical;color:#333;outline:none}
+    textarea:focus{background:#fff}
+
+    .btn-validate{width:100%;background:linear-gradient(135deg,#0f3460,#533483);color:#fff;border:none;padding:15px;font-size:1rem;font-weight:600;border-radius:12px;cursor:pointer;margin-bottom:1.5rem;transition:opacity .2s}
+    .btn-validate:hover{opacity:.9}
+    .btn-toggle{background:#fff;border:1px solid #e0e0e0;color:#555;padding:8px 20px;border-radius:20px;font-size:.8rem;cursor:pointer;margin-bottom:1.2rem;display:block;margin-left:auto;margin-right:auto}
+
+    .spin{display:none;text-align:center;padding:2rem}
+    .spinner{width:36px;height:36px;border:3px solid #e0e0e0;border-top:3px solid #0f3460;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .rcard{background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:1rem;overflow:hidden}
+    .rcard-head{padding:1rem 1.25rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+    .rcard-head h3{font-size:.9rem;font-weight:600;color:#1a1a2e}
+
+    .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:1.25rem}
+    @media(max-width:600px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+    .scard{background:#f7f8fc;border-radius:10px;padding:.9rem 1rem;text-align:center}
+    .scard .num{font-size:1.6rem;font-weight:700;margin:.2rem 0}
+    .scard .lbl{font-size:.7rem;color:#888}
+    .ok{color:#1a9e6a}
+    .err{color:#d64545}
+    .warn{color:#c97a10}
+
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{border:1px solid #eee;padding:8px 11px;text-align:right;white-space:nowrap}
+    th{background:#f8f8f8;font-weight:600;font-size:11px;color:#666}
+    td:first-child,th:first-child{text-align:left}
+    .cfop-badge{display:inline-block;background:#f0f2ff;border:1px solid #d0d4f0;border-radius:6px;padding:2px 9px;font-size:11.5px;font-weight:600}
+    .cell-ok{color:#1a9e6a;font-weight:600}
+    .cell-err{color:#d64545;font-weight:600}
+
+    .div-block{border-left:3px solid #d64545;background:#fff5f5;padding:11px 14px;border-radius:0 8px 8px 0;margin-bottom:8px}
+    .div-title{font-size:.8rem;font-weight:700;color:#d64545}
+    .div-body{font-size:.78rem;color:#555}
+    .total-bar{background:linear-gradient(135deg,#0f3460,#533483);color:#fff;border-radius:10px;padding:1rem;display:flex;justify-content:space-between}
+    .tag{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:600}
+    .tag-e{background:#fff0f0;color:#d64545}
+    .tag-ok{background:#f0fff7;color:#1a9e6a}
+
+    /* NOVO ESTILO: formulário de apuração em coluna única (um abaixo do outro) */
+    .form-apuracao{background:#f8fafc;padding:1.5rem;border-radius:14px}
+    .form-coluna{display:flex;flex-direction:column;gap:0.9rem;margin-bottom:1.5rem}
+    .campo-form{display:flex;flex-direction:column}
+    .campo-form label{font-size:.7rem;font-weight:600;color:#555;margin-bottom:4px}
+    .campo-form input{background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:500;color:#1a1a2e;width:100%}
+    .campo-form input:focus{outline:none;border-color:#0f3460}
+    .btn-gerar{background:#1a9e6a;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:600;cursor:pointer;margin-top:10px;align-self:flex-start}
+    .btn-gerar:hover{background:#0e7a52}
+    .preview-relatorio{background:#f1f5f9;border-radius:14px;padding:1.25rem;font-family:'Courier New',monospace;font-size:11px;white-space:pre-wrap;overflow-x:auto;margin-top:1rem;max-height:500px;overflow-y:auto}
+    .sucesso-badge{background:#1a9e6a20;border:1px solid #1a9e6a;color:#1a9e6a;padding:6px 14px;border-radius:30px;font-size:.75rem;font-weight:600}
+    .section-divider{display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem}
+    .section-divider span{font-size:.8rem;font-weight:600;color:#888;text-transform:uppercase}
+    .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="badge-hero">Fiscal · ICMS · SPED</div>
+    <h1>📊 Validador + Gerador de Apuração ICMS</h1>
+    <p>Valide Apuração P9 com SPED Entradas/Saídas — gere o relatório oficial "REGISTROS FISCAIS DA APURAÇÃO DO ICMS"</p>
+  </div>
+
+  <div id="toggle-wrap" style="display:none;text-align:center">
+    <button class="btn-toggle" onclick="toggleInputs()">▲ Expandir campos de entrada</button>
+  </div>
+
+  <div id="input-area">
+    <div class="input-grid">
+      <div class="icard">
+        <div class="icard-header"><div class="icard-icon" style="background:#eeeffe">📋</div><div><h3>Apuração ICMS (Modelo P9)</h3><small>Cole os dados de ENTRADAS e SAÍDAS</small></div></div>
+        <textarea id="apuracao" placeholder="Cole aqui os dados da Apuração ICMS (ENTRADAS e SAÍDAS)..."></textarea>
+      </div>
+      <div class="icard">
+        <div class="icard-header"><div class="icard-icon" style="background:#eef7ff">📥</div><div><h3>SPED — Entradas</h3><small>Resumo por CST/CFOP</small></div></div>
+        <textarea id="spedEntradas" placeholder="Cole aqui os dados do SPED de ENTRADAS..."></textarea>
+      </div>
+      <div class="icard">
+        <div class="icard-header"><div class="icard-icon" style="background:#edfff5">📤</div><div><h3>SPED — Saídas</h3><small>Resumo por CST/CFOP</small></div></div>
+        <textarea id="spedSaidas" placeholder="Cole aqui os dados do SPED de SAÍDAS..."></textarea>
+      </div>
+    </div>
+    <button class="btn-validate" onclick="validar()">🔍 Validar e comparar dados</button>
+  </div>
+
+  <div class="spin" id="spin"><div class="spinner"></div><p>Processando validação...</p></div>
+  <div id="results"></div>
+
+</div>
+
+<script>
+// ======================== FUNÇÕES AUXILIARES ========================
+function converterBR(v){
+  if(!v || v==='' || v==='-') return 0;
+  let n = v.toString().trim().replace(/\./g,'').replace(',','.');
+  let r = parseFloat(n);
+  return isNaN(r)?0:r;
+}
+
+function fmt(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+
+function extrairApuracoes(texto){
+  const entradas={}, saidas={};
+  const linhas=texto.split('\n');
+  let sec=null;
+  for(let l of linhas){
+    l=l.trim();
+    if(l.includes('E N T R A D A S')||l.includes('ENTRADAS')){sec='e';continue}
+    if(l.includes('S A Í D A S')||l.includes('SAÍDAS')){sec='s';continue}
+    if(!l||l.includes('TOTAIS')||l.includes('SUB-TOTAIS'))continue;
+    const m=l.match(/^(\d{4})\s+/);
+    if(m&&sec){
+      const cfop=m[1];
+      const p=l.split(/\s+/);
+      if(sec==='e' && p.length>=4){
+        entradas[cfop] = {
+          cfop,
+          valor_contabil: converterBR(p[1]),
+          base_calculo: converterBR(p[2]),
+          imposto_creditado: converterBR(p[3])
+        };
+      } else if(sec==='s' && p.length>=4){
+        saidas[cfop] = {
+          cfop,
+          valor_contabil: converterBR(p[1]),
+          base_calculo: converterBR(p[2]),
+          imposto_debitado: converterBR(p[3])
+        };
+      }
+    }
+  }
+  return {entradas, saidas};
+}
+
+function extrairSped(texto){
+  const dados={};
+  const linhas=texto.split('\n');
+  for(let l of linhas){
+    l=l.trim();
+    if(!l||l.includes('TOTAL')||l.includes('RESUMO')||l.includes('Página'))continue;
+    const p=l.split(/\s+/);
+    for(let i=0;i<p.length-4;i++){
+      if(p[i] && /^\d{3}$/.test(p[i]) && p[i+1] && /^\d{4}$/.test(p[i+1])){
+        const cfop=p[i+1];
+        const vo=converterBR(p[i+3]), bc=converterBR(p[i+4]), vi=converterBR(p[i+5]);
+        if(!dados[cfop]) dados[cfop]={cfop, total_operacao:0, base_calculo_icms:0, total_icms:0, quantidade:0};
+        dados[cfop].total_operacao += vo;
+        dados[cfop].base_calculo_icms += bc;
+        dados[cfop].total_icms += vi;
+        dados[cfop].quantidade++;
+        break;
+      }
+    }
+  }
+  return dados;
+}
+
+function compararEntradas(aE, sE){
+  const divs=[];
+  const all=new Set([...Object.keys(aE),...Object.keys(sE)]);
+  for(const cfop of all){
+    const a=aE[cfop]||{valor_contabil:0, base_calculo:0, imposto_creditado:0};
+    const s=sE[cfop]||{total_operacao:0, base_calculo_icms:0, total_icms:0};
+    if(Math.abs(a.valor_contabil - s.total_operacao) > 0.01) divs.push({cfop, campo:'Valor Contábil ↔ Total Operação', va:a.valor_contabil, vs:s.total_operacao, dif:Math.abs(a.valor_contabil - s.total_operacao)});
+    if(Math.abs(a.base_calculo - s.base_calculo_icms) > 0.01) divs.push({cfop, campo:'Base de Cálculo ↔ Base ICMS', va:a.base_calculo, vs:s.base_calculo_icms, dif:Math.abs(a.base_calculo - s.base_calculo_icms)});
+    if(Math.abs(a.imposto_creditado - s.total_icms) > 0.01) divs.push({cfop, campo:'Imposto Creditado ↔ Total ICMS', va:a.imposto_creditado, vs:s.total_icms, dif:Math.abs(a.imposto_creditado - s.total_icms)});
+  }
+  return divs;
+}
+
+function compararSaidas(aS, sS){
+  const divs=[];
+  const all=new Set([...Object.keys(aS),...Object.keys(sS)]);
+  for(const cfop of all){
+    const a=aS[cfop]||{valor_contabil:0, base_calculo:0, imposto_debitado:0};
+    const s=sS[cfop]||{total_operacao:0, base_calculo_icms:0, total_icms:0};
+    if(Math.abs(a.valor_contabil - s.total_operacao) > 0.01) divs.push({cfop, campo:'Valor Contábil ↔ Total Operação', va:a.valor_contabil, vs:s.total_operacao, dif:Math.abs(a.valor_contabil - s.total_operacao)});
+    if(Math.abs(a.base_calculo - s.base_calculo_icms) > 0.01) divs.push({cfop, campo:'Base de Cálculo ↔ Base ICMS', va:a.base_calculo, vs:s.base_calculo_icms, dif:Math.abs(a.base_calculo - s.base_calculo_icms)});
+    if(Math.abs(a.imposto_debitado - s.total_icms) > 0.01) divs.push({cfop, campo:'Imposto Debitado ↔ Total ICMS', va:a.imposto_debitado, vs:s.total_icms, dif:Math.abs(a.imposto_debitado - s.total_icms)});
+  }
+  return divs;
+}
+
+function validarRegras(aE, aS, sE, sS){
+  const notificacoes=[];
+  if(aE['1303'] && aE['1303'].base_calculo>0 && (!sE['1303'] || sE['1303'].base_calculo_icms===0))
+    notificacoes.push({tipo:'warn', msg:'CFOP 1303 (Telecomunicação): possui base de cálculo na Apuração mas não encontrado no SPED de Entradas.'});
+  ['2949','1949'].forEach(c=>{
+    if(sE[c] && sE[c].total_icms>0) notificacoes.push({tipo:'err', msg:`CFOP ${c}: possui ICMS no SPED de Entradas (R$ ${fmt(sE[c].total_icms)}). Este CFOP não pode ter ICMS.`});
+    if(aE[c] && aE[c].imposto_creditado>0) notificacoes.push({tipo:'err', msg:`CFOP ${c}: possui imposto creditado na Apuração (R$ ${fmt(aE[c].imposto_creditado)}).`});
+  });
+  ['5929'].forEach(c=>{
+    if(sE[c] && (sE[c].total_operacao>0 || sE[c].base_calculo_icms>0 || sE[c].total_icms>0))
+      notificacoes.push({tipo:'err', msg:`CFOP ${c}: possui valores no SPED de Entradas. Este CFOP não pode ter valores.`});
+    if(sS[c] && (sS[c].total_operacao>0 || sS[c].base_calculo_icms>0 || sS[c].total_icms>0))
+      notificacoes.push({tipo:'err', msg:`CFOP ${c}: possui valores no SPED de Saídas.`});
+  });
+  return notificacoes;
+}
+
+function somarDivs(divs){ return divs.reduce((acc,d)=>acc+d.dif,0); }
+
+function gerarTabela(apuData, spData, tipo){
+  const all=new Set([...Object.keys(apuData),...Object.keys(spData)]);
+  if(all.size===0) return '<p style="padding:1rem;">Nenhum dado encontrado.</p>';
+  const campoImp = tipo==='E' ? 'imposto_creditado' : 'imposto_debitado';
+  const labelImp = tipo==='E' ? 'Imposto Creditado' : 'Imposto Debitado';
+  let t = `<div class="tbl-wrap"><table><thead><tr><th rowspan="2">CFOP</th><th colspan="2">Valor Contábil ↔ Total Operação</th><th colspan="2">Base de Cálculo ↔ Base ICMS</th><th colspan="2">${labelImp} ↔ Total ICMS</th><th rowspan="2">Qtd</th></tr><tr><th>Apuração</th><th>SPED</th><th>Apuração</th><th>SPED</th><th>Apuração</th><th>SPED</th></tr></thead><tbody>`;
+  for(const cfop of Array.from(all).sort()){
+    const a=apuData[cfop]||{valor_contabil:0, base_calculo:0, [campoImp]:0};
+    const s=spData[cfop]||{total_operacao:0, base_calculo_icms:0, total_icms:0, quantidade:0};
+    const okV = Math.abs(a.valor_contabil - s.total_operacao) <= 0.01;
+    const okB = Math.abs(a.base_calculo - s.base_calculo_icms) <= 0.01;
+    const okI = Math.abs(a[campoImp] - s.total_icms) <= 0.01;
+    t += `<tr><td><span class="cfop-badge">${cfop}</span></td>
+      <td class="${okV?'cell-ok':'cell-err'}">R$ ${fmt(a.valor_contabil)}</td>
+      <td class="${okV?'cell-ok':'cell-err'}">R$ ${fmt(s.total_operacao)}</td>
+      <td class="${okB?'cell-ok':'cell-err'}">R$ ${fmt(a.base_calculo)}</td>
+      <td class="${okB?'cell-ok':'cell-err'}">R$ ${fmt(s.base_calculo_icms)}</td>
+      <td class="${okI?'cell-ok':'cell-err'}">R$ ${fmt(a[campoImp])}</td>
+      <td class="${okI?'cell-ok':'cell-err'}">R$ ${fmt(s.total_icms)}</td>
+      <td style="text-align:center;">${s.quantidade||0}</td></tr>`;
+  }
+  t+=`</tbody></table></div>`;
+  return t;
+}
+
+function gerarDivs(divs){
+  if(!divs.length) return `<div style="padding:1rem;color:#1a9e6a">✅ Nenhuma divergência encontrada.</div>`;
+  let h = `<div style="padding:1rem;">`;
+  for(const d of divs){
+    h+=`<div class="div-block"><div class="div-title">CFOP ${d.cfop} — ${d.campo}</div><div class="div-body">Apuração: R$ ${fmt(d.va)} | SPED: R$ ${fmt(d.vs)} | Diferença: R$ ${fmt(d.dif)}</div></div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+function toggleInputs(){
+  document.getElementById('input-area').style.display = '';
+  document.getElementById('toggle-wrap').style.display = 'none';
+}
+
+// Variáveis globais para guardar os valores apurados (serão atualizados pela validação)
+let ultimosValores = {
+  debito: 13022.84,
+  creditos: 28899.79,
+  ajustesDebito: 0,
+  ajustesCredito: 0,
+  estornoCredito: 0,
+  estornoDebito: 0,
+  saldoCredorAnterior: 921204.94,
+  saldoDevedor: 0,
+  deducoes: 0,
+  icmsRecolher: 0,
+  saldoCredorFinal: 937081.89,
+  extraApuração: 0
+};
+
+function validar(){
+  const sp=document.getElementById('spin');
+  const re=document.getElementById('results');
+  sp.style.display='block';
+  re.innerHTML='';
+  setTimeout(()=>{
+    try{
+      const apTxt=document.getElementById('apuracao').value;
+      const seTxt=document.getElementById('spedEntradas').value;
+      const ssTxt=document.getElementById('spedSaidas').value;
+      if(!apTxt) throw new Error('Cole os dados da Apuração ICMS antes de validar.');
+
+      const {entradas:aE, saidas:aS}=extrairApuracoes(apTxt);
+      const sE=extrairSped(seTxt);
+      const sS=extrairSped(ssTxt);
+
+      const dE=compararEntradas(aE,sE);
+      const dS=compararSaidas(aS,sS);
+      const nt=validarRegras(aE,aS,sE,sS);
+      const totalDivs = dE.length + dS.length;
+      const totalErrors = nt.filter(n=>n.tipo==='err').length;
+      const somaDifE = somarDivs(dE);
+      const somaDifS = somarDivs(dS);
+
+      // Extrai os valores totais da apuração
+      let totalDebito = 0, totalCredito = 0;
+      for(let cfop in aS) totalDebito += aS[cfop].imposto_debitado || 0;
+      for(let cfop in aE) totalCredito += aE[cfop].imposto_creditado || 0;
+      
+      ultimosValores.debito = totalDebito;
+      ultimosValores.creditos = totalCredito;
+      ultimosValores.saldoCredorFinal = ultimosValores.saldoCredorAnterior + totalCredito - totalDebito;
+
+      document.getElementById('input-area').style.display = 'none';
+      document.getElementById('toggle-wrap').style.display = 'block';
+
+      let html = '';
+
+      html += `<div class="rcard"><div class="rcard-head"><h3>📊 Resumo da validação</h3>${totalDivs===0&&nt.length===0?`<span class="tag tag-ok">✅ Sem divergências</span>`:`<span class="tag tag-e">⚠️ ${totalDivs} divergência(s)</span>`}</div>
+        <div class="summary-grid">
+          <div class="scard"><div class="lbl">Divergências Entradas</div><div class="num ${dE.length===0?'ok':'err'}">${dE.length}</div></div>
+          <div class="scard"><div class="lbl">Divergências Saídas</div><div class="num ${dS.length===0?'ok':'err'}">${dS.length}</div></div>
+          <div class="scard"><div class="lbl">Erros de regras</div><div class="num ${totalErrors===0?'ok':'err'}">${totalErrors}</div></div>
+          <div class="scard"><div class="lbl">Alertas</div><div class="num ${nt.filter(n=>n.tipo==='warn').length===0?'ok':'warn'}">${nt.filter(n=>n.tipo==='warn').length}</div></div>
+        </div></div>`;
+
+      html += `<div class="section-divider"><span>ENTRADAS</span></div>`;
+      html += `<div class="rcard"><div class="rcard-head"><h3>📥 Comparação — Entradas</h3>${dE.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dE.length} divergência(s)</span>`}</div>${gerarTabela(aE,sE,'E')}</div>`;
+      if(dE.length>0) html += `<div class="rcard"><div class="rcard-head"><h3>⚠️ Divergências nas entradas</h3></div>${gerarDivs(dE)}<div class="total-bar"><div>Total diferenças Entradas</div><div>R$ ${fmt(somaDifE)}</div></div></div>`;
+
+      html += `<div class="section-divider"><span>SAÍDAS</span></div>`;
+      html += `<div class="rcard"><div class="rcard-head"><h3>📤 Comparação — Saídas</h3>${dS.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dS.length} divergência(s)</span>`}</div>${gerarTabela(aS,sS,'S')}</div>`;
+      if(dS.length>0) html += `<div class="rcard"><div class="rcard-head"><h3>⚠️ Divergências nas saídas</h3></div>${gerarDivs(dS)}<div class="total-bar"><div>Total diferenças Saídas</div><div>R$ ${fmt(somaDifS)}</div></div></div>`;
+
+      if(nt.length>0){
+        html += `<div class="section-divider"><span>REGRAS FISCAIS</span></div>`;
+        html += `<div class="rcard"><div class="rcard-head"><h3>🔔 Alertas e erros de regras</h3></div><div style="padding:1rem;">`;
+        for(const n of nt) html += `<div class="div-block"><div class="div-title">${n.tipo==='err'?'❌ Erro':'⚠️ Atenção'}</div><div class="div-body">${n.msg}</div></div>`;
+        html += `</div></div>`;
+      }
+
+      // SE NÃO HOUVER DIVERGÊNCIAS, EXIBE O FORMULÁRIO PRÉ-PREENCHIDO (em coluna única)
+      if(totalDivs === 0 && nt.filter(n=>n.tipo==='err').length === 0){
+        html += `<div class="section-divider"><span>REGISTROS FISCAIS DA APURAÇÃO DO ICMS</span></div>`;
+        html += `<div class="rcard" style="border: 2px solid #1a9e6a;">`;
+        html += `<div class="rcard-head" style="background:#f0fff7;"><h3>📄 PREENCHIMENTO DA APURAÇÃO ICMS - OPERAÇÕES PRÓPRIAS</h3><span class="sucesso-badge">✅ Validação OK - Dados consistentes</span></div>`;
+        html += `<div class="form-apuracao">`;
+        // ALTERAÇÃO: estrutura flex-column para campos um abaixo do outro
+        html += `<div class="form-coluna">`;
+        html += `<div class="campo-form"><label>SAÍDAS E PRESTAÇÕES COM DÉBITO DO IMPOSTO (R$)</label><input type="text" id="campoDebito" value="${fmt(ultimosValores.debito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS AJUSTES A DÉBITO (decorrentes do documento fiscal) (R$)</label><input type="text" id="campoAjusteDebito" value="${fmt(ultimosValores.ajustesDebito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS AJUSTES A DÉBITO DO IMPOSTO (R$)</label><input type="text" id="campoAjusteDebito2" value="${fmt(ultimosValores.ajustesDebito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS ESTORNOS DE CRÉDITOS (R$)</label><input type="text" id="campoEstornoCred" value="${fmt(ultimosValores.estornoCredito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS CRÉDITOS POR ENTRADAS E AQUISIÇÕES COM CRÉDITO DO IMPOSTO (R$)</label><input type="text" id="campoCredito" value="${fmt(ultimosValores.creditos)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS AJUSTES A CRÉDITO (decorrentes do documento fiscal) (R$)</label><input type="text" id="campoAjusteCredito" value="${fmt(ultimosValores.ajustesCredito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS AJUSTES A CRÉDITO DO IMPOSTO (R$)</label><input type="text" id="campoAjusteCredito2" value="${fmt(ultimosValores.ajustesCredito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DOS ESTORNOS DE DÉBITOS (R$)</label><input type="text" id="campoEstornoDeb" value="${fmt(ultimosValores.estornoDebito)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DO SALDO CREDOR DO PERÍODO ANTERIOR (R$)</label><input type="text" id="campoSaldoAnterior" value="${fmt(ultimosValores.saldoCredorAnterior)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR DO SALDO DEVEDOR (R$)</label><input type="text" id="campoSaldoDevedor" value="${fmt(ultimosValores.saldoDevedor)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DAS DEDUÇÕES (R$)</label><input type="text" id="campoDeducoes" value="${fmt(ultimosValores.deducoes)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DO ICMS A RECOLHER (R$)</label><input type="text" id="campoRecolher" value="${fmt(ultimosValores.icmsRecolher)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALOR TOTAL DO SALDO CREDOR A TRANSPORTAR PARA O PERÍODO SEGUINTE (R$)</label><input type="text" id="campoSaldoFinal" value="${fmt(ultimosValores.saldoCredorFinal)}" readonly></div>`;
+        html += `<div class="campo-form"><label>VALORES RECOLHIDOS OU A RECOLHER, EXTRA-APURAÇÃO (R$)</label><input type="text" id="campoExtra" value="${fmt(ultimosValores.extraApuração)}" readonly></div>`;
+        html += `</div>`;
+        html += `<div style="display: flex; justify-content: flex-end;"><button class="btn-gerar" onclick="gerarRelatorioFinal()">📄 Gerar Relatório Padrão SPED</button></div>`;
+        html += `</div></div>`;
+      } else {
+        html += `<div style="margin-top: 1.5rem; padding: 1rem; background: #fff0f0; border-radius: 12px; border-left: 4px solid #d64545;"><strong>⚠️ Validação com divergências ou erros.</strong> Corrija os apontamentos acima para liberar a geração do relatório fiscal.</div>`;
+      }
+
+      re.innerHTML = html;
+    }catch(e){
+      re.innerHTML = `<div class="rcard"><div class="rcard-head"><h3>❌ Erro</h3></div><div style="padding:1rem;">${e.message}</div></div>`;
+    } finally { sp.style.display='none'; }
+  }, 120);
+}
+
+function gerarRelatorioFinal(){
+  const debito = document.getElementById('campoDebito')?.value || '0,00';
+  const ajusteDebito = document.getElementById('campoAjusteDebito')?.value || '0,00';
+  const ajusteDebito2 = document.getElementById('campoAjusteDebito2')?.value || '0,00';
+  const estornoCred = document.getElementById('campoEstornoCred')?.value || '0,00';
+  const credito = document.getElementById('campoCredito')?.value || '0,00';
+  const ajusteCredito = document.getElementById('campoAjusteCredito')?.value || '0,00';
+  const ajusteCredito2 = document.getElementById('campoAjusteCredito2')?.value || '0,00';
+  const estornoDeb = document.getElementById('campoEstornoDeb')?.value || '0,00';
+  const saldoAnt = document.getElementById('campoSaldoAnterior')?.value || '0,00';
+  const saldoDev = document.getElementById('campoSaldoDevedor')?.value || '0,00';
+  const deducoes = document.getElementById('campoDeducoes')?.value || '0,00';
+  const recolher = document.getElementById('campoRecolher')?.value || '0,00';
+  const saldoFinal = document.getElementById('campoSaldoFinal')?.value || '0,00';
+  const extra = document.getElementById('campoExtra')?.value || '0,00';
+  
+  const relatorio = `REGISTROS FISCAIS DA APURAÇÃO DO ICMS - OPERAÇÕES PRÓPRIAS
+
+CONTRIBUINTE: REDE DOM PEDRO DE POSTOS LTDA
+CNPJ/CPF: 20.415.295/0012-27
+INSCRIÇÃO ESTADUAL: 2450683031276
+PERÍODO DA ESCRITURAÇÃO: 01/11/2024 a 30/11/2024
+
+Descrição                                                                                 Valor R$
+Período de Apuração: 01/11/2024 a 30/11/2024
+
+SAÍDAS E PRESTAÇÕES COM DÉBITO DO IMPOSTO                                               ${debito}
+VALOR TOTAL DOS AJUSTES A DÉBITO (decorrentes do documento fiscal)                      ${ajusteDebito}
+VALOR TOTAL DOS AJUSTES A DÉBITO DO IMPOSTO                                             ${ajusteDebito2}
+VALOR TOTAL DOS ESTORNOS DE CRÉDITOS                                                    ${estornoCred}
+
+VALOR TOTAL DOS CRÉDITOS POR ENTRADAS E AQUISIÇÕES COM CRÉDITO DO IMPOSTO               ${credito}
+VALOR TOTAL DOS AJUSTES A CRÉDITO (decorrentes do documento fiscal)                     ${ajusteCredito}
+VALOR TOTAL DOS AJUSTES A CRÉDITO DO IMPOSTO                                            ${ajusteCredito2}
+VALOR TOTAL DOS ESTORNOS DE DÉBITOS                                                     ${estornoDeb}
+
+VALOR TOTAL DO SALDO CREDOR DO PERÍODO ANTERIOR                                        ${saldoAnt}
+
+VALOR DO SALDO DEVEDOR                                                                  ${saldoDev}
+VALOR TOTAL DAS DEDUÇÕES                                                                ${deducoes}
+VALOR TOTAL DO ICMS A RECOLHER                                                          ${recolher}
+
+VALOR TOTAL DO SALDO CREDOR A TRANSPORTAR PARA O PERÍODO SEGUINTE                      ${saldoFinal}
+
+VALORES RECOLHIDOS OU A RECOLHER, EXTRA-APURAÇÃO                                        ${extra}
+
+INFORMAÇÃO DO ARQUIVO
+Dados do Assinante do arquivo
+Nome: 
+CPF: 
+Data do recibo: 
+Mensagem: Em Edição
+Página 1 de 1
+Este relatório foi gerado pelo Sistema Público de Escrituração Digital – Sped
+Versão 6.0.3 do Visualizador
+Hashcode do Arquivo: `;
+
+  const win = window.open();
+  win.document.write(`<html><head><title>Relatório Apuração ICMS - SPED</title><style>body{font-family:'Courier New',monospace;padding:30px;white-space:pre-wrap;font-size:11px;background:#fff;}</style></head><body>${relatorio.replace(/\n/g,'<br>')}</body></html>`);
+  win.document.close();
+}
+</script>
+</body>
+</html>
