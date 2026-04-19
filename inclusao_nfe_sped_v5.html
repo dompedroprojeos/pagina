@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inclusão de NF-e no SPED Fiscal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap');
+
+  :root,[data-theme="light"]{
+    --primary:#0077cc;--accent:#d95c00;--success:#007a3d;--danger:#c0001f;
+    --warning:#8a6500;--bg:#f4f6f9;--bg2:#ffffff;--bg3:#e8edf3;
+    --panel:rgba(0,119,204,0.05);--border:rgba(0,119,204,0.20);
+    --text:#1a2535;--muted:#5e7490;--shadow:0 1px 4px rgba(0,0,0,0.10);--log-bg:#f9fafb;
+  }
+  [data-theme="dark"]{
+    --primary:#00d4ff;--accent:#ff6b00;--success:#00ff88;--danger:#ff3860;
+    --warning:#ffdd00;--bg:#060b14;--bg2:#0a1628;--bg3:#0f2040;
+    --panel:rgba(0,212,255,0.05);--border:rgba(0,212,255,0.20);
+    --text:#c8e8ff;--muted:#5580a0;--shadow:0 0 20px rgba(0,212,255,0.08);--log-bg:#020810;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s}
+  [data-theme="dark"] body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+  header{position:relative;background:var(--bg2);border-bottom:2px solid var(--primary);z-index:10;box-shadow:var(--shadow);transition:background 0.3s}
+  [data-theme="dark"] header{background:linear-gradient(135deg,#020814 0%,#0a1e3d 50%,#020814 100%)}
+  [data-theme="dark"] header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--primary),var(--accent),var(--primary),transparent);animation:borderGlow 3s ease-in-out infinite}
+  @keyframes borderGlow{0%,100%{opacity:0.6}50%{opacity:1}}
+
+  .header-inner{max-width:1400px;margin:0 auto;padding:18px 32px;display:flex;align-items:center;gap:20px}
+  .logo-icon{width:58px;height:58px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,119,204,0.25)}
+  .header-titles{flex:1}
+  .app-name{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;color:var(--text);letter-spacing:2px;text-transform:uppercase}
+  [data-theme="dark"] .app-name{color:#fff;text-shadow:0 0 20px rgba(0,212,255,0.6)}
+  .app-name span{color:var(--primary)}
+  .app-subtitle{font-size:0.76rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:3px;font-family:'Share Tech Mono',monospace}
+  .header-badge{background:linear-gradient(135deg,var(--accent),#cc4400);color:#fff;padding:7px 14px;border-radius:6px;font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:center;line-height:1.4}
+  .theme-toggle{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:30px;padding:5px 12px;cursor:pointer;transition:all 0.25s;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--muted);white-space:nowrap;user-select:none}
+  .theme-toggle:hover{border-color:var(--primary);color:var(--primary)}
+  .toggle-icon{font-size:1rem;transition:transform 0.4s}
+  [data-theme="dark"] .toggle-icon{transform:rotate(180deg)}
+
+  main{max-width:1400px;margin:0 auto;padding:24px 32px;position:relative;z-index:1}
+  .section-title{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:var(--primary);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .section-title::before{content:'';width:20px;height:2px;background:var(--primary)}
+
+  .steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .step-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color 0.3s,background 0.3s}
+  .step-card.active{border-color:var(--primary)}
+  .step-card.done{border-color:var(--success)}
+  .step-num{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:rgba(0,119,204,0.12);position:absolute;top:10px;right:14px;line-height:1}
+  [data-theme="dark"] .step-num{color:rgba(0,212,255,0.15)}
+  .step-card.active .step-num{color:rgba(0,119,204,0.35)}
+  [data-theme="dark"] .step-card.active .step-num{color:rgba(0,212,255,0.4)}
+  .step-card.done .step-num{color:rgba(0,122,61,0.3)}
+  [data-theme="dark"] .step-card.done .step-num{color:rgba(0,255,136,0.3)}
+  .step-label{font-size:0.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .step-desc{font-size:0.84rem;color:var(--text);font-weight:600}
+  .step-status{margin-top:7px;font-size:0.73rem;font-family:'Share Tech Mono',monospace}
+  .step-status.pending{color:var(--muted)}
+  .step-status.active{color:var(--primary)}
+  .step-status.done{color:var(--success)}
+
+  .drop-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  .drop-panel{background:var(--bg2);border:2px dashed var(--border);border-radius:12px;padding:22px;transition:all 0.25s;cursor:pointer;box-shadow:var(--shadow)}
+  .drop-panel:hover,.drop-panel.dragover{border-color:var(--primary);background:var(--panel)}
+  .drop-icon{font-size:2rem;text-align:center;margin-bottom:8px;display:block}
+  .drop-title{font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;color:var(--primary);text-align:center;margin-bottom:4px;letter-spacing:2px;text-transform:uppercase}
+  .drop-hint{font-size:0.74rem;color:var(--muted);text-align:center;font-family:'Share Tech Mono',monospace}
+  .drop-files-list{margin-top:12px;display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto}
+  .drop-file-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:0.74rem;font-family:'Share Tech Mono',monospace;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .drop-file-item .fname{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+  .drop-file-item .fsize{color:var(--muted);flex-shrink:0}
+  .remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.95rem;flex-shrink:0;padding:0 2px;transition:transform 0.2s}
+  .remove-btn:hover{transform:scale(1.3)}
+  input[type=file]{display:none}
+
+  .log-panel{background:var(--log-bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px;font-family:'Share Tech Mono',monospace;font-size:0.74rem;height:200px;overflow-y:auto}
+  .log-panel::-webkit-scrollbar{width:4px}
+  .log-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .log-header{font-family:'Orbitron',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+  .log-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 1.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .log-line{margin-bottom:3px;line-height:1.5;display:flex;gap:10px}
+  .log-time{color:var(--muted);flex-shrink:0}
+  .log-msg.info{color:var(--primary)}
+  .log-msg.success{color:var(--success)}
+  .log-msg.warn{color:var(--warning)}
+  .log-msg.error{color:var(--danger)}
+  .log-msg.muted{color:var(--muted)}
+
+  .result-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:var(--shadow)}
+  .result-header{background:var(--bg3);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+  .result-title{font-family:'Orbitron',monospace;font-size:0.68rem;color:var(--primary);letter-spacing:3px;text-transform:uppercase}
+  .count-new{color:var(--success)}.count-exists{color:var(--warning)}.count-error{color:var(--danger)}
+  table{width:100%;border-collapse:collapse;font-size:0.76rem}
+  thead th{padding:9px 12px;text-align:left;font-family:'Share Tech Mono',monospace;font-size:0.66rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3)}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+  tbody tr:hover{background:var(--panel)}
+  tbody td{padding:9px 12px;font-family:'Share Tech Mono',monospace;vertical-align:middle}
+  .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.64rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .badge-new{background:rgba(0,122,61,0.12);color:var(--success);border:1px solid rgba(0,122,61,0.3)}
+  .badge-exists{background:rgba(138,101,0,0.12);color:var(--warning);border:1px solid rgba(138,101,0,0.3)}
+  .badge-error{background:rgba(192,0,31,0.10);color:var(--danger);border:1px solid rgba(192,0,31,0.3)}
+  [data-theme="dark"] .badge-new{background:rgba(0,255,136,0.15);border-color:rgba(0,255,136,0.3)}
+  [data-theme="dark"] .badge-exists{background:rgba(255,221,0,0.15);border-color:rgba(255,221,0,0.3)}
+  [data-theme="dark"] .badge-error{background:rgba(255,56,96,0.15);border-color:rgba(255,56,96,0.3)}
+
+  .actions-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
+  .btn{padding:11px 24px;border:none;border-radius:8px;font-family:'Orbitron',monospace;font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s}
+  .btn:active{transform:scale(0.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#005099);color:#fff;box-shadow:0 2px 8px rgba(0,119,204,0.25)}
+  .btn-primary:hover{box-shadow:0 4px 16px rgba(0,119,204,0.4)}
+  .btn-success{background:linear-gradient(135deg,var(--success),#005a2a);color:#fff;box-shadow:0 2px 8px rgba(0,122,61,0.2)}
+  .btn-success:hover{box-shadow:0 4px 14px rgba(0,122,61,0.35)}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+  .btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+  .btn:disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
+
+  .progress-bar-outer{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:24px;display:none}
+  .progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width 0.3s ease}
+
+  .rule-box{background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:0.8rem;line-height:1.6}
+  .rule-box strong{color:var(--primary)}
+  .rule-box code{font-family:'Share Tech Mono',monospace;background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:0.76rem}
+
+  footer{border-top:1px solid var(--border);padding:16px 32px;background:var(--bg2);position:relative;z-index:1;transition:background 0.3s}
+  .footer-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .footer-brand{font-family:'Orbitron',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .footer-brand strong{color:var(--primary)}
+  .footer-credits{font-size:0.68rem;color:var(--muted);text-align:right;line-height:1.6}
+  .footer-credits span{color:var(--text)}
+  .nf-key{color:var(--accent);font-size:0.61rem;display:block;margin-top:1px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  @media(max-width:900px){
+    .drop-row,.steps-row{grid-template-columns:1fr}
+    .header-inner{flex-direction:column;text-align:center}
+    .actions-row{flex-direction:column;align-items:stretch}
+    .btn{justify-content:center}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-icon">⚡</div>
+    <div class="header-titles">
+      <div class="app-name">INCLUSÃO DE <span>NF-e</span> NO SPED</div>
+      <div class="app-subtitle">Rede Dom Pedro de Postos · Fiscal Automation System v5.0</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+      <span class="toggle-icon" id="themeIcon">🌙</span>
+      <span id="themeLabel">Modo Escuro</span>
+    </button>
+    <div class="header-badge">BY WALDECI RAMOS<br>REDE DOM PEDRO DE POSTOS</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="rule-box">
+    <strong>Regras de geração ativas (padrão extraído do SPED real):</strong><br>
+    • <strong>C100</strong>: campos VL_PIS/VL_COFINS ficam <code>|||</code> (vazios) quando zero — conforme padrão do arquivo.<br>
+    • <strong>C110</strong>: texto fixo <code>NOTA FISCAL REFERENCIADA A DOCUMENTO FISCAL</code> sempre que houver <code>&lt;refNFe&gt;</code> no XML.<br>
+    • <strong>C113</strong>: NUM_DOC com 9 dígitos (zeros à esquerda), data extraída da chave da refNFe (AAMM + dia 01), COD_MOD=65 (NFC-e).<br>
+    • <strong>C190</strong>: CFOP 5929 com CST 00 → gera <code>CST 090</code>, vBC/pICMS/vICMS zerados. Confirma com padrão <code>|C190|090|5929|0,00|vNF|...</code> do SPED.<br>
+    • <strong>|9900|</strong>: contadores de todos os registros são recalculados automaticamente após cada inserção (C100, C110, C113, C190 e demais). <strong>[Corrigido v5]</strong><br>
+    • <strong>Quebra de linha</strong>: arquivo processado internamente em LF e exportado em CRLF (padrão Windows/PVA). <strong>[Corrigido v5]</strong>
+  </div>
+
+  <div class="steps-row">
+    <div class="step-card active" id="step1card">
+      <div class="step-num">01</div>
+      <div class="step-label">Etapa 1</div>
+      <div class="step-desc">Carregar arquivos XML e TXT SPED</div>
+      <div class="step-status active" id="step1status">● Aguardando arquivos...</div>
+    </div>
+    <div class="step-card" id="step2card">
+      <div class="step-num">02</div>
+      <div class="step-label">Etapa 2</div>
+      <div class="step-desc">Verificar &amp; Incluir NF-es no SPED</div>
+      <div class="step-status pending" id="step2status">○ Pendente</div>
+    </div>
+    <div class="step-card" id="step3card">
+      <div class="step-num">03</div>
+      <div class="step-label">Etapa 3</div>
+      <div class="step-desc">Gerar novo TXT SPED com inclusões</div>
+      <div class="step-status pending" id="step3status">○ Pendente</div>
+    </div>
+  </div>
+
+  <div class="drop-row">
+    <div>
+      <div class="section-title">Arquivos XML (NF-e)</div>
+      <div class="drop-panel" id="xmlDrop" onclick="document.getElementById('xmlInput').click()"
+        ondragover="ev(event,'xmlDrop',true)" ondragleave="ev(event,'xmlDrop',false)" ondrop="dropFiles(event,'xml')">
+        <input type="file" id="xmlInput" multiple accept=".xml" onchange="addFiles(this.files,'xml')">
+        <span class="drop-icon">📄</span>
+        <div class="drop-title">Arraste XMLs aqui</div>
+        <div class="drop-hint">ou clique para selecionar · múltiplos arquivos</div>
+        <div class="drop-files-list" id="xmlList"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Arquivo TXT — SPED Fiscal</div>
+      <div class="drop-panel" id="txtDrop" onclick="document.getElementById('txtInput').click()"
+        ondragover="ev(event,'txtDrop',true)" ondragleave="ev(event,'txtDrop',false)" ondrop="dropFiles(event,'txt')">
+        <input type="file" id="txtInput" accept=".txt" onchange="addFiles(this.files,'txt')">
+        <span class="drop-icon">📋</span>
+        <div class="drop-title">Arraste o TXT SPED aqui</div>
+        <div class="drop-hint">ou clique para selecionar · apenas 1 arquivo</div>
+        <div class="drop-files-list" id="txtList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-row">
+    <button class="btn btn-primary" id="btnProcess" onclick="processFiles()" disabled>⚡ Processar e Verificar</button>
+    <button class="btn btn-success" id="btnDownload" onclick="downloadSped()" disabled>⬇ Baixar Novo SPED TXT</button>
+    <button class="btn btn-outline" onclick="clearAll()">✕ Limpar Tudo</button>
+    <div style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--muted)" id="statsBar">— Aguardando arquivos —</div>
+  </div>
+
+  <div class="progress-bar-outer" id="progressOuter">
+    <div class="progress-bar-inner" id="progressBar"></div>
+  </div>
+
+  <div class="section-title">Log do Sistema</div>
+  <div class="log-panel" id="logPanel">
+    <div class="log-header"><div class="log-dot"></div>CONSOLE · SPED FISCAL PROCESSOR v4.0</div>
+    <div id="logBody">
+      <div class="log-line"><span class="log-time">00:00:00</span><span class="log-msg muted">Sistema inicializado. Padrão C100/C110/C113/C190 carregado do SPED real.</span></div>
+    </div>
+  </div>
+
+  <div id="resultSection" style="display:none">
+    <div class="result-panel">
+      <div class="result-header">
+        <div class="result-title">📊 Resultado do Processamento</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.74rem" id="resultCount"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Arquivo XML</th><th>NF Nº</th><th>Série</th>
+              <th>Destinatário</th><th>Valor NF</th><th>C113 Ref</th><th>Regra CST</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">⚡ <strong>NF-e SPED Inclusor</strong> · Rede Dom Pedro de Postos · v4.0</div>
+    <div class="footer-credits">
+      Elaboração: <span>Waldeci Ramos</span> · Com apoio de <span>Diego</span> e <span>Julliana Alves</span><br>
+      <span style="font-size:0.64rem">Rede Dom Pedro de Postos · Sistema Fiscal Automatizado</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ═══ TEMA ═══════════════════════════════════════════
+function toggleTheme(){
+  const html=document.documentElement;
+  const dark=html.getAttribute('data-theme')==='dark';
+  const next=dark?'light':'dark';
+  html.setAttribute('data-theme',next);
+  document.getElementById('themeIcon').textContent=dark?'🌙':'☀️';
+  document.getElementById('themeLabel').textContent=dark?'Modo Escuro':'Modo Claro';
+  try{localStorage.setItem('spedTheme',next)}catch(e){}
+}
+(function(){
+  try{
+    const s=localStorage.getItem('spedTheme');
+    if(s==='dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      document.getElementById('themeIcon').textContent='☀️';
+      document.getElementById('themeLabel').textContent='Modo Claro';
+    }
+  }catch(e){}
+})();
+
+// ═══ STATE ══════════════════════════════════════════
+const state={xmlFiles:[],txtFile:null,spedContent:null,results:[],newSpedContent:null};
+
+// ═══ LOG ════════════════════════════════════════════
+function log(msg,type='info'){
+  const now=new Date();
+  const t=[now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  const line=document.createElement('div');
+  line.className='log-line';
+  line.innerHTML=`<span class="log-time">${t}</span><span class="log-msg ${type}">${msg}</span>`;
+  document.getElementById('logBody').appendChild(line);
+  const p=document.getElementById('logPanel');
+  p.scrollTop=p.scrollHeight;
+}
+
+// ═══ DRAG & DROP ════════════════════════════════════
+function ev(e,id,enter){e.preventDefault();document.getElementById(id).classList.toggle('dragover',enter)}
+function dropFiles(e,type){e.preventDefault();document.getElementById(type==='xml'?'xmlDrop':'txtDrop').classList.remove('dragover');addFiles(e.dataTransfer.files,type)}
+
+function addFiles(files,type){
+  if(type==='xml'){
+    for(const f of files){
+      if(f.name.toLowerCase().endsWith('.xml')){
+        if(!state.xmlFiles.find(x=>x.name===f.name)){state.xmlFiles.push(f);log(`XML adicionado: ${f.name} (${fmt(f.size)})`,'success')}
+        else log(`Já adicionado: ${f.name}`,'warn');
+      }else log(`Ignorado (não é XML): ${f.name}`,'warn');
+    }
+    renderFileList('xmlList',state.xmlFiles,'xml');
+  }else{
+    const f=files[0];if(!f)return;
+    if(!f.name.toLowerCase().endsWith('.txt')){log(`Inválido: ${f.name} — esperado .txt`,'error');return}
+    state.txtFile=f;
+    log(`TXT SPED carregado: ${f.name} (${fmt(f.size)})`,'success');
+    renderFileList('txtList',[f],'txt');
+  }
+  checkReady();
+}
+
+function removeFile(type,idx){
+  if(type==='xml'){const n=state.xmlFiles[idx].name;state.xmlFiles.splice(idx,1);log(`XML removido: ${n}`,'warn');renderFileList('xmlList',state.xmlFiles,'xml')}
+  else{state.txtFile=null;state.spedContent=null;log('TXT SPED removido','warn');renderFileList('txtList',[],'txt')}
+  checkReady();
+}
+
+function renderFileList(listId,files,type){
+  document.getElementById(listId).innerHTML=files.map((f,i)=>`
+    <div class="drop-file-item">
+      <span class="fname" title="${f.name}">📄 ${f.name}</span>
+      <span class="fsize">${fmt(f.size)}</span>
+      <button class="remove-btn" onclick="event.stopPropagation();removeFile('${type}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function fmt(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB'}
+function checkReady(){
+  const ok=state.xmlFiles.length>0&&state.txtFile;
+  document.getElementById('btnProcess').disabled=!ok;
+  if(ok){document.getElementById('statsBar').textContent=`${state.xmlFiles.length} XML(s) · 1 TXT SPED pronto`;setStep(1,'done')}
+}
+
+// ═══ STEPS ══════════════════════════════════════════
+function setStep(num,st){
+  const card=document.getElementById(`step${num}card`);
+  const stat=document.getElementById(`step${num}status`);
+  card.className='step-card '+(st==='done'?'done':'active');
+  const labels={pending:'○ Pendente',active:'● Processando...',done:'✔ Concluído'};
+  stat.textContent=labels[st]||st;
+  stat.className=`step-status ${st}`;
+}
+
+// ═══ PROCESSAMENTO ══════════════════════════════════
+async function processFiles(){
+  log('─── Iniciando processamento ───','info');
+  setStep(2,'active');
+  document.getElementById('btnProcess').disabled=true;
+  const pOuter=document.getElementById('progressOuter');
+  const pBar=document.getElementById('progressBar');
+  pOuter.style.display='block';pBar.style.width='5%';
+
+  log(`Lendo SPED: ${state.txtFile.name}...`,'info');
+  const spedRaw=await readFile(state.txtFile);
+  // Normalizar quebras de linha: \r\n e \r → \n para processamento interno
+  const spedText=spedRaw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  state.spedContent=spedText;
+  log(`SPED carregado: ${spedText.split('\n').length.toLocaleString('pt-BR')} linhas`,'success');
+  pBar.style.width='15%';
+
+  state.results=[];
+  const insertions=[];
+
+  for(let i=0;i<state.xmlFiles.length;i++){
+    const xf=state.xmlFiles[i];
+    log(`Processando XML [${i+1}/${state.xmlFiles.length}]: ${xf.name}`,'info');
+    pBar.style.width=`${15+((i+1)/state.xmlFiles.length)*60}%`;
+    const xmlText=await readFile(xf);
+    const result=processXML(xmlText,xf.name,spedText);
+    state.results.push(result);
+
+    if(result.status==='new'){
+      log(`✔ NF ${result.nNF} série ${result.serie} → será incluída${result.regra5929?' [CST 090 — CFOP5929]':''}${result.hasRef?` [C113: ref ${result.nNF_ref}]`:''}`,'success');
+      insertions.push(result.insertionInfo);
+    }else if(result.status==='exists'){
+      log(`⚠ NF ${result.nNF} série ${result.serie} → JÁ EXISTE no SPED. Ignorando.`,'warn');
+    }else{
+      log(`✖ Erro ao processar ${xf.name}: ${result.error}`,'error');
+    }
+  }
+
+  pBar.style.width='80%';
+
+  if(insertions.length>0){
+    log(`Inserindo ${insertions.length} NF(s) no SPED...`,'info');
+    state.newSpedContent=buildNewSped(spedText,insertions);
+    log(`Novo SPED gerado: ${state.newSpedContent.split('\n').length.toLocaleString('pt-BR')} linhas`,'success');
+  }else{
+    state.newSpedContent=spedText;
+    log('Nenhuma nova NF para inserir. SPED original mantido.','warn');
+  }
+
+  pBar.style.width='100%';
+  renderResults();
+  setStep(2,'done');
+  setStep(3,insertions.length>0?'active':'done');
+
+  if(insertions.length>0){
+    document.getElementById('btnDownload').disabled=false;
+    log(`✔ Concluído! ${insertions.length} NF(s) incluída(s). Pronto para download.`,'success');
+  }else{
+    log('Concluído. Nenhuma NF nova para incluir.','warn');
+    setStep(3,'done');
+  }
+
+  setTimeout(()=>{pOuter.style.display='none'},1400);
+  document.getElementById('btnProcess').disabled=false;
+}
+
+// ═══ XML PARSER (com C100/C110/C113/C190 corretos) ══
+function processXML(xmlText,fileName,spedText){
+  try{
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(xmlText,'application/xml');
+    if(doc.querySelector('parsererror'))return{status:'error',fileName,error:'XML inválido ou corrompido'};
+
+    const ns='http://www.portalfiscal.inf.br/nfe';
+    const g=(tag)=>{
+      const el=doc.querySelector(tag)||doc.getElementsByTagNameNS(ns,tag.replace(/^.*:/,''))[0];
+      return el?el.textContent.trim():'';
+    };
+
+    // Chave NF-e
+    const infNFe=doc.querySelector('infNFe')||doc.getElementsByTagNameNS(ns,'infNFe')[0];
+    const chave=infNFe?infNFe.getAttribute('Id').replace('NFe',''):'';
+
+    // Campos básicos
+    const nNF      = g('nNF');
+    const serie    = g('serie');
+    const dhEmi    = g('dhEmi');
+    const vNF      = g('vNF');
+    const CFOP     = g('CFOP');
+    const tpPag    = g('tPag');
+    const modFrete = g('modFrete')||'9';
+    const infCpl   = g('infCpl');
+
+    // Destinatário
+    const destEl=doc.querySelector('dest')||doc.getElementsByTagNameNS(ns,'dest')[0];
+    const destCNPJ = destEl?(destEl.querySelector('CNPJ')||destEl.getElementsByTagNameNS(ns,'CNPJ')[0])?.textContent.trim()||'':'';
+    const destNome = destEl?(destEl.querySelector('xNome')||destEl.getElementsByTagNameNS(ns,'xNome')[0])?.textContent.trim()||'':'';
+
+    // PIS / COFINS
+    const vPIS    = g('vPIS');
+    const vCOFINS = g('vCOFINS');
+
+    // refNFe (referência a NFC-e)
+    const refNFeEl = doc.querySelector('refNFe')||doc.getElementsByTagNameNS(ns,'refNFe')[0];
+    const refNFe   = refNFeEl?refNFeEl.textContent.trim():'';
+
+    // ── VERIFICAR REGRA CFOP 5929 ──────────────────────
+    // Se CFOP=5929 e CST=00 → CST vira 090, vBC/pICMS/vICMS zerados
+    let cst_icms_final='';
+    let regra5929=false;
+
+    const detEls=[...doc.querySelectorAll('det'),...doc.getElementsByTagNameNS(ns,'det')];
+    const deduped=Array.from(new Set(detEls));
+    for(const det of deduped){
+      const cfopEl=det.querySelector('CFOP')||det.getElementsByTagNameNS(ns,'CFOP')[0];
+      if(!cfopEl||cfopEl.textContent.trim()!=='5929')continue;
+      const icmsEl=det.querySelector('ICMS')||det.getElementsByTagNameNS(ns,'ICMS')[0];
+      if(!icmsEl)continue;
+      const cstEl=icmsEl.querySelector('CST')||icmsEl.getElementsByTagNameNS(ns,'CST')[0];
+      if(cstEl&&cstEl.textContent.trim()==='00'){regra5929=true;break}
+    }
+
+    // CST final para C190
+    if(regra5929){
+      cst_icms_final='090'; // CFOP 5929 + CST 00 → 090 (isento/não-tributado)
+    }else{
+      // Para outros casos: usar CST do XML
+      const icmsMain=doc.querySelector('ICMS')||doc.getElementsByTagNameNS(ns,'ICMS')[0];
+      if(icmsMain){
+        const cstEl=icmsMain.querySelector('CST')||icmsMain.getElementsByTagNameNS(ns,'CST')[0];
+        const csosnEl=icmsMain.querySelector('CSOSN')||icmsMain.getElementsByTagNameNS(ns,'CSOSN')[0];
+        cst_icms_final=(cstEl||csosnEl)?.textContent.trim()||'090';
+      }else cst_icms_final='090';
+    }
+
+    // Data de emissão formatada DDMMAAAA
+    const dtEmi=dhEmi.substring(0,10).replace(/-/g,'').replace(/(\d{4})(\d{2})(\d{2})/,'$3$2$1');
+
+    // Verificar se já existe no SPED
+    if(chave&&spedText.includes(chave)){
+      return{status:'exists',fileName,chave,nNF,serie,destNome:destNome||destCNPJ,vNF:fmtCur(vNF),regra5929,hasRef:!!refNFe};
+    }
+
+    // ── MONTAR vNF formatado ────────────────────────────
+    const vNF_fmt=fmtCur(vNF);
+
+    // ── INDPGTO ─────────────────────────────────────────
+    // tpPag 01=à vista→1, 99=sem pagamento→9, outros→2
+    const indPgto=tpPag==='01'?'1':tpPag==='99'?'9':'2';
+
+    // ── C100 ────────────────────────────────────────────
+    // Padrão do SPED: VL_PIS e VL_COFINS ficam VAZIOS (|||) quando zero
+    // mas preenchidos (|3,30|15,18|||) quando há valor
+    // Para NFs com PIS/COFINS zerados → |||
+    const hasPIS  = vPIS   && parseFloat(vPIS.replace(',','.'))>0;
+    const hasCOF  = vCOFINS && parseFloat(vCOFINS.replace(',','.'))>0;
+    const vPIS_c  = hasPIS  ? fmtCur(vPIS)  : '';
+    const vCOF_c  = hasCOF  ? fmtCur(vCOFINS) : '';
+    // Série com 3 dígitos
+    const serie3  = serie.padStart(3,'0');
+
+    const c100=`|C100|1|0|${destCNPJ}|55|08|${serie3}|${nNF}|${chave}|${dtEmi}|${dtEmi}|${vNF_fmt}|${indPgto}|0,00|0,00|${vNF_fmt}|${modFrete}|0,00|0,00|0,00|0,00|0,00|0,00|0,00|0,00|${vPIS_c}|${vCOF_c}||`;
+
+    // ── C110 ─────────────────────────────────────────────
+    // Apenas quando há refNFe → texto fixo padrão do SPED desta empresa
+    let c110='';
+    if(refNFe){
+      c110='\n|C110|5|NOTA FISCAL REFERENCIADA A DOCUMENTO FISCAL|';
+    }
+
+    // ── C113 ─────────────────────────────────────────────
+    // REG|IND_OPER|IND_EMIT|COD_PART|COD_MOD|COD_SIT|SER|NUM_DOC|DT_DOC|CHV_NFE
+    // NUM_DOC = 9 dígitos da chave (posições 25-33)
+    // DT_DOC = deduzida da chave: AAMM → dia 01 do mês
+    // Para refNFe de NFC-e (mod 65): COD_PART vazio, COD_MOD=65, SER vazio
+    let c113='';
+    let nNF_ref='';
+    let dtRef_display='';
+    if(refNFe&&refNFe.length>=44){
+      const aamm=refNFe.substring(2,6);       // ex: "2304"
+      const aa=aamm.substring(0,2);           // "23"
+      const mm=aamm.substring(2,4);           // "04"
+      nNF_ref=refNFe.substring(25,34);        // "000276299" (9 dígitos com zeros)
+      dtRef_display=`01${mm}20${aa}`;         // "01042023"
+      c113=`\n|C113|1|0||65|1||${nNF_ref}|${dtRef_display}|${refNFe}|`;
+    }
+
+    // ── C190 ─────────────────────────────────────────────
+    // Para CFOP 5929 com CST 090: vBC e vICMS ficam 0,00
+    const vBC_c190  = '0,00';
+    const vICM_c190 = '0,00';
+    const c190=`\n|C190|${cst_icms_final.padStart(3,'0')}|${CFOP}|${vBC_c190}|${vNF_fmt}|0,00|${vBC_c190}|${vICM_c190}|0,00|0,00|0,00||`;
+
+    const block=`${c100}${c110}${c113}${c190}`;
+
+    if(regra5929) log(`  → CFOP5929: CST 00→090, vBC/vICMS zerados`,'warn');
+
+    return{
+      status:'new',fileName,chave,nNF,serie,destNome:destNome||destCNPJ,
+      vNF:vNF_fmt,regra5929,hasRef:!!refNFe,nNF_ref,dtRef:dtRef_display,
+      block,insertionInfo:{chave,nNF,serie,block,destCNPJ}
+    };
+
+  }catch(e){
+    return{status:'error',fileName,error:e.message};
+  }
+}
+
+function fmtCur(val){
+  if(!val)return'0,00';
+  const n=parseFloat(String(val).replace(',','.'));
+  if(isNaN(n))return'0,00';
+  return n.toFixed(2).replace('.',',');
+}
+
+// ═══ BUILD NEW SPED ════════════════════════════════
+function buildNewSped(original,insertions){
+  const lines=original.split('\n');
+
+  insertions.sort((a,b)=>{
+    if(a.serie!==b.serie)return a.serie.localeCompare(b.serie);
+    return parseInt(a.nNF)-parseInt(b.nNF);
+  });
+
+  const newLines=[...lines];
+  let offset=0;
+
+  for(const ins of insertions){
+    // Tentar inserir após o bloco da NF anterior na mesma série
+    let insertAt=-1;
+    const prevNF=parseInt(ins.nNF)-1;
+    const serie3=ins.serie.padStart(3,'0');
+
+    for(let i=0;i<newLines.length;i++){
+      const l=newLines[i];
+      // Localizar C100 da NF anterior
+      if((l.includes(`|${serie3}|${prevNF}|`)||l.includes(`|${ins.serie}|${prevNF}|`))&&l.startsWith('|C100|')){
+        // Avançar até próximo C100 ou C990
+        for(let j=i+1;j<Math.min(i+15,newLines.length);j++){
+          const lj=newLines[j];
+          if(lj.startsWith('|C100|')||lj.startsWith('|C990|')){insertAt=j;break}
+        }
+        if(insertAt!==-1)break;
+      }
+    }
+
+    // Fallback: inserir antes do C990
+    if(insertAt===-1){
+      insertAt=newLines.findIndex(l=>l.trim().startsWith('|C990|'));
+      if(insertAt===-1)insertAt=newLines.length-6;
+    }
+
+    const blockLines=ins.block.split('\n').filter(l=>l.trim());
+    newLines.splice(insertAt+offset,0,...blockLines);
+    offset+=blockLines.length;
+  }
+
+  return updateLineCounts(newLines.join('\n'));
+}
+
+function updateLineCounts(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  const total=lines.length;
+
+  // Recalcular contagem real de cada tipo de registro
+  const counts={};
+  for(const l of lines){
+    const m=l.match(/^\|([A-Z0-9]+)\|/);
+    if(m) counts[m[1]]=(counts[m[1]]||0)+1;
+  }
+
+  return lines.map(l=>{
+    if(l.startsWith('|9999|')) return `|9999|${total}`;
+    const m9900=l.match(/^\|9900\|([A-Z0-9]+)\|/);
+    if(m9900){
+      const reg=m9900[1];
+      const cnt=counts[reg]||0;
+      return `|9900|${reg}|${cnt}|`;
+    }
+    return l;
+  }).join('\n');
+}
+
+// ═══ RENDER RESULTS ════════════════════════════════
+function renderResults(){
+  const tbody=document.getElementById('resultBody');
+  const countEl=document.getElementById('resultCount');
+  const section=document.getElementById('resultSection');
+
+  const news  =state.results.filter(r=>r.status==='new').length;
+  const exists=state.results.filter(r=>r.status==='exists').length;
+  const errors=state.results.filter(r=>r.status==='error').length;
+
+  countEl.innerHTML=`<span class="count-new">✔ ${news} nova(s)</span> &nbsp;
+    <span class="count-exists">⚠ ${exists} já existe(m)</span> &nbsp;
+    <span class="count-error">✖ ${errors} erro(s)</span>`;
+
+  tbody.innerHTML=state.results.map((r,i)=>{
+    const badge=r.status==='new'
+      ?`<span class="badge badge-new">Nova — Incluída</span>`
+      :r.status==='exists'
+      ?`<span class="badge badge-exists">Já Existe</span>`
+      :`<span class="badge badge-error">Erro</span>`;
+
+    const refInfo=r.hasRef
+      ?`<span style="color:var(--success);font-size:0.65rem">${r.nNF_ref||'—'}<br>${r.dtRef||''}</span>`
+      :`<span style="color:var(--muted);font-size:0.68rem">sem ref</span>`;
+
+    const cstInfo=r.regra5929
+      ?`<span class="badge badge-exists" title="CFOP5929: CST 00→090">090 ✓</span>`
+      :`<span style="color:var(--muted);font-size:0.68rem">padrão</span>`;
+
+    return `<tr>
+      <td>${i+1}</td>
+      <td style="color:var(--primary)">${r.fileName||'—'}</td>
+      <td style="font-weight:700">${r.nNF||'—'}</td>
+      <td>${r.serie||'—'}</td>
+      <td>${r.destNome||r.error||'—'}</td>
+      <td>${r.vNF||'—'}</td>
+      <td>${refInfo}</td>
+      <td>${cstInfo}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+
+  section.style.display='block';
+  setStep(3,'done');
+}
+
+// ═══ DOWNLOAD ══════════════════════════════════════
+function downloadSped(){
+  if(!state.newSpedContent)return;
+  // Restaurar \r\n (padrão Windows) para compatibilidade com PVA SPED
+  const finalContent=state.newSpedContent.replace(/\n/g,'\r\n');
+  const blob=new Blob([finalContent],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const orig=state.txtFile?state.txtFile.name.replace('.txt',''):'sped';
+  a.href=url;a.download=`${orig}_com_inclusoes_${ts}.txt`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  log(`✔ Download iniciado: ${a.download}`,'success');
+}
+
+// ═══ CLEAR ════════════════════════════════════════
+function clearAll(){
+  state.xmlFiles=[];state.txtFile=null;state.spedContent=null;
+  state.results=[];state.newSpedContent=null;
+  document.getElementById('xmlList').innerHTML='';
+  document.getElementById('txtList').innerHTML='';
+  document.getElementById('resultSection').style.display='none';
+  document.getElementById('resultBody').innerHTML='';
+  document.getElementById('btnProcess').disabled=true;
+  document.getElementById('btnDownload').disabled=true;
+  document.getElementById('progressOuter').style.display='none';
+  document.getElementById('statsBar').textContent='— Aguardando arquivos —';
+  ['step1','step2','step3'].forEach((s,i)=>{
+    document.getElementById(s+'card').className='step-card'+(i===0?' active':'');
+    document.getElementById(s+'status').textContent=i===0?'● Aguardando arquivos...':'○ Pendente';
+    document.getElementById(s+'status').className='step-status '+(i===0?'active':'pending');
+  });
+  log('Sistema reiniciado.','muted');
+}
+
+// ═══ FILE READER ══════════════════════════════════
+function readFile(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=()=>rej(new Error('Falha ao ler arquivo'));
+    r.readAsText(file,'UTF-8');
+  });
+}
+</script>
+</body>
+</html>
