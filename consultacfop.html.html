@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFOP & CST — Consulta Fiscal Nacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --itau-orange: #FF6600;
+  --itau-orange-light: #FF8533;
+  --itau-orange-dark: #CC5200;
+  --itau-navy: #003399;
+  --itau-navy-mid: #0044CC;
+  --itau-navy-light: #1A55D4;
+  --itau-gold: #F5A623;
+  --bg: #F4F6FA;
+  --surface: #FFFFFF;
+  --surface2: #EEF1F8;
+  --surface3: #E4E9F4;
+  --border: #D0D8EC;
+  --text: #0D1B3E;
+  --text2: #3A4A6B;
+  --text3: #6A7A9B;
+  --text-inv: #FFFFFF;
+  --shadow: 0 2px 16px rgba(0,51,153,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,51,153,0.14);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+  --entry-color: #1A8A4A;
+  --exit-color: #0044CC;
+  --internal-color: #6B3FA0;
+  --inter-color: #C85A00;
+  --intl-color: #006B8A;
+  --normal-color: #003399;
+  --simples-color: #006633;
+}
+[data-theme="dark"] {
+  --bg: #0A0F1E;
+  --surface: #111827;
+  --surface2: #1A2236;
+  --surface3: #243050;
+  --border: #2A3A5E;
+  --text: #E8EEFF;
+  --text2: #A0B0D0;
+  --text3: #607090;
+  --shadow: 0 2px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+  --entry-color: #3FBB6E;
+  --exit-color: #5588FF;
+  --internal-color: #A07FCC;
+  --inter-color: #FF9944;
+  --intl-color: #33BBDD;
+  --normal-color: #5588FF;
+  --simples-color: #44BB77;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;font-size:14px;line-height:1.5}
+/* ── HEADER ── */
+.header{background:var(--itau-navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.3)}
+.header-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:16px;height:64px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-mark{width:36px;height:36px;background:var(--itau-orange);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;letter-spacing:-1px;flex-shrink:0}
+.logo-text{color:#fff;font-weight:700;font-size:18px;line-height:1}
+.logo-text span{display:block;font-size:11px;font-weight:400;color:rgba(255,255,255,.6);letter-spacing:.5px;margin-top:2px}
+.header-sep{flex:1}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:8px 18px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.6);font-family:'Sora',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.nav-tab.active,.nav-tab:hover{background:rgba(255,255,255,.12);color:#fff}
+.nav-tab.active{background:var(--itau-orange);color:#fff}
+.theme-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:15px}
+.theme-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.4)}
+/* ── HERO STRIP ── */
+.hero{background:linear-gradient(135deg,var(--itau-navy) 0%,var(--itau-navy-mid) 60%,var(--itau-orange-dark) 100%);padding:28px 24px 24px;border-bottom:3px solid var(--itau-orange)}
+.hero-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.hero-title{color:#fff;font-size:26px;font-weight:800;line-height:1.1}
+.hero-title span{color:var(--itau-orange)}
+.hero-sub{color:rgba(255,255,255,.65);font-size:13px;margin-top:4px;font-weight:400}
+.hero-stats{display:flex;gap:16px;margin-left:auto}
+.stat-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;text-align:center;backdrop-filter:blur(4px)}
+.stat-pill strong{display:block;color:#fff;font-size:22px;font-weight:800;line-height:1}
+.stat-pill small{color:rgba(255,255,255,.6);font-size:11px}
+/* ── MAIN ── */
+.main{max-width:1400px;margin:0 auto;padding:24px}
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:240px;position:relative}
+.search-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.search-input{width:100%;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);padding:0 14px 0 42px;font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border .2s,box-shadow .2s}
+.search-input:focus{border-color:var(--itau-orange);box-shadow:0 0 0 3px rgba(255,102,0,.12)}
+.search-input::placeholder{color:var(--text3)}
+.filter-select{height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);padding:0 36px 0 14px;font-family:'Sora',sans-serif;font-size:13px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236A7A9B' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;min-width:160px;transition:border .2s}
+.filter-select:focus{border-color:var(--itau-orange);box-shadow:0 0 0 3px rgba(255,102,0,.12)}
+.btn{height:44px;border-radius:10px;border:none;padding:0 18px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--itau-orange);color:#fff}
+.btn-primary:hover{background:var(--itau-orange-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,102,0,.35)}
+.btn-outline{background:var(--surface);color:var(--itau-navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--itau-orange);color:var(--itau-orange)}
+[data-theme="dark"] .btn-outline{color:var(--text2)}
+/* ── QUICK TIPS ── */
+.tip-bar{background:linear-gradient(90deg,var(--itau-navy) 0%,var(--itau-navy-mid) 100%);border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;color:#fff;font-size:13px}
+.tip-bar i{color:var(--itau-gold);font-size:16px;flex-shrink:0}
+.tip-bar strong{color:var(--itau-gold)}
+/* ── TABLE WRAPPER ── */
+.table-wrap{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.table-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.table-title i{color:var(--itau-orange)}
+.count-badge{background:var(--itau-orange);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:4px}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--surface2)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;cursor:pointer;user-select:none;transition:color .2s;border-bottom:2px solid var(--border)}
+th:hover{color:var(--itau-orange)}
+th .sort-icon{margin-left:5px;opacity:.4;font-size:10px}
+th.sorted .sort-icon{opacity:1;color:var(--itau-orange)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child{border-bottom:none}
+td{padding:12px 16px;vertical-align:middle;font-size:13px}
+.code-cell{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--itau-navy);white-space:nowrap}
+[data-theme="dark"] .code-cell{color:#7BAEFF}
+.desc-cell{max-width:340px}
+.desc-primary{font-weight:600;color:var(--text);font-size:13px}
+.desc-secondary{font-size:11px;color:var(--text3);margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-entry{background:rgba(26,138,74,.12);color:var(--entry-color)}
+.badge-exit{background:rgba(0,68,204,.12);color:var(--exit-color)}
+.badge-internal{background:rgba(107,63,160,.12);color:var(--internal-color)}
+.badge-inter{background:rgba(200,90,0,.12);color:var(--inter-color)}
+.badge-intl{background:rgba(0,107,138,.12);color:var(--intl-color)}
+.badge-normal{background:rgba(0,51,153,.12);color:var(--normal-color)}
+.badge-simples{background:rgba(0,102,51,.12);color:var(--simples-color)}
+.cst-chips{display:flex;flex-wrap:wrap;gap:4px;max-width:280px}
+.cst-chip{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.cst-chip:hover{background:var(--itau-orange);border-color:var(--itau-orange);color:#fff}
+/* ── DETAIL MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.4);transform:translateY(20px);transition:transform .25s;border:1px solid var(--border)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-head{padding:24px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.modal-close:hover{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.modal-body{padding:20px 24px 24px}
+.modal-code{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--itau-orange);line-height:1}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-top:6px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.info-block{background:var(--surface2);border-radius:10px;padding:14px}
+.info-block label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+.info-block p{font-size:13px;color:var(--text);font-weight:500}
+.info-block.full{grid-column:1/-1}
+.compat-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+/* ── VALIDATION PANEL ── */
+.validator{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+.validator-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.validator-title i{color:var(--itau-orange)}
+.validator-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.validator-field{display:flex;flex-direction:column;gap:6px;min-width:160px}
+.validator-field label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.validator-result{margin-top:14px;border-radius:10px;padding:14px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px}
+.result-valid{background:rgba(26,138,74,.1);border:1.5px solid rgba(26,138,74,.3);color:#1A8A4A}
+.result-invalid{background:rgba(204,0,0,.08);border:1.5px solid rgba(204,0,0,.25);color:#CC0000}
+.result-neutral{background:var(--surface2);border:1.5px solid var(--border);color:var(--text3)}
+[data-theme="dark"] .result-valid{color:#44BB77}
+[data-theme="dark"] .result-invalid{color:#FF6666}
+/* ── EMPTY STATE ── */
+.empty{padding:60px 24px;text-align:center;color:var(--text3)}
+.empty i{font-size:42px;display:block;margin-bottom:14px;color:var(--border)}
+.empty p{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty small{font-size:13px}
+/* ── LOADING ── */
+.loading{padding:40px;text-align:center;color:var(--text3)}
+.loading-spin{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--itau-orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── COMPARE PANEL ── */
+.compare-bar{background:var(--itau-navy);border-radius:10px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:#fff;font-size:13px;flex-wrap:wrap}
+.compare-bar.hidden{display:none}
+.compare-item{background:rgba(255,255,255,.12);border-radius:7px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
+.compare-clear{margin-left:auto;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:7px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:'Sora',sans-serif}
+.compare-clear:hover{background:rgba(255,255,255,.2)}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero-stats{display:none}
+  .hero-title{font-size:20px}
+  .nav-tabs{display:none}
+  .info-grid{grid-template-columns:1fr}
+  .toolbar{gap:8px}
+  td{padding:10px 12px}
+  .main{padding:16px}
+}
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.table-wrap{animation:fadeIn .3s ease}
+tbody tr{animation:fadeIn .2s ease both}
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">CF</div>
+      <div class="logo-text">FiscalApp <span>CFOP & CST Nacional</span></div>
+    </a>
+    <div class="header-sep"></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('cfop')" id="tab-cfop">
+        <i class="fa-solid fa-table-list"></i> CFOP
+      </button>
+      <button class="nav-tab" onclick="switchTab('cst')" id="tab-cst">
+        <i class="fa-solid fa-tags"></i> CST / CSOSN
+      </button>
+      <button class="nav-tab" onclick="switchTab('validar')" id="tab-validar">
+        <i class="fa-solid fa-check-double"></i> Validar
+      </button>
+    </nav>
+    <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+      <i class="fa-solid fa-moon" id="theme-icon"></i>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-title">Consulta Fiscal <span>Nacional</span></div>
+      <div class="hero-sub">Base completa de CFOP e CST/CSOSN — sempre atualizada com a legislação vigente</div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill"><strong id="total-cfop">0</strong><small>CFOPs</small></div>
+      <div class="stat-pill"><strong id="total-cst">11</strong><small>CSTs</small></div>
+      <div class="stat-pill"><strong>10</strong><small>CSOSNs</small></div>
+    </div>
+  </div>
+</div>
+
+<main class="main">
+  <!-- TIP BAR -->
+  <div class="tip-bar">
+    <i class="fa-solid fa-lightbulb"></i>
+    <span id="tip-text"><strong>Dica:</strong> carregando...</span>
+  </div>
+
+  <!-- COMPARE BAR -->
+  <div class="compare-bar hidden" id="compare-bar">
+    <i class="fa-solid fa-code-compare"></i>
+    <span>Comparando:</span>
+    <span class="compare-item" id="cmp-a">—</span>
+    <span style="opacity:.5">vs</span>
+    <span class="compare-item" id="cmp-b">—</span>
+    <button class="compare-clear" onclick="clearCompare()"><i class="fa-solid fa-xmark"></i> Limpar</button>
+    <button class="btn btn-primary" style="height:34px;padding:0 14px;font-size:12px" onclick="openCompareModal()"><i class="fa-solid fa-eye"></i> Ver</button>
+  </div>
+
+  <!-- CFOP PANEL -->
+  <div id="panel-cfop">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search-input" type="text" id="cfop-search" placeholder="Buscar por código ou descrição..." oninput="filterCfop()">
+      </div>
+      <select class="filter-select" id="cfop-tipo" onchange="filterCfop()">
+        <option value="">Tipo: Todos</option>
+        <option value="Entrada">Entradas (1xxx/2xxx/3xxx)</option>
+        <option value="Saída">Saídas (5xxx/6xxx/7xxx)</option>
+      </select>
+      <select class="filter-select" id="cfop-abrangencia" onchange="filterCfop()">
+        <option value="">Abrangência: Todas</option>
+        <option value="Interna">Interna</option>
+        <option value="Interestadual">Interestadual</option>
+        <option value="Internacional">Internacional</option>
+      </select>
+      <button class="btn btn-outline" onclick="exportCsv('cfop')"><i class="fa-solid fa-file-csv"></i> Exportar</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title"><i class="fa-solid fa-table-list"></i> Tabela CFOP <span class="count-badge" id="cfop-count">0</span></div>
+        <small style="color:var(--text3);font-size:12px">Clique em uma linha para detalhes · Clique em CST para filtrar</small>
+      </div>
+      <div class="table-scroll">
+        <table id="cfop-table">
+          <thead>
+            <tr>
+              <th onclick="sortCfop('codigo')">Código <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th onclick="sortCfop('tipo')">Tipo <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th onclick="sortCfop('abrangencia')">Abrangência <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th onclick="sortCfop('descricao')">Descrição <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th>CSTs Compatíveis</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="cfop-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cfop-empty" class="empty" style="display:none">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+        <p>Nenhum CFOP encontrado</p>
+        <small>Tente outros termos de busca</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- CST PANEL -->
+  <div id="panel-cst" style="display:none">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search-input" type="text" id="cst-search" placeholder="Buscar por código ou descrição..." oninput="filterCst()">
+      </div>
+      <select class="filter-select" id="cst-regime" onchange="filterCst()">
+        <option value="">Regime: Todos</option>
+        <option value="Normal">Regime Normal</option>
+        <option value="Simples Nacional">Simples Nacional (CSOSN)</option>
+      </select>
+      <button class="btn btn-outline" onclick="exportCsv('cst')"><i class="fa-solid fa-file-csv"></i> Exportar</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title"><i class="fa-solid fa-tags"></i> Tabela CST / CSOSN <span class="count-badge" id="cst-count">0</span></div>
+      </div>
+      <div class="table-scroll">
+        <table id="cst-table">
+          <thead>
+            <tr>
+              <th onclick="sortCst('codigo')">Código <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th onclick="sortCst('regime')">Regime <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th onclick="sortCst('descricao')">Descrição <i class="fa-solid fa-sort sort-icon"></i></th>
+              <th>Origem</th>
+              <th>CFOPs Comuns</th>
+              <th>Quando Usar</th>
+            </tr>
+          </thead>
+          <tbody id="cst-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cst-empty" class="empty" style="display:none">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+        <p>Nenhum CST encontrado</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALIDAR PANEL -->
+  <div id="panel-validar" style="display:none">
+    <div class="validator">
+      <div class="validator-title"><i class="fa-solid fa-check-double"></i> Validador de Combinação CFOP + CST</div>
+      <div class="validator-row">
+        <div class="validator-field">
+          <label>CFOP</label>
+          <input class="search-input" type="text" id="val-cfop" placeholder="Ex: 5102" style="height:44px;width:160px" maxlength="4" oninput="runValidation()">
+        </div>
+        <div class="validator-field">
+          <label>CST / CSOSN</label>
+          <input class="search-input" type="text" id="val-cst" placeholder="Ex: 00 ou 101" style="height:44px;width:160px" maxlength="3" oninput="runValidation()">
+        </div>
+        <div class="validator-field">
+          <label>Regime Tributário</label>
+          <select class="filter-select" id="val-regime" onchange="runValidation()" style="height:44px">
+            <option value="Normal">Regime Normal</option>
+            <option value="Simples Nacional">Simples Nacional</option>
+          </select>
+        </div>
+      </div>
+      <div id="val-result" class="validator-result result-neutral">
+        <i class="fa-solid fa-circle-info"></i>
+        Informe um CFOP e um CST para validar a combinação.
+      </div>
+    </div>
+    <!-- Tabela cruzada rápida -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title"><i class="fa-solid fa-table-cells"></i> Referência Rápida — Compatibilidades mais comuns</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>CFOP</th><th>Descrição</th><th>CSTs compatíveis (Normal)</th><th>CSOSNs compatíveis (Simples)</th></tr></thead>
+          <tbody id="compat-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-code" id="modal-code"></div>
+        <div class="modal-title" id="modal-title"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalBtn()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA — CFOP completo
+// ═══════════════════════════════════════════════════════════
+const cfops = [
+/* ── ENTRADAS INTERNAS (1xxx) ── */
+{codigo:"1101",descricao:"Compra para Industrialização",tipo:"Entrada",abrangencia:"Interna",obs:"Mercadoria destinada à industrialização pelo estabelecimento",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"1102",descricao:"Compra para Comercialização (Revenda)",tipo:"Entrada",abrangencia:"Interna",obs:"Mercadoria destinada à revenda pelo estabelecimento",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"1111",descricao:"Compra para Industrialização em Zona Franca de Manaus",tipo:"Entrada",abrangencia:"Interna",obs:"Aquisição de mercadorias com benefícios fiscais da Zona Franca",csts:["40","41","101","102","400"]},
+{codigo:"1113",descricao:"Compra para Comercialização em Zona Franca de Manaus",tipo:"Entrada",abrangencia:"Interna",obs:"Aquisição de mercadorias com benefícios fiscais da ZFM",csts:["40","41","101","102","400"]},
+{codigo:"1116",descricao:"Compra para Industrialização originada de encomenda",tipo:"Entrada",abrangencia:"Interna",obs:"Recebimento de mercadoria industrializada por terceiros sob encomenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1117",descricao:"Compra para Comercialização originada de encomenda",tipo:"Entrada",abrangencia:"Interna",obs:"Recebimento de mercadoria com industrialização sob encomenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1118",descricao:"Compra de mercadoria para comercialização pelo adquirente originária de encomenda",tipo:"Entrada",abrangencia:"Interna",obs:"Variante de encomenda para revenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1120",descricao:"Compra para Industrialização, em venda à ordem",tipo:"Entrada",abrangencia:"Interna",obs:"Operação triangular: industrialização em venda à ordem",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1121",descricao:"Compra para Comercialização, em venda à ordem",tipo:"Entrada",abrangencia:"Interna",obs:"Operação triangular: revenda em venda à ordem",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1122",descricao:"Compra para Industrialização em operação com mercadoria sujeita ao regime de ST",tipo:"Entrada",abrangencia:"Interna",obs:"Industrialização com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"1124",descricao:"Industrialização efetuada por outra empresa",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de industrialização por terceiros",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1125",descricao:"Industrialização efetuada por outra empresa — serviço",tipo:"Entrada",abrangencia:"Interna",obs:"Serviços de industrialização de terceiros",csts:["00","20","40","41","90"]},
+{codigo:"1126",descricao:"Compra para Utilização na Prestação de Serviços",tipo:"Entrada",abrangencia:"Interna",obs:"Aquisição de material para prestação de serviços",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1128",descricao:"Compra para Utilização na Prestação de Serviços com ST",tipo:"Entrada",abrangencia:"Interna",obs:"Material para serviços com substituição tributária",csts:["10","60","70","201","202","500"]},
+{codigo:"1201",descricao:"Devolução de Venda Interna",tipo:"Entrada",abrangencia:"Interna",obs:"Entrada por devolução de mercadoria vendida no estado",csts:["00","10","20","40","41","60","70","90","101","102","201","202","400","500"]},
+{codigo:"1202",descricao:"Devolução de Venda Interna de Mercadoria Sujeita à ST",tipo:"Entrada",abrangencia:"Interna",obs:"Devolução específica de mercadoria com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"1203",descricao:"Devolução de Venda Interna de Produção do Estabelecimento",tipo:"Entrada",abrangencia:"Interna",obs:"Devolução de produção própria — operação interna",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1204",descricao:"Devolução de Venda em Zona Franca de Manaus",tipo:"Entrada",abrangencia:"Interna",obs:"Devolução de vendas com benefícios ZFM",csts:["40","41","101","102","400"]},
+{codigo:"1205",descricao:"Anulação de Valor relativo à Prestação de Serviço de Comunicação",tipo:"Entrada",abrangencia:"Interna",obs:"Cancelamento de serviços de comunicação",csts:["40","41"]},
+{codigo:"1206",descricao:"Anulação de Valor relativo à Prestação de Serviço de Transporte",tipo:"Entrada",abrangencia:"Interna",obs:"Cancelamento de serviços de transporte",csts:["40","41"]},
+{codigo:"1207",descricao:"Anulação de Valor relativo à Venda de Energia Elétrica",tipo:"Entrada",abrangencia:"Interna",obs:"Cancelamento de venda de energia elétrica",csts:["40","41"]},
+{codigo:"1208",descricao:"Devolução de Produção do Estabelecimento, remetida em Transferência",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria transferida entre filiais",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1209",descricao:"Devolução de Mercadoria remetida para uso e consumo",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de material de uso e consumo",csts:["40","41","102","400"]},
+{codigo:"1251",descricao:"Compra de Energia Elétrica para Distribuição / Comercialização",tipo:"Entrada",abrangencia:"Interna",obs:"Aquisição de energia elétrica",csts:["00","20","40","41","90"]},
+{codigo:"1252",descricao:"Compra de Energia Elétrica — gerada em autoprodutor",tipo:"Entrada",abrangencia:"Interna",obs:"Energia de autoprodutor",csts:["00","40","41","90"]},
+{codigo:"1253",descricao:"Compra de Energia Elétrica para Consumo Próprio",tipo:"Entrada",abrangencia:"Interna",obs:"Energia para consumo do estabelecimento",csts:["00","20","40","41","90"]},
+{codigo:"1254",descricao:"Compra de Energia Elétrica para Uso do Processo Industrial",tipo:"Entrada",abrangencia:"Interna",obs:"Energia usada diretamente no processo produtivo",csts:["00","20","40","41","90"]},
+{codigo:"1255",descricao:"Compra de Energia Elétrica para Uso na Agricultura",tipo:"Entrada",abrangencia:"Interna",obs:"Energia elétrica destinada à atividade agrícola",csts:["00","20","40","41","90"]},
+{codigo:"1256",descricao:"Compra de Energia Elétrica para Uso na Pecuária",tipo:"Entrada",abrangencia:"Interna",obs:"Energia elétrica destinada à atividade pecuária",csts:["00","20","40","41","90"]},
+{codigo:"1257",descricao:"Compra de Energia Elétrica para Geração de Energia Elétrica",tipo:"Entrada",abrangencia:"Interna",obs:"Insumo para geração de energia",csts:["00","20","40","41","90"]},
+{codigo:"1301",descricao:"Compra de Combustível ou Lubrificante para Industrialização",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível como insumo industrial",csts:["00","20","40","41","60","70","90"]},
+{codigo:"1302",descricao:"Compra de Combustível ou Lubrificante para Comercialização",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para revenda",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"1303",descricao:"Compra de Combustível ou Lubrificante para Consumo",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para uso interno",csts:["00","20","40","41","60","70","90"]},
+{codigo:"1351",descricao:"Compra de Combustível ou Lubrificante para Industrialização com ST",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível industrial com substituição tributária",csts:["10","60","70","201","202","500"]},
+{codigo:"1352",descricao:"Compra de Combustível ou Lubrificante para Comercialização com ST",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para revenda com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"1353",descricao:"Compra de Combustível ou Lubrificante para Consumo com ST",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para consumo com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"1401",descricao:"Compra para Industrialização em Operação com Mercadoria Sujeita à ST",tipo:"Entrada",abrangencia:"Interna",obs:"Entrada com ST — industrialização",csts:["10","60","70","201","202","500"]},
+{codigo:"1403",descricao:"Compra para Comercialização em Operação com Mercadoria Sujeita à ST",tipo:"Entrada",abrangencia:"Interna",obs:"Compra de mercadoria com ST para revenda",csts:["10","60","70","201","202","500"]},
+{codigo:"1406",descricao:"Compra de Bem para o Ativo Imobilizado",tipo:"Entrada",abrangencia:"Interna",obs:"Aquisição de ativo imobilizado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1407",descricao:"Compra de Mercadoria para Uso ou Consumo",tipo:"Entrada",abrangencia:"Interna",obs:"Materiais de uso e consumo sem revenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1408",descricao:"Transferência para Industrialização",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência entre estabelecimentos para industrialização",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1409",descricao:"Transferência para Comercialização",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência entre filiais para revenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1410",descricao:"Transferência para Distribuição",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência para distribuição entre estabelecimentos",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1411",descricao:"Devolução de Compra para Industrialização em ST",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de compra com ST para industrialização",csts:["10","60","70","201","202","500"]},
+{codigo:"1412",descricao:"Devolução de Compra para Revenda em ST",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de compra com ST para revenda",csts:["10","60","70","201","202","500"]},
+{codigo:"1413",descricao:"Entradas de Mercadorias com Provisão p/ Ajuste de Preço",tipo:"Entrada",abrangencia:"Interna",obs:"Entrada com variação de preço acordada",csts:["00","20","40","41","90"]},
+{codigo:"1414",descricao:"Retorno de Remessa para Venda fora do Estabelecimento",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria enviada para venda fora",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1415",descricao:"Retorno de Remessa de Mercadoria Remetida sem Transação",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno sem operação de compra/venda",csts:["41","102","400"]},
+{codigo:"1501",descricao:"Entrada de Serviço de Comunicação",tipo:"Entrada",abrangencia:"Interna",obs:"Prestação de serviço de comunicação recebida",csts:["00","20","40","41","90"]},
+{codigo:"1503",descricao:"Aquisição de Serviço de Comunicação — Uso p/ Consumo",tipo:"Entrada",abrangencia:"Interna",obs:"Serviço de comunicação para consumo próprio",csts:["00","20","40","41","90"]},
+{codigo:"1551",descricao:"Compra de Bem para o Ativo Imobilizado",tipo:"Entrada",abrangencia:"Interna",obs:"Bem destinado ao ativo fixo do estabelecimento",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"1552",descricao:"Transferência de Bem do Ativo Imobilizado",tipo:"Entrada",abrangencia:"Interna",obs:"Recebimento de bem de ativo transferido de outra filial",csts:["00","40","41","90","102","400"]},
+{codigo:"1553",descricao:"Devolução de Venda de Bem do Ativo Imobilizado",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de venda de bem do ativo",csts:["00","40","41","90","102","400"]},
+{codigo:"1554",descricao:"Retorno de Bem do Ativo Imobilizado Remetido para Uso Fora do Estabelecimento",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de ativo imobilizado utilizado externamente",csts:["00","40","41","90"]},
+{codigo:"1555",descricao:"Entrada de Bem do Ativo Imobilizado de Terceiro, remetido p/ Uso no Estabelecimento",tipo:"Entrada",abrangencia:"Interna",obs:"Ativo de terceiro disponibilizado para uso",csts:["00","40","41","90"]},
+{codigo:"1601",descricao:"Recebimento, por Transferência, de Crédito de ICMS",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência de crédito acumulado de ICMS",csts:["90"]},
+{codigo:"1602",descricao:"Recebimento, por Transferência, de Saldo Credor de ICMS",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência de saldo credor entre estabelecimentos",csts:["90"]},
+{codigo:"1603",descricao:"Ressarcimento de ICMS por Retenção de ST",tipo:"Entrada",abrangencia:"Interna",obs:"Ressarcimento do substituto tributário",csts:["60","70","500"]},
+{codigo:"1604",descricao:"Lançamento do crédito relativo à compra de bem p/ o ativo imobilizado",tipo:"Entrada",abrangencia:"Interna",obs:"Aproveitamento do crédito do ativo imobilizado (CIAP)",csts:["00","20","40","41","90"]},
+{codigo:"1605",descricao:"Recebimento, por Transferência, de Saldo Devedor de ICMS ST",tipo:"Entrada",abrangencia:"Interna",obs:"Transferência de saldo devedor de ST",csts:["60","70","500"]},
+{codigo:"1650",descricao:"Entradas de Combustíveis e Lubrificantes carregados a Bordo",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para embarcações e aeronaves",csts:["00","40","41","90"]},
+{codigo:"1651",descricao:"Compra de Combustível ou Lubrificante para Uso em Embarcações",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para embarcações",csts:["00","40","41","90"]},
+{codigo:"1652",descricao:"Compra de Combustível ou Lubrificante para Uso em Aeronaves",tipo:"Entrada",abrangencia:"Interna",obs:"Combustível para aeronaves",csts:["00","40","41","90"]},
+{codigo:"1901",descricao:"Entrada para Industrialização por Encomenda",tipo:"Entrada",abrangencia:"Interna",obs:"Remessa para processo industrial de terceiros",csts:["00","40","41","90","101","102","400"]},
+{codigo:"1910",descricao:"Entrada de Bonificação em Mercadorias",tipo:"Entrada",abrangencia:"Interna",obs:"Entrada de mercadoria recebida como bonificação",csts:["00","40","41","90","101","102","400"]},
+{codigo:"1916",descricao:"Entrada em Consignação Mercantil",tipo:"Entrada",abrangencia:"Interna",obs:"Mercadoria recebida em consignação",csts:["00","40","41","50","90","101","102","400"]},
+{codigo:"1917",descricao:"Entrada de Mercadoria Recebida em Consignação Industrial",tipo:"Entrada",abrangencia:"Interna",obs:"Consignação industrial",csts:["00","40","41","50","90"]},
+{codigo:"1918",descricao:"Devolução de Mercadoria Remetida em Consignação Industrial",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria em consignação industrial",csts:["00","40","41","90"]},
+{codigo:"1919",descricao:"Devolução Simbólica de Mercadoria Vendida ou Utilizada em Processo Industrial",tipo:"Entrada",abrangencia:"Interna",obs:"Devolução simbólica de mercadoria",csts:["00","40","41","90"]},
+{codigo:"1920",descricao:"Entrada de Vasilhame ou Sacaria",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de vasilhame ou sacaria",csts:["00","40","41","90","101","102","400"]},
+{codigo:"1921",descricao:"Retorno de Vasilhame ou Sacaria",tipo:"Entrada",abrangencia:"Interna",obs:"Devolução de embalagem retornável",csts:["00","40","41","90","101","102","400"]},
+{codigo:"1922",descricao:"Entrada de Embalagem — Operação com Vasilhame",tipo:"Entrada",abrangencia:"Interna",obs:"Embalagem retornável em operação interna",csts:["00","40","41","90"]},
+{codigo:"1923",descricao:"Entrada de Mercadoria Remetida para Demonstração",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria enviada para demonstração",csts:["41","102","400"]},
+{codigo:"1924",descricao:"Entrada de Mercadoria Remetida para Exposição ou Feira",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria de exposição/feira",csts:["41","102","400"]},
+{codigo:"1925",descricao:"Entrada de Mercadoria Remetida para Teste",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria enviada para teste",csts:["41","102","400"]},
+{codigo:"1926",descricao:"Entrada de Mercadoria Remetida para Pesquisa",tipo:"Entrada",abrangencia:"Interna",obs:"Retorno de mercadoria enviada para pesquisa",csts:["41","102","400"]},
+{codigo:"1949",descricao:"Outra Entrada de Mercadoria ou Prestação de Serviço não Especificado",tipo:"Entrada",abrangencia:"Interna",obs:"Entradas diversas não enquadradas nos CFOPs específicos",csts:["00","20","40","41","50","51","90","101","102","103","400","900"]},
+/* ── ENTRADAS INTERESTADUAIS (2xxx) ── */
+{codigo:"2101",descricao:"Compra para Industrialização — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Compra de outro estado para industrialização",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"2102",descricao:"Compra para Comercialização — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Compra de outro estado para revenda",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"2111",descricao:"Compra para Industrialização em ZFM — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Industrialização com benefício ZFM — interestadual",csts:["40","41","101","102","400"]},
+{codigo:"2113",descricao:"Compra para Comercialização em ZFM — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Revenda com benefício ZFM — interestadual",csts:["40","41","101","102","400"]},
+{codigo:"2116",descricao:"Compra para Industrialização originada de encomenda — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Encomenda de industrialização de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2117",descricao:"Compra para Comercialização originada de encomenda — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Encomenda para revenda de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2120",descricao:"Compra para Industrialização, em venda à ordem — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Triangular: industrialização venda à ordem interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2121",descricao:"Compra para Comercialização, em venda à ordem — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Triangular: revenda venda à ordem interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2122",descricao:"Compra para Industrialização com ST — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Industrialização com ST de outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"2124",descricao:"Industrialização efetuada por outra empresa — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Retorno de industrialização por terceiros de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2201",descricao:"Devolução de Venda Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Devolução de mercadoria de venda interestadual",csts:["00","10","20","40","41","60","70","90","101","102","201","202","400","500"]},
+{codigo:"2202",descricao:"Devolução de Venda Interestadual de Mercadoria com ST",tipo:"Entrada",abrangencia:"Interestadual",obs:"Devolução com ST — interestadual",csts:["10","60","70","201","202","500"]},
+{codigo:"2203",descricao:"Devolução de Venda Interestadual de Produção Própria",tipo:"Entrada",abrangencia:"Interestadual",obs:"Devolução de produção própria de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2251",descricao:"Compra de Energia Elétrica — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Energia elétrica adquirida de outro estado",csts:["00","20","40","41","90"]},
+{codigo:"2253",descricao:"Compra de Energia Elétrica para Consumo Próprio — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Energia interestadual para consumo",csts:["00","20","40","41","90"]},
+{codigo:"2301",descricao:"Compra de Combustível — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível comprado de outro estado",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"2302",descricao:"Compra de Combustível para Comercialização — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível para revenda de outro estado",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"2351",descricao:"Compra de Combustível com ST — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível com ST de outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"2401",descricao:"Compra para Industrialização com ST — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Industrialização com ST interestadual",csts:["10","60","70","201","202","500"]},
+{codigo:"2403",descricao:"Compra para Comercialização com ST — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Revenda com ST de outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"2406",descricao:"Compra de Bem para o Ativo Imobilizado — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Ativo imobilizado de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2407",descricao:"Compra para Uso ou Consumo — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Material de uso e consumo de outro estado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2408",descricao:"Transferência para Industrialização — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Recebimento de filial de outro estado para industrialização",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2409",descricao:"Transferência para Comercialização — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Recebimento de filial de outro estado para revenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2410",descricao:"Transferência para Distribuição — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Transferência interestadual para distribuição",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2501",descricao:"Entrada de Serviço de Comunicação — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Serviços de comunicação de outro estado",csts:["00","20","40","41","90"]},
+{codigo:"2503",descricao:"Serviço de Comunicação para Consumo Próprio — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Comunicação de outro estado para consumo",csts:["00","20","40","41","90"]},
+{codigo:"2551",descricao:"Compra de Bem para Ativo Imobilizado — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Ativo imobilizado interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"2552",descricao:"Transferência de Bem do Ativo — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Transferência de ativo de outro estado",csts:["00","40","41","90","102","400"]},
+{codigo:"2553",descricao:"Devolução de Venda de Bem do Ativo — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Retorno de venda de ativo interestadual",csts:["00","40","41","90","102","400"]},
+{codigo:"2601",descricao:"Recebimento de Crédito de ICMS — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Transferência de crédito de ICMS entre estados",csts:["90"]},
+{codigo:"2603",descricao:"Ressarcimento de ICMS por ST — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Ressarcimento de ST em operação interestadual",csts:["60","70","500"]},
+{codigo:"2650",descricao:"Entradas de Combustíveis carregados a Bordo — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível para embarcações/aeronaves — interestadual",csts:["00","40","41","90"]},
+{codigo:"2651",descricao:"Compra de Combustível para Embarcações — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível para embarcações de outro estado",csts:["00","40","41","90"]},
+{codigo:"2652",descricao:"Compra de Combustível para Aeronaves — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Combustível para aeronaves de outro estado",csts:["00","40","41","90"]},
+{codigo:"2901",descricao:"Entrada p/ Industrialização por Encomenda — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Encomenda de industrialização de outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"2910",descricao:"Entrada de Bonificação — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Bonificação recebida de outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"2916",descricao:"Entrada em Consignação Mercantil — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Consignação mercantil interestadual",csts:["00","40","41","50","90","101","102","400"]},
+{codigo:"2920",descricao:"Entrada de Vasilhame ou Sacaria — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Retorno de vasilhame/sacaria de outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"2921",descricao:"Retorno de Vasilhame ou Sacaria — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Devolução de embalagem de outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"2922",descricao:"Entrada de Embalagem — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Embalagem retornável interestadual",csts:["00","40","41","90"]},
+{codigo:"2923",descricao:"Entrada de Mercadoria Remetida para Demonstração — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Retorno de demonstração de outro estado",csts:["41","102","400"]},
+{codigo:"2949",descricao:"Outra Entrada — Interestadual",tipo:"Entrada",abrangencia:"Interestadual",obs:"Entradas diversas interestaduais",csts:["00","20","40","41","50","51","90","101","102","103","400","900"]},
+/* ── ENTRADAS DO EXTERIOR (3xxx) ── */
+{codigo:"3101",descricao:"Compra para Industrialização — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Importação de mercadoria para industrialização",csts:["00","20","40","41","50","90"]},
+{codigo:"3102",descricao:"Compra para Comercialização — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Importação de mercadoria para revenda",csts:["00","20","40","41","50","90"]},
+{codigo:"3126",descricao:"Compra para Utilização na Prestação de Serviços — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Importação de material para serviços",csts:["00","20","40","41","90"]},
+{codigo:"3201",descricao:"Devolução de Exportação",tipo:"Entrada",abrangencia:"Internacional",obs:"Retorno de mercadoria exportada",csts:["40","41","90"]},
+{codigo:"3202",descricao:"Devolução de Exportação de Mercadoria com ST",tipo:"Entrada",abrangencia:"Internacional",obs:"Retorno de exportação com ST",csts:["40","41","90"]},
+{codigo:"3211",descricao:"Devolução de Venda em ZFM — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Retorno de exportação para ZFM",csts:["40","41"]},
+{codigo:"3251",descricao:"Compra de Energia Elétrica — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Energia importada",csts:["00","40","41","90"]},
+{codigo:"3301",descricao:"Compra de Combustível — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Combustível importado",csts:["00","40","41","90"]},
+{codigo:"3351",descricao:"Compra de Combustível com ST — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Combustível importado com ST",csts:["10","60","70"]},
+{codigo:"3501",descricao:"Entrada de Serviço de Comunicação — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Serviço de comunicação importado",csts:["00","40","41","90"]},
+{codigo:"3502",descricao:"Entrada de Serviço de Transporte — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Serviço de transporte internacional",csts:["00","40","41","90"]},
+{codigo:"3551",descricao:"Importação de Bem p/ Ativo Imobilizado",tipo:"Entrada",abrangencia:"Internacional",obs:"Ativo importado",csts:["00","40","41","90"]},
+{codigo:"3552",descricao:"Importação de Material de Uso ou Consumo",tipo:"Entrada",abrangencia:"Internacional",obs:"Uso/consumo importado",csts:["00","40","41","90"]},
+{codigo:"3601",descricao:"Recebimento de Crédito — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Crédito de operação de importação",csts:["90"]},
+{codigo:"3650",descricao:"Entrada de Combustível carregado a Bordo — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Combustível importado p/ embarcação/aeronave",csts:["00","40","41","90"]},
+{codigo:"3651",descricao:"Compra de Combustível para Embarcações — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Combustível importado p/ embarcação",csts:["00","40","41","90"]},
+{codigo:"3652",descricao:"Compra de Combustível para Aeronaves — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Combustível importado p/ aeronave",csts:["00","40","41","90"]},
+{codigo:"3901",descricao:"Entrada p/ Industrialização por Encomenda — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Encomenda de industrialização do exterior",csts:["00","40","41","90"]},
+{codigo:"3949",descricao:"Outra Entrada — Importação",tipo:"Entrada",abrangencia:"Internacional",obs:"Entradas diversas do exterior",csts:["00","40","41","90"]},
+/* ── SAÍDAS INTERNAS (5xxx) ── */
+{codigo:"5101",descricao:"Venda de Produção do Estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Venda de mercadoria fabricada pelo próprio estabelecimento",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"5102",descricao:"Venda de Mercadoria Adquirida para Revenda",tipo:"Saída",abrangencia:"Interna",obs:"Venda interna de mercadoria comprada para revenda",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"5103",descricao:"Venda de Produção do Estabelecimento, efetuada fora do estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Venda da produção própria fora do local",csts:["00","10","20","40","41","90","101","102","400"]},
+{codigo:"5104",descricao:"Venda de Mercadoria Adquirida para Revenda, fora do estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Revenda fora do estabelecimento",csts:["00","10","20","40","41","90","101","102","400"]},
+{codigo:"5105",descricao:"Venda de Produção do Estabelecimento com ST (Saída Interna)",tipo:"Saída",abrangencia:"Interna",obs:"Venda de produção com retenção de ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5106",descricao:"Venda de Mercadoria Adquirida para Revenda com ST (Saída Interna)",tipo:"Saída",abrangencia:"Interna",obs:"Revenda interna com retenção de ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5109",descricao:"Venda de Produção do Estabelecimento para Entrega Futura",tipo:"Saída",abrangencia:"Interna",obs:"Venda com entrega futura — faturamento antecipado",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5110",descricao:"Venda de Mercadoria Adquirida para Revenda para Entrega Futura",tipo:"Saída",abrangencia:"Interna",obs:"Revenda com entrega futura",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5111",descricao:"Venda de Produção do Estabelecimento em ZFM",tipo:"Saída",abrangencia:"Interna",obs:"Venda para ZFM com benefícios fiscais",csts:["40","41","101","102","400"]},
+{codigo:"5112",descricao:"Venda de Mercadoria Adquirida para Revenda em ZFM",tipo:"Saída",abrangencia:"Interna",obs:"Revenda para ZFM",csts:["40","41","101","102","400"]},
+{codigo:"5113",descricao:"Venda de Produção do Estabelecimento em ZFM com ST",tipo:"Saída",abrangencia:"Interna",obs:"Produção para ZFM com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5114",descricao:"Venda de Mercadoria Adquirida para Revenda em ZFM com ST",tipo:"Saída",abrangencia:"Interna",obs:"Revenda para ZFM com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5115",descricao:"Venda de Mercadoria Adquirida para Revenda, Recebida Anteriormente em Consignação Mercantil",tipo:"Saída",abrangencia:"Interna",obs:"Efetivação da venda de mercadoria consignada",csts:["00","10","20","40","41","90","101","102","400"]},
+{codigo:"5116",descricao:"Venda de Produção do Estabelecimento, originada de Encomenda para Entrega Futura",tipo:"Saída",abrangencia:"Interna",obs:"Produção sob encomenda com entrega futura",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5117",descricao:"Venda de Mercadoria Adquirida para Revenda, originada de Encomenda para Entrega Futura",tipo:"Saída",abrangencia:"Interna",obs:"Revenda por encomenda com entrega futura",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5118",descricao:"Venda de Produção do Estabelecimento, entregue ao destinatário por conta e ordem do adquirente originário",tipo:"Saída",abrangencia:"Interna",obs:"Entrega direta ao cliente final em venda à ordem",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5119",descricao:"Venda de Mercadoria Adquirida, entregue ao destinatário por conta e ordem do adquirente originário",tipo:"Saída",abrangencia:"Interna",obs:"Venda à ordem — entrega direta",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5120",descricao:"Venda de Mercadoria Adquirida, entregue ao destinatário pelo vendedor originário",tipo:"Saída",abrangencia:"Interna",obs:"Venda à ordem — entrega pelo remetente original",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5122",descricao:"Venda de Produção do Estabelecimento remetida para Industrialização, a Pedido do Adquirente",tipo:"Saída",abrangencia:"Interna",obs:"Produção enviada para industrialização por pedido",csts:["00","20","40","41","90"]},
+{codigo:"5123",descricao:"Venda de Mercadoria Adquirida para Revenda, a ser utilizada pelo adquirente na prestação de serviço sujeita ao ISS",tipo:"Saída",abrangencia:"Interna",obs:"Revenda para uso em serviços de ISS",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5124",descricao:"Industrialização efetuada para outra empresa",tipo:"Saída",abrangencia:"Interna",obs:"Saída de mercadoria industrializada por encomenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5125",descricao:"Industrialização efetuada para outra empresa — serviço",tipo:"Saída",abrangencia:"Interna",obs:"Serviço de industrialização executado",csts:["00","20","40","41","90"]},
+{codigo:"5201",descricao:"Devolução de Compra para Industrialização",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de compra destinada a industrialização",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5202",descricao:"Devolução de Compra para Comercialização",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de compra para revenda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5203",descricao:"Devolução de Compra para Uso ou Consumo",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de material de uso/consumo",csts:["00","20","40","41","90","102","400"]},
+{codigo:"5204",descricao:"Devolução de Compra de Bem p/ o Ativo Imobilizado",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de bem imobilizado comprado",csts:["00","20","40","41","90","102","400"]},
+{codigo:"5205",descricao:"Anulação de Valor relativo à Aquisição de Serviço de Comunicação",tipo:"Saída",abrangencia:"Interna",obs:"Cancelamento de serviço de comunicação adquirido",csts:["40","41"]},
+{codigo:"5206",descricao:"Anulação de Valor relativo à Aquisição de Serviço de Transporte",tipo:"Saída",abrangencia:"Interna",obs:"Cancelamento de serviço de transporte adquirido",csts:["40","41"]},
+{codigo:"5207",descricao:"Anulação de Valor relativo à Compra de Energia Elétrica",tipo:"Saída",abrangencia:"Interna",obs:"Cancelamento de compra de energia",csts:["40","41"]},
+{codigo:"5208",descricao:"Devolução de Mercadoria Recebida em Transferência para Industrialização",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de transferência para industrialização",csts:["00","40","41","90","102","400"]},
+{codigo:"5209",descricao:"Devolução de Mercadoria Recebida em Transferência para Comercialização",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de transferência para revenda",csts:["00","40","41","90","102","400"]},
+{codigo:"5251",descricao:"Venda de Energia Elétrica para Distribuição",tipo:"Saída",abrangencia:"Interna",obs:"Venda de energia para distribuidoras",csts:["00","20","40","41","90"]},
+{codigo:"5252",descricao:"Venda de Energia Elétrica para Consumidores",tipo:"Saída",abrangencia:"Interna",obs:"Fornecimento de energia para consumidores finais",csts:["00","20","40","41","90"]},
+{codigo:"5253",descricao:"Venda de Energia Elétrica para Consumo por Demanda Contratada",tipo:"Saída",abrangencia:"Interna",obs:"Energia por demanda contratada",csts:["00","20","40","41","90"]},
+{codigo:"5254",descricao:"Venda de Energia Elétrica para Uso Industrial",tipo:"Saída",abrangencia:"Interna",obs:"Energia para uso industrial",csts:["00","20","40","41","90"]},
+{codigo:"5255",descricao:"Venda de Energia Elétrica para Uso na Agricultura",tipo:"Saída",abrangencia:"Interna",obs:"Energia para agricultura",csts:["00","20","40","41","90"]},
+{codigo:"5256",descricao:"Venda de Energia Elétrica para Uso na Pecuária",tipo:"Saída",abrangencia:"Interna",obs:"Energia para pecuária",csts:["00","20","40","41","90"]},
+{codigo:"5257",descricao:"Venda de Energia Elétrica para Uso Residencial",tipo:"Saída",abrangencia:"Interna",obs:"Energia residencial",csts:["00","20","40","41","90"]},
+{codigo:"5258",descricao:"Venda de Energia Elétrica para Uso em Iluminação Pública",tipo:"Saída",abrangencia:"Interna",obs:"Energia pública",csts:["00","40","41","90"]},
+{codigo:"5301",descricao:"Venda de Combustível para Industrialização",tipo:"Saída",abrangencia:"Interna",obs:"Combustível vendido para uso industrial",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"5302",descricao:"Venda de Combustível para Comercialização",tipo:"Saída",abrangencia:"Interna",obs:"Combustível para revenda",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"5303",descricao:"Venda de Combustível para Consumo",tipo:"Saída",abrangencia:"Interna",obs:"Combustível para consumo final",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"5351",descricao:"Venda de Combustível com ST (Saída Interna)",tipo:"Saída",abrangencia:"Interna",obs:"Combustível com retenção de ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5352",descricao:"Venda de Combustível para Comercialização com ST",tipo:"Saída",abrangencia:"Interna",obs:"Revenda de combustível com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5353",descricao:"Venda de Combustível para Consumo com ST",tipo:"Saída",abrangencia:"Interna",obs:"Combustível para consumo com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5401",descricao:"Venda de Produção do Estabelecimento com ST (Saída Interna)",tipo:"Saída",abrangencia:"Interna",obs:"Produção própria com retenção de ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5403",descricao:"Venda de Mercadoria Adquirida para Revenda com ST (Saída Interna)",tipo:"Saída",abrangencia:"Interna",obs:"Revenda com ST recolhida pelo substituto",csts:["10","60","70","201","202","500"]},
+{codigo:"5405",descricao:"Venda de Mercadoria Adquirida para Revenda com ST Já Retido",tipo:"Saída",abrangencia:"Interna",obs:"Revenda de mercadoria com ST previamente retida",csts:["60","500"]},
+{codigo:"5408",descricao:"Transferência de Produção do Estabelecimento em Operação com ST",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de produção com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5409",descricao:"Transferência de Mercadoria Adquirida para Revenda com ST",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de revenda com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5410",descricao:"Devolução de Compra para Industrialização em ST",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de compra industrial com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5411",descricao:"Devolução de Compra para Revenda em ST",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de revenda com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5412",descricao:"Devolução de Compra para Uso/Consumo em ST",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de uso/consumo com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5413",descricao:"Devolução de Compra de Ativo Imobilizado em ST",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de ativo com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5501",descricao:"Remessa para Venda Fora do Estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Envio de mercadoria para venda em outro local",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5502",descricao:"Remessa para Estabelecimento Produtor",tipo:"Saída",abrangencia:"Interna",obs:"Envio para estabelecimento produtor rural",csts:["00","40","41","90","102","400"]},
+{codigo:"5503",descricao:"Remessa de Mercadoria para Uso e Consumo",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de material de uso/consumo",csts:["40","41","102","400"]},
+{codigo:"5504",descricao:"Remessa para Formação de Lote de Exportação",tipo:"Saída",abrangencia:"Interna",obs:"Envio para formação de lote destinado à exportação",csts:["40","41","102","400"]},
+{codigo:"5505",descricao:"Remessa de Produção para Vendas",tipo:"Saída",abrangencia:"Interna",obs:"Produção própria enviada para ponto de venda",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5506",descricao:"Remessa para Armazenagem",tipo:"Saída",abrangencia:"Interna",obs:"Envio de mercadoria para depósito/armazém",csts:["40","41","102","400"]},
+{codigo:"5507",descricao:"Remessa para Depósito em Armazém Geral",tipo:"Saída",abrangencia:"Interna",obs:"Depósito em armazém geral",csts:["40","41","102","400"]},
+{codigo:"5508",descricao:"Remessa de Bem para Conserto ou Reparo",tipo:"Saída",abrangencia:"Interna",obs:"Envio de bem para conserto",csts:["40","41","102","400"]},
+{codigo:"5509",descricao:"Remessa de Bem para Demonstração",tipo:"Saída",abrangencia:"Interna",obs:"Envio de bem para demonstração comercial",csts:["41","102","400"]},
+{codigo:"5510",descricao:"Remessa de Bem para Exposição ou Feira",tipo:"Saída",abrangencia:"Interna",obs:"Envio para exposição ou feira de negócios",csts:["41","102","400"]},
+{codigo:"5551",descricao:"Venda de Bem do Ativo Imobilizado",tipo:"Saída",abrangencia:"Interna",obs:"Venda de ativo imobilizado do estabelecimento",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5552",descricao:"Transferência de Bem do Ativo Imobilizado",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de bem do ativo para outra filial",csts:["00","40","41","90","102","400"]},
+{codigo:"5553",descricao:"Devolução de Compra de Bem do Ativo Imobilizado",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de ativo adquirido",csts:["00","40","41","90","102","400"]},
+{codigo:"5554",descricao:"Remessa de Bem do Ativo Imobilizado para Uso Fora do Estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Ativo enviado para uso externo",csts:["40","41","90","102","400"]},
+{codigo:"5555",descricao:"Remessa de Bem do Ativo Imobilizado para uso em prestação de serviço de outro estabelecimento",tipo:"Saída",abrangencia:"Interna",obs:"Ativo cedido para prestação de serviços",csts:["40","41","90","102","400"]},
+{codigo:"5601",descricao:"Transferência de Crédito de ICMS Acumulado",tipo:"Saída",abrangencia:"Interna",obs:"Repasse de crédito de ICMS",csts:["90"]},
+{codigo:"5602",descricao:"Transferência de Saldo Credor de ICMS para outro Estabelecimento da Mesma Empresa",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de crédito entre filiais",csts:["90"]},
+{codigo:"5603",descricao:"Ressarcimento de ICMS por Retenção — ST",tipo:"Saída",abrangencia:"Interna",obs:"Ressarcimento ao substituído",csts:["60","70","500"]},
+{codigo:"5604",descricao:"Lançamento do crédito relativo à venda de bem do ativo imobilizado",tipo:"Saída",abrangencia:"Interna",obs:"Ajuste de crédito no CIAP",csts:["00","40","41","90"]},
+{codigo:"5605",descricao:"Transferência de Saldo Devedor de ICMS — ST",tipo:"Saída",abrangencia:"Interna",obs:"Transferência de débito de ST",csts:["60","70","500"]},
+{codigo:"5650",descricao:"Saídas de Combustíveis e Lubrificantes carregados a Bordo",tipo:"Saída",abrangencia:"Interna",obs:"Abastecimento em operação de transporte",csts:["00","40","41","90"]},
+{codigo:"5651",descricao:"Venda de Combustível para Embarcações",tipo:"Saída",abrangencia:"Interna",obs:"Combustível vendido a embarcações",csts:["00","40","41","90"]},
+{codigo:"5652",descricao:"Venda de Combustível para Aeronaves",tipo:"Saída",abrangencia:"Interna",obs:"Combustível vendido a aeronaves",csts:["00","40","41","90"]},
+{codigo:"5901",descricao:"Remessa para Industrialização por Encomenda",tipo:"Saída",abrangencia:"Interna",obs:"Envio de insumos para industrialização por terceiros",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5902",descricao:"Retorno de Mercadoria Utilizada na Industrialização por Encomenda",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de insumos após industrialização",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5903",descricao:"Retorno de Mercadoria Recebida para Industrialização e Não Aplicada no Referido Processo",tipo:"Saída",abrangencia:"Interna",obs:"Insumos não utilizados devolvidos",csts:["00","40","41","90","102","400"]},
+{codigo:"5904",descricao:"Remessa para Venda Fora do Estabelecimento em Operação com Produto Sujeito ao ST",tipo:"Saída",abrangencia:"Interna",obs:"Remessa para venda externa com ST",csts:["10","60","70","201","202","500"]},
+{codigo:"5905",descricao:"Remessa para Depósito Fechado ou Armazém Geral",tipo:"Saída",abrangencia:"Interna",obs:"Envio para depósito fechado",csts:["40","41","102","400"]},
+{codigo:"5906",descricao:"Remessa para Incorporação ao Ativo Imobilizado de Terceiros (Empréstimo)",tipo:"Saída",abrangencia:"Interna",obs:"Bem cedido para uso no ativo de terceiros",csts:["40","41","102","400"]},
+{codigo:"5910",descricao:"Remessa em Bonificação",tipo:"Saída",abrangencia:"Interna",obs:"Envio de mercadoria em bonificação (brinde/amostra)",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5911",descricao:"Remessa de Amostra Grátis",tipo:"Saída",abrangencia:"Interna",obs:"Distribuição de amostras sem ônus",csts:["40","41","102","400"]},
+{codigo:"5912",descricao:"Remessa de Mercadoria ou Bem para Demonstração, Mostruário",tipo:"Saída",abrangencia:"Interna",obs:"Envio para demonstração/mostruário",csts:["41","102","400"]},
+{codigo:"5913",descricao:"Remessa para Industrialização",tipo:"Saída",abrangencia:"Interna",obs:"Envio de matéria-prima para industrialização",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5914",descricao:"Remessa de Mercadoria ou Bem para Exposição",tipo:"Saída",abrangencia:"Interna",obs:"Envio para exposição/feira",csts:["41","102","400"]},
+{codigo:"5915",descricao:"Entrada de Mercadoria ou Bem Recebido para Conserto",tipo:"Saída",abrangencia:"Interna",obs:"Recebimento para conserto — saída após reparo",csts:["00","40","41","90"]},
+{codigo:"5916",descricao:"Remessa de Mercadoria em Consignação Mercantil",tipo:"Saída",abrangencia:"Interna",obs:"Envio de mercadoria em consignação para terceiros",csts:["00","40","41","50","90","101","102","400"]},
+{codigo:"5917",descricao:"Remessa de Mercadoria em Consignação Industrial",tipo:"Saída",abrangencia:"Interna",obs:"Consignação industrial",csts:["00","40","41","50","90"]},
+{codigo:"5918",descricao:"Devolução de Mercadoria Recebida em Consignação Industrial",tipo:"Saída",abrangencia:"Interna",obs:"Devolução de consignação industrial",csts:["00","40","41","90"]},
+{codigo:"5919",descricao:"Devolução Simbólica de Mercadoria Vendida ou Utilizada em Processo Industrial",tipo:"Saída",abrangencia:"Interna",obs:"Devolução simbólica de produção",csts:["00","40","41","90"]},
+{codigo:"5920",descricao:"Remessa de Vasilhame ou Sacaria",tipo:"Saída",abrangencia:"Interna",obs:"Envio de embalagem retornável",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5921",descricao:"Devolução de Vasilhame ou Sacaria",tipo:"Saída",abrangencia:"Interna",obs:"Retorno de embalagem",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5922",descricao:"Lançamento Efetuado a Título de Simples Faturamento Decorrente de Venda p/ Entrega Futura",tipo:"Saída",abrangencia:"Interna",obs:"Faturamento antecipado de entrega futura",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"5923",descricao:"Remessa de Mercadoria por Conta e Ordem de Terceiros",tipo:"Saída",abrangencia:"Interna",obs:"Entrega por conta e ordem de outro estabelecimento",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5924",descricao:"Remessa para Industrialização por Conta e Ordem de Terceiros",tipo:"Saída",abrangencia:"Interna",obs:"Industrialização por conta de terceiros",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5925",descricao:"Retorno de Mercadoria Recebida para Industrialização por Conta e Ordem de Terceiros",tipo:"Saída",abrangencia:"Interna",obs:"Retorno de industrialização de terceiros",csts:["00","40","41","90","101","102","400"]},
+{codigo:"5926",descricao:"Lançamento Efetuado a Título de Reclassificação de Mercadoria decorrente de Industrialização",tipo:"Saída",abrangencia:"Interna",obs:"Reclassificação contábil de produto industrializado",csts:["00","40","41","90"]},
+{codigo:"5927",descricao:"Lançamento efetuado a título de low value no mercado secundário",tipo:"Saída",abrangencia:"Interna",obs:"Operação de baixo valor em mercado secundário",csts:["00","40","41","90"]},
+{codigo:"5949",descricao:"Outra Saída de Mercadoria ou Prestação de Serviço não Especificado",tipo:"Saída",abrangencia:"Interna",obs:"Saídas diversas internas não enquadradas",csts:["00","20","40","41","50","51","90","101","102","103","400","900"]},
+/* ── SAÍDAS INTERESTADUAIS (6xxx) ── */
+{codigo:"6101",descricao:"Venda de Produção do Estabelecimento — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Venda de produção própria para outro estado",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"6102",descricao:"Venda de Mercadoria Adquirida para Revenda — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda para outro estado",csts:["00","10","20","40","41","50","51","60","70","90","101","102","103","201","202","203","400","500","900"]},
+{codigo:"6103",descricao:"Venda de Produção, efetuada fora do estabelecimento — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção própria vendida fora interestadual",csts:["00","10","20","40","41","90","101","102","400"]},
+{codigo:"6104",descricao:"Venda de Mercadoria, efetuada fora do estabelecimento — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda fora do estabelecimento interestadual",csts:["00","10","20","40","41","90","101","102","400"]},
+{codigo:"6105",descricao:"Venda de Produção com ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção com ST para outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"6106",descricao:"Venda de Mercadoria com ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda com ST para outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"6107",descricao:"Venda de Produção do Estabelecimento para uso na Agropecuária — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção para agropecuária interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6108",descricao:"Venda de Mercadoria para uso na Agropecuária — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda agropecuária interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6109",descricao:"Venda de Produção para Entrega Futura — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção com entrega futura interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6110",descricao:"Venda de Mercadoria para Entrega Futura — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda com entrega futura interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6111",descricao:"Venda de Produção em ZFM — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção para ZFM interestadual",csts:["40","41","101","102","400"]},
+{codigo:"6112",descricao:"Venda de Mercadoria em ZFM — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda para ZFM interestadual",csts:["40","41","101","102","400"]},
+{codigo:"6201",descricao:"Devolução de Compra para Industrialização — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Devolução de compra industrial interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6202",descricao:"Devolução de Compra para Comercialização — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Devolução de revenda interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6203",descricao:"Devolução de Compra para Uso ou Consumo — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Devolução uso/consumo interestadual",csts:["00","20","40","41","90","102","400"]},
+{codigo:"6205",descricao:"Anulação de Serviço de Comunicação — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Cancelamento de serviço comunicação interestadual",csts:["40","41"]},
+{codigo:"6206",descricao:"Anulação de Serviço de Transporte — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Cancelamento de transporte interestadual",csts:["40","41"]},
+{codigo:"6251",descricao:"Venda de Energia Elétrica para Distribuidoras — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Energia para distribuidoras de outro estado",csts:["00","20","40","41","90"]},
+{codigo:"6252",descricao:"Venda de Energia Elétrica para Consumidores — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Energia para consumidores de outro estado",csts:["00","20","40","41","90"]},
+{codigo:"6301",descricao:"Venda de Combustível para Industrialização — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível industrial para outro estado",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"6302",descricao:"Venda de Combustível para Comercialização — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível para revenda interestadual",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"6303",descricao:"Venda de Combustível para Consumo — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível para consumo de outro estado",csts:["00","10","20","40","41","60","70","90"]},
+{codigo:"6351",descricao:"Venda de Combustível com ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível com ST interestadual",csts:["10","60","70","201","202","500"]},
+{codigo:"6401",descricao:"Venda de Produção com ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Produção própria com ST para outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"6403",descricao:"Venda de Mercadoria com ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda com ST para outro estado",csts:["10","60","70","201","202","500"]},
+{codigo:"6405",descricao:"Venda de Mercadoria com ST Já Retido — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Revenda com ST previamente retida interestadual",csts:["60","500"]},
+{codigo:"6501",descricao:"Remessa para Venda Fora do Estabelecimento — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Envio para venda externa interestadual",csts:["00","20","40","41","90","101","102","400"]},
+{codigo:"6503",descricao:"Remessa de Mercadoria para Uso e Consumo — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Uso/consumo enviado a outro estado",csts:["40","41","102","400"]},
+{codigo:"6551",descricao:"Venda de Bem do Ativo Imobilizado — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Ativo imobilizado vendido para outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"6552",descricao:"Transferência de Bem do Ativo Imobilizado — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Ativo transferido para filial de outro estado",csts:["00","40","41","90","102","400"]},
+{codigo:"6553",descricao:"Devolução de Compra de Bem do Ativo — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Devolução de ativo adquirido interestadual",csts:["00","40","41","90","102","400"]},
+{codigo:"6601",descricao:"Transferência de Crédito de ICMS — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Transferência de crédito entre estados",csts:["90"]},
+{codigo:"6603",descricao:"Ressarcimento de ICMS por ST — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Ressarcimento de ST interestadual",csts:["60","70","500"]},
+{codigo:"6650",descricao:"Saídas de Combustíveis carregados a Bordo — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Abastecimento interestadual",csts:["00","40","41","90"]},
+{codigo:"6651",descricao:"Venda de Combustível para Embarcações — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível a embarcações de outro estado",csts:["00","40","41","90"]},
+{codigo:"6652",descricao:"Venda de Combustível para Aeronaves — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Combustível a aeronaves de outro estado",csts:["00","40","41","90"]},
+{codigo:"6901",descricao:"Remessa para Industrialização por Encomenda — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Encomenda de industrialização para outro estado",csts:["00","40","41","90","101","102","400"]},
+{codigo:"6910",descricao:"Remessa em Bonificação — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Bonificação interestadual",csts:["00","40","41","90","101","102","400"]},
+{codigo:"6916",descricao:"Remessa em Consignação Mercantil — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Consignação mercantil interestadual",csts:["00","40","41","50","90","101","102","400"]},
+{codigo:"6920",descricao:"Remessa de Vasilhame ou Sacaria — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Embalagem retornável interestadual",csts:["00","40","41","90","101","102","400"]},
+{codigo:"6921",descricao:"Devolução de Vasilhame ou Sacaria — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Retorno de embalagem interestadual",csts:["00","40","41","90","101","102","400"]},
+{codigo:"6922",descricao:"Remessa de Embalagem — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Embalagem interestadual",csts:["00","40","41","90"]},
+{codigo:"6923",descricao:"Remessa de Mercadoria para Demonstração — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Demonstração de outro estado",csts:["41","102","400"]},
+{codigo:"6924",descricao:"Remessa para Exposição ou Feira — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Exposição interestadual",csts:["41","102","400"]},
+{codigo:"6949",descricao:"Outra Saída — Interestadual",tipo:"Saída",abrangencia:"Interestadual",obs:"Saídas diversas para outro estado",csts:["00","20","40","41","50","51","90","101","102","103","400","900"]},
+/* ── SAÍDAS PARA O EXTERIOR (7xxx) ── */
+{codigo:"7101",descricao:"Venda de Produção do Estabelecimento — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de produção própria",csts:["40","41","90"]},
+{codigo:"7102",descricao:"Venda de Mercadoria Adquirida — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de mercadoria comprada",csts:["40","41","90"]},
+{codigo:"7105",descricao:"Venda de Produção com ST — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de produção com ST",csts:["40","41","90"]},
+{codigo:"7106",descricao:"Venda de Mercadoria com ST — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de mercadoria com ST",csts:["40","41","90"]},
+{codigo:"7127",descricao:"Venda de Produção do Estabelecimento sob Regime Drawback",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação sob drawback",csts:["40","41","90"]},
+{codigo:"7201",descricao:"Devolução de Compra — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Devolução de importação",csts:["40","41","90"]},
+{codigo:"7202",descricao:"Devolução de Compra com ST — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Devolução de importação com ST",csts:["40","41","90"]},
+{codigo:"7210",descricao:"Devoluções de Compras para Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Retorno de mercadoria comprada para exportar",csts:["40","41","90"]},
+{codigo:"7251",descricao:"Venda de Energia Elétrica — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de energia",csts:["40","41","90"]},
+{codigo:"7301",descricao:"Venda de Combustível — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de combustível",csts:["40","41","90"]},
+{codigo:"7358",descricao:"Prestação de Serviço de Transporte — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Serviço de transporte internacional exportado",csts:["40","41","90"]},
+{codigo:"7501",descricao:"Exportação de Mercadorias Recebidas com Fim Específico de Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de mercadoria recebida para esse fim",csts:["40","41","90"]},
+{codigo:"7551",descricao:"Venda de Bem do Ativo Imobilizado — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Exportação de bem do ativo",csts:["40","41","90"]},
+{codigo:"7650",descricao:"Saídas de Combustíveis carregados a Bordo — Internacional",tipo:"Saída",abrangencia:"Internacional",obs:"Combustível para aeronave/embarcação internacional",csts:["40","41","90"]},
+{codigo:"7651",descricao:"Venda de Combustível para Embarcações — Internacional",tipo:"Saída",abrangencia:"Internacional",obs:"Combustível para embarcações no exterior",csts:["40","41","90"]},
+{codigo:"7652",descricao:"Venda de Combustível para Aeronaves — Internacional",tipo:"Saída",abrangencia:"Internacional",obs:"Combustível para aeronaves no exterior",csts:["40","41","90"]},
+{codigo:"7901",descricao:"Remessa para Industrialização — Internacional",tipo:"Saída",abrangencia:"Internacional",obs:"Envio para industrialização no exterior",csts:["40","41","90"]},
+{codigo:"7949",descricao:"Outra Saída — Exportação",tipo:"Saída",abrangencia:"Internacional",obs:"Saídas diversas para o exterior",csts:["40","41","90"]},
+];
+
+// ═══════════════════════════════════════════════════════════
+//  DATA — CST / CSOSN
+// ═══════════════════════════════════════════════════════════
+const csts = [
+{codigo:"00",regime:"Normal",descricao:"Tributada Integralmente",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102"],uso:"Mercadoria tributada pelo ICMS sem qualquer benefício fiscal. Aplica-se à maioria das operações comerciais com incidência plena do imposto."},
+{codigo:"10",regime:"Normal",descricao:"Tributada com Substituição Tributária",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Operações em que o remetente é responsável por reter e recolher o ICMS por toda a cadeia (ex: cigarros, refrigerantes, combustíveis)."},
+{codigo:"20",regime:"Normal",descricao:"Com Redução de Base de Cálculo",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102"],uso:"Base de cálculo reduzida por convênio ou lei estadual. Usado para produtos agropecuários, medicamentos, máquinas e outros com benefícios parciais."},
+{codigo:"30",regime:"Normal",descricao:"Isenta ou Não Tributada com ST",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Mercadoria isenta ou não tributada na operação própria, porém sujeita à substituição tributária para as etapas seguintes."},
+{codigo:"40",regime:"Normal",descricao:"Isenta",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102","1551","5551"],uso:"Operação amparada por isenção de ICMS prevista em lei ou convênio. Frequente em alimentos básicos, medicamentos e exportações."},
+{codigo:"41",regime:"Normal",descricao:"Não Tributada",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102","1551","2551","5551","6551"],uso:"Operação fora do campo de incidência do ICMS. Usada em transferências simbólicas, remessas para demonstração, comodato e amostras grátis."},
+{codigo:"50",regime:"Normal",descricao:"Suspensão",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1916","2916","5916","6916","1901","5901"],uso:"Diferimento do fato gerador — o imposto fica suspenso até evento futuro (ex: retorno de industrialização, consignação mercantil, remessa para ZFM)."},
+{codigo:"51",regime:"Normal",descricao:"Diferimento",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1650","2650","5650","6650","1102","5102"],uso:"O recolhimento do ICMS é transferido para etapa posterior da cadeia. Comum em produtos primários (cana-de-açúcar, gado) e operações agropecuárias."},
+{codigo:"60",regime:"Normal",descricao:"ICMS Cobrado Anteriormente por Substituição Tributária",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1403","2403","5403","6403","5405","6405"],uso:"Mercadoria cujo ICMS já foi retido na etapa anterior. O revendedor não destaca imposto na NF-e de saída — apenas informa o código 60 e o valor da base retida."},
+{codigo:"70",regime:"Normal",descricao:"Com Redução de Base de Cálculo e Cobrança do ICMS por ST",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Combinação de redução de base com substituição tributária. Produto com redução parcial e ST simultânea (ex: autopeças em alguns estados)."},
+{codigo:"90",regime:"Normal",descricao:"Outras (ICMS Normal)",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1949","2949","5949","6949","1601","5601","6601"],uso:"Situações não enquadradas nos códigos anteriores. Usado em operações atípicas como transferência de crédito, diferencial de alíquota, FECP, etc."},
+{codigo:"101",regime:"Simples Nacional",descricao:"Tributada pelo Simples Nacional com Permissão de Crédito",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102"],uso:"Empresa do Simples Nacional que destaca crédito de ICMS para o tomador (comprador). Obriga informar o percentual de crédito na NF-e conforme alíquota do Simples."},
+{codigo:"102",regime:"Simples Nacional",descricao:"Tributada pelo Simples Nacional sem Permissão de Crédito",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102","1551","5551"],uso:"Empresa do Simples Nacional que NÃO destaca crédito de ICMS. Utilizado quando o tomador não pode aproveitar crédito ou na maioria das vendas varejistas do Simples."},
+{codigo:"103",regime:"Simples Nacional",descricao:"Isenção do ICMS no Simples Nacional para Faixa de Receita Bruta",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102"],uso:"Empresa no Simples Nacional enquadrada na faixa de isenção por baixa receita bruta. O ICMS é zero pela isenção da faixa, não por benefício específico do produto."},
+{codigo:"201",regime:"Simples Nacional",descricao:"Tributada pelo Simples Nacional com Permissão de Crédito e com Cobrança do ICMS por ST",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Simples com ST e com permissão de crédito ao tomador. A empresa recolhe ST e ainda informa o crédito do ICMS próprio do Simples."},
+{codigo:"202",regime:"Simples Nacional",descricao:"Tributada pelo Simples Nacional sem Permissão de Crédito e com Cobrança do ICMS por ST",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Simples com ST e sem permissão de crédito. O mais comum para empresas do Simples que vendem produtos sujeitos à ST sem destaque de crédito."},
+{codigo:"203",regime:"Simples Nacional",descricao:"Isenção do ICMS no Simples Nacional para Faixa de Receita Bruta e com Cobrança do ICMS por ST",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1401","1403","2401","2403","5401","5403","6401","6403"],uso:"Empresa isenta por faixa de receita, mas com ST. A isenção vale para o ICMS próprio; o ICMS-ST ainda deve ser recolhido."},
+{codigo:"300",regime:"Simples Nacional",descricao:"Imune",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1949","5949","6949"],uso:"Operação imune ao ICMS por previsão constitucional (ex: livros, jornais, papel para impressão). Aplicável tanto para contribuintes normais como do Simples."},
+{codigo:"400",regime:"Simples Nacional",descricao:"Não Tributada pelo Simples Nacional",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1101","1102","2101","2102","5101","5102","6101","6102","1551","2551","5551","6551"],uso:"Operação fora da incidência do ICMS para empresa do Simples. Usada em remessas simbólicas, comodatos, amostras, demonstrações e operações sem fato gerador."},
+{codigo:"500",regime:"Simples Nacional",descricao:"ICMS Cobrado Anteriormente por ST ou por Antecipação",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1403","2403","5403","6403","5405","6405"],uso:"Equivalente ao CST 60 para o Simples Nacional. Mercadoria com ICMS já retido. O revendedor do Simples não destaca ICMS na saída."},
+{codigo:"900",regime:"Simples Nacional",descricao:"Outros (Simples Nacional)",origem:"0 — Nacional; 1 — Estrangeira importada; 2 — Estrangeira mercado interno",cfops:["1949","2949","5949","6949"],uso:"Demais situações tributárias não enquadradas nos CSOSN anteriores para empresas do Simples Nacional."},
+];
+
+const tips = [
+  "<strong>Dica:</strong> CFOPs 5.xxx são operações internas (dentro do estado), 6.xxx são interestaduais e 7.xxx são exportações.",
+  "<strong>Dica:</strong> CST 60 e CSOSN 500 indicam que o ICMS já foi recolhido por ST — não destaque ICMS na NF-e de saída.",
+  "<strong>Dica:</strong> Empresas do Simples Nacional usam CSOSN (1xx–9xx) em vez dos CSTs convencionais (00–90).",
+  "<strong>Dica:</strong> CFOP 1.xxx/2.xxx são entradas. O primeiro dígito indica: 1=interno, 2=interestadual, 3=importação.",
+  "<strong>Dica:</strong> O CFOP 5.949 e 6.949 são 'curingas' — use apenas quando nenhum CFOP específico se aplica.",
+  "<strong>Dica:</strong> CST 51 (Diferimento) é diferente de 50 (Suspensão): no diferimento o imposto é postergado; na suspensão pode ser cancelado se a condição não ocorrer.",
+  "<strong>Dica:</strong> Exportações sempre usam CFOP 7.xxx e geralmente CST 40 (Isenta) pois o ICMS é desonerado.",
+  "<strong>Dica:</strong> Para devolução, inverta o CFOP: se a venda foi 5.102, a devolução de entrada é 1.201.",
+  "<strong>Dica:</strong> CSOSN 101 permite que o comprador aproveite crédito de ICMS da nota emitida pelo Simples Nacional.",
+  "<strong>Dica:</strong> Transferência entre estabelecimentos da mesma empresa usa CFOPs 1.409/2.409 (entrada) e 5.409/6.409 (saída).",
+];
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let currentTab = 'cfop';
+let cfopSort = {col:'codigo',asc:true};
+let cstSort  = {col:'codigo',asc:true};
+let filteredCfops = [...cfops];
+let filteredCsts  = [...csts];
+let compareItems = [];
+let renderTimer = null;
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  // theme
+  const saved = localStorage.getItem('fiscalTheme');
+  if(saved==='dark'){document.documentElement.setAttribute('data-theme','dark');document.getElementById('theme-icon').className='fa-solid fa-sun';}
+  // tip
+  document.getElementById('tip-text').innerHTML = tips[Math.floor(Math.random()*tips.length)];
+  // stats
+  document.getElementById('total-cfop').textContent = cfops.length;
+  // render
+  renderCfop();
+  renderCst();
+  buildCompatTable();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark?'light':'dark');
+  document.getElementById('theme-icon').className = isDark?'fa-solid fa-moon':'fa-solid fa-sun';
+  localStorage.setItem('fiscalTheme', isDark?'light':'dark');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab){
+  currentTab = tab;
+  ['cfop','cst','validar'].forEach(t=>{
+    document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NORMALIZE (accent-insensitive search)
+// ═══════════════════════════════════════════════════════════
+function norm(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+
+// ═══════════════════════════════════════════════════════════
+//  CFOP RENDER
+// ═══════════════════════════════════════════════════════════
+function filterCfop(){
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(()=>{
+    const q   = norm(document.getElementById('cfop-search').value.trim());
+    const tip = document.getElementById('cfop-tipo').value;
+    const abr = document.getElementById('cfop-abrangencia').value;
+    filteredCfops = cfops.filter(c=>{
+      const matchQ = !q || norm(c.codigo).includes(q) || norm(c.descricao).includes(q) || norm(c.obs||'').includes(q);
+      const matchT = !tip || c.tipo===tip;
+      const matchA = !abr || c.abrangencia===abr;
+      return matchQ && matchT && matchA;
+    });
+    sortArr(filteredCfops, cfopSort.col, cfopSort.asc);
+    renderCfop();
+  },120);
+}
+
+function sortCfop(col){
+  if(cfopSort.col===col) cfopSort.asc=!cfopSort.asc; else {cfopSort.col=col;cfopSort.asc=true;}
+  document.querySelectorAll('#cfop-table th').forEach(th=>th.classList.remove('sorted'));
+  const cols=['codigo','tipo','abrangencia','descricao'];
+  const idx=cols.indexOf(col);
+  if(idx>=0) document.querySelectorAll('#cfop-table th')[idx].classList.add('sorted');
+  sortArr(filteredCfops,col,cfopSort.asc);
+  renderCfop();
+}
+
+function sortArr(arr,col,asc){
+  arr.sort((a,b)=>{
+    const va=String(a[col]||''),vb=String(b[col]||'');
+    return asc?va.localeCompare(vb,-1,{numeric:true}):vb.localeCompare(va,-1,{numeric:true});
+  });
+}
+
+function renderCfop(){
+  const tbody = document.getElementById('cfop-tbody');
+  const empty = document.getElementById('cfop-empty');
+  document.getElementById('cfop-count').textContent = filteredCfops.length;
+  if(!filteredCfops.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const fmtCodigo = c => c.length===4 ? c.slice(0,1)+'.'+c.slice(1) : c;
+  tbody.innerHTML = filteredCfops.map((c,i)=>`
+    <tr style="animation-delay:${Math.min(i,20)*15}ms" onclick="openCfopModal('${c.codigo}')">
+      <td><span class="code-cell">${fmtCodigo(c.codigo)}</span></td>
+      <td><span class="badge ${c.tipo==='Entrada'?'badge-entry':'badge-exit'}"><i class="fa-solid fa-arrow-${c.tipo==='Entrada'?'down':'up'}-long"></i>${c.tipo}</span></td>
+      <td><span class="badge ${c.abrangencia==='Interna'?'badge-internal':c.abrangencia==='Interestadual'?'badge-inter':'badge-intl'}">${c.abrangencia}</span></td>
+      <td class="desc-cell"><div class="desc-primary">${c.descricao}</div><div class="desc-secondary">${c.obs||''}</div></td>
+      <td><div class="cst-chips">${c.csts.slice(0,8).map(cst=>`<span class="cst-chip" onclick="event.stopPropagation();filterByCst('${cst}')" title="Filtrar CST ${cst}">${cst}</span>`).join('')}${c.csts.length>8?`<span class="cst-chip" style="opacity:.5">+${c.csts.length-8}</span>`:''}</div></td>
+      <td><button class="btn btn-outline" style="height:30px;padding:0 10px;font-size:11px" onclick="event.stopPropagation();addCompare('${c.codigo}')"><i class="fa-solid fa-code-compare"></i></button></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CST RENDER
+// ═══════════════════════════════════════════════════════════
+function filterCst(){
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(()=>{
+    const q = norm(document.getElementById('cst-search').value.trim());
+    const r = document.getElementById('cst-regime').value;
+    filteredCsts = csts.filter(c=>{
+      const matchQ = !q || norm(c.codigo).includes(q) || norm(c.descricao).includes(q) || norm(c.uso||'').includes(q);
+      const matchR = !r || c.regime===r;
+      return matchQ && matchR;
+    });
+    sortArr(filteredCsts, cstSort.col, cstSort.asc);
+    renderCst();
+  },120);
+}
+
+function sortCst(col){
+  if(cstSort.col===col) cstSort.asc=!cstSort.asc; else {cstSort.col=col;cstSort.asc=true;}
+  sortArr(filteredCsts,col,cstSort.asc);
+  renderCst();
+}
+
+function renderCst(){
+  const tbody = document.getElementById('cst-tbody');
+  const empty = document.getElementById('cst-empty');
+  document.getElementById('cst-count').textContent = filteredCsts.length;
+  if(!filteredCsts.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML = filteredCsts.map((c,i)=>`
+    <tr style="animation-delay:${Math.min(i,20)*15}ms" onclick="openCstModal('${c.codigo}')">
+      <td><span class="code-cell">${c.codigo}</span></td>
+      <td><span class="badge ${c.regime==='Normal'?'badge-normal':'badge-simples'}">${c.regime==='Normal'?'Normal':'Simples'}</span></td>
+      <td class="desc-cell"><div class="desc-primary">${c.descricao}</div></td>
+      <td style="font-size:11px;color:var(--text3);max-width:160px">${c.origem.split(';')[0].trim()}</td>
+      <td><div class="cst-chips">${c.cfops.slice(0,5).map(cf=>`<span class="cst-chip" onclick="event.stopPropagation();filterByCfop('${cf}')" title="Ver CFOP ${cf}">${cf.slice(0,1)+'.'+cf.slice(1)}</span>`).join('')}${c.cfops.length>5?`<span class="cst-chip" style="opacity:.5">+${c.cfops.length-5}</span>`:''}</div></td>
+      <td style="font-size:12px;color:var(--text3);max-width:220px">${(c.uso||'').substring(0,90)}${(c.uso||'').length>90?'…':''}</td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CROSS-FILTER
+// ═══════════════════════════════════════════════════════════
+function filterByCst(cstCode){
+  switchTab('cst');
+  document.getElementById('cst-search').value = cstCode;
+  filterCst();
+}
+function filterByCfop(cfopCode){
+  switchTab('cfop');
+  document.getElementById('cfop-search').value = cfopCode;
+  filterCfop();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL — CFOP
+// ═══════════════════════════════════════════════════════════
+function fmtCode(c){return c.length===4?c.slice(0,1)+'.'+c.slice(1):c;}
+function openCfopModal(cod){
+  const c = cfops.find(x=>x.codigo===cod);
+  if(!c) return;
+  document.getElementById('modal-code').textContent = fmtCode(c.codigo);
+  document.getElementById('modal-title').textContent = c.descricao;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="info-grid">
+      <div class="info-block"><label>Tipo</label><p><span class="badge ${c.tipo==='Entrada'?'badge-entry':'badge-exit'}">${c.tipo}</span></p></div>
+      <div class="info-block"><label>Abrangência</label><p><span class="badge ${c.abrangencia==='Interna'?'badge-internal':c.abrangencia==='Interestadual'?'badge-inter':'badge-intl'}">${c.abrangencia}</span></p></div>
+      <div class="info-block full"><label>Descrição Oficial</label><p>${c.descricao}</p></div>
+      <div class="info-block full"><label>Observações Fiscais</label><p>${c.obs||'—'}</p></div>
+      <div class="info-block full"><label>CSTs / CSOSNs Compatíveis (${c.csts.length})</label>
+        <div class="compat-list">${c.csts.map(cst=>{const cd=csts.find(x=>x.codigo===cst);return `<span class="cst-chip" onclick="closeModalBtn();setTimeout(()=>openCstModal('${cst}'),100)" title="${cd?cd.descricao:''}">${cst}</span>`}).join('')}</div>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL — CST
+// ═══════════════════════════════════════════════════════════
+function openCstModal(cod){
+  const c = csts.find(x=>x.codigo===cod);
+  if(!c) return;
+  document.getElementById('modal-code').textContent = c.codigo;
+  document.getElementById('modal-title').textContent = c.descricao;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="info-grid">
+      <div class="info-block"><label>Regime</label><p><span class="badge ${c.regime==='Normal'?'badge-normal':'badge-simples'}">${c.regime}</span></p></div>
+      <div class="info-block"><label>Código</label><p style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--itau-orange)">${c.codigo}</p></div>
+      <div class="info-block full"><label>Origem Permitida</label><p>${c.origem}</p></div>
+      <div class="info-block full"><label>Quando Usar</label><p>${c.uso}</p></div>
+      <div class="info-block full"><label>CFOPs mais comuns (${c.cfops.length})</label>
+        <div class="compat-list">${c.cfops.map(cf=>{const cd=cfops.find(x=>x.codigo===cf);return `<span class="cst-chip" onclick="closeModalBtn();setTimeout(()=>openCfopModal('${cf}'),100)" title="${cd?cd.descricao:''}">${fmtCode(cf)}</span>`}).join('')||'<span style="color:var(--text3);font-size:12px">Vários CFOPs aplicáveis</span>'}</div>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e){if(e.target===document.getElementById('modal-overlay'))closeModalBtn();}
+function closeModalBtn(){document.getElementById('modal-overlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalBtn();});
+
+// ═══════════════════════════════════════════════════════════
+//  COMPARE
+// ═══════════════════════════════════════════════════════════
+function addCompare(cod){
+  if(compareItems.includes(cod)){compareItems=compareItems.filter(x=>x!==cod);}
+  else if(compareItems.length<2){compareItems.push(cod);}
+  else{compareItems=[compareItems[1],cod];}
+  updateCompareBar();
+}
+function updateCompareBar(){
+  const bar=document.getElementById('compare-bar');
+  if(!compareItems.length){bar.classList.add('hidden');return;}
+  bar.classList.remove('hidden');
+  document.getElementById('cmp-a').textContent = compareItems[0]?fmtCode(compareItems[0]):'—';
+  document.getElementById('cmp-b').textContent = compareItems[1]?fmtCode(compareItems[1]):'—';
+}
+function clearCompare(){compareItems=[];updateCompareBar();}
+function openCompareModal(){
+  if(compareItems.length<2){alert('Selecione dois CFOPs para comparar.');return;}
+  const a=cfops.find(x=>x.codigo===compareItems[0]);
+  const b=cfops.find(x=>x.codigo===compareItems[1]);
+  if(!a||!b) return;
+  document.getElementById('modal-code').textContent = fmtCode(a.codigo)+' vs '+fmtCode(b.codigo);
+  document.getElementById('modal-title').textContent = 'Comparação de CFOPs';
+  const row=(label,va,vb)=>`<tr><td style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase">${label}</td><td style="padding:8px 12px;font-size:13px;color:var(--text)">${va}</td><td style="padding:8px 12px;font-size:13px;color:var(--text)">${vb}</td></tr>`;
+  const commonCsts = a.csts.filter(c=>b.csts.includes(c));
+  document.getElementById('modal-body').innerHTML=`
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr><th style="padding:8px 12px;background:var(--surface2);font-size:12px;color:var(--text3)">Campo</th><th style="padding:8px 12px;background:var(--surface2);font-size:12px;color:var(--itau-orange)">${fmtCode(a.codigo)}</th><th style="padding:8px 12px;background:var(--surface2);font-size:12px;color:var(--itau-navy-mid)">${fmtCode(b.codigo)}</th></tr></thead>
+      <tbody>
+        ${row('Descrição',a.descricao,b.descricao)}
+        ${row('Tipo',`<span class="badge ${a.tipo==='Entrada'?'badge-entry':'badge-exit'}">${a.tipo}</span>`,`<span class="badge ${b.tipo==='Entrada'?'badge-entry':'badge-exit'}">${b.tipo}</span>`)}
+        ${row('Abrangência',`<span class="badge ${a.abrangencia==='Interna'?'badge-internal':a.abrangencia==='Interestadual'?'badge-inter':'badge-intl'}">${a.abrangencia}</span>`,`<span class="badge ${b.abrangencia==='Interna'?'badge-internal':b.abrangencia==='Interestadual'?'badge-inter':'badge-intl'}">${b.abrangencia}</span>`)}
+        ${row('Nº de CSTs',a.csts.length,b.csts.length)}
+        ${row('Observações',a.obs||'—',b.obs||'—')}
+      </tbody>
+    </table>
+    <div class="info-block full" style="margin-top:14px"><label>CSTs em comum (${commonCsts.length})</label>
+      <div class="compat-list">${commonCsts.map(c=>`<span class="cst-chip">${c}</span>`).join('')||'<span style="color:var(--text3);font-size:12px">Nenhum CST em comum</span>'}</div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VALIDATION
+// ═══════════════════════════════════════════════════════════
+function runValidation(){
+  const cfopVal = document.getElementById('val-cfop').value.replace(/\D/g,'').trim();
+  const cstVal  = document.getElementById('val-cst').value.trim();
+  const regime  = document.getElementById('val-regime').value;
+  const res     = document.getElementById('val-result');
+  if(!cfopVal || !cstVal){res.className='validator-result result-neutral';res.innerHTML='<i class="fa-solid fa-circle-info"></i> Informe um CFOP e um CST para validar a combinação.';return;}
+  const cfopObj = cfops.find(x=>x.codigo===cfopVal);
+  if(!cfopObj){res.className='validator-result result-invalid';res.innerHTML=`<i class="fa-solid fa-circle-xmark"></i> CFOP <strong>${cfopVal}</strong> não encontrado na base.`;return;}
+  const cstObj = csts.find(x=>x.codigo===cstVal && x.regime===regime);
+  if(!cstObj){res.className='validator-result result-invalid';res.innerHTML=`<i class="fa-solid fa-circle-xmark"></i> ${regime==='Normal'?'CST':'CSOSN'} <strong>${cstVal}</strong> não encontrado para o regime <strong>${regime}</strong>.`;return;}
+  const valid = cfopObj.csts.includes(cstVal);
+  if(valid){
+    res.className='validator-result result-valid';
+    res.innerHTML=`<i class="fa-solid fa-circle-check"></i> <strong>Combinação VÁLIDA!</strong> — CFOP ${fmtCode(cfopVal)} + ${regime==='Normal'?'CST':'CSOSN'} ${cstVal} (<em>${cstObj.descricao}</em>) é compatível.`;
+  } else {
+    res.className='validator-result result-invalid';
+    res.innerHTML=`<i class="fa-solid fa-circle-xmark"></i> <strong>Combinação INVÁLIDA!</strong> — CFOP ${fmtCode(cfopVal)} não é compatível com ${regime==='Normal'?'CST':'CSOSN'} ${cstVal}. CSTs permitidos: ${cfopObj.csts.slice(0,10).join(', ')}${cfopObj.csts.length>10?'...':''}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMPAT TABLE
+// ═══════════════════════════════════════════════════════════
+function buildCompatTable(){
+  const featured = ['1102','2102','5102','6102','1403','2403','5403','6403','1551','5551','7101','7102','5916','6916'];
+  const tbody = document.getElementById('compat-tbody');
+  tbody.innerHTML = featured.map(cod=>{
+    const c = cfops.find(x=>x.codigo===cod);
+    if(!c) return '';
+    const normalCsts = c.csts.filter(x=>['00','10','20','30','40','41','50','51','60','70','90'].includes(x));
+    const simplCsts  = c.csts.filter(x=>['101','102','103','201','202','203','300','400','500','900'].includes(x));
+    return `<tr onclick="openCfopModal('${cod}')">
+      <td><span class="code-cell">${fmtCode(cod)}</span></td>
+      <td style="font-size:12px">${c.descricao}</td>
+      <td><div class="cst-chips">${normalCsts.map(c=>`<span class="cst-chip">${c}</span>`).join('')}</div></td>
+      <td><div class="cst-chips">${simplCsts.map(c=>`<span class="cst-chip">${c}</span>`).join('')}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXPORT CSV
+// ═══════════════════════════════════════════════════════════
+function exportCsv(type){
+  let rows, header;
+  if(type==='cfop'){
+    header = ['Código','Tipo','Abrangência','Descrição','Observações','CSTs Compatíveis'];
+    rows = filteredCfops.map(c=>[fmtCode(c.codigo),c.tipo,c.abrangencia,c.descricao,c.obs||'',c.csts.join('|')]);
+  } else {
+    header = ['Código','Regime','Descrição','Origem','CFOPs Comuns','Quando Usar'];
+    rows = filteredCsts.map(c=>[c.codigo,c.regime,c.descricao,c.origem,c.cfops.join('|'),c.uso||'']);
+  }
+  const csv = [header,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${type==='cfop'?'CFOP':'CST'}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
