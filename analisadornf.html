@@ -1,956 +1,474 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator NF-e · Universal · ACF + IPIRANGA</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-  --bg: #f0f4fb; --surface: #ffffff; --surface2: #f4f7fd;
-  --border: rgba(37,99,235,0.12); --accent: #2563eb; --accent2: #7c3aed;
-  --text: #1e293b; --text-m: #64748b; --success: #059669;
-  --danger: #dc2626; --warning: #d97706; --info: #3b82f6;
-}
-
-body {
-  font-family: 'Outfit', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  padding: 20px;
-}
-
-.container { max-width: 1600px; margin: 0 auto; }
-
-.header {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  flex-wrap: wrap;
-  gap: 15px;
-}
-.logo h1 { font-size: 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.logo p { font-size: 0.8rem; color: var(--text-m); }
-
-.card {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--accent);
-}
-
-textarea {
-  width: 100%;
-  height: 350px;
-  padding: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface2);
-  resize: vertical;
-}
-textarea:focus { outline: none; border-color: var(--accent); }
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-.btn-primary { background: var(--accent); color: white; }
-.btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-.btn-success { background: var(--success); color: white; }
-.btn-danger { background: var(--danger); color: white; }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-
-.nf-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-.nf-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.nf-card:hover { border-color: var(--accent); background: rgba(37,99,235,0.05); }
-.nf-card.active { border-color: var(--accent); background: rgba(37,99,235,0.08); }
-.nf-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.nf-numero { font-weight: 700; color: var(--accent); font-family: monospace; }
-.nf-total { font-weight: 600; color: var(--success); }
-.nf-info { font-size: 0.75rem; color: var(--text-m); display: flex; gap: 15px; flex-wrap: wrap; }
-
-.table-wrapper {
-  overflow-x: auto;
-  margin-top: 15px;
-  max-height: 500px;
-  overflow-y: auto;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.7rem;
-}
-th, td {
-  padding: 6px 8px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-th {
-  background: var(--surface2);
-  font-weight: 600;
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  color: var(--text-m);
-  position: sticky;
-  top: 0;
-}
-tr:hover td { background: rgba(37,99,235,0.03); }
-
-.chip {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 20px;
-  font-size: 0.65rem;
-  font-family: monospace;
-  background: rgba(37,99,235,0.1);
-  color: var(--accent);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.info-item {
-  background: var(--surface2);
-  padding: 10px;
-  border-radius: 10px;
-}
-.info-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-m); margin-bottom: 4px; }
-.info-value { font-weight: 600; font-size: 0.85rem; }
-
-.search-box {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.search-box input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface2);
-  font-size: 14px;
-}
-
-.btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-
-.status {
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.status-success { background: rgba(5,150,105,0.1); color: var(--success); }
-.status-error { background: rgba(220,38,38,0.1); color: var(--danger); }
-.status-info { background: rgba(37,99,235,0.1); color: var(--accent); }
-
-.total-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--surface2);
-  padding: 15px 20px;
-  border-radius: 12px;
-  margin-top: 20px;
-}
-.total-value { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-
-.stats-badge {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-}
-
-.validation-card {
-  background: rgba(5,150,105,0.08);
-  border: 1px solid rgba(5,150,105,0.2);
-  border-radius: 12px;
-  padding: 15px;
-  margin-top: 15px;
-}
-.validation-error {
-  background: rgba(220,38,38,0.08);
-  border-color: rgba(220,38,38,0.2);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-.page-btn {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.page-btn.active {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
-
-.filter-stats {
-  font-size: 12px;
-  color: var(--text-m);
-  margin-bottom: 10px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador NF-e | CSOSN e CST Separados | Múltiplos XMLs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f0fdf4; padding: 20px; color: #1a3a2a; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #0d5c3b, #1b8c4a); color: white; border-radius: 20px; padding: 20px 28px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 8px 20px; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; transition: 0.2s; }
+        .btn-primary { background: #fbbf24; color: #0d5c3b; }
+        .btn-primary:hover { background: #f59e0b; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 1px solid white; color: white; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .upload-area { border: 2px dashed #1b8c4a; border-radius: 20px; padding: 25px; text-align: center; background: #f0fdf4; cursor: pointer; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 15px 0; }
+        .filter-input { padding: 10px 16px; border-radius: 40px; border: 1px solid #d1d5db; font-size: 14px; }
+        .report-container { background: white; border-radius: 16px; overflow-x: auto; }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 15px; }
+        .stat-card { background: #ecfdf5; border-radius: 12px; padding: 10px 20px; border-left: 4px solid #1b8c4a; }
+        h3 { font-size: 1.2rem; font-weight: 600; margin: 15px 0 12px; border-left: 5px solid #1b8c4a; padding-left: 14px; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .report-table th { background: #0d5c3b; color: white; padding: 12px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
+        .report-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
+        .report-table tr:hover { background: #f0fdf4; }
+        .report-table .total-row { background: #e2e8f0; font-weight: 700; }
+        .badge-csosn { background: #dbeafe; color: #1e40af; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .badge-cst { background: #fef3c7; color: #b45309; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .scroll-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .summary-cards { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; }
+        .summary-item { background: white; border-radius: 12px; padding: 10px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 130px; }
+        .summary-label { font-size: 11px; color: #5b6e5b; text-transform: uppercase; }
+        .summary-value { font-size: 18px; font-weight: 700; color: #0d5c3b; }
+        .file-list { margin-top: 10px; font-size: 12px; color: #4b5563; }
+    </style>
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <div class="logo">
-      <h1>📄 Extrator NF-e UNIVERSAL</h1>
-      <p>Funciona com ACF (código no início) e IPIRANGA (códigos separados) · Conta TODOS os itens</p>
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-file-invoice-dollar"></i> Leitor NF-e Completo</h1>
+            <p>CSOSN e CST separados | Filtros individuais | Múltiplos XMLs</p>
+        </div>
+        <div>
+            <button id="exportCsvBtn" class="btn btn-outline"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+            <button id="darkBtn" class="btn btn-outline"><i class="fas fa-moon"></i> Modo Escuro</button>
+        </div>
     </div>
-    <button class="btn btn-outline" onclick="toggleTheme()">🌓 Tema</button>
-  </div>
 
-  <div class="card">
-    <div class="card-title"><i class="fas fa-paste"></i> Cole o texto COMPLETO da DANFE</div>
-    <textarea id="nfTexto" placeholder="Cole aqui o texto completo da NF-e... Funciona com DANFE da ACF, IPIRANGA, etc."></textarea>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="adicionarNF()"><i class="fas fa-plus"></i> Adicionar Nota</button>
-      <button class="btn btn-outline" onclick="limparTexto()"><i class="fas fa-eraser"></i> Limpar</button>
+    <div class="card">
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt fa-2x" style="color:#1b8c4a;"></i>
+            <p style="margin-top: 8px;"><strong>Clique ou arraste arquivos XML da NF-e</strong><br>(Múltiplos arquivos)</p>
+            <input type="file" id="xmlFiles" multiple accept=".xml" style="display: none;">
+            <div id="fileStatus" class="badge" style="margin-top: 10px; display: inline-block; background: #e5e7eb; padding: 6px 14px; border-radius: 30px;">Nenhum arquivo selecionado</div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+        
+        <h3><i class="fas fa-filter"></i> Filtros de Busca</h3>
+        <div class="filters-grid">
+            <input type="text" id="filterProduto" class="filter-input" placeholder="🔍 Produto (descrição)">
+            <input type="text" id="filterEmitente" class="filter-input" placeholder="🔍 Emitente (CNPJ ou nome)">
+            <input type="text" id="filterCFOP" class="filter-input" placeholder="🔍 CFOP">
+            <input type="text" id="filterCSOSN" class="filter-input" placeholder="🔍 CSOSN (ex: 102, 500, 900)">
+            <input type="text" id="filterCST" class="filter-input" placeholder="🔍 CST (ex: 00, 49, 53)">
+        </div>
+        
+        <button id="processBtn" class="btn btn-primary" style="width: auto; margin-top: 10px;"><i class="fas fa-cogs"></i> Processar XMLs</button>
+        
+        <div class="stats" id="statsArea"></div>
     </div>
-    <div id="statusMsg"></div>
-  </div>
 
-  <div class="card">
-    <div class="card-title"><i class="fas fa-list"></i> Notas Fiscais Analisadas</div>
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="🔍 Pesquisar..." oninput="filtrarNFs()">
-      <select id="filterStatus" onchange="filtrarNFs()" style="padding: 10px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border);">
-        <option value="todos">Todos os status</option>
-        <option value="ok">✅ Válidas</option>
-        <option value="erro">⚠️ Divergentes</option>
-      </select>
+    <div class="card">
+        <h3><i class="fas fa-chart-simple"></i> Relatório Detalhado</h3>
+        <div id="reportContainer" class="report-container">
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione um ou mais arquivos XML e clique em <strong>Processar XMLs</strong></p>
+            </div>
+        </div>
     </div>
-    <div id="filterStats" class="filter-stats"></div>
-    <div id="nfListContainer" class="nf-list">
-      <div style="text-align: center; padding: 40px;"><i class="fas fa-inbox" style="font-size: 2rem;"></i><p>Nenhuma nota fiscal adicionada</p></div>
-    </div>
-    <div id="pagination" class="pagination"></div>
-    <div class="btn-group">
-      <button class="btn btn-success" onclick="exportarTodasNFs()"><i class="fas fa-download"></i> Exportar Todas NFs</button>
-      <button class="btn btn-success" onclick="exportarTodosProdutos()"><i class="fas fa-table"></i> Exportar Todos Produtos</button>
-      <button class="btn btn-danger" onclick="limparTodasNFs()"><i class="fas fa-trash-alt"></i> Limpar Todas</button>
-    </div>
-  </div>
-
-  <div class="card" id="detalheCard" style="display: none;">
-    <div class="card-title"><i class="fas fa-chart-line"></i> Detalhamento da Nota</div>
-    <div id="detalheContent"></div>
-  </div>
 </div>
 
 <script>
-let notasFiscais = [];
-let nfSelecionadaId = null;
-let currentTheme = 'light';
-let currentPage = 1;
-const itemsPerPage = 10;
-let currentFilter = 'todos';
-let currentSearch = '';
+    // ======================= FUNÇÕES AUXILIARES =======================
+    function getText(parent, tag, def = '') {
+        if (!parent) return def;
+        const el = parent.getElementsByTagName(tag)[0];
+        return el ? el.textContent.trim() : def;
+    }
 
-// ============================================
-// EXTRATOR UNIVERSAL - Funciona com ACF e IPIRANGA
-// ============================================
+    function getFloat(parent, tag, def = 0) {
+        const val = getText(parent, tag, '0');
+        return parseFloat(val) || def;
+    }
 
-function extrairTodosProdutos(texto) {
-  const produtos = [];
-  const linhas = texto.split(/\r?\n/);
-  
-  let dentroTabela = false;
-  let paginaAtual = 1;
-  let descricaoAcumulada = '';
-  let acumulandoDescricao = false;
-  let produtoPendente = null;
-  
-  for (let i = 0; i < linhas.length; i++) {
-    let linha = linhas[i].trim();
-    if (linha === '') continue;
-    
-    // Detectar página
-    const paginaMatch = linha.match(/Folha\s*(\d+)\/\d+/i);
-    if (paginaMatch) {
-      paginaAtual = parseInt(paginaMatch[1]);
+    function formatMoney(value) {
+        if (value === null || value === undefined || isNaN(value)) return '0,00';
+        return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    
-    // Detectar início da tabela de produtos
-    if (linha.includes('DADOS DOS PRODUTOS / SERVIÇOS')) {
-      dentroTabela = true;
-      continue;
+
+    function formatQuantity(value) {
+        if (value === null || value === undefined || isNaN(value)) return '0';
+        if (Math.abs(value - Math.round(value)) < 0.000001) {
+            return Math.round(value).toString();
+        }
+        return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 3 });
     }
-    
-    // Só processa se estiver dentro da tabela
-    if (!dentroTabela) continue;
-    
-    // Pular cabeçalhos da tabela
-    if (linha.includes('CÓD. PROD.') || linha.includes('CÓDIGO PRODUTO') || 
-        linha.includes('DESCRIÇÃO DO PRODUTO') || (linha.includes('CFOP') && linha.includes('NCM'))) {
-      continue;
-    }
-    
-    // ==========================================
-    // FORMATO 1: ACF - Código no início da linha (3-6 dígitos)
-    // ==========================================
-    const codigoACFMatch = linha.match(/^(\d{3,6})\s/);
-    
-    if (codigoACFMatch) {
-      // Finalizar produto pendente do formato IPIRANGA
-      if (produtoPendente) {
-        if (produtoPendente.descricao && produtoPendente.descricao.length > 2) {
-          produtos.push(produtoPendente);
-        }
-        produtoPendente = null;
-        acumulandoDescricao = false;
-        descricaoAcumulada = '';
-      }
-      
-      const codigo = codigoACFMatch[1];
-      let restoLinha = linha.substring(codigo.length).trim();
-      
-      let descricao = '';
-      let ncm = '';
-      let cfop = '';
-      let unidade = 'UN';
-      let quantidade = 0;
-      let valorUnitario = 0;
-      let valorTotal = 0;
-      
-      // Buscar NCM (8 dígitos)
-      const ncmMatch = restoLinha.match(/\b(\d{8})\b/);
-      if (ncmMatch) {
-        ncm = ncmMatch[1];
-        const posNCM = restoLinha.indexOf(ncm);
-        descricao = restoLinha.substring(0, posNCM).trim();
-        let depoisNCM = restoLinha.substring(posNCM + 8).trim();
-        
-        // Buscar CFOP (4 dígitos)
-        const cfopMatch = depoisNCM.match(/\b(\d{4})\b/);
-        if (cfopMatch) {
-          cfop = cfopMatch[1];
-          depoisNCM = depoisNCM.substring(cfopMatch.index + cfopMatch[0].length).trim();
-        }
-        
-        // Buscar unidade
-        const unidadesValidas = ['UN', 'CX', 'PC', 'KG', 'LT', 'M', 'UND', 'PCA', 'FD', 'JG', 'MIL', 'UN1', 'SC', 'PT', 'TON'];
-        const unMatch = depoisNCM.match(new RegExp(`\\b(${unidadesValidas.join('|')})\\b`, 'i'));
-        if (unMatch) {
-          unidade = unMatch[1].toUpperCase();
-          depoisNCM = depoisNCM.substring(unMatch.index + unMatch[0].length).trim();
-        }
-        
-        // Extrair números
-        const numMatches = depoisNCM.match(/(\d+[.,]\d+)/g);
-        const numeros = [];
-        if (numMatches) {
-          for (const num of numMatches) {
-            let valor = parseFloat(num.replace(/\./g, '').replace(',', '.'));
-            if (!isNaN(valor)) {
-              numeros.push(valor);
+
+    // Busca CSOSN e CST separadamente
+    function getCSOSNandCST(detNode) {
+        const icmsTags = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS51', 'ICMS60', 'ICMS61', 'ICMS70', 'ICMS90', 
+                          'ICMSSN102', 'ICMSSN201', 'ICMSSN202', 'ICMSSN500', 'ICMSSN900', 'ICMSSN101', 'ICMSSN505'];
+        for (let tag of icmsTags) {
+            let node = detNode.getElementsByTagName(tag)[0];
+            if (node) {
+                let csosn = getText(node, 'CSOSN');
+                let cst = getText(node, 'CST');
+                return { csosn: csosn || '', cst: cst || '' };
             }
-          }
+        }
+        return { csosn: '', cst: '' };
+    }
+
+    function getEmitente(xmlDoc) {
+        const emit = xmlDoc.getElementsByTagName('emit')[0];
+        if (!emit) return {};
+        return {
+            cnpj: getText(emit, 'CNPJ'),
+            nome: getText(emit, 'xNome'),
+            fantasia: getText(emit, 'xFant'),
+            uf: getText(emit, 'UF')
+        };
+    }
+
+    function getIdeInfo(xmlDoc) {
+        const ide = xmlDoc.getElementsByTagName('ide')[0];
+        if (!ide) return {};
+        return {
+            nNF: getText(ide, 'nNF'),
+            serie: getText(ide, 'serie'),
+            dhEmi: getText(ide, 'dhEmi'),
+            dataEmissao: getText(ide, 'dhEmi') ? new Date(getText(ide, 'dhEmi')).toLocaleDateString('pt-BR') : ''
+        };
+    }
+
+    function extractTaxes(detNode) {
+        const impostos = {};
+        const impostoNode = detNode.getElementsByTagName('imposto')[0];
+        if (!impostoNode) return impostos;
+        
+        impostos.vTotTrib = getFloat(impostoNode, 'vTotTrib');
+        
+        const icmsTags = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS51', 'ICMS60', 'ICMS61', 'ICMS70', 'ICMS90', 
+                          'ICMSSN102', 'ICMSSN201', 'ICMSSN202', 'ICMSSN500', 'ICMSSN900'];
+        for (let tag of icmsTags) {
+            let node = impostoNode.getElementsByTagName(tag)[0];
+            if (node) {
+                impostos.pICMS = getFloat(node, 'pICMS');
+                impostos.vBC = getFloat(node, 'vBC');
+                impostos.vICMS = getFloat(node, 'vICMS');
+                break;
+            }
         }
         
-        if (numeros.length >= 3) {
-          quantidade = numeros[0];
-          valorUnitario = numeros[1];
-          valorTotal = numeros[2];
-        } else if (numeros.length === 2) {
-          if (numeros[0] > 0 && numeros[0] < 1000 && numeros[1] > numeros[0]) {
-            quantidade = numeros[0];
-            valorTotal = numeros[1];
-            valorUnitario = valorTotal / quantidade;
-          } else {
-            valorUnitario = numeros[0];
-            valorTotal = numeros[1];
-            quantidade = 1;
-          }
-        } else if (numeros.length === 1) {
-          valorTotal = numeros[0];
-          quantidade = 1;
-          valorUnitario = valorTotal;
+        const pisNode = impostoNode.getElementsByTagName('PIS')[0];
+        if (pisNode) {
+            let aliqq = pisNode.getElementsByTagName('PISAliq')[0];
+            if (aliqq) impostos.PIS_vPIS = getFloat(aliqq, 'vPIS');
         }
-      } else {
-        descricao = restoLinha.substring(0, 60).trim();
-      }
-      
-      descricao = descricao.replace(/\s+/g, ' ').substring(0, 80);
-      
-      if (descricao && descricao.length > 2) {
-        produtos.push({
-          codigo: codigo,
-          descricao: descricao,
-          ncm: ncm,
-          cfop: cfop,
-          unidade: unidade,
-          quantidade: quantidade,
-          valorUnitario: valorUnitario,
-          valorTotal: valorTotal,
-          pagina: paginaAtual
-        });
-      }
-      continue;
-    }
-    
-    // ==========================================
-    // FORMATO 2: IPIRANGA - Linha com "CÓD. PROD." e depois valores no final
-    // ==========================================
-    // Verificar se a linha tem o padrão: código1 código2 descrição longa... e no final números
-    if (linha.includes('CÓD. PROD.') || linha.match(/^\d{8}\s+\d{9}/)) {
-      // Finalizar produto pendente
-      if (produtoPendente) {
-        if (produtoPendente.descricao && produtoPendente.descricao.length > 2) {
-          produtos.push(produtoPendente);
-        }
-        produtoPendente = null;
-        acumulandoDescricao = false;
-        descricaoAcumulada = '';
-      }
-      
-      // Extrair códigos
-      const partes = linha.split(/\s+/);
-      let codigoProduto = '';
-      let codigoANP = '';
-      
-      // Primeiros dois campos são os códigos
-      if (partes.length >= 2) {
-        codigoProduto = partes[0];
-        codigoANP = partes[1];
-      }
-      
-      // O resto da linha é a descrição + valores
-      let resto = linha.substring(codigoProduto.length + codigoANP.length + 2).trim();
-      
-      // Procurar números no final (quantidade, unitário, total)
-      const numerosNoFinal = resto.match(/(\d+[.,]\d+)\s+(\d+[.,]\d+)\s+(\d+[.,]\d+)\s*$/);
-      
-      let quantidade = 0, valorUnitario = 0, valorTotal = 0;
-      let descricao = resto;
-      
-      if (numerosNoFinal) {
-        quantidade = parseFloat(numerosNoFinal[1].replace(/\./g, '').replace(',', '.'));
-        valorUnitario = parseFloat(numerosNoFinal[2].replace(/\./g, '').replace(',', '.'));
-        valorTotal = parseFloat(numerosNoFinal[3].replace(/\./g, '').replace(',', '.'));
-        descricao = resto.substring(0, resto.indexOf(numerosNoFinal[0])).trim();
-      }
-      
-      // Para IPIRANGA, pode ter NCM e CFOP
-      let ncm = '';
-      let cfop = '';
-      const ncmMatch = descricao.match(/\b(\d{8})\b/);
-      if (ncmMatch) {
-        ncm = ncmMatch[1];
-      }
-      const cfopMatch = descricao.match(/\b(\d{4})\b/);
-      if (cfopMatch) {
-        cfop = cfopMatch[1];
-      }
-      
-      descricao = descricao.replace(/\s+/g, ' ').substring(0, 80);
-      
-      if (descricao && descricao.length > 2) {
-        produtos.push({
-          codigo: codigoProduto + (codigoANP ? '/' + codigoANP : ''),
-          descricao: descricao,
-          ncm: ncm,
-          cfop: cfop,
-          unidade: 'L', // Diesel em litros
-          quantidade: quantidade,
-          valorUnitario: valorUnitario,
-          valorTotal: valorTotal,
-          pagina: paginaAtual
-        });
-      }
-      continue;
-    }
-    
-    // ==========================================
-    // FORMATO 3: IPIRANGA com descrição em múltiplas linhas
-    // ==========================================
-    // Se já estamos acumulando descrição e a linha parece ser continuação
-    if (acumulandoDescricao && linha.length > 20 && !linha.match(/^\d/)) {
-      descricaoAcumulada += ' ' + linha;
-      continue;
-    }
-    
-    // Verificar se é uma linha que contém quantidade (final com números)
-    const numerosFinais = linha.match(/(\d+[.,]\d+)\s+(\d+[.,]\d+)\s+(\d+[.,]\d+)\s*$/);
-    if (numerosFinais && !linha.match(/^(\d{6})/)) {
-      // Pode ser a continuação de um produto IPIRANGA
-      if (produtoPendente) {
-        produtoPendente.descricao += ' ' + linha.substring(0, linha.indexOf(numerosFinais[0])).trim();
-        produtoPendente.quantidade = parseFloat(numerosFinais[1].replace(/\./g, '').replace(',', '.'));
-        produtoPendente.valorUnitario = parseFloat(numerosFinais[2].replace(/\./g, '').replace(',', '.'));
-        produtoPendente.valorTotal = parseFloat(numerosFinais[3].replace(/\./g, '').replace(',', '.'));
-        produtoPendente.descricao = produtoPendente.descricao.replace(/\s+/g, ' ').substring(0, 80);
         
-        produtos.push(produtoPendente);
-        produtoPendente = null;
-        acumulandoDescricao = false;
-        descricaoAcumulada = '';
-      }
+        const cofinsNode = impostoNode.getElementsByTagName('COFINS')[0];
+        if (cofinsNode) {
+            let aliqq = cofinsNode.getElementsByTagName('COFINSAliq')[0];
+            if (aliqq) impostos.COFINS_vCOFINS = getFloat(aliqq, 'vCOFINS');
+        }
+        
+        return impostos;
     }
-  }
-  
-  // Adicionar último produto pendente
-  if (produtoPendente && produtoPendente.descricao && produtoPendente.descricao.length > 2) {
-    produtos.push(produtoPendente);
-  }
-  
-  console.log(`Total de produtos extraídos: ${produtos.length}`);
-  return produtos;
-}
-
-function extrairDadosNF(texto) {
-  const dados = {
-    id: Date.now(),
-    numero: 'N/I',
-    serie: 'N/I',
-    emitente: 'N/I',
-    cnpjEmitente: 'N/I',
-    destinatario: 'N/I',
-    cnpjDestinatario: 'N/I',
-    dataEmissao: 'N/I',
-    valorTotalProdutos: 0,
-    valorFrete: 0,
-    valorDesconto: 0,
-    valorTotalNota: 0,
-    paginas: 1,
-    produtos: [],
-    validacao: { ok: false, diferenca: 0, mensagem: '' }
-  };
-  
-  // Extrair número da NF
-  let numMatch = texto.match(/N[ºo°]\.?\s*(\d{3}\.\d{3}\.\d{3})/i);
-  if (!numMatch) numMatch = texto.match(/NF-e?\s*N[ºo°]?\s*(\d{3,}\.?\d{0,3}\.?\d{0,3})/i);
-  if (!numMatch) numMatch = texto.match(/N[ºo°]\s+(\d{3}\.\d{3}\.\d{3})/i);
-  if (numMatch) dados.numero = numMatch[1];
-  
-  // Extrair série
-  const serieMatch = texto.match(/S[ÉE]RIE\s*(\d+)/i);
-  if (serieMatch) dados.serie = serieMatch[1];
-  
-  // Extrair data
-  const dataMatch = texto.match(/EMISS[ÃA]O:\s*(\d{2}\/\d{2}\/\d{4})/i);
-  if (dataMatch) dados.dataEmissao = dataMatch[1];
-  
-  // Extrair emitente
-  let emitMatch = texto.match(/IDENTIFICAÇÃO DO EMITENTE\s*\n\s*([^\n]+)/i);
-  if (!emitMatch) emitMatch = texto.match(/IPIRANGA[^-\n]+/i);
-  if (!emitMatch) emitMatch = texto.match(/([A-Z][A-Z\s]{5,50}LTDA)/i);
-  if (emitMatch) dados.emitente = emitMatch[1].trim();
-  
-  // Extrair CNPJ
-  const cnpjPattern = /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g;
-  const cnpjs = texto.match(cnpjPattern);
-  if (cnpjs && cnpjs.length >= 1) dados.cnpjEmitente = cnpjs[0];
-  if (cnpjs && cnpjs.length >= 2) dados.cnpjDestinatario = cnpjs[1];
-  
-  // Extrair destinatário
-  const destMatch = texto.match(/DESTINAT[ÁA]RIO[^:]*:\s*([^\n]{10,80})/i);
-  if (destMatch) dados.destinatario = destMatch[1].trim();
-  
-  // Extrair valores do cabeçalho
-  const valorProdutosMatch = texto.match(/VALOR TOTAL DOS PRODUTOS\s*([\d\.]+,\d{2})/i);
-  if (valorProdutosMatch) {
-    dados.valorTotalProdutos = parseFloat(valorProdutosMatch[1].replace(/\./g, '').replace(',', '.'));
-  }
-  
-  const totalNotaMatch = texto.match(/VALOR TOTAL DA NOTA\s*([\d\.]+,\d{2})/i);
-  if (totalNotaMatch) {
-    dados.valorTotalNota = parseFloat(totalNotaMatch[1].replace(/\./g, '').replace(',', '.'));
-  }
-  
-  const freteMatch = texto.match(/VALOR DO FRETE\s*([\d\.]+,\d{2})/i);
-  if (freteMatch) {
-    dados.valorFrete = parseFloat(freteMatch[1].replace(/\./g, '').replace(',', '.'));
-  }
-  
-  const descontoMatch = texto.match(/DESCONTO\s*([\d\.]+,\d{2})/i);
-  if (descontoMatch) {
-    dados.valorDesconto = parseFloat(descontoMatch[1].replace(/\./g, '').replace(',', '.'));
-  }
-  
-  // Contar páginas
-  const paginasMatch = texto.match(/Folha\s*\d+\/(\d+)/gi);
-  if (paginasMatch) {
-    const maxPagina = Math.max(...paginasMatch.map(p => parseInt(p.split('/')[1])));
-    dados.paginas = maxPagina;
-  }
-  
-  // Extrair produtos
-  dados.produtos = extrairTodosProdutos(texto);
-  
-  // Calcular total dos produtos extraídos
-  const somaProdutos = dados.produtos.reduce((s, p) => s + p.valorTotal, 0);
-  
-  // Validar cálculos
-  const totalCalculado = somaProdutos + dados.valorFrete - dados.valorDesconto;
-  const diferenca = Math.abs(totalCalculado - dados.valorTotalNota);
-  const tolerancia = 1.00; // 1 real de tolerância para valores grandes
-  
-  if (dados.valorTotalNota > 0) {
-    if (diferenca <= tolerancia) {
-      dados.validacao = { ok: true, diferenca: 0, mensagem: '✅ VALIDAÇÃO OK: Os valores batem!' };
-    } else {
-      dados.validacao = { 
-        ok: false, 
-        diferenca: diferenca, 
-        mensagem: `⚠️ DIVERGÊNCIA: Produtos R$ ${somaProdutos.toFixed(2)} + Frete R$ ${dados.valorFrete.toFixed(2)} - Desconto R$ ${dados.valorDesconto.toFixed(2)} = R$ ${totalCalculado.toFixed(2)} | Nota declara R$ ${dados.valorTotalNota.toFixed(2)} | Diferença de R$ ${diferenca.toFixed(2)}` 
-      };
-    }
-  } else {
-    dados.validacao = { ok: true, diferenca: 0, mensagem: 'ℹ️ Não foi possível validar (valores do cabeçalho não encontrados)' };
-  }
-  
-  return dados;
-}
-
-// ============================================
-// GERENCIAMENTO (igual ao anterior)
-// ============================================
-
-function adicionarNF() {
-  const texto = document.getElementById('nfTexto').value.trim();
-  if (!texto) {
-    mostrarStatus('Cole o texto da nota fiscal primeiro!', 'error');
-    return;
-  }
-  
-  mostrarStatus('Processando nota fiscal...', 'info');
-  
-  setTimeout(() => {
-    try {
-      const nf = extrairDadosNF(texto);
-      
-      if (nf.produtos.length === 0) {
-        mostrarStatus('⚠️ Nenhum produto encontrado! Verifique o texto colado.', 'error');
-        return;
-      }
-      
-      notasFiscais.unshift(nf);
-      nfSelecionadaId = nf.id;
-      salvarLocalStorage();
-      currentPage = 1;
-      filtrarNFs();
-      exibirDetalheNF(nf.id);
-      document.getElementById('nfTexto').value = '';
-      
-      const somaProdutos = nf.produtos.reduce((s, p) => s + p.valorTotal, 0);
-      mostrarStatus(`✅ Nota ${nf.numero} adicionada! ${nf.produtos.length} produtos encontrados. Total produtos: R$ ${somaProdutos.toFixed(2)} | Nota: R$ ${nf.valorTotalNota.toFixed(2)}`, 'success');
-    } catch(e) {
-      mostrarStatus('Erro ao processar: ' + e.message, 'error');
-      console.error(e);
-    }
-  }, 100);
-}
-
-function getNotasFiltradas() {
-  let filtradas = notasFiscais;
-  if (currentSearch) {
-    filtradas = filtradas.filter(nf => 
-      nf.numero.toLowerCase().includes(currentSearch) ||
-      nf.emitente.toLowerCase().includes(currentSearch) ||
-      nf.destinatario.toLowerCase().includes(currentSearch)
-    );
-  }
-  if (currentFilter === 'ok') {
-    filtradas = filtradas.filter(nf => nf.validacao.ok === true);
-  } else if (currentFilter === 'erro') {
-    filtradas = filtradas.filter(nf => nf.validacao.ok === false && nf.validacao.diferenca > 0);
-  }
-  return filtradas;
-}
-
-function filtrarNFs() {
-  currentSearch = document.getElementById('searchInput').value.toLowerCase();
-  currentFilter = document.getElementById('filterStatus').value;
-  currentPage = 1;
-  atualizarListaNFs();
-}
-
-function atualizarListaNFs() {
-  const container = document.getElementById('nfListContainer');
-  const filtradas = getNotasFiltradas();
-  const totalFiltradas = filtradas.length;
-  const totalPages = Math.ceil(totalFiltradas / itemsPerPage);
-  
-  const totalOk = notasFiscais.filter(nf => nf.validacao.ok === true).length;
-  const totalErro = notasFiscais.filter(nf => nf.validacao.ok === false && nf.validacao.diferenca > 0).length;
-  document.getElementById('filterStats').innerHTML = `📊 Total: ${notasFiscais.length} notas | ✅ Válidas: ${totalOk} | ⚠️ Divergentes: ${totalErro} | 📄 Mostrando: ${totalFiltradas}`;
-  
-  const start = (currentPage - 1) * itemsPerPage;
-  const paginadas = filtradas.slice(start, start + itemsPerPage);
-  
-  if (paginadas.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-search"></i><p>Nenhuma nota encontrada</p></div>';
-    document.getElementById('pagination').innerHTML = '';
-    return;
-  }
-  
-  container.innerHTML = paginadas.map(nf => {
-    const somaProdutos = nf.produtos.reduce((s, p) => s + p.valorTotal, 0);
-    const statusIcon = nf.validacao.ok ? '✅' : '⚠️';
-    const statusColor = nf.validacao.ok ? 'var(--success)' : 'var(--warning)';
-    return `
-      <div class="nf-card ${nfSelecionadaId === nf.id ? 'active' : ''}" onclick="selecionarNF(${nf.id})">
-        <div class="nf-header">
-          <span class="nf-numero">📄 NF-e ${nf.numero}</span>
-          <span class="nf-total">💰 R$ ${somaProdutos.toFixed(2)}</span>
-          <span class="stats-badge">${nf.produtos.length} itens</span>
-          <span class="stats-badge" style="background: ${statusColor}">${statusIcon} ${nf.paginas} pág(s)</span>
-        </div>
-        <div class="nf-info">
-          <span><i class="fas fa-building"></i> ${nf.emitente.substring(0, 40)}</span>
-          <span><i class="fas fa-user"></i> ${nf.destinatario.substring(0, 30)}</span>
-          <span><i class="fas fa-calendar"></i> ${nf.dataEmissao}</span>
-        </div>
-        <div style="font-size: 11px; margin-top: 5px; color: ${statusColor}">
-          ${nf.validacao.mensagem.substring(0, 80)}${nf.validacao.mensagem.length > 80 ? '...' : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  let pagHtml = '';
-  for (let i = 1; i <= Math.min(totalPages, 20); i++) {
-    pagHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="irPagina(${i})">${i}</button>`;
-  }
-  document.getElementById('pagination').innerHTML = pagHtml;
-}
-
-function irPagina(pagina) {
-  currentPage = pagina;
-  atualizarListaNFs();
-}
-
-function selecionarNF(id) {
-  nfSelecionadaId = id;
-  atualizarListaNFs();
-  exibirDetalheNF(id);
-}
-
-function limparTodasNFs() {
-  if (confirm('Tem certeza que deseja remover TODAS as notas?')) {
-    notasFiscais = [];
-    nfSelecionadaId = null;
-    salvarLocalStorage();
-    atualizarListaNFs();
-    document.getElementById('detalheCard').style.display = 'none';
-    mostrarStatus('Todas as notas foram removidas', 'success');
-  }
-}
-
-function exibirDetalheNF(id) {
-  const nf = notasFiscais.find(n => n.id === id);
-  if (!nf) return;
-  
-  document.getElementById('detalheCard').style.display = 'block';
-  const somaProdutos = nf.produtos.reduce((s, p) => s + p.valorTotal, 0);
-  const totalCalculado = somaProdutos + nf.valorFrete - nf.valorDesconto;
-  
-  let validationClass = '';
-  if (nf.validacao.ok) validationClass = 'validation-card';
-  else if (nf.validacao.diferenca > 0) validationClass = 'validation-card validation-error';
-  
-  let html = `
-    <div class="info-grid">
-      <div class="info-item"><div class="info-label">Número</div><div class="info-value">${nf.numero}</div></div>
-      <div class="info-item"><div class="info-label">Série</div><div class="info-value">${nf.serie}</div></div>
-      <div class="info-item"><div class="info-label">Data Emissão</div><div class="info-value">${nf.dataEmissao}</div></div>
-      <div class="info-item"><div class="info-label">Páginas</div><div class="info-value">${nf.paginas} página(s)</div></div>
-      <div class="info-item"><div class="info-label">Emitente</div><div class="info-value">${nf.emitente}</div></div>
-      <div class="info-item"><div class="info-label">CNPJ Emitente</div><div class="info-value">${nf.cnpjEmitente}</div></div>
-      <div class="info-item"><div class="info-label">Destinatário</div><div class="info-value">${nf.destinatario}</div></div>
-      <div class="info-item"><div class="info-label">CNPJ Destinatário</div><div class="info-value">${nf.cnpjDestinatario}</div></div>
-    </div>
     
-    <div class="${validationClass}">
-      <strong>📊 VALIDAÇÃO DA NOTA FISCAL</strong><br>
-      ${nf.validacao.mensagem}<br><br>
-      <table style="width: 100%; font-size: 12px;">
-        <tr><td style="width: 40%;">💰 Soma dos produtos extraídos:</td><td><strong>R$ ${somaProdutos.toFixed(2)}</strong></td></tr>
-        <tr><td>🚚 Valor do Frete:</td><td>R$ ${nf.valorFrete.toFixed(2)}</td></tr>
-        <tr><td>🏷️ Desconto:</td><td>R$ ${nf.valorDesconto.toFixed(2)}</td></tr>
-        <tr style="border-top: 1px solid var(--border);"><td><strong>📝 Total calculado:</strong></td><td><strong>R$ ${totalCalculado.toFixed(2)}</strong></td></tr>
-        <tr><td>📄 Valor declarado na NF:</td><td><strong>R$ ${nf.valorTotalNota.toFixed(2)}</strong></td></tr>
-        ${!nf.validacao.ok && nf.validacao.diferenca > 0 ? `<tr style="color: var(--danger);"><td>⚠️ Diferença:</td><td><strong>R$ ${nf.validacao.diferenca.toFixed(2)}</strong></td></tr>` : ''}
-      </table>
-    </div>
+    function extractFullProduct(detNode, ideInfo, emitente, fileName) {
+        const prodNode = detNode.getElementsByTagName('prod')[0];
+        if (!prodNode) return null;
+        
+        const csosnCst = getCSOSNandCST(detNode);
+        const impostos = extractTaxes(detNode);
+        
+        return {
+            arquivo: fileName,
+            nNF: ideInfo.nNF,
+            serie: ideInfo.serie,
+            dataEmissao: ideInfo.dataEmissao,
+            cnpjEmitente: emitente.cnpj,
+            nomeEmitente: emitente.nome,
+            nomeFantasia: emitente.fantasia,
+            ufEmitente: emitente.uf,
+            codigoProduto: getText(prodNode, 'cProd'),
+            descricaoProduto: getText(prodNode, 'xProd'),
+            NCM: getText(prodNode, 'NCM'),
+            CFOP: getText(prodNode, 'CFOP'),
+            quantidade: getFloat(prodNode, 'qCom'),
+            valorUnitario: getFloat(prodNode, 'vUnCom'),
+            valorTotalProduto: getFloat(prodNode, 'vProd'),
+            CSOSN: csosnCst.csosn,
+            CST: csosnCst.cst,
+            pICMS: impostos.pICMS,
+            vBC: impostos.vBC,
+            vICMS: impostos.vICMS,
+            PIS_vPIS: impostos.PIS_vPIS,
+            COFINS_vCOFINS: impostos.COFINS_vCOFINS,
+            vTotTrib: impostos.vTotTrib
+        };
+    }
     
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr><th>#</th><th>Código</th><th>Descrição</th><th>CFOP</th><th>UN</th><th>Qtd</th><th>V. Unit.</th><th>V. Total</th><th>Pág</th></tr>
-        </thead>
-        <tbody>
-  `;
-  
-  nf.produtos.forEach((p, idx) => {
-    html += `<tr>
-      <td style="text-align: center;">${idx + 1}</td>
-      <td style="font-family: monospace; font-weight: bold;">${p.codigo}</td>
-      <td style="max-width: 400px;">${p.descricao}</td>
-      <td style="text-align: center;">${p.cfop || '-'}</td>
-      <td style="text-align: center;">${p.unidade}</td>
-      <td style="text-align: right;">${p.quantidade.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-      <td style="text-align: right;">R$ ${p.valorUnitario.toFixed(4)}</td>
-      <td style="text-align: right;"><strong>R$ ${p.valorTotal.toFixed(2)}</strong></td>
-      <td style="text-align: center;">${p.pagina || '-'}</td>
-    </tr>`;
-  });
-  
-  html += `</tbody>
-      </table>
-    </div>
-    <div class="total-bar">
-      <span>💰 TOTAL DE PRODUTOS EXTRAÍDOS: <strong style="font-size: 1.2rem;">${nf.produtos.length} itens</strong></span>
-      <span class="total-value">R$ ${somaProdutos.toFixed(2)}</span>
-    </div>`;
-  
-  document.getElementById('detalheContent').innerHTML = html;
-}
-
-function exportarTodasNFs() {
-  if (notasFiscais.length === 0) { mostrarStatus('Nenhuma nota para exportar', 'error'); return; }
-  const headers = ['Número NF', 'Série', 'Data', 'Emitente', 'CNPJ', 'Destinatário', 'Total Produtos', 'Frete', 'Desconto', 'Total Nota', 'Qtd Produtos', 'Páginas', 'Validação'];
-  const rows = notasFiscais.map(nf => {
-    const soma = nf.produtos.reduce((s, p) => s + p.valorTotal, 0);
-    return [nf.numero, nf.serie, nf.dataEmissao, nf.emitente, nf.cnpjEmitente, nf.destinatario, 
-            `R$ ${soma.toFixed(2)}`, `R$ ${nf.valorFrete.toFixed(2)}`, `R$ ${nf.valorDesconto.toFixed(2)}`,
-            `R$ ${nf.valorTotalNota.toFixed(2)}`, nf.produtos.length, nf.paginas, nf.validacao.ok ? 'OK' : 'DIVERGENTE'];
-  });
-  const csv = [headers, ...rows].map(r => r.join(';')).join('\n');
-  downloadCSV(csv, `Todas_NFs.csv`);
-  mostrarStatus('Exportado!', 'success');
-}
-
-function exportarTodosProdutos() {
-  if (notasFiscais.length === 0) { mostrarStatus('Nenhum produto para exportar', 'error'); return; }
-  const headers = ['NF', 'Emitente', 'Destinatário', 'Código', 'Descrição', 'CFOP', 'UN', 'Qtd', 'V.Unitário', 'V.Total', 'Página'];
-  const rows = [];
-  notasFiscais.forEach(nf => {
-    nf.produtos.forEach(p => {
-      rows.push([nf.numero, nf.emitente, nf.destinatario, p.codigo, p.descricao, p.cfop, p.unidade, 
-                 p.quantidade, p.valorUnitario.toFixed(4), p.valorTotal.toFixed(2), p.pagina || '']);
+    async function processXmlFile(file) {
+        const text = await file.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, "text/xml");
+        if (xmlDoc.getElementsByTagName('parsererror').length > 0) return [];
+        
+        const ideInfo = getIdeInfo(xmlDoc);
+        const emitente = getEmitente(xmlDoc);
+        const detNodes = xmlDoc.getElementsByTagName('det');
+        const produtos = [];
+        
+        for (let det of detNodes) {
+            const prod = extractFullProduct(det, ideInfo, emitente, file.name);
+            if (prod) produtos.push(prod);
+        }
+        return produtos;
+    }
+    
+    function gerarRelatorioHtml(todosProdutos, filtros) {
+        let filtrados = todosProdutos;
+        
+        if (filtros.produto) filtrados = filtrados.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) filtrados = filtrados.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) filtrados = filtrados.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) filtrados = filtrados.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) filtrados = filtrados.filter(p => p.CST === filtros.cst);
+        
+        let totalQuantidade = 0;
+        let totalValor = 0;
+        let totalICMS = 0;
+        let totalPIS = 0;
+        let totalCOFINS = 0;
+        
+        filtrados.forEach(p => {
+            totalQuantidade += p.quantidade || 0;
+            totalValor += p.valorTotalProduto || 0;
+            totalICMS += p.vICMS || 0;
+            totalPIS += p.PIS_vPIS || 0;
+            totalCOFINS += p.COFINS_vCOFINS || 0;
+        });
+        
+        let tableHtml = `
+            <div class="summary-cards">
+                <div class="summary-item"><div class="summary-label">📦 Quantidade Total</div><div class="summary-value">${formatQuantity(totalQuantidade)}</div></div>
+                <div class="summary-item"><div class="summary-label">💰 Valor Total Produtos</div><div class="summary-value">R$ ${formatMoney(totalValor)}</div></div>
+                <div class="summary-item"><div class="summary-label">📊 Total ICMS</div><div class="summary-value">R$ ${formatMoney(totalICMS)}</div></div>
+                <div class="summary-item"><div class="summary-label">📈 Total PIS</div><div class="summary-value">R$ ${formatMoney(totalPIS)}</div></div>
+                <div class="summary-item"><div class="summary-label">📉 Total COFINS</div><div class="summary-value">R$ ${formatMoney(totalCOFINS)}</div></div>
+            </div>
+            <div class="scroll-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th><th>NF-e</th><th>Emitente</th><th>CNPJ</th><th>UF</th>
+                            <th>Produto</th><th>Código</th><th>NCM</th><th>CFOP</th>
+                            <th>Qtde</th><th>Vl.Unit (R$)</th><th>Vl.Total (R$)</th>
+                            <th>CSOSN</th><th>CST</th>
+                            <th>Base ICMS</th><th>% ICMS</th><th>Vl.ICMS</th>
+                            <th>PIS</th><th>COFINS</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        
+        if (filtrados.length === 0) {
+            tableHtml += `<tr><td colspan="19" style="text-align: center; padding: 40px;">⚠️ Nenhum produto encontrado com os filtros aplicados</td></tr>`;
+        } else {
+            filtrados.forEach(p => {
+                tableHtml += `
+                    <tr>
+                        <td>${p.dataEmissao}</td>
+                        <td>${p.nNF}</td>
+                        <td title="${p.nomeEmitente}">${(p.nomeFantasia || p.nomeEmitente).substring(0, 28)}</td>
+                        <td>${p.cnpjEmitente}</td>
+                        <td>${p.ufEmitente}</td>
+                        <td title="${p.descricaoProduto}">${p.descricaoProduto.substring(0, 35)}</td>
+                        <td>${p.codigoProduto}</td>
+                        <td>${p.NCM}</td>
+                        <td>${p.CFOP}</td>
+                        <td style="text-align: right;">${formatQuantity(p.quantidade)}</td>
+                        <td style="text-align: right;">${formatMoney(p.valorUnitario)}</td>
+                        <td style="text-align: right;">${formatMoney(p.valorTotalProduto)}</td>
+                        <td style="text-align: center;">${p.CSOSN ? `<span class="badge-csosn">${p.CSOSN}</span>` : '-'}</td>
+                        <td style="text-align: center;">${p.CST ? `<span class="badge-cst">${p.CST}</span>` : '-'}</td>
+                        <td style="text-align: right;">${formatMoney(p.vBC)}</td>
+                        <td style="text-align: center;">${p.pICMS ? p.pICMS.toFixed(2) + '%' : '-'}</td>
+                        <td style="text-align: right;">${formatMoney(p.vICMS)}</td>
+                        <td style="text-align: right;">${formatMoney(p.PIS_vPIS)}</td>
+                        <td style="text-align: right;">${formatMoney(p.COFINS_vCOFINS)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        tableHtml += `
+                    <tr class="total-row">
+                        <td colspan="9" style="text-align: right; font-weight: 700;">TOTAIS:</td>
+                        <td style="text-align: right; font-weight: 700;">${formatQuantity(totalQuantidade)}</td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right; font-weight: 700;">R$ ${formatMoney(totalValor)}</td>
+                        <td colspan="2"></td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right; font-weight: 700;">R$ ${formatMoney(totalICMS)}</td>
+                        <td style="text-align: right;">R$ ${formatMoney(totalPIS)}</td>
+                        <td style="text-align: right;">R$ ${formatMoney(totalCOFINS)}</td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 16px; font-size: 11px; color: #6b7280; text-align: center;">
+                <i class="fas fa-info-circle"></i> Relatório gerado em ${new Date().toLocaleString()} | ${filtrados.length} itens exibidos | Quantidades sem decimais | Valores formatados (1.000,00)
+            </p>
+        `;
+        
+        return tableHtml;
+    }
+    
+    function atualizarStats(produtos, filtradosCount) {
+        const statsDiv = document.getElementById('statsArea');
+        const totalValor = produtos.reduce((s, p) => s + p.valorTotalProduto, 0);
+        statsDiv.innerHTML = `
+            <div class="stat-card"><i class="fas fa-box"></i> <strong>${produtos.length}</strong> produtos totais</div>
+            <div class="stat-card"><i class="fas fa-dollar-sign"></i> <strong>R$ ${formatMoney(totalValor)}</strong> valor total</div>
+            <div class="stat-card"><i class="fas fa-filter"></i> <strong>${filtradosCount}</strong> itens filtrados</div>
+        `;
+    }
+    
+    function atualizarListaArquivos(files) {
+        const fileListDiv = document.getElementById('fileList');
+        if (files.length > 0) {
+            const nomes = Array.from(files).map(f => f.name).join(', ');
+            fileListDiv.innerHTML = `<i class="fas fa-file-alt"></i> ${files.length} arquivo(s): ${nomes.substring(0, 80)}${nomes.length > 80 ? '...' : ''}`;
+        } else {
+            fileListDiv.innerHTML = '';
+        }
+    }
+    
+    let globalProdutos = [];
+    const fileInput = document.getElementById('xmlFiles');
+    const fileStatus = document.getElementById('fileStatus');
+    const reportContainer = document.getElementById('reportContainer');
+    
+    const filterProduto = document.getElementById('filterProduto');
+    const filterEmitente = document.getElementById('filterEmitente');
+    const filterCFOP = document.getElementById('filterCFOP');
+    const filterCSOSN = document.getElementById('filterCSOSN');
+    const filterCST = document.getElementById('filterCST');
+    
+    function getFiltros() {
+        return {
+            produto: filterProduto.value.trim(),
+            emitente: filterEmitente.value.trim(),
+            cfop: filterCFOP.value.trim(),
+            csosn: filterCSOSN.value.trim(),
+            cst: filterCST.value.trim()
+        };
+    }
+    
+    async function carregarXmls(files) {
+        let todos = [];
+        for (let file of files) {
+            const prods = await processXmlFile(file);
+            todos.push(...prods);
+        }
+        globalProdutos = todos;
+        atualizarRelatorio();
+        fileStatus.innerHTML = `${files.length} arquivo(s) | ${globalProdutos.length} produtos extraídos`;
+        atualizarListaArquivos(files);
+    }
+    
+    function atualizarRelatorio() {
+        if (globalProdutos.length === 0) {
+            reportContainer.innerHTML = `
+                <div style="text-align: center; padding: 60px; color: #6b7280;">
+                    <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Selecione um ou mais arquivos XML e clique em <strong>Processar XMLs</strong></p>
+                </div>
+            `;
+            atualizarStats([], 0);
+            return;
+        }
+        const filtros = getFiltros();
+        let filtrados = globalProdutos;
+        if (filtros.produto) filtrados = filtrados.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) filtrados = filtrados.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) filtrados = filtrados.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) filtrados = filtrados.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) filtrados = filtrados.filter(p => p.CST === filtros.cst);
+        
+        const html = gerarRelatorioHtml(globalProdutos, filtros);
+        reportContainer.innerHTML = html;
+        atualizarStats(globalProdutos, filtrados.length);
+    }
+    
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (globalProdutos.length === 0) return alert("Nenhum dado para exportar.");
+        const filtros = getFiltros();
+        let data = globalProdutos;
+        if (filtros.produto) data = data.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) data = data.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) data = data.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) data = data.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) data = data.filter(p => p.CST === filtros.cst);
+        
+        const headers = ["Data", "NF-e", "Emitente", "CNPJ", "UF", "Produto", "Código", "NCM", "CFOP", "Qtde", "Vl.Unitário", "Vl.Total", "CSOSN", "CST", "BaseICMS", "AliqICMS", "VlICMS", "PIS", "COFINS"];
+        const rows = data.map(p => [
+            p.dataEmissao, p.nNF, p.nomeFantasia || p.nomeEmitente, p.cnpjEmitente, p.ufEmitente,
+            p.descricaoProduto, p.codigoProduto, p.NCM, p.CFOP,
+            formatQuantity(p.quantidade), formatMoney(p.valorUnitario), formatMoney(p.valorTotalProduto),
+            p.CSOSN, p.CST, formatMoney(p.vBC), p.pICMS ? p.pICMS.toFixed(2) + '%' : '', formatMoney(p.vICMS),
+            formatMoney(p.PIS_vPIS), formatMoney(p.COFINS_vCOFINS)
+        ]);
+        let csv = headers.join(",") + "\n" + rows.map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `exportacao_nfe_${new Date().toISOString().slice(0,19)}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
     });
-  });
-  const csv = [headers, ...rows].map(r => r.join(';')).join('\n');
-  downloadCSV(csv, `Todos_Produtos.csv`);
-  mostrarStatus(`${rows.length} produtos exportados!`, 'success');
-}
-
-function downloadCSV(content, filename) {
-  const blob = new Blob(["\uFEFF" + content], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-
-function mostrarStatus(msg, tipo) {
-  const div = document.getElementById('statusMsg');
-  div.innerHTML = `<div class="status status-${tipo}"><i class="fas ${tipo === 'info' ? 'fa-spinner fa-pulse' : 'fa-check-circle'}"></i> ${msg}</div>`;
-  setTimeout(() => div.innerHTML = '', 5000);
-}
-
-function limparTexto() { document.getElementById('nfTexto').value = ''; }
-function salvarLocalStorage() { localStorage.setItem('notasFiscaisCompleto', JSON.stringify(notasFiscais)); }
-function carregarLocalStorage() {
-  const saved = localStorage.getItem('notasFiscaisCompleto');
-  if (saved) { 
-    notasFiscais = JSON.parse(saved); 
-    if (notasFiscais.length) { 
-      nfSelecionadaId = notasFiscais[0].id; 
-      atualizarListaNFs(); 
-      exibirDetalheNF(nfSelecionadaId); 
-    } 
-  }
-}
-
-function toggleTheme() { 
-  currentTheme = currentTheme === 'light' ? 'dark' : 'light'; 
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  if (currentTheme === 'dark') {
-    document.documentElement.style.setProperty('--bg', '#0f172a');
-    document.documentElement.style.setProperty('--surface', '#1e293b');
-    document.documentElement.style.setProperty('--surface2', '#334155');
-    document.documentElement.style.setProperty('--text', '#f1f5f9');
-    document.documentElement.style.setProperty('--text-m', '#94a3b8');
-    document.documentElement.style.setProperty('--border', 'rgba(255,255,255,0.1)');
-  } else {
-    document.documentElement.style.setProperty('--bg', '#f0f4fb');
-    document.documentElement.style.setProperty('--surface', '#ffffff');
-    document.documentElement.style.setProperty('--surface2', '#f4f7fd');
-    document.documentElement.style.setProperty('--text', '#1e293b');
-    document.documentElement.style.setProperty('--text-m', '#64748b');
-    document.documentElement.style.setProperty('--border', 'rgba(37,99,235,0.12)');
-  }
-}
-
-carregarLocalStorage();
+    
+    document.getElementById('processBtn').addEventListener('click', async () => {
+        const files = fileInput.files;
+        if (files.length === 0) { alert("Selecione pelo menos um arquivo XML."); return; }
+        await carregarXmls(files);
+    });
+    
+    document.getElementById('uploadArea').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            fileStatus.innerHTML = `${e.target.files.length} arquivo(s) selecionado(s) - clique em Processar`;
+            atualizarListaArquivos(e.target.files);
+        } else {
+            fileStatus.innerHTML = "Nenhum arquivo selecionado";
+            document.getElementById('fileList').innerHTML = '';
+        }
+    });
+    
+    filterProduto.addEventListener('input', atualizarRelatorio);
+    filterEmitente.addEventListener('input', atualizarRelatorio);
+    filterCFOP.addEventListener('input', atualizarRelatorio);
+    filterCSOSN.addEventListener('input', atualizarRelatorio);
+    filterCST.addEventListener('input', atualizarRelatorio);
+    
+    let darkMode = false;
+    document.getElementById('darkBtn').addEventListener('click', () => {
+        darkMode = !darkMode;
+        document.body.style.background = darkMode ? '#0f172a' : '#f0fdf4';
+        document.querySelectorAll('.card').forEach(c => c.style.background = darkMode ? '#1e293b' : 'white');
+        document.querySelectorAll('.card').forEach(c => c.style.color = darkMode ? '#e2e8f0' : '#1a3a2a');
+        document.getElementById('darkBtn').innerHTML = darkMode ? '<i class="fas fa-sun"></i> Modo Claro' : '<i class="fas fa-moon"></i> Modo Escuro';
+    });
 </script>
 </body>
 </html>
