@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,29 @@
 <title>SPED Auditoria — Visualizador de Notas Fiscais</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* Tema Claro (padrão) */
   :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f6;
+    --border: #e2e8f0;
+    --accent: #0f7b6b;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --ok: #059669;
+    --warn: #d97706;
+    --err: #dc2626;
+    --radius: 8px;
+    --font-mono: 'DM Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+
+  /* Tema Escuro */
+  body.dark {
     --bg: #0a0c10;
     --surface: #111318;
     --surface2: #181c24;
@@ -21,9 +43,6 @@
     --ok: #00c87a;
     --warn: #f5c842;
     --err: #ff5c5c;
-    --radius: 8px;
-    --font-mono: 'DM Mono', monospace;
-    --font-display: 'Syne', sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +54,7 @@
     font-size: 13px;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.2s ease, color 0.2s ease;
   }
 
   body::before {
@@ -98,6 +118,28 @@
     text-transform: uppercase;
     white-space: nowrap;
     align-self: flex-start;
+  }
+
+  /* Botão tema */
+  .theme-toggle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    margin-left: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   /* Import zone - simplified */
@@ -390,7 +432,8 @@
     transition: background 0.1s;
     animation: rowIn 0.2s ease both;
   }
-  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:hover { background: rgba(0,0,0,0.02); }
+  body.dark tbody tr:hover { background: rgba(255,255,255,0.02); }
   tbody tr:last-child { border-bottom: none; }
 
   td {
@@ -489,7 +532,7 @@
   }
 </style>
 </head>
-<body>
+<body class="">
 <div class="wrap">
 
   <header>
@@ -498,6 +541,7 @@
       <h1>Visualizador SPED — Notas Fiscais de Entradas</h1>
       <p>EFD ICMS/IPI — Registros C100</p>
     </div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌞 Claro</button>
     <span class="badge" id="empresaBadge">Aguardando arquivo...</span>
   </header>
 
@@ -567,6 +611,38 @@
 </div>
 
 <script>
+// Tema: padrão claro
+let isDark = false;
+
+// Inicializar tema claro ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+  // Garantir que o tema claro seja o padrão (classe vazia)
+  document.body.classList.remove('dark');
+  isDark = false;
+  updateThemeButton();
+});
+
+function toggleTheme() {
+  isDark = !isDark;
+  if (isDark) {
+    document.body.classList.add('dark');
+  } else {
+    document.body.classList.remove('dark');
+  }
+  updateThemeButton();
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    if (isDark) {
+      btn.innerHTML = '🌙 Escuro';
+    } else {
+      btn.innerHTML = '🌞 Claro';
+    }
+  }
+}
+
 // State
 let spedRecords = []; // parsed C100 records from SPED
 let filteredRecords = [];
@@ -822,7 +898,7 @@ function renderTable() {
   const totalPages = Math.ceil(filteredRecords.length/pageSize);
   
   if (filteredRecords.length === 0) {
-    document.getElementById('tableBody').innerHTML = `<tr><td colspan="${cols.length}"><div class="empty-state"><span class="icon">🔍</span><p>Nenhum registro encontrado para este filtro.</p></div></td></table>`;
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="${cols.length}"><div class="empty-state"><span class="icon">🔍</span><p>Nenhum registro encontrado para este filtro.</p></div></td></tr>`;
   } else {
     document.getElementById('tableBody').innerHTML = pageRows.map(r => {
       return `<tr>${cols.map(c => renderCell(r, c.key)).join('')}</tr>`;
@@ -861,6 +937,12 @@ function goPage(p) {
 
 function renderCell(row, key) {
   let v = row[key];
+  
+  // Nº Nota (NUM_DOC) exibe valor CRU, sem formatação
+  if (key === 'NUM_DOC') {
+    if (!v || v === '0') return `<td class="val-empty">—</td>`;
+    return `<td>${escHtml(String(v).trim())}</td>`;
+  }
   
   if (key === 'CFOP') {
     return `<td>${formatCFOP(v) || '<span class="val-empty">—</span>'}</td>`;
@@ -974,6 +1056,7 @@ function exportCsv() {
     let v = r[c.key]||'';
     if (c.key==='CFOP') v = formatCFOP(v);
     if (c.key==='VL_DOC' || c.key?.includes('VL_')) v = fmtNum(v);
+    if (c.key==='NUM_DOC') v = String(r.NUM_DOC || '').trim();
     return `"${String(v).replace(/"/g,'""')}"`;
   }).join(';'));
   const csv = '\uFEFF' + header + '\n' + lines.join('\n');
