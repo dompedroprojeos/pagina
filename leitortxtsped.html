@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPED Auditoria — Visualizador de Notas Fiscais</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #1e2430;
+    --accent: #00e5b0;
+    --accent2: #ff5c5c;
+    --accent3: #f5c842;
+    --accent4: #4d9eff;
+    --text: #e8ecf4;
+    --text-muted: #6b7585;
+    --text-dim: #3a4155;
+    --ok: #00c87a;
+    --warn: #f5c842;
+    --err: #ff5c5c;
+    --radius: 8px;
+    --font-mono: 'DM Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 32px 24px; }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    width: 52px; height: 52px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--bg);
+    flex-shrink: 0;
+    box-shadow: 0 0 32px rgba(0,229,176,0.3);
+  }
+  .header-text h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header-text p {
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .badge {
+    margin-left: auto;
+    background: rgba(0,229,176,0.1);
+    border: 1px solid rgba(0,229,176,0.3);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  /* Import zone - simplified */
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,229,176,0.04);
+    box-shadow: 0 0 24px rgba(0,229,176,0.1);
+  }
+  .drop-zone.loaded {
+    border-color: var(--ok);
+    border-style: solid;
+    background: rgba(0,200,122,0.04);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .drop-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .drop-sub { color: var(--text-muted); font-size: 11px; }
+  .drop-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--ok);
+    font-weight: 500;
+  }
+
+  /* Stats */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.total::before { background: var(--accent4); }
+  .stat-card.valor::before { background: var(--accent); }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .stat-card.total .stat-num { color: var(--accent4); }
+  .stat-card.valor .stat-num { color: var(--accent); }
+  .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+
+  /* Sum cards */
+  .sum-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sum-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 24px;
+  }
+  .sum-card .sum-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .sum-card .sum-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent4);
+  }
+  .sum-card.valor-total .sum-value { color: var(--accent); }
+  .sum-card.icms .sum-value { color: var(--warn); }
+  .sum-card.ipi .sum-value { color: var(--accent3); }
+
+  /* Filter tabs */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    transition: all 0.15s;
+  }
+  .tab:hover { border-color: var(--text-muted); color: var(--text); }
+  .tab.active { color: var(--bg); border-color: transparent; }
+  .tab.all.active { background: var(--accent4); }
+
+  /* CFOP Filter */
+  .cfop-filter {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cfop-filter label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cfop-filter input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    width: 100px;
+  }
+  .cfop-filter input:focus { outline: 1px solid var(--accent); }
+  .cfop-filter .clear-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+  }
+  .cfop-filter .clear-btn:hover { color: var(--err); }
+
+  /* Search */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .search-bar input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .search-bar input:focus { outline: 1px solid var(--accent); }
+  .search-bar input::placeholder { color: var(--text-dim); }
+
+  /* Export button */
+  .btn-export {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Column selector */
+  .col-toggle { position: relative; }
+  .col-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .col-btn:hover { border-color: var(--accent4); color: var(--accent4); }
+  .col-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    z-index: 100;
+    width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .col-panel.open { display: grid; }
+  .col-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: all 0.1s;
+  }
+  .col-check:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+  .col-check input { accent-color: var(--accent); }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px;
+  }
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--text); }
+  th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+  th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    animation: rowIn 0.2s ease both;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .val-empty { color: var(--text-dim); font-style: italic; }
+  .valor-total-destaque { color: var(--accent); font-weight: 500; }
+
+  /* Progress */
+  #progress-wrap {
+    display: none;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 48px; display: block; margin-bottom: 16px; }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 10px 0;
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+  .page-btns { display: flex; gap: 4px; }
+  .page-btn {
+    padding: 5px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    transition: all 0.1s;
+  }
+  .page-btn:hover, .page-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,176,0.06); }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-size select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rowIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 768px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .sum-bar { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; }
+    .badge { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo-mark">NF</div>
+    <div class="header-text">
+      <h1>Visualizador SPED — Notas Fiscais de Entradas</h1>
+      <p>EFD ICMS/IPI — Registros C100</p>
+    </div>
+    <span class="badge" id="empresaBadge">Aguardando arquivo...</span>
+  </header>
+
+  <!-- Import area - apenas SPED -->
+  <div class="drop-zone" id="dropSped" ondragover="handleDrag(event,'dropSped')" ondragleave="handleDragLeave('dropSped')" ondrop="handleDrop(event,'sped')">
+    <input type="file" accept=".txt,.sped" onchange="loadSped(event)">
+    <span class="drop-icon">📂</span>
+    <div class="drop-label">Arquivo SPED / TXT</div>
+    <div class="drop-sub">Registros C100 — Notas Fiscais de Entradas<br>Arraste ou clique para selecionar</div>
+    <div class="drop-status" id="spedStatus"></div>
+  </div>
+
+  <div id="progress-wrap">
+    <div class="progress-label" id="progress-label">Processando...</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" style="display:none">
+    <div class="stats-bar" id="statsBar"></div>
+    
+    <!-- Sum cards -->
+    <div class="sum-bar" id="sumBar"></div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar por Nº NF, CNPJ, Chave NFe..." oninput="applyFilters()">
+      <div class="col-toggle">
+        <button class="col-btn" onclick="toggleColPanel()">⚙ Colunas</button>
+        <div class="col-panel" id="colPanel"></div>
+      </div>
+      <button class="btn-export" onclick="exportCsv()">↓ Exportar CSV</button>
+    </div>
+
+    <div class="filter-row" id="filterRow"></div>
+    
+    <!-- CFOP Filter -->
+    <div class="filter-row">
+      <div class="cfop-filter">
+        <label>🔍 CFOP:</label>
+        <input type="text" id="cfopFilter" placeholder="Ex: 1949" oninput="applyFilters()">
+        <button class="clear-btn" onclick="clearCfopFilter()">✕</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="mainTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <div id="pageInfo"></div>
+      <div class="page-size">
+        Linhas:
+        <select onchange="pageSize=+this.value; currentPage=1; renderTable()">
+          <option value="50">50</option>
+          <option value="100" selected>100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+        </select>
+      </div>
+      <div class="page-btns" id="pageBtns"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// State
+let spedRecords = []; // parsed C100 records from SPED
+let filteredRecords = [];
+let activeFilter = 'all';
+let cfopFilterValue = '';
+let sortCol = null, sortAsc = true;
+let currentPage = 1, pageSize = 100;
+let visibleCols = [];
+
+// SPED C100 field positions
+const C100_FIELDS = [
+  'REG','IND_OPER','IND_EMIT','COD_PART','COD_MOD','COD_SIT','COD_FIN',
+  'NUM_DOC','CHV_NFe','DT_DOC','DT_E_S','VL_DOC','IND_PGTO','VL_DESC',
+  'VL_ABAT_NT','VL_MERC','IND_FRT','VL_FRT','VL_SEG','VL_OUT_DA',
+  'VL_BC_ICMS','VL_ICMS','VL_BC_ICMS_ST','VL_ICMS_ST','VL_IPI','VL_PIS',
+  'VL_COFINS','VL_PIS_ST','VL_COFINS_ST'
+];
+
+// Column definitions - incluindo VL_DOC (Valor Total Contábil)
+const COLS = [
+  { key:'NUM_DOC',   label:'Nº Nota',     group:'id', numeric:true },
+  { key:'DT_DOC',    label:'Dt.Emissão',  group:'id' },
+  { key:'DT_E_S',    label:'Dt.Escritur.',group:'id' },
+  { key:'COD_MOD',   label:'Série',       group:'id' },
+  { key:'COD_FIN',   label:'SubSér',      group:'id' },
+  { key:'CFOP',      label:'CFOP',        group:'id' },
+  { key:'COD_PART',  label:'Terceiro',    group:'id' },
+  { key:'UF',        label:'UF',          group:'id' },
+  { key:'COD_SIT',   label:'Espécie',     group:'id' },
+  { key:'VL_DOC',    label:'Valor Total R$', group:'val', numeric:true, destaque:true },
+  { key:'VL_BC_ICMS',label:'Base ICMS',   group:'val', numeric:true },
+  { key:'VL_ICMS',   label:'Valor ICMS',  group:'val', numeric:true },
+  { key:'VL_BC_IPI', label:'Base IPI',    group:'val', numeric:true },
+  { key:'VL_IPI',    label:'Valor IPI',   group:'val', numeric:true },
+  { key:'CHV_NFe',   label:'Chave NFe',   group:'nfe' },
+  { key:'IND_OPER',  label:'Ind.Oper',    group:'meta' },
+  { key:'IND_EMIT',  label:'Ind.Emit',    group:'meta' },
+];
+
+// Default visible columns - incluindo VL_DOC destacado
+visibleCols = ['NUM_DOC','DT_DOC','DT_E_S','COD_MOD','CFOP','COD_PART','VL_DOC','VL_BC_ICMS','VL_ICMS','VL_IPI','CHV_NFe'];
+
+// Format CFOP (remove decimal places)
+function formatCFOP(cfop) {
+  if (!cfop) return '';
+  let clean = String(cfop).replace(/\.\d+$/, '');
+  if (clean.includes('/')) {
+    return clean.split('/').map(p => p.replace(/\.\d+$/, '')).join('/');
+  }
+  return clean;
+}
+
+// SPED parser
+function parseSped(text) {
+  const lines = text.split(/\r?\n/);
+  const records = [];
+  let lastC100 = null;
+  
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const parts = line.split('|');
+    const reg = parts[1];
+    
+    if (reg === 'C100') {
+      const rec = {};
+      C100_FIELDS.forEach((f, i) => { rec[f] = (parts[i+1] || '').trim(); });
+      // Add UF extraction from COD_PART or other logic (simplified)
+      rec.UF = '';
+      if (rec.COD_PART && rec.COD_PART.length >= 2) {
+        const ufMatch = rec.COD_PART.match(/[A-Z]{2}$/);
+        if (ufMatch) rec.UF = ufMatch[0];
+      }
+      lastC100 = rec;
+      records.push(rec);
+    }
+    
+    if (reg === 'C190' && lastC100) {
+      const cfop = (parts[3] || '').trim();
+      if (cfop && !lastC100.CFOP) lastC100.CFOP = cfop;
+      else if (cfop && lastC100.CFOP && lastC100.CFOP !== cfop) {
+        lastC100.CFOP = lastC100.CFOP + '/' + cfop;
+      }
+      const vl_ipi_c190 = parseFloat((parts[11]||'0').replace(',','.')) || 0;
+      if (!lastC100.VL_IPI || lastC100.VL_IPI === '0') {
+        if (vl_ipi_c190 > 0) lastC100.VL_IPI = vl_ipi_c190.toString();
+      }
+    }
+  }
+  
+  return records;
+}
+
+// Helper functions
+function toNum(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const s = String(v).replace(/\./g,'').replace(',','.');
+  return parseFloat(s) || 0;
+}
+
+function fmtNum(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  const n = toNum(v);
+  if (n === 0 && v === '') return '';
+  return n.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function fmtDate(v) {
+  if (!v || v.length < 8) return v || '';
+  if (/^\d{8}$/.test(v)) {
+    if (parseInt(v.substring(0,4)) > 1900 && parseInt(v.substring(0,4)) < 2100) {
+      return v.substring(6)+'/'+v.substring(4,6)+'/'+v.substring(0,4);
+    }
+    return v.substring(0,2)+'/'+v.substring(2,4)+'/'+v.substring(4);
+  }
+  return v;
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Render results
+function renderResults() {
+  document.getElementById('results').style.display = 'block';
+  renderStats();
+  renderSums();
+  buildFilters();
+  buildColPanel();
+  buildTableHead();
+  applyFilters();
+}
+
+function renderStats() {
+  const total = spedRecords.length;
+  let valorTotalGeral = 0;
+  spedRecords.forEach(r => { valorTotalGeral += toNum(r.VL_DOC); });
+  
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-card total"><div class="stat-num">${total}</div><div class="stat-label">Total Registros C100</div></div>
+    <div class="stat-card valor"><div class="stat-num">R$ ${valorTotalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div><div class="stat-label">Valor Total Geral</div></div>
+  `;
+}
+
+function renderSums() {
+  const rowsToSum = filteredRecords.length ? filteredRecords : spedRecords;
+  let somaValorTotal = 0;
+  let somaBaseICMS = 0;
+  let somaValorICMS = 0;
+  let somaBaseIPI = 0;
+  let somaValorIPI = 0;
+  
+  rowsToSum.forEach(row => {
+    somaValorTotal += toNum(row.VL_DOC);
+    somaBaseICMS += toNum(row.VL_BC_ICMS);
+    somaValorICMS += toNum(row.VL_ICMS);
+    somaBaseIPI += toNum(row.VL_BC_IPI);
+    somaValorIPI += toNum(row.VL_IPI);
+  });
+  
+  document.getElementById('sumBar').innerHTML = `
+    <div class="sum-card valor-total">
+      <div class="sum-label">💰 VALOR TOTAL CONTÁBIL (R$)</div>
+      <div class="sum-value">R$ ${somaValorTotal.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">📊 BASE ICMS (R$)</div>
+      <div class="sum-value">R$ ${somaBaseICMS.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+    </div>
+    <div class="sum-card icms">
+      <div class="sum-label">💰 VALOR ICMS (R$)</div>
+      <div class="sum-value">R$ ${somaValorICMS.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">📊 BASE IPI (R$)</div>
+      <div class="sum-value">R$ ${somaBaseIPI.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+    </div>
+    <div class="sum-card ipi">
+      <div class="sum-label">💰 VALOR IPI (R$)</div>
+      <div class="sum-value">R$ ${somaValorIPI.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+    </div>
+  `;
+}
+
+function buildFilters() {
+  const counts = {
+    all: spedRecords.length,
+  };
+  document.getElementById('filterRow').innerHTML = [
+    {key:'all', label:'Todos'},
+  ].map(f => `<button class="tab ${f.key} ${activeFilter===f.key?'active':''}" onclick="setFilter('${f.key}')">${f.label} (${counts[f.key]})</button>`).join('');
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  currentPage = 1;
+  buildFilters();
+  applyFilters();
+}
+
+function clearCfopFilter() {
+  document.getElementById('cfopFilter').value = '';
+  cfopFilterValue = '';
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  cfopFilterValue = (document.getElementById('cfopFilter')?.value||'').trim();
+  
+  filteredRecords = spedRecords.filter(r => {
+    if (cfopFilterValue) {
+      const rowCfop = formatCFOP(r.CFOP);
+      if (!rowCfop.includes(cfopFilterValue)) return false;
+    }
+    if (q) {
+      const s = [r.NUM_DOC, r.COD_PART, r.CHV_NFe, r.CFOP].join('|').toLowerCase();
+      if (!s.includes(q)) return false;
+    }
+    return true;
+  });
+  
+  if (sortCol) {
+    filteredRecords.sort((a,b) => {
+      const col = COLS.find(c=>c.key===sortCol);
+      let va = a[sortCol]||'', vb = b[sortCol]||'';
+      if (col?.numeric) { va = toNum(va); vb = toNum(vb); }
+      return (va > vb ? 1 : va < vb ? -1 : 0) * (sortAsc?1:-1);
+    });
+  }
+  
+  currentPage = 1;
+  renderSums();
+  renderTable();
+}
+
+function buildTableHead() {
+  const cols = COLS.filter(c => visibleCols.includes(c.key));
+  document.getElementById('tableHead').innerHTML = `<tr>${cols.map(c => `
+    <th onclick="sortBy('${c.key}')" class="${sortCol===c.key?'sorted':''}">
+      ${c.label}<span class="sort-arrow">${sortCol===c.key?(sortAsc?'↑':'↓'):'↕'}</span>
+    </th>`).join('')}</tr>`;
+}
+
+function sortBy(key) {
+  if (sortCol === key) sortAsc = !sortAsc;
+  else { sortCol = key; sortAsc = true; }
+  buildTableHead();
+  applyFilters();
+}
+
+function renderTable() {
+  const cols = COLS.filter(c => visibleCols.includes(c.key));
+  const start = (currentPage-1)*pageSize;
+  const pageRows = filteredRecords.slice(start, start+pageSize);
+  const totalPages = Math.ceil(filteredRecords.length/pageSize);
+  
+  if (filteredRecords.length === 0) {
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="${cols.length}"><div class="empty-state"><span class="icon">🔍</span><p>Nenhum registro encontrado para este filtro.</p></div></td></table>`;
+  } else {
+    document.getElementById('tableBody').innerHTML = pageRows.map(r => {
+      return `<tr>${cols.map(c => renderCell(r, c.key)).join('')}</tr>`;
+    }).join('');
+  }
+  
+  const info = `Exibindo ${Math.min(start+1, filteredRecords.length)}–${Math.min(start+pageSize, filteredRecords.length)} de ${filteredRecords.length}`;
+  document.getElementById('pageInfo').textContent = info;
+  
+  let btns = '';
+  btns += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>`;
+  let pages = [];
+  if (totalPages <= 7) { for(let i=1;i<=totalPages;i++) pages.push(i); }
+  else {
+    pages = [1];
+    if (currentPage > 3) pages.push('...');
+    for(let i=Math.max(2,currentPage-1);i<=Math.min(totalPages-1,currentPage+1);i++) pages.push(i);
+    if (currentPage < totalPages-2) pages.push('...');
+    pages.push(totalPages);
+  }
+  for (const p of pages) {
+    if (p==='...') btns += `<span style="padding:5px;color:var(--text-dim)">…</span>`;
+    else btns += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>›</button>`;
+  document.getElementById('pageBtns').innerHTML = btns;
+}
+
+function goPage(p) {
+  const total = Math.ceil(filteredRecords.length/pageSize);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderTable();
+  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderCell(row, key) {
+  let v = row[key];
+  
+  if (key === 'CFOP') {
+    return `<td>${formatCFOP(v) || '<span class="val-empty">—</span>'}</td>`;
+  }
+  
+  if (key === 'VL_DOC') {
+    const valor = fmtNum(v);
+    return `<td class="valor-total-destaque">${valor || '<span class="val-empty">—</span>'}</td>`;
+  }
+  
+  if (COLS.find(c=>c.key===key)?.numeric && v) {
+    return `<td>${fmtNum(v) || '<span class="val-empty">—</span>'}</td>`;
+  }
+  
+  if ((key==='DT_DOC'||key==='DT_E_S') && v) {
+    return `<td>${fmtDate(v)}</td>`;
+  }
+  
+  if (!v || v === '0') return `<td class="val-empty">—</td>`;
+  return `<td title="${escHtml(String(v))}">${escHtml(String(v))}</td>`;
+}
+
+// Column panel functions
+function buildColPanel() {
+  document.getElementById('colPanel').innerHTML = COLS.map(c => `
+    <label class="col-check">
+      <input type="checkbox" ${visibleCols.includes(c.key)?'checked':''} onchange="toggleCol('${c.key}',this.checked)">
+      ${c.label}
+    </label>`).join('');
+}
+
+function toggleCol(key, checked) {
+  if (checked && !visibleCols.includes(key)) visibleCols.push(key);
+  else if (!checked) visibleCols = visibleCols.filter(k=>k!==key);
+  buildTableHead();
+  renderTable();
+}
+
+function toggleColPanel() {
+  document.getElementById('colPanel').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.col-toggle')) document.getElementById('colPanel')?.classList.remove('open');
+});
+
+// File loader - only SPED
+function loadSped(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const enc = 'latin1';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      showProgress(true);
+      setProgress(30, 'Processando arquivo SPED...');
+      
+      setTimeout(() => {
+        spedRecords = parseSped(ev.target.result);
+        const lines = ev.target.result.split(/\r?\n/);
+        const r0000 = lines.find(l=>l.startsWith('|0000|'));
+        if (r0000) {
+          const parts = r0000.split('|');
+          document.getElementById('empresaBadge').textContent = parts[6] || 'SPED Carregado';
+        }
+        document.getElementById('dropSped').classList.add('loaded');
+        document.getElementById('spedStatus').textContent = `✓ ${spedRecords.length} notas C100 carregadas`;
+        
+        setProgress(100, 'Concluído!');
+        setTimeout(() => {
+          showProgress(false);
+          renderResults();
+        }, 300);
+      }, 50);
+    } catch(err) {
+      document.getElementById('spedStatus').textContent = '✗ Erro: '+err.message;
+      showProgress(false);
+    }
+  };
+  reader.readAsText(file, enc);
+}
+
+// Drag & drop
+function handleDrag(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
+function handleDragLeave(id) { document.getElementById(id).classList.remove('drag-over'); }
+function handleDrop(e, type) {
+  e.preventDefault();
+  const id = type==='sped'?'dropSped':'dropCsv';
+  document.getElementById(id).classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const fakeEvt = { target: { files: [file] } };
+  if (type==='sped') loadSped(fakeEvt);
+}
+
+// Progress
+function showProgress(show) {
+  document.getElementById('progress-wrap').style.display = show?'block':'none';
+}
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+// Export CSV
+function exportCsv() {
+  if (!filteredRecords.length) return;
+  const cols = COLS.filter(c=>visibleCols.includes(c.key));
+  const header = cols.map(c=>c.label).join(';');
+  const lines = filteredRecords.map(r => cols.map(c => {
+    let v = r[c.key]||'';
+    if (c.key==='CFOP') v = formatCFOP(v);
+    if (c.key==='VL_DOC' || c.key?.includes('VL_')) v = fmtNum(v);
+    return `"${String(v).replace(/"/g,'""')}"`;
+  }).join(';'));
+  const csv = '\uFEFF' + header + '\n' + lines.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sped_notas_fiscais.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
