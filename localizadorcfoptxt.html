@@ -1,983 +1,1085 @@
-   <!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPED Auditoria — Visualizador de Notas Fiscais</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>SPED — Auditoria Fiscal por CFOP</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  /* Tema Claro (padrão) */
-  :root {
-    --bg: #f5f7fb;
-    --surface: #ffffff;
-    --surface2: #f0f2f6;
-    --border: #e2e8f0;
-    --accent: #0f7b6b;
-    --accent2: #dc2626;
-    --accent3: #d97706;
-    --accent4: #2563eb;
-    --text: #1e293b;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
-    --ok: #059669;
-    --warn: #d97706;
-    --err: #dc2626;
-    --radius: 8px;
-    --font-mono: 'DM Mono', monospace;
-    --font-display: 'Syne', sans-serif;
-  }
+:root {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #f7f8fa;
+  --surface3: #eef0f4;
+  --border: #dde1e9;
+  --border2: #c8cdd8;
+  --accent: #1a56e8;
+  --accent-light: #e8effe;
+  --accent-mid: #3b72f0;
+  --green: #0e9e6e;
+  --green-light: #e6f7f2;
+  --amber: #c47800;
+  --amber-light: #fff8e6;
+  --red: #d62828;
+  --red-light: #fdecea;
+  --purple: #6d28d9;
+  --purple-light: #ede9fe;
+  --text: #111827;
+  --text2: #374151;
+  --text3: #6b7280;
+  --text4: #9ca3af;
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Barlow Condensed', sans-serif;
+  --r: 6px;
+  --r2: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+  --shadow2: 0 4px 16px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
+}
+body.dark {
+  --bg: #0d0f14;
+  --surface: #161922;
+  --surface2: #1c2030;
+  --surface3: #222638;
+  --border: #2a2f42;
+  --border2: #353c55;
+  --accent: #4f84ff;
+  --accent-light: #1a2340;
+  --accent-mid: #5d90ff;
+  --green: #12c486;
+  --green-light: #0d2a20;
+  --amber: #f0a020;
+  --amber-light: #2a1e00;
+  --red: #f05050;
+  --red-light: #2a0f0f;
+  --purple: #9b6dff;
+  --purple-light: #1e1040;
+  --text: #f3f4f8;
+  --text2: #c8cdd8;
+  --text3: #7a8099;
+  --text4: #4a5070;
+  --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.2);
+  --shadow2: 0 4px 20px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;
+  min-height:100vh;
+  line-height:1.5;
+  transition:background .2s,color .2s;
+}
 
-  /* Tema Escuro */
-  body.dark {
-    --bg: #0a0c10;
-    --surface: #111318;
-    --surface2: #181c24;
-    --border: #1e2430;
-    --accent: #00e5b0;
-    --accent2: #ff5c5c;
-    --accent3: #f5c842;
-    --accent4: #4d9eff;
-    --text: #e8ecf4;
-    --text-muted: #6b7585;
-    --text-dim: #3a4155;
-    --ok: #00c87a;
-    --warn: #f5c842;
-    --err: #ff5c5c;
-  }
+/* ── LAYOUT ── */
+.wrap{max-width:1680px;margin:0 auto;padding:28px 20px}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── HEADER ── */
+.hd {
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:32px;padding-bottom:20px;
+  border-bottom:2px solid var(--border);
+}
+.hd-logo{
+  width:44px;height:44px;border-radius:8px;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:900;font-size:18px;
+  color:#fff;letter-spacing:-1px;flex-shrink:0;
+}
+.hd-title{font-family:var(--display);font-weight:800;font-size:22px;
+  letter-spacing:-.3px;color:var(--text);line-height:1.1}
+.hd-sub{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+.hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.badge-empresa{
+  background:var(--accent-light);border:1px solid var(--accent);
+  color:var(--accent);padding:5px 12px;border-radius:20px;
+  font-family:var(--display);font-weight:700;font-size:13px;
+  letter-spacing:.02em;white-space:nowrap
+}
+.btn-theme{
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--text3);padding:6px 12px;border-radius:20px;
+  cursor:pointer;font-family:var(--mono);font-size:12px;
+  transition:all .15s;display:flex;align-items:center;gap:5px
+}
+.btn-theme:hover{border-color:var(--accent);color:var(--accent)}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    min-height: 100vh;
-    overflow-x: hidden;
-    transition: background 0.2s ease, color 0.2s ease;
-  }
+/* ── DROP ZONE ── */
+.drop-zone{
+  border:2px dashed var(--border2);border-radius:var(--r2);
+  background:var(--surface);padding:32px 20px;cursor:pointer;
+  text-align:center;margin-bottom:28px;position:relative;
+  transition:all .2s
+}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone.ok{border-color:var(--green);border-style:solid;background:var(--green-light)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:32px;display:block;margin-bottom:8px}
+.drop-lbl{font-family:var(--display);font-weight:700;font-size:16px;color:var(--text);margin-bottom:4px}
+.drop-hint{color:var(--text3);font-size:11px}
+.drop-ok{margin-top:8px;font-size:12px;color:var(--green);font-weight:600}
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: 
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 0;
-  }
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:24px;display:none}
+.prog-lbl{font-size:11px;color:var(--text3);margin-bottom:6px}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease}
 
-  .wrap { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 32px 24px; }
+/* ── CFOP CARDS GRID (painel de resumo) ── */
+.cfop-summary-section{margin-bottom:28px}
+.cfop-summary-title{
+  font-family:var(--display);font-weight:700;font-size:14px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--text3);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px
+}
+.cfop-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:10px
+}
+.cfop-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px 16px;cursor:pointer;
+  transition:all .15s;position:relative;overflow:hidden;
+  box-shadow:var(--shadow)
+}
+.cfop-card::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:var(--accent);opacity:.6
+}
+.cfop-card:hover,.cfop-card.active{
+  border-color:var(--accent);background:var(--accent-light);
+  box-shadow:var(--shadow2);transform:translateY(-1px)
+}
+.cfop-card.active::before{opacity:1;width:4px}
+.cfop-code{
+  font-family:var(--display);font-weight:900;font-size:26px;
+  color:var(--accent);letter-spacing:-.5px;line-height:1
+}
+.cfop-desc{font-size:10px;color:var(--text3);margin-top:2px;
+  text-transform:uppercase;letter-spacing:.04em;min-height:28px}
+.cfop-valor{
+  font-family:var(--display);font-weight:700;font-size:17px;
+  color:var(--text);margin-top:8px;letter-spacing:-.3px
+}
+.cfop-sub{display:flex;gap:10px;margin-top:6px}
+.cfop-sub span{font-size:10px;color:var(--text3);background:var(--surface2);
+  padding:2px 7px;border-radius:10px}
+.cfop-icms{color:var(--amber)!important}
+.cfop-card.entrada::before{background:var(--green)}
+.cfop-card.saida::before{background:var(--red)}
+.cfop-card.entrada .cfop-code{color:var(--green)}
+.cfop-card.saida .cfop-code{color:var(--red)}
 
-  header {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 40px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-  .logo-mark {
-    width: 52px; height: 52px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 20px;
-    color: var(--bg);
-    flex-shrink: 0;
-    box-shadow: 0 0 32px rgba(0,229,176,0.3);
-  }
-  .header-text h1 {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 26px;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
-  .header-text p {
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .badge {
-    margin-left: auto;
-    background: rgba(0,229,176,0.1);
-    border: 1px solid rgba(0,229,176,0.3);
-    color: var(--accent);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    align-self: flex-start;
-  }
+/* ── PAINEL PRINCIPAL ── */
+#main-panel{display:none}
 
-  /* Botão tema */
-  .theme-toggle {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-    margin-left: 16px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .theme-toggle:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;gap:8px;align-items:center;
+  flex-wrap:wrap;margin-bottom:14px
+}
+.search-input{
+  flex:1;min-width:200px;
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--text);padding:9px 14px;border-radius:var(--r);
+  font-family:var(--mono);font-size:12px;transition:border .15s
+}
+.search-input:focus{outline:none;border-color:var(--accent)}
 
-  /* Import zone - simplified */
-  .drop-zone {
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    padding: 28px 24px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(0,229,176,0.04);
-    box-shadow: 0 0 24px rgba(0,229,176,0.1);
-  }
-  .drop-zone.loaded {
-    border-color: var(--ok);
-    border-style: solid;
-    background: rgba(0,200,122,0.04);
-  }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .drop-icon { font-size: 28px; margin-bottom: 8px; display: block; }
-  .drop-label {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  .drop-sub { color: var(--text-muted); font-size: 11px; }
-  .drop-status {
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--ok);
-    font-weight: 500;
-  }
+.cfop-pill-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.cfop-pill{
+  padding:5px 13px;border-radius:20px;
+  font-family:var(--display);font-weight:700;font-size:13px;
+  cursor:pointer;border:1px solid var(--border);
+  background:var(--surface);color:var(--text3);
+  transition:all .12s;white-space:nowrap
+}
+.cfop-pill:hover{border-color:var(--accent);color:var(--accent)}
+.cfop-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cfop-pill.all.active{background:var(--text2);border-color:var(--text2);color:#fff}
 
-  /* Stats */
-  .stats-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-    animation: fadeUp 0.4s ease both;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-  .stat-card.total::before { background: var(--accent4); }
-  .stat-card.valor::before { background: var(--accent); }
-  .stat-num {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 800;
-    line-height: 1;
-  }
-  .stat-card.total .stat-num { color: var(--accent4); }
-  .stat-card.valor .stat-num { color: var(--accent); }
-  .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+/* filtro total do filtro ativo */
+.filter-total{
+  background:var(--accent-light);border:1px solid var(--accent);
+  border-radius:var(--r);padding:10px 16px;margin-bottom:12px;
+  display:none;align-items:center;gap:16px;flex-wrap:wrap
+}
+.filter-total.show{display:flex}
+.ft-label{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.ft-value{font-family:var(--display);font-weight:800;font-size:20px;color:var(--accent)}
+.ft-sub{font-size:11px;color:var(--text3)}
+.ft-clear{margin-left:auto;background:none;border:1px solid var(--accent);
+  color:var(--accent);padding:4px 10px;border-radius:12px;cursor:pointer;
+  font-family:var(--mono);font-size:11px}
+.ft-clear:hover{background:var(--accent);color:#fff}
 
-  /* Sum cards */
-  .sum-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .sum-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 24px;
-  }
-  .sum-card .sum-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-  .sum-card .sum-value {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--accent4);
-  }
-  .sum-card.valor-total .sum-value { color: var(--accent); }
-  .sum-card.icms .sum-value { color: var(--warn); }
-  .sum-card.ipi .sum-value { color: var(--accent3); }
+.btn-sm{
+  padding:8px 14px;background:var(--surface);border:1px solid var(--border2);
+  color:var(--text3);border-radius:var(--r);font-family:var(--mono);
+  font-size:11px;text-transform:uppercase;letter-spacing:.04em;
+  cursor:pointer;transition:all .15s;white-space:nowrap
+}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm.green:hover{border-color:var(--green);color:var(--green)}
 
-  /* Filter tabs */
-  .filter-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .tab {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    transition: all 0.15s;
-  }
-  .tab:hover { border-color: var(--text-muted); color: var(--text); }
-  .tab.active { color: var(--bg); border-color: transparent; }
-  .tab.all.active { background: var(--accent4); }
+/* ── TABELA ── */
+.table-wrap{
+  overflow-x:auto;border:1px solid var(--border);
+  border-radius:var(--r2);background:var(--surface);
+  box-shadow:var(--shadow)
+}
+table{width:100%;border-collapse:collapse;min-width:960px}
+thead tr{background:var(--surface3);border-bottom:2px solid var(--border)}
+th{
+  padding:10px 13px;text-align:left;
+  font-family:var(--display);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--text3);
+  white-space:nowrap;cursor:pointer;user-select:none;
+  transition:color .1s
+}
+th:hover{color:var(--accent)}
+th.sorted{color:var(--accent)}
+tr:hover td{background:var(--surface2)}
+tr:nth-child(even) td{background:var(--surface2)}
+tr:nth-child(even):hover td{background:var(--accent-light)}
+td{
+  padding:9px 13px;font-size:12px;color:var(--text2);
+  white-space:nowrap;max-width:240px;
+  overflow:hidden;text-overflow:ellipsis;
+  border-bottom:1px solid var(--border)
+}
+tr:last-child td{border-bottom:none}
 
-  /* CFOP Filter */
-  .cfop-filter {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 4px 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .cfop-filter label {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .cfop-filter input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    width: 100px;
-  }
-  .cfop-filter input:focus { outline: 1px solid var(--accent); }
-  .cfop-filter .clear-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0 4px;
-  }
-  .cfop-filter .clear-btn:hover { color: var(--err); }
+/* células especiais */
+.td-num{font-family:var(--display);font-weight:700;font-size:14px;color:var(--text)}
+.td-cfop{
+  font-family:var(--display);font-weight:800;font-size:15px;
+  color:var(--accent);letter-spacing:-.2px
+}
+.td-cfop.entrada{color:var(--green)}
+.td-cfop.saida{color:var(--red)}
+.td-date{color:var(--text3);font-size:11px}
+.td-valor{
+  font-family:var(--display);font-weight:700;font-size:14px;
+  color:var(--green);cursor:pointer;
+  text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:3px;letter-spacing:-.2px
+}
+.td-valor:hover{color:var(--accent)}
+.td-icms{font-family:var(--display);font-weight:600;font-size:13px;color:var(--amber)}
+.td-empty{color:var(--text4);font-style:italic}
+.td-chave{font-size:10px;color:var(--text4);letter-spacing:.02em}
+.td-cnpj{font-size:11px;color:var(--text3)}
 
-  /* Search */
-  .search-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    align-items: center;
-  }
-  .search-bar input {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 9px 14px;
-    border-radius: var(--radius);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-  .search-bar input:focus { outline: 1px solid var(--accent); }
-  .search-bar input::placeholder { color: var(--text-dim); }
+/* linhas com CFOP colorido */
+tr.cfop-entrada td:first-child{border-left:3px solid var(--green)}
+tr.cfop-saida td:first-child{border-left:3px solid var(--red)}
 
-  /* Export button */
-  .btn-export {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    border-radius: var(--radius);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+/* ── PAGINAÇÃO ── */
+.pag{display:flex;align-items:center;justify-content:space-between;
+  margin-top:14px;padding:8px 0;flex-wrap:wrap;gap:8px}
+.pag-info{font-size:11px;color:var(--text3)}
+.pag-btns{display:flex;gap:3px}
+.pag-btn{
+  padding:5px 10px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text3);border-radius:4px;cursor:pointer;
+  font-family:var(--mono);font-size:11px;transition:all .1s
+}
+.pag-btn:hover,.pag-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.pag-btn:disabled{opacity:.4;cursor:not-allowed}
+.pag-size select{
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text3);padding:5px 8px;border-radius:4px;
+  font-family:var(--mono);font-size:11px
+}
 
-  /* Column selector */
-  .col-toggle { position: relative; }
-  .col-btn {
-    padding: 8px 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    border-radius: var(--radius);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .col-btn:hover { border-color: var(--accent4); color: var(--accent4); }
-  .col-panel {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px;
-    z-index: 100;
-    width: 280px;
-    max-height: 320px;
-    overflow-y: auto;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-  .col-panel.open { display: grid; }
-  .col-check {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 6px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px;
-    color: var(--text-muted);
-    transition: all 0.1s;
-  }
-  .col-check:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-  .col-check input { accent-color: var(--accent); }
+/* ── MODAL ── */
+.modal{
+  display:none;position:fixed;z-index:1000;inset:0;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center
+}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;width:90%;max-width:1100px;
+  max-height:88vh;overflow-y:auto;
+  box-shadow:0 24px 48px rgba(0,0,0,.25);
+  animation:slideUp .2s ease
+}
+.modal-hd{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 24px;border-bottom:1px solid var(--border);
+  background:var(--surface3);position:sticky;top:0;z-index:10;
+  border-radius:14px 14px 0 0
+}
+.modal-hd h3{font-family:var(--display);font-weight:800;font-size:17px;flex:1}
+.modal-close{
+  font-size:24px;cursor:pointer;color:var(--text3);
+  line-height:1;padding:4px 8px;border-radius:4px;transition:all .1s
+}
+.modal-close:hover{color:var(--red);background:var(--red-light)}
+.modal-bd{padding:24px}
 
-  /* Table */
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 1200px;
-  }
-  thead tr {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
-  th {
-    padding: 10px 12px;
-    text-align: left;
-    font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-  }
-  th:hover { color: var(--text); }
-  th .sort-arrow { margin-left: 4px; opacity: 0.4; }
-  th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+.m-cfop-group{
+  border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;margin-bottom:18px
+}
+.m-cfop-hd{
+  background:var(--surface3);padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border)
+}
+.m-cfop-code{font-family:var(--display);font-weight:900;font-size:18px;color:var(--accent)}
+.m-cfop-total{font-family:var(--display);font-weight:700;font-size:16px;color:var(--green)}
 
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-    animation: rowIn 0.2s ease both;
-  }
-  tbody tr:hover { background: rgba(0,0,0,0.02); }
-  body.dark tbody tr:hover { background: rgba(255,255,255,0.02); }
-  tbody tr:last-child { border-bottom: none; }
+.m-table{width:100%;border-collapse:collapse}
+.m-table th{
+  background:var(--surface2);padding:8px 12px;
+  font-family:var(--display);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--text3);
+  border-bottom:1px solid var(--border)
+}
+.m-table td{
+  padding:8px 12px;font-size:12px;
+  border-bottom:1px solid var(--border);color:var(--text2)
+}
+.m-table tr:last-child td{border-bottom:none}
+.m-table tr:hover td{background:var(--surface2)}
+.m-footer{
+  background:var(--surface3);padding:8px 16px;
+  text-align:right;font-family:var(--display);
+  font-weight:700;font-size:14px;color:var(--green);
+  border-top:1px solid var(--border)
+}
+.m-alert{
+  background:var(--amber-light);border:1px solid var(--amber);
+  border-radius:var(--r);padding:10px 14px;font-size:11px;
+  color:var(--amber);margin-top:12px
+}
+.m-empty{
+  text-align:center;padding:40px;color:var(--text3)
+}
+.m-empty-icon{font-size:40px;display:block;margin-bottom:10px}
 
-  td {
-    padding: 8px 12px;
-    font-size: 12px;
-    color: var(--text);
-    white-space: nowrap;
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+/* ── NOTA DETALHE (C100 info) no modal ── */
+.nota-meta{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:8px;margin-bottom:20px
+}
+.nota-meta-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:8px 12px
+}
+.nmi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.nmi-value{font-family:var(--display);font-weight:700;font-size:15px;color:var(--text);margin-top:2px}
 
-  .val-empty { color: var(--text-dim); font-style: italic; }
-  .valor-total-destaque { color: var(--accent); font-weight: 500; }
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;display:block;margin-bottom:12px}
+.empty p{font-size:14px}
 
-  /* Progress */
-  #progress-wrap {
-    display: none;
-    margin-bottom: 16px;
-    padding: 16px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-  }
-  .progress-bar {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 10px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-    box-shadow: 0 0 8px var(--accent);
-  }
+/* ── ANIM ── */
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fadeIn{animation:fadeIn .3s ease}
 
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-dim);
-  }
-  .empty-state .icon { font-size: 48px; display: block; margin-bottom: 16px; }
+/* ── TOPO PAINEL ── */
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;flex-wrap:wrap;gap:8px
+}
+.panel-title{
+  font-family:var(--display);font-weight:800;font-size:18px;
+  color:var(--text);letter-spacing:-.2px
+}
+.panel-count{
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+  background:var(--surface3);padding:3px 10px;border-radius:10px
+}
 
-  /* Pagination */
-  .pagination {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 16px;
-    padding: 10px 0;
-    color: var(--text-muted);
-    font-size: 11px;
-  }
-  .page-btns { display: flex; gap: 4px; }
-  .page-btn {
-    padding: 5px 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    transition: all 0.1s;
-  }
-  .page-btn:hover, .page-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,176,0.06); }
-  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .page-size select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
+/* ── COL TOGGLE ── */
+.col-toggle-wrap{position:relative}
+.col-panel{
+  display:none;position:absolute;top:calc(100%+6px);right:0;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:12px;z-index:200;
+  width:260px;max-height:300px;overflow-y:auto;
+  grid-template-columns:1fr 1fr;gap:3px;
+  box-shadow:var(--shadow2)
+}
+.col-panel.open{display:grid}
+.col-item{
+  display:flex;align-items:center;gap:6px;padding:5px 6px;
+  border-radius:4px;cursor:pointer;font-size:11px;color:var(--text3)
+}
+.col-item:hover{background:var(--surface3);color:var(--text)}
+.col-item input{cursor:pointer;accent-color:var(--accent)}
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes rowIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @media (max-width: 768px) {
-    .stats-bar { grid-template-columns: repeat(2, 1fr); }
-    .sum-bar { grid-template-columns: 1fr; }
-    header { flex-wrap: wrap; }
-    .badge { margin-left: 0; }
-  }
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .cfop-cards{grid-template-columns:repeat(2,1fr)}
+  .hd-title{font-size:17px}
+  .wrap{padding:16px 12px}
+}
 </style>
 </head>
-<body class="">
+<body>
 <div class="wrap">
 
-  <header>
-    <div class="logo-mark">NF</div>
-    <div class="header-text">
-      <h1>Visualizador SPED — Notas Fiscais de Entradas</h1>
-      <p>EFD ICMS/IPI — Registros C100</p>
+  <!-- HEADER -->
+  <header class="hd">
+    <div class="hd-logo">SF</div>
+    <div>
+      <div class="hd-title">SPED Fiscal — Auditoria por CFOP</div>
+      <div class="hd-sub">EFD ICMS/IPI · Registros C100 · C190 · C170</div>
     </div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌞 Claro</button>
-    <span class="badge" id="empresaBadge">Aguardando arquivo...</span>
+    <div class="hd-right">
+      <span class="badge-empresa" id="empresaBadge">Aguardando arquivo…</span>
+      <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌞 Claro</button>
+    </div>
   </header>
 
-  <!-- Import area - apenas SPED -->
-  <div class="drop-zone" id="dropSped" ondragover="handleDrag(event,'dropSped')" ondragleave="handleDragLeave('dropSped')" ondrop="handleDrop(event,'sped')">
-    <input type="file" accept=".txt,.sped" onchange="loadSped(event)">
+  <!-- DROP -->
+  <div class="drop-zone" id="dropZone"
+    ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+    <input type="file" accept=".txt,.sped" onchange="onFileSelect(event)">
     <span class="drop-icon">📂</span>
-    <div class="drop-label">Arquivo SPED / TXT</div>
-    <div class="drop-sub">Registros C100 — Notas Fiscais de Entradas<br>Arraste ou clique para selecionar</div>
-    <div class="drop-status" id="spedStatus"></div>
+    <div class="drop-lbl">Selecione ou arraste o arquivo SPED</div>
+    <div class="drop-hint">Formato .txt / .sped — EFD ICMS/IPI — Registros C100, C190, C170</div>
+    <div class="drop-ok" id="dropOk"></div>
   </div>
 
-  <div id="progress-wrap">
-    <div class="progress-label" id="progress-label">Processando...</div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <!-- PROGRESS -->
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-lbl" id="progLbl">Processando…</div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
   </div>
 
-  <!-- Results -->
-  <div id="results" style="display:none">
-    <div class="stats-bar" id="statsBar"></div>
-    
-    <!-- Sum cards -->
-    <div class="sum-bar" id="sumBar"></div>
+  <!-- RESULTADOS -->
+  <div id="results" style="display:none" class="fadeIn">
 
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Buscar por Nº NF, CNPJ, Chave NFe..." oninput="applyFilters()">
-      <div class="col-toggle">
-        <button class="col-btn" onclick="toggleColPanel()">⚙ Colunas</button>
-        <div class="col-panel" id="colPanel"></div>
+    <!-- CARDS CFOP -->
+    <div class="cfop-summary-section">
+      <div class="cfop-summary-title">
+        📊 Resumo por CFOP — clique para filtrar
       </div>
-      <button class="btn-export" onclick="exportCsv()">↓ Exportar CSV</button>
+      <div class="cfop-cards" id="cfopCards"></div>
     </div>
 
-    <div class="filter-row" id="filterRow"></div>
-    
-    <!-- CFOP Filter -->
-    <div class="filter-row">
-      <div class="cfop-filter">
-        <label>🔍 CFOP:</label>
-        <input type="text" id="cfopFilter" placeholder="Ex: 1949" oninput="applyFilters()">
-        <button class="clear-btn" onclick="clearCfopFilter()">✕</button>
+    <!-- PAINEL PRINCIPAL -->
+    <div id="main-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title" id="panelTitle">Todas as Notas Fiscais</div>
+          <div class="panel-count" id="panelCount"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="col-toggle-wrap">
+            <button class="btn-sm" onclick="toggleColPanel()">⚙ Colunas</button>
+            <div class="col-panel" id="colPanel"></div>
+          </div>
+          <button class="btn-sm green" onclick="exportCsv()">↓ CSV</button>
+        </div>
       </div>
-    </div>
 
-    <div class="table-wrap">
-      <table id="mainTable">
-        <thead id="tableHead"></thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
+      <!-- PILLS CFOP FILTRO -->
+      <div class="cfop-pill-wrap" id="cfopPills"></div>
 
-    <div class="pagination">
-      <div id="pageInfo"></div>
-      <div class="page-size">
-        Linhas:
-        <select onchange="pageSize=+this.value; currentPage=1; renderTable()">
-          <option value="50">50</option>
-          <option value="100" selected>100</option>
-          <option value="200">200</option>
-          <option value="500">500</option>
-        </select>
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <input class="search-input" type="text" id="searchInput"
+          placeholder="🔍  Buscar por Nº NF, CNPJ, chave ou CFOP…"
+          oninput="applyFilters()">
+        <button class="btn-sm" onclick="clearAll()">✕ Limpar filtros</button>
       </div>
-      <div class="page-btns" id="pageBtns"></div>
+
+      <!-- TOTAL DO FILTRO ATIVO -->
+      <div class="filter-total" id="filterTotal">
+        <div>
+          <div class="ft-label">Total do filtro ativo</div>
+          <div class="ft-value" id="ftValue">R$ 0,00</div>
+        </div>
+        <div>
+          <div class="ft-label">Notas</div>
+          <div class="ft-value" id="ftCount">0</div>
+        </div>
+        <div>
+          <div class="ft-label">Base ICMS</div>
+          <div class="ft-value" id="ftBcIcms" style="color:var(--amber)">R$ 0,00</div>
+        </div>
+        <div>
+          <div class="ft-label">Valor ICMS</div>
+          <div class="ft-value" id="ftIcms" style="color:var(--amber)">R$ 0,00</div>
+        </div>
+        <button class="ft-clear" onclick="clearAll()">✕ Limpar</button>
+      </div>
+
+      <!-- TABELA -->
+      <div class="table-wrap">
+        <table>
+          <thead id="tHead"></thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+
+      <!-- PAG -->
+      <div class="pag">
+        <div class="pag-info" id="pagInfo"></div>
+        <div class="pag-size">Linhas:
+          <select onchange="pageSize=+this.value;currentPage=1;renderTable()">
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="200">200</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+        <div class="pag-btns" id="pagBtns"></div>
+      </div>
+
+    </div><!-- /main-panel -->
+  </div><!-- /results -->
+</div><!-- /wrap -->
+
+<!-- MODAL DETALHE NF -->
+<div class="modal" id="detailModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3 id="modalTitle">Detalhamento da NF</h3>
+      <span class="modal-close" onclick="closeModal()">✕</span>
     </div>
+    <div class="modal-bd" id="modalBd"></div>
   </div>
-
 </div>
 
 <script>
-// Tema: padrão claro
+// =============================================================
+// ESTADO GLOBAL
+// =============================================================
 let isDark = false;
+let allRecords   = [];   // lista de C100 enriquecidos
+let cfopSummary  = {};   // { cfop: { vl_opr, vl_bc_icms, vl_icms, count } }
+let cfopNames    = {};   // descrições opcionais
+let itemsIndex   = new Map(); // chave -> lista C170
+let filteredRecs = [];
+let activeCfop   = 'all';
+let sortCol      = null;
+let sortAsc      = true;
+let currentPage  = 1;
+let pageSize     = 100;
 
-// Inicializar tema claro ao carregar
-document.addEventListener('DOMContentLoaded', () => {
-  // Garantir que o tema claro seja o padrão (classe vazia)
-  document.body.classList.remove('dark');
-  isDark = false;
-  updateThemeButton();
-});
+let visibleCols  = ['NUM_DOC','DT_DOC','CFOP','VL_OPR','VL_BC_ICMS','VL_ICMS','COD_PART','VL_DOC','CHV_NFe'];
 
-function toggleTheme() {
-  isDark = !isDark;
-  if (isDark) {
-    document.body.classList.add('dark');
-  } else {
-    document.body.classList.remove('dark');
-  }
-  updateThemeButton();
-}
-
-function updateThemeButton() {
-  const btn = document.getElementById('themeToggle');
-  if (btn) {
-    if (isDark) {
-      btn.innerHTML = '🌙 Escuro';
-    } else {
-      btn.innerHTML = '🌞 Claro';
-    }
-  }
-}
-
-// State
-let spedRecords = []; // parsed C100 records from SPED
-let filteredRecords = [];
-let activeFilter = 'all';
-let cfopFilterValue = '';
-let sortCol = null, sortAsc = true;
-let currentPage = 1, pageSize = 100;
-let visibleCols = [];
-
-// SPED C100 field positions
-const C100_FIELDS = [
-  'REG','IND_OPER','IND_EMIT','COD_PART','COD_MOD','COD_SIT','COD_FIN',
-  'NUM_DOC','CHV_NFe','DT_DOC','DT_E_S','VL_DOC','IND_PGTO','VL_DESC',
-  'VL_ABAT_NT','VL_MERC','IND_FRT','VL_FRT','VL_SEG','VL_OUT_DA',
-  'VL_BC_ICMS','VL_ICMS','VL_BC_ICMS_ST','VL_ICMS_ST','VL_IPI','VL_PIS',
-  'VL_COFINS','VL_PIS_ST','VL_COFINS_ST'
-];
-
-// Column definitions - incluindo VL_DOC (Valor Total Contábil)
 const COLS = [
-  { key:'NUM_DOC',   label:'Nº Nota',     group:'id', numeric:true },
-  { key:'DT_DOC',    label:'Dt.Emissão',  group:'id' },
-  { key:'DT_E_S',    label:'Dt.Escritur.',group:'id' },
-  { key:'COD_MOD',   label:'Série',       group:'id' },
-  { key:'COD_FIN',   label:'SubSér',      group:'id' },
-  { key:'CFOP',      label:'CFOP',        group:'id' },
-  { key:'COD_PART',  label:'Terceiro',    group:'id' },
-  { key:'UF',        label:'UF',          group:'id' },
-  { key:'COD_SIT',   label:'Espécie',     group:'id' },
-  { key:'VL_DOC',    label:'Valor Total R$', group:'val', numeric:true, destaque:true },
-  { key:'VL_BC_ICMS',label:'Base ICMS',   group:'val', numeric:true },
-  { key:'VL_ICMS',   label:'Valor ICMS',  group:'val', numeric:true },
-  { key:'VL_BC_IPI', label:'Base IPI',    group:'val', numeric:true },
-  { key:'VL_IPI',    label:'Valor IPI',   group:'val', numeric:true },
-  { key:'CHV_NFe',   label:'Chave NFe',   group:'nfe' },
-  { key:'IND_OPER',  label:'Ind.Oper',    group:'meta' },
-  { key:'IND_EMIT',  label:'Ind.Emit',    group:'meta' },
+  {key:'NUM_DOC',     label:'Nº NF',        numeric:true,  w:80},
+  {key:'DT_DOC',      label:'Emissão',       w:90},
+  {key:'DT_E_S',      label:'Escritur.',     w:90},
+  {key:'CFOP',        label:'CFOP',          w:70},
+  {key:'VL_OPR',      label:'Vl. Operação',  numeric:true,  w:130},
+  {key:'VL_BC_ICMS',  label:'Base ICMS',     numeric:true,  w:120},
+  {key:'VL_ICMS',     label:'Valor ICMS',    numeric:true,  w:110},
+  {key:'VL_IPI',      label:'Valor IPI',     numeric:true,  w:100},
+  {key:'VL_DOC',      label:'Valor Total NF',numeric:true,  w:140},
+  {key:'COD_PART',    label:'CNPJ/Terceiro', w:160},
+  {key:'CHV_NFe',     label:'Chave NFe',     w:200},
+  {key:'COD_SIT',     label:'Situação',      w:60},
+  {key:'COD_MOD',     label:'Modelo',        w:60},
 ];
 
-// Default visible columns - incluindo VL_DOC destacado
-visibleCols = ['NUM_DOC','DT_DOC','DT_E_S','COD_MOD','CFOP','COD_PART','VL_DOC','VL_BC_ICMS','VL_ICMS','VL_IPI','CHV_NFe'];
-
-// Format CFOP (remove decimal places)
-function formatCFOP(cfop) {
-  if (!cfop) return '';
-  let clean = String(cfop).replace(/\.\d+$/, '');
-  if (clean.includes('/')) {
-    return clean.split('/').map(p => p.replace(/\.\d+$/, '')).join('/');
-  }
-  return clean;
+// =============================================================
+// HELPERS NUMÉRICOS
+// =============================================================
+function parseDec(v) {
+  if (!v && v !== 0) return 0;
+  let s = String(v).trim();
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g,'').replace(',','.');
+  else if (s.includes(',')) s = s.replace(',','.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
 }
 
-// SPED parser
-function parseSped(text) {
-  const lines = text.split(/\r?\n/);
-  const records = [];
-  let lastC100 = null;
-  
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const parts = line.split('|');
-    const reg = parts[1];
-    
-    if (reg === 'C100') {
-      const rec = {};
-      C100_FIELDS.forEach((f, i) => { rec[f] = (parts[i+1] || '').trim(); });
-      // Add UF extraction from COD_PART or other logic (simplified)
-      rec.UF = '';
-      if (rec.COD_PART && rec.COD_PART.length >= 2) {
-        const ufMatch = rec.COD_PART.match(/[A-Z]{2}$/);
-        if (ufMatch) rec.UF = ufMatch[0];
-      }
-      lastC100 = rec;
-      records.push(rec);
-    }
-    
-    if (reg === 'C190' && lastC100) {
-      const cfop = (parts[3] || '').trim();
-      if (cfop && !lastC100.CFOP) lastC100.CFOP = cfop;
-      else if (cfop && lastC100.CFOP && lastC100.CFOP !== cfop) {
-        lastC100.CFOP = lastC100.CFOP + '/' + cfop;
-      }
-      const vl_ipi_c190 = parseFloat((parts[11]||'0').replace(',','.')) || 0;
-      if (!lastC100.VL_IPI || lastC100.VL_IPI === '0') {
-        if (vl_ipi_c190 > 0) lastC100.VL_IPI = vl_ipi_c190.toString();
-      }
-    }
-  }
-  
-  return records;
-}
-
-// Helper functions
-function toNum(v) {
-  if (v === null || v === undefined || v === '') return 0;
-  const s = String(v).replace(/\./g,'').replace(',','.');
-  return parseFloat(s) || 0;
-}
-
-function fmtNum(v) {
-  if (v === '' || v === null || v === undefined) return '';
-  const n = toNum(v);
-  if (n === 0 && v === '') return '';
-  return n.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+function fmt(v, dec=2) {
+  const n = typeof v === 'number' ? v : parseDec(v);
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
 }
 
 function fmtDate(v) {
   if (!v || v.length < 8) return v || '';
-  if (/^\d{8}$/.test(v)) {
-    if (parseInt(v.substring(0,4)) > 1900 && parseInt(v.substring(0,4)) < 2100) {
-      return v.substring(6)+'/'+v.substring(4,6)+'/'+v.substring(0,4);
-    }
-    return v.substring(0,2)+'/'+v.substring(2,4)+'/'+v.substring(4);
-  }
+  if (/^\d{8}$/.test(v)) return `${v.slice(6)}/${v.slice(4,6)}/${v.slice(0,4)}`;
   return v;
 }
 
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// Render results
-function renderResults() {
-  document.getElementById('results').style.display = 'block';
-  renderStats();
-  renderSums();
-  buildFilters();
-  buildColPanel();
-  buildTableHead();
-  applyFilters();
+function cfopClass(cfop) {
+  if (!cfop) return '';
+  const n = parseInt(String(cfop).trim());
+  if (n >= 1000 && n < 4000) return 'entrada';
+  if (n >= 5000) return 'saida';
+  return '';
 }
 
-function renderStats() {
-  const total = spedRecords.length;
-  let valorTotalGeral = 0;
-  spedRecords.forEach(r => { valorTotalGeral += toNum(r.VL_DOC); });
-  
-  document.getElementById('statsBar').innerHTML = `
-    <div class="stat-card total"><div class="stat-num">${total}</div><div class="stat-label">Total Registros C100</div></div>
-    <div class="stat-card valor"><div class="stat-num">R$ ${valorTotalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div><div class="stat-label">Valor Total Geral</div></div>
-  `;
-}
+// =============================================================
+// PARSING SPED
+// =============================================================
+function parseSped(text) {
+  const lines = text.split(/\r?\n/);
+  const c100List = [];
+  const itMap    = new Map();
+  const cfopSum  = {};   // cfop -> {vl_opr, vl_bc_icms, vl_icms, vl_ipi, notasSet}
 
-function renderSums() {
-  const rowsToSum = filteredRecords.length ? filteredRecords : spedRecords;
-  let somaValorTotal = 0;
-  let somaBaseICMS = 0;
-  let somaValorICMS = 0;
-  let somaBaseIPI = 0;
-  let somaValorIPI = 0;
-  
-  rowsToSum.forEach(row => {
-    somaValorTotal += toNum(row.VL_DOC);
-    somaBaseICMS += toNum(row.VL_BC_ICMS);
-    somaValorICMS += toNum(row.VL_ICMS);
-    somaBaseIPI += toNum(row.VL_BC_IPI);
-    somaValorIPI += toNum(row.VL_IPI);
-  });
-  
-  document.getElementById('sumBar').innerHTML = `
-    <div class="sum-card valor-total">
-      <div class="sum-label">💰 VALOR TOTAL CONTÁBIL (R$)</div>
-      <div class="sum-value">R$ ${somaValorTotal.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-    </div>
-    <div class="sum-card">
-      <div class="sum-label">📊 BASE ICMS (R$)</div>
-      <div class="sum-value">R$ ${somaBaseICMS.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-    </div>
-    <div class="sum-card icms">
-      <div class="sum-label">💰 VALOR ICMS (R$)</div>
-      <div class="sum-value">R$ ${somaValorICMS.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-    </div>
-    <div class="sum-card">
-      <div class="sum-label">📊 BASE IPI (R$)</div>
-      <div class="sum-value">R$ ${somaBaseIPI.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-    </div>
-    <div class="sum-card ipi">
-      <div class="sum-label">💰 VALOR IPI (R$)</div>
-      <div class="sum-value">R$ ${somaValorIPI.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
-    </div>
-  `;
-}
+  let cur = null; // C100 atual
 
-function buildFilters() {
-  const counts = {
-    all: spedRecords.length,
-  };
-  document.getElementById('filterRow').innerHTML = [
-    {key:'all', label:'Todos'},
-  ].map(f => `<button class="tab ${f.key} ${activeFilter===f.key?'active':''}" onclick="setFilter('${f.key}')">${f.label} (${counts[f.key]})</button>`).join('');
-}
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    const p = line.split('|');
+    const reg = p[1];
 
-function setFilter(f) {
-  activeFilter = f;
-  currentPage = 1;
-  buildFilters();
-  applyFilters();
-}
+    // ── C100 ──
+    // |REG|IND_OPER|IND_EMIT|COD_PART|COD_MOD|COD_SIT|COD_FIN|NUM_DOC|CHV_NFe|DT_DOC|DT_E_S
+    // |VL_DOC|IND_PGTO|VL_DESC|VL_ABAT_NT|VL_MERC|IND_FRT|VL_FRT|VL_SEG|VL_OUT_DA
+    // |VL_BC_ICMS|VL_ICMS|VL_BC_ICMS_ST|VL_ICMS_ST|VL_IPI|VL_PIS|VL_COFINS|...
+    //   [0]=''  [1]=C100 [2]=IND_OPER [3]=IND_EMIT [4]=COD_PART [5]=COD_MOD
+    //   [6]=COD_SIT [7]=COD_FIN [8]=NUM_DOC [9]=CHV_NFe [10]=DT_DOC [11]=DT_E_S
+    //   [12]=VL_DOC ... [21]=VL_BC_ICMS [22]=VL_ICMS ... [25]=VL_IPI
 
-function clearCfopFilter() {
-  document.getElementById('cfopFilter').value = '';
-  cfopFilterValue = '';
-  applyFilters();
-}
-
-function applyFilters() {
-  const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
-  cfopFilterValue = (document.getElementById('cfopFilter')?.value||'').trim();
-  
-  filteredRecords = spedRecords.filter(r => {
-    if (cfopFilterValue) {
-      const rowCfop = formatCFOP(r.CFOP);
-      if (!rowCfop.includes(cfopFilterValue)) return false;
+    if (reg === 'C100') {
+      const num   = (p[8]  || '').trim();
+      const chave = (p[9]  || '').trim();
+      const id    = chave || `NOTA_${num}_${p[10]||''}`;
+      cur = {
+        NUM_DOC:    num,
+        CHV_NFe:    chave,
+        DT_DOC:     (p[10] || '').trim(),
+        DT_E_S:     (p[11] || '').trim(),
+        VL_DOC:     parseDec(p[12]),
+        COD_PART:   (p[4]  || '').trim(),
+        COD_SIT:    (p[6]  || '').trim(),
+        COD_MOD:    (p[5]  || '').trim(),
+        VL_BC_ICMS: parseDec(p[21]),
+        VL_ICMS:    parseDec(p[22]),
+        VL_IPI:     parseDec(p[25]),
+        _id:        id,
+        CFOP:       '',   // será preenchido pelo C190
+        VL_OPR:     0,    // soma dos VL_OPR de todos C190 desta nota
+      };
+      c100List.push(cur);
+      if (!itMap.has(id)) itMap.set(id, []);
     }
+
+    // ── C190 ──
+    // |REG|CST_ICMS|CFOP|ALIQ_ICMS|VL_OPR|VL_BC_ICMS|VL_ICMS|VL_BC_ICMS_ST|VL_ICMS_ST|VL_RED_BC|VL_IPI|COD_OBS
+    //  [0]  [1]=REG [2]=CST [3]=CFOP [4]=ALIQ [5]=VL_OPR [6]=VL_BC_ICMS [7]=VL_ICMS [8]=VL_BC_ST [9]=VL_ST [10]=VL_RED [11]=VL_IPI [12]=COD_OBS
+
+    if (reg === 'C190' && cur) {
+      const cfop     = (p[3] || '').trim();
+      const vl_opr   = parseDec(p[5]);
+      const vl_bc    = parseDec(p[6]);
+      const vl_icms  = parseDec(p[7]);
+      const vl_ipi   = parseDec(p[11]);
+
+      // acumula no C100 atual
+      cur.VL_OPR += vl_opr;
+
+      // define CFOP principal (primeiro encontrado ou concatena se múltiplos)
+      if (!cur.CFOP) cur.CFOP = cfop;
+      else if (cfop && cur.CFOP !== cfop && !cur.CFOP.split('/').includes(cfop))
+        cur.CFOP = cur.CFOP + '/' + cfop;
+
+      // acumula ICMS do C190 (mais preciso que o C100 para cálculos por CFOP)
+      if (vl_bc > 0 && cur.VL_BC_ICMS === 0) cur.VL_BC_ICMS = vl_bc;
+      if (vl_icms > 0 && cur.VL_ICMS === 0)  cur.VL_ICMS    = vl_icms;
+      if (vl_ipi > 0 && cur.VL_IPI === 0)    cur.VL_IPI     = vl_ipi;
+
+      // resumo global por CFOP
+      if (cfop) {
+        if (!cfopSum[cfop]) cfopSum[cfop] = {vl_opr:0, vl_bc_icms:0, vl_icms:0, vl_ipi:0, notasSet: new Set()};
+        cfopSum[cfop].vl_opr    += vl_opr;
+        cfopSum[cfop].vl_bc_icms+= vl_bc;
+        cfopSum[cfop].vl_icms   += vl_icms;
+        cfopSum[cfop].vl_ipi    += vl_ipi;
+        cfopSum[cfop].notasSet.add(cur._id);
+      }
+    }
+
+    // ── C170 ──
+    // |REG|NUM_ITEM|COD_ITEM|DESCR_COMPL|QTD|UNID|VL_ITEM|VL_DESC|IND_MOV|CST_ICMS|CFOP|COD_OPR_ANTEDEC|...
+    //  [0]  [1]=REG [2]=NUM [3]=COD [4]=DESC [5]=QTD [6]=UNID [7]=VL_ITEM [8]=VL_DESC ... [11]=CFOP
+
+    if (reg === 'C170' && cur && p.length >= 12) {
+      const id = cur._id;
+      const vl  = parseDec(p[7]);
+      const dsc = parseDec(p[8]);
+      const qtd = parseDec(p[5]);
+      const item = {
+        numItem:    (p[2]  || '').trim(),
+        codigo:     (p[3]  || '').trim(),
+        descricao:  (p[4]  || '').trim(),
+        quantidade: qtd,
+        unidade:    (p[6]  || '').trim(),
+        vlItem:     vl,
+        vlDesc:     dsc,
+        valorTotal: vl - dsc,
+        vlUnit:     qtd > 0 ? vl / qtd : 0,
+        cfop:       (p[11] || '').trim(),
+      };
+      if (!itMap.has(id)) itMap.set(id, []);
+      itMap.get(id).push(item);
+    }
+  }
+
+  // normaliza notasSet -> count
+  for (const cfop in cfopSum) {
+    cfopSum[cfop].count = cfopSum[cfop].notasSet.size;
+    delete cfopSum[cfop].notasSet;
+  }
+
+  return { notas: c100List, cfopSum, itens: itMap };
+}
+
+// =============================================================
+// LOAD
+// =============================================================
+function onFileSelect(e) { loadFile(e.target.files[0]); }
+function onDrop(e) { e.preventDefault(); onDragLeave(); loadFile(e.dataTransfer.files[0]); }
+function onDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('over'); }
+function onDragLeave() { document.getElementById('dropZone').classList.remove('over'); }
+
+function loadFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      setProgress(true, 20, 'Lendo arquivo…');
+      setTimeout(() => {
+        setProgress(true, 60, 'Parseando registros SPED…');
+        setTimeout(() => {
+          const res = parseSped(ev.target.result);
+          allRecords  = res.notas;
+          cfopSummary = res.cfopSum;
+          itemsIndex  = res.itens;
+
+          // empresa
+          const r0 = ev.target.result.split(/\r?\n/).find(l => l.startsWith('|0000|'));
+          if (r0) {
+            const pp = r0.split('|');
+            document.getElementById('empresaBadge').textContent = (pp[6] || 'SPED OK').substring(0, 30);
+          }
+
+          setProgress(true, 100, 'Concluído!');
+          document.getElementById('dropZone').classList.add('ok');
+          document.getElementById('dropOk').textContent =
+            `✓ ${allRecords.length} notas C100 · ${Object.keys(cfopSummary).length} CFOPs encontrados`;
+
+          setTimeout(() => {
+            setProgress(false);
+            renderAll();
+          }, 350);
+        }, 80);
+      }, 40);
+    } catch(err) {
+      document.getElementById('dropOk').textContent = '✗ Erro: ' + err.message;
+      setProgress(false);
+    }
+  };
+  reader.readAsText(file, 'latin1');
+}
+
+// =============================================================
+// RENDER ALL
+// =============================================================
+function renderAll() {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('main-panel').style.display = 'block';
+  renderCfopCards();
+  buildCfopPills();
+  buildColPanel();
+  buildTHead();
+  applyFilters();
+}
+
+// =============================================================
+// CARDS CFOP
+// =============================================================
+const CFOP_LABELS = {
+  '1102':'Compra p/ comercialização','1253':'Compra p/ comercialização (ICMS ST)',
+  '1303':'Compra p/ ativo imobilizado','1353':'Compra p/ uso e consumo',
+  '1407':'Compra de bem p/ ativo (ST)','1556':'Compra material p/ uso/consumo',
+  '2102':'Compra interestad. comércio','2353':'Compra interestad. uso/consumo',
+  '2652':'Entrada mercs. devol. (ST)','5102':'Venda de mercadoria','5405':'Venda ST',
+  '5656':'Venda de combustível','5667':'Venda lubrificantes/derivados','5929':'Lançamento diverso',
+};
+
+function renderCfopCards() {
+  const cont = document.getElementById('cfopCards');
+  const cfops = Object.keys(cfopSummary).sort();
+  if (!cfops.length) { cont.innerHTML = '<p style="color:var(--text3)">Nenhum CFOP encontrado.</p>'; return; }
+
+  cont.innerHTML = cfops.map(cfop => {
+    const d = cfopSummary[cfop];
+    const cls = cfopClass(cfop);
+    const lbl = CFOP_LABELS[cfop] || (cls === 'entrada' ? 'Entrada' : cls === 'saida' ? 'Saída' : '');
+    return `
+    <div class="cfop-card ${cls}" id="card_${cfop}" onclick="filterByCfop('${cfop}')">
+      <div class="cfop-code">${cfop}</div>
+      <div class="cfop-desc">${lbl}</div>
+      <div class="cfop-valor">R$ ${fmt(d.vl_opr)}</div>
+      <div class="cfop-sub">
+        <span>${d.count} NF${d.count !== 1 ? 's' : ''}</span>
+        ${d.vl_icms > 0 ? `<span class="cfop-icms">ICMS R$ ${fmt(d.vl_icms)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =============================================================
+// PILLS CFOP
+// =============================================================
+function buildCfopPills() {
+  const cfops = Object.keys(cfopSummary).sort();
+  const cont  = document.getElementById('cfopPills');
+  let html = `<button class="cfop-pill all active" id="pill_all" onclick="filterByCfop('all')">Todos</button>`;
+  html += cfops.map(c =>
+    `<button class="cfop-pill" id="pill_${c}" onclick="filterByCfop('${c}')">${c}</button>`
+  ).join('');
+  cont.innerHTML = html;
+}
+
+// =============================================================
+// FILTRO POR CFOP
+// =============================================================
+function filterByCfop(cfop) {
+  activeCfop = cfop;
+  // cards
+  document.querySelectorAll('.cfop-card').forEach(el => el.classList.remove('active'));
+  if (cfop !== 'all') { const c = document.getElementById('card_' + cfop); if(c) c.classList.add('active'); }
+  // pills
+  document.querySelectorAll('.cfop-pill').forEach(el => el.classList.remove('active'));
+  const pid = cfop === 'all' ? 'pill_all' : 'pill_' + cfop;
+  const pel = document.getElementById(pid); if(pel) pel.classList.add('active');
+
+  currentPage = 1;
+  applyFilters();
+}
+
+// =============================================================
+// APPLY FILTERS
+// =============================================================
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+
+  filteredRecs = allRecords.filter(r => {
+    // filtro CFOP
+    if (activeCfop !== 'all') {
+      const cfops = (r.CFOP || '').split('/');
+      if (!cfops.includes(activeCfop)) return false;
+    }
+    // busca textual
     if (q) {
-      const s = [r.NUM_DOC, r.COD_PART, r.CHV_NFe, r.CFOP].join('|').toLowerCase();
-      if (!s.includes(q)) return false;
+      const hay = [r.NUM_DOC, r.COD_PART, r.CHV_NFe, r.CFOP].join('|').toLowerCase();
+      if (!hay.includes(q)) return false;
     }
     return true;
   });
-  
+
+  // ordenação
   if (sortCol) {
-    filteredRecords.sort((a,b) => {
-      const col = COLS.find(c=>c.key===sortCol);
-      let va = a[sortCol]||'', vb = b[sortCol]||'';
-      if (col?.numeric) { va = toNum(va); vb = toNum(vb); }
-      return (va > vb ? 1 : va < vb ? -1 : 0) * (sortAsc?1:-1);
+    const col = COLS.find(c => c.key === sortCol);
+    filteredRecs.sort((a, b) => {
+      let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+      if (col?.numeric) { va = typeof va === 'number' ? va : parseDec(va); vb = typeof vb === 'number' ? vb : parseDec(vb); }
+      return (va > vb ? 1 : va < vb ? -1 : 0) * (sortAsc ? 1 : -1);
     });
   }
-  
-  currentPage = 1;
-  renderSums();
+
+  // panel title
+  if (activeCfop !== 'all') {
+    const d = cfopSummary[activeCfop] || {};
+    document.getElementById('panelTitle').textContent = `CFOP ${activeCfop}`;
+  } else {
+    document.getElementById('panelTitle').textContent = 'Todas as Notas Fiscais';
+  }
+
+  // filter total bar
+  updateFilterBar();
   renderTable();
 }
 
-function buildTableHead() {
+function updateFilterBar() {
+  const ft = document.getElementById('filterTotal');
+  const hasFilter = activeCfop !== 'all' || (document.getElementById('searchInput')?.value || '').trim();
+
+  if (hasFilter && filteredRecs.length > 0) {
+    ft.classList.add('show');
+    // calcula totais do filtro usando VL_OPR (correto por CFOP)
+    let totalOpr = 0, totalBc = 0, totalIcms = 0;
+    for (const r of filteredRecs) {
+      totalOpr  += typeof r.VL_OPR   === 'number' ? r.VL_OPR   : parseDec(r.VL_OPR);
+      totalBc   += typeof r.VL_BC_ICMS==='number'  ? r.VL_BC_ICMS : parseDec(r.VL_BC_ICMS);
+      totalIcms += typeof r.VL_ICMS  === 'number' ? r.VL_ICMS  : parseDec(r.VL_ICMS);
+    }
+    // Se filtro ativo for um CFOP específico, usa os totais consolidados do C190 (mais precisos)
+    if (activeCfop !== 'all' && cfopSummary[activeCfop]) {
+      const d = cfopSummary[activeCfop];
+      document.getElementById('ftValue').textContent   = `R$ ${fmt(d.vl_opr)}`;
+      document.getElementById('ftCount').textContent   = filteredRecs.length;
+      document.getElementById('ftBcIcms').textContent  = `R$ ${fmt(d.vl_bc_icms)}`;
+      document.getElementById('ftIcms').textContent    = `R$ ${fmt(d.vl_icms)}`;
+    } else {
+      document.getElementById('ftValue').textContent   = `R$ ${fmt(totalOpr)}`;
+      document.getElementById('ftCount').textContent   = filteredRecs.length;
+      document.getElementById('ftBcIcms').textContent  = `R$ ${fmt(totalBc)}`;
+      document.getElementById('ftIcms').textContent    = `R$ ${fmt(totalIcms)}`;
+    }
+  } else {
+    ft.classList.remove('show');
+  }
+}
+
+function clearAll() {
+  activeCfop = 'all';
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('.cfop-card').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.cfop-pill').forEach(el => el.classList.remove('active'));
+  const pa = document.getElementById('pill_all'); if(pa) pa.classList.add('active');
+  currentPage = 1;
+  applyFilters();
+}
+
+// =============================================================
+// TABELA
+// =============================================================
+function buildTHead() {
   const cols = COLS.filter(c => visibleCols.includes(c.key));
-  document.getElementById('tableHead').innerHTML = `<tr>${cols.map(c => `
-    <th onclick="sortBy('${c.key}')" class="${sortCol===c.key?'sorted':''}">
-      ${c.label}<span class="sort-arrow">${sortCol===c.key?(sortAsc?'↑':'↓'):'↕'}</span>
-    </th>`).join('')}</tr>`;
+  document.getElementById('tHead').innerHTML = `<tr>${cols.map(c => {
+    const arr = sortCol === c.key ? (sortAsc ? ' ↑' : ' ↓') : ' ↕';
+    return `<th class="${sortCol===c.key?'sorted':''}" onclick="sortBy('${c.key}')">${c.label}<span style="opacity:.5;font-size:9px">${arr}</span></th>`;
+  }).join('')}</tr>`;
 }
 
 function sortBy(key) {
   if (sortCol === key) sortAsc = !sortAsc;
   else { sortCol = key; sortAsc = true; }
-  buildTableHead();
+  buildTHead();
   applyFilters();
 }
 
 function renderTable() {
-  const cols = COLS.filter(c => visibleCols.includes(c.key));
-  const start = (currentPage-1)*pageSize;
-  const pageRows = filteredRecords.slice(start, start+pageSize);
-  const totalPages = Math.ceil(filteredRecords.length/pageSize);
-  
-  if (filteredRecords.length === 0) {
-    document.getElementById('tableBody').innerHTML = `<tr><td colspan="${cols.length}"><div class="empty-state"><span class="icon">🔍</span><p>Nenhum registro encontrado para este filtro.</p></div></td></tr>`;
+  const cols  = COLS.filter(c => visibleCols.includes(c.key));
+  const start = (currentPage - 1) * pageSize;
+  const page  = filteredRecs.slice(start, start + pageSize);
+  const total = Math.ceil(filteredRecs.length / pageSize);
+
+  document.getElementById('panelCount').textContent =
+    `${filteredRecs.length} registro${filteredRecs.length !== 1 ? 's' : ''}`;
+
+  if (!page.length) {
+    document.getElementById('tBody').innerHTML =
+      `<tr><td colspan="${cols.length}"><div class="empty">
+        <span class="empty-icon">🔍</span>
+        <p>Nenhum registro encontrado para este filtro.</p>
+       </div></td></tr>`;
   } else {
-    document.getElementById('tableBody').innerHTML = pageRows.map(r => {
-      return `<tr>${cols.map(c => renderCell(r, c.key)).join('')}</tr>`;
+    document.getElementById('tBody').innerHTML = page.map(r => {
+      const cls = cfopClass(r.CFOP?.split('/')[0]);
+      return `<tr class="${cls ? 'cfop-'+cls : ''}">${cols.map(c => renderCell(r, c)).join('')}</tr>`;
     }).join('');
   }
-  
-  const info = `Exibindo ${Math.min(start+1, filteredRecords.length)}–${Math.min(start+pageSize, filteredRecords.length)} de ${filteredRecords.length}`;
-  document.getElementById('pageInfo').textContent = info;
-  
-  let btns = '';
-  btns += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>`;
-  let pages = [];
-  if (totalPages <= 7) { for(let i=1;i<=totalPages;i++) pages.push(i); }
+
+  // paginação
+  document.getElementById('pagInfo').textContent =
+    filteredRecs.length > 0
+    ? `Exibindo ${start+1}–${Math.min(start+pageSize, filteredRecs.length)} de ${filteredRecs.length}`
+    : '';
+
+  let btns = `<button class="pag-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>`;
+  const pages = [];
+  if (total <= 7) { for(let i=1;i<=total;i++) pages.push(i); }
   else {
-    pages = [1];
-    if (currentPage > 3) pages.push('...');
-    for(let i=Math.max(2,currentPage-1);i<=Math.min(totalPages-1,currentPage+1);i++) pages.push(i);
-    if (currentPage < totalPages-2) pages.push('...');
-    pages.push(totalPages);
+    pages.push(1);
+    if (currentPage > 3) pages.push('…');
+    for(let i=Math.max(2,currentPage-1);i<=Math.min(total-1,currentPage+1);i++) pages.push(i);
+    if (currentPage < total-2) pages.push('…');
+    if (total > 1) pages.push(total);
   }
   for (const p of pages) {
-    if (p==='...') btns += `<span style="padding:5px;color:var(--text-dim)">…</span>`;
-    else btns += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    if (p === '…') btns += `<span style="padding:4px 6px;color:var(--text4)">…</span>`;
+    else btns += `<button class="pag-btn ${p===currentPage?'on':''}" onclick="goPage(${p})">${p}</button>`;
   }
-  btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>›</button>`;
-  document.getElementById('pageBtns').innerHTML = btns;
+  btns += `<button class="pag-btn" onclick="goPage(${currentPage+1})" ${currentPage>=total?'disabled':''}>›</button>`;
+  document.getElementById('pagBtns').innerHTML = btns;
+}
+
+function renderCell(row, col) {
+  const key = col.key;
+  const v   = row[key];
+
+  if (key === 'NUM_DOC') {
+    if (!v || v === '0') return `<td class="td-empty">—</td>`;
+    return `<td class="td-num">${v}</td>`;
+  }
+  if (key === 'CFOP') {
+    const cls = cfopClass(v?.split('/')[0]);
+    return `<td class="td-cfop ${cls}">${v || '<span class="td-empty">—</span>'}</td>`;
+  }
+  if (key === 'VL_OPR') {
+    const n = typeof v === 'number' ? v : parseDec(v);
+    if (n === 0) return `<td class="td-empty">—</td>`;
+    const id  = row._id;
+    return `<td class="td-valor" onclick="showDetail('${id}','${row.NUM_DOC||''}','${(row.COD_PART||'').replace(/'/g,"\\'")}',${row.VL_DOC||0})" title="Clique para ver itens">R$ ${fmt(n)}</td>`;
+  }
+  if (key === 'VL_DOC') {
+    const n = typeof v === 'number' ? v : parseDec(v);
+    if (n === 0) return `<td class="td-empty">—</td>`;
+    return `<td style="font-family:var(--display);font-weight:600;font-size:13px">R$ ${fmt(n)}</td>`;
+  }
+  if (key === 'VL_BC_ICMS' || key === 'VL_ICMS') {
+    const n = typeof v === 'number' ? v : parseDec(v);
+    if (n === 0) return `<td class="td-empty">—</td>`;
+    return `<td class="td-icms">R$ ${fmt(n)}</td>`;
+  }
+  if (col.numeric) {
+    const n = typeof v === 'number' ? v : parseDec(v);
+    if (n === 0) return `<td class="td-empty">—</td>`;
+    return `<td style="font-family:var(--display);font-weight:600;font-size:13px">R$ ${fmt(n)}</td>`;
+  }
+  if (key === 'DT_DOC' || key === 'DT_E_S') {
+    return `<td class="td-date">${fmtDate(v)}</td>`;
+  }
+  if (key === 'CHV_NFe') {
+    if (!v) return `<td class="td-empty">—</td>`;
+    return `<td class="td-chave" title="${v}">${v.substring(0,20)}…</td>`;
+  }
+  if (!v || v === '0') return `<td class="td-empty">—</td>`;
+  return `<td title="${String(v)}">${String(v)}</td>`;
 }
 
 function goPage(p) {
-  const total = Math.ceil(filteredRecords.length/pageSize);
+  const total = Math.ceil(filteredRecs.length / pageSize);
   if (p < 1 || p > total) return;
   currentPage = p;
   renderTable();
-  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.querySelector('.table-wrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-function renderCell(row, key) {
-  let v = row[key];
-  
-  // Nº Nota (NUM_DOC) exibe valor CRU, sem formatação
-  if (key === 'NUM_DOC') {
-    if (!v || v === '0') return `<td class="val-empty">—</td>`;
-    return `<td>${escHtml(String(v).trim())}</td>`;
-  }
-  
-  if (key === 'CFOP') {
-    return `<td>${formatCFOP(v) || '<span class="val-empty">—</span>'}</td>`;
-  }
-  
-  if (key === 'VL_DOC') {
-    const valor = fmtNum(v);
-    return `<td class="valor-total-destaque">${valor || '<span class="val-empty">—</span>'}</td>`;
-  }
-  
-  if (COLS.find(c=>c.key===key)?.numeric && v) {
-    return `<td>${fmtNum(v) || '<span class="val-empty">—</span>'}</td>`;
-  }
-  
-  if ((key==='DT_DOC'||key==='DT_E_S') && v) {
-    return `<td>${fmtDate(v)}</td>`;
-  }
-  
-  if (!v || v === '0') return `<td class="val-empty">—</td>`;
-  return `<td title="${escHtml(String(v))}">${escHtml(String(v))}</td>`;
-}
-
-// Column panel functions
+// =============================================================
+// COLUNAS
+// =============================================================
 function buildColPanel() {
-  document.getElementById('colPanel').innerHTML = COLS.map(c => `
-    <label class="col-check">
+  document.getElementById('colPanel').innerHTML = COLS.map(c =>
+    `<label class="col-item">
       <input type="checkbox" ${visibleCols.includes(c.key)?'checked':''} onchange="toggleCol('${c.key}',this.checked)">
       ${c.label}
-    </label>`).join('');
+    </label>`
+  ).join('');
 }
 
-function toggleCol(key, checked) {
-  if (checked && !visibleCols.includes(key)) visibleCols.push(key);
-  else if (!checked) visibleCols = visibleCols.filter(k=>k!==key);
-  buildTableHead();
+function toggleCol(key, on) {
+  if (on && !visibleCols.includes(key)) visibleCols.push(key);
+  else if (!on) visibleCols = visibleCols.filter(k => k !== key);
+  buildTHead();
   renderTable();
 }
 
@@ -986,85 +1088,121 @@ function toggleColPanel() {
 }
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('.col-toggle')) document.getElementById('colPanel')?.classList.remove('open');
+  if (!e.target.closest('.col-toggle-wrap'))
+    document.getElementById('colPanel')?.classList.remove('open');
 });
 
-// File loader - only SPED
-function loadSped(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const enc = 'latin1';
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      showProgress(true);
-      setProgress(30, 'Processando arquivo SPED...');
-      
-      setTimeout(() => {
-        spedRecords = parseSped(ev.target.result);
-        const lines = ev.target.result.split(/\r?\n/);
-        const r0000 = lines.find(l=>l.startsWith('|0000|'));
-        if (r0000) {
-          const parts = r0000.split('|');
-          document.getElementById('empresaBadge').textContent = parts[6] || 'SPED Carregado';
-        }
-        document.getElementById('dropSped').classList.add('loaded');
-        document.getElementById('spedStatus').textContent = `✓ ${spedRecords.length} notas C100 carregadas`;
-        
-        setProgress(100, 'Concluído!');
-        setTimeout(() => {
-          showProgress(false);
-          renderResults();
-        }, 300);
-      }, 50);
-    } catch(err) {
-      document.getElementById('spedStatus').textContent = '✗ Erro: '+err.message;
-      showProgress(false);
-    }
-  };
-  reader.readAsText(file, enc);
+// =============================================================
+// MODAL DETALHE
+// =============================================================
+function showDetail(id, numDoc, cnpj, valorNota) {
+  const itens = itemsIndex.get(id) || [];
+  document.getElementById('modalTitle').textContent = `NF ${numDoc}  ·  ${cnpj}  ·  R$ ${fmt(valorNota)}`;
+  const bd = document.getElementById('modalBd');
+
+  if (!itens.length) {
+    bd.innerHTML = `<div class="m-empty"><span class="m-empty-icon">📦</span>
+      <p>Nenhum item C170 encontrado para esta nota.</p></div>`;
+    document.getElementById('detailModal').style.display = 'flex';
+    return;
+  }
+
+  // agrupa por CFOP
+  const grp = new Map();
+  for (const it of itens) {
+    const cf = it.cfop || 'SEM CFOP';
+    if (!grp.has(cf)) grp.set(cf, []);
+    grp.get(cf).push(it);
+  }
+
+  let html = `<p style="font-size:12px;color:var(--text3);margin-bottom:16px">
+    📋 <strong>${itens.length}</strong> item(ns) encontrado(s) nos registros C170
+  </p>`;
+
+  for (const [cfop, group] of grp) {
+    const tot = group.reduce((s, i) => s + i.valorTotal, 0);
+    const cls = cfopClass(cfop);
+    html += `<div class="m-cfop-group">
+      <div class="m-cfop-hd">
+        <span class="m-cfop-code" style="${cls==='entrada'?'color:var(--green)':cls==='saida'?'color:var(--red)':''}">
+          CFOP ${cfop}
+        </span>
+        <span class="m-cfop-total">R$ ${fmt(tot)}</span>
+      </div>
+      <table class="m-table">
+        <thead><tr>
+          <th>Item</th><th>Código</th><th>Descrição</th>
+          <th>Qtd</th><th>Unid</th><th>Vl. Unit.</th><th>Vl. Total</th>
+        </tr></thead>
+        <tbody>
+          ${group.map(it => `<tr>
+            <td>${it.numItem||'-'}</td>
+            <td>${it.codigo||'-'}</td>
+            <td title="${it.descricao||''}">${(it.descricao||'-').substring(0,55)}${it.descricao?.length>55?'…':''}</td>
+            <td>${fmt(it.quantidade)}</td>
+            <td>${it.unidade||'-'}</td>
+            <td>R$ ${fmt(it.vlUnit)}</td>
+            <td style="font-family:var(--display);font-weight:700;color:var(--green)">R$ ${fmt(it.valorTotal)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="m-footer">Total CFOP ${cfop}: R$ ${fmt(tot)}</div>
+    </div>`;
+  }
+
+  const somaItens = itens.reduce((s,i) => s+i.valorTotal, 0);
+  const diff = Math.abs(somaItens - parseDec(valorNota));
+  if (diff > 0.05) {
+    html += `<div class="m-alert">
+      ⚠ Soma dos itens: <strong>R$ ${fmt(somaItens)}</strong>  ·  
+      Valor da NF: <strong>R$ ${fmt(valorNota)}</strong>  ·  
+      Diferença: R$ ${fmt(diff)}
+    </div>`;
+  }
+
+  bd.innerHTML = html;
+  document.getElementById('detailModal').style.display = 'flex';
 }
 
-// Drag & drop
-function handleDrag(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
-function handleDragLeave(id) { document.getElementById(id).classList.remove('drag-over'); }
-function handleDrop(e, type) {
-  e.preventDefault();
-  const id = type==='sped'?'dropSped':'dropCsv';
-  document.getElementById(id).classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-  const fakeEvt = { target: { files: [file] } };
-  if (type==='sped') loadSped(fakeEvt);
+function closeModal() {
+  document.getElementById('detailModal').style.display = 'none';
 }
 
-// Progress
-function showProgress(show) {
-  document.getElementById('progress-wrap').style.display = show?'block':'none';
-}
-function setProgress(pct, label) {
-  document.getElementById('progress-fill').style.width = pct+'%';
-  document.getElementById('progress-label').textContent = label;
-}
-
-// Export CSV
+// =============================================================
+// EXPORT CSV
+// =============================================================
 function exportCsv() {
-  if (!filteredRecords.length) return;
-  const cols = COLS.filter(c=>visibleCols.includes(c.key));
-  const header = cols.map(c=>c.label).join(';');
-  const lines = filteredRecords.map(r => cols.map(c => {
-    let v = r[c.key]||'';
-    if (c.key==='CFOP') v = formatCFOP(v);
-    if (c.key==='VL_DOC' || c.key?.includes('VL_')) v = fmtNum(v);
-    if (c.key==='NUM_DOC') v = String(r.NUM_DOC || '').trim();
+  if (!filteredRecs.length) return;
+  const cols = COLS.filter(c => visibleCols.includes(c.key));
+  const hdr  = cols.map(c => c.label).join(';');
+  const rows = filteredRecs.map(r => cols.map(c => {
+    let v = r[c.key] ?? '';
+    if (c.numeric) v = typeof v === 'number' ? fmt(v) : (parseDec(v) ? fmt(parseDec(v)) : '');
+    if (c.key === 'DT_DOC' || c.key === 'DT_E_S') v = fmtDate(v);
     return `"${String(v).replace(/"/g,'""')}"`;
   }).join(';'));
-  const csv = '\uFEFF' + header + '\n' + lines.join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const csv = '\uFEFF' + hdr + '\n' + rows.join('\n');
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'sped_notas_fiscais.csv';
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = `sped_cfop_${activeCfop !== 'all' ? activeCfop + '_' : ''}${Date.now()}.csv`;
   a.click();
+}
+
+// =============================================================
+// PROGRESS / THEME
+// =============================================================
+function setProgress(show, pct, label) {
+  document.getElementById('progWrap').style.display = show ? 'block' : 'none';
+  if (show) {
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progLbl').textContent  = label || 'Processando…';
+  }
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('themeBtn').textContent = isDark ? '🌙 Escuro' : '🌞 Claro';
 }
 </script>
 </body>
