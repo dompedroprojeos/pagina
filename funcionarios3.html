@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coletor de Dados de Funcionários</title>
+    <title>Sistema de Gestão de Funcionários - Dom Pedro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            --warning-color: #e74c3c;
-            --success-color: #27ae60;
-            --background-light: #ecf0f1;
-            --text-dark: #2c3e50;
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e40af;
+            --secondary: #7c3aed;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
             --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -24,529 +32,884 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-light);
-            color: var(--text-dark);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
             line-height: 1.6;
+            min-height: 100vh;
             padding: 20px;
+            user-select: none;
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background-color: var(--white);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
         }
 
+        /* Header */
         .header {
+            background: var(--white);
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .company-logo {
-            max-height: 70px;
+            max-height: 60px;
             max-width: 180px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         h1 {
-            color: var(--primary-color);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: var(--white);
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* Card Container */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 25px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary);
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.8rem;
         }
 
-        .input-section {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        /* Input Section */
+        .input-area {
+            position: relative;
         }
 
         textarea {
             width: 100%;
-            padding: 15px;
-            border: 1px solid var(--secondary-color);
-            border-radius: 5px;
-            margin-bottom: 15px;
+            padding: 20px;
+            border: 2px solid var(--light);
+            border-radius: 12px;
             font-size: 14px;
             resize: vertical;
             min-height: 150px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
         }
 
         textarea:focus {
             outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .controls {
+        /* Buttons */
+        .btn-group {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
+            margin-top: 15px;
         }
 
         .btn {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 20px;
-            background-color: var(--accent-color);
-            color: var(--white);
+            gap: 8px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            gap: 8px;
-            font-weight: 600;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:hover {
-            background-color: var(--primary-color);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-lg);
         }
 
-        .btn-secondary {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-warning {
-            background-color: var(--warning-color);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: var(--white);
         }
 
         .btn-success {
-            background-color: var(--success-color);
+            background: linear-gradient(135deg, #34d399, var(--success));
+            color: var(--white);
         }
 
-        .search-container {
-            position: relative;
-            flex-grow: 1;
-            max-width: 250px;
+        .btn-warning {
+            background: linear-gradient(135deg, #fbbf24, var(--warning));
+            color: var(--white);
         }
 
-        .search-input {
-            width: 100%;
-            padding: 10px 40px 10px 15px;
-            border: 1px solid var(--secondary-color);
-            border-radius: 5px;
-            transition: border-color 0.3s;
+        .btn-danger {
+            background: linear-gradient(135deg, #f87171, var(--danger));
+            color: var(--white);
         }
 
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
+        .btn-secondary {
+            background: linear-gradient(135deg, #a78bfa, var(--secondary));
+            color: var(--white);
         }
 
-        .search-icon {
-            position: absolute;
-            top: 50%;
-            right: 15px;
-            transform: translateY(-50%);
-            color: var(--secondary-color);
+        .btn-info {
+            background: linear-gradient(135deg, #22d3ee, var(--accent));
+            color: var(--white);
         }
 
-        .filters-section {
-            display: flex;
-            flex-wrap: wrap;
+        /* Filters */
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
 
         .filter-group label {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
+        .filter-input,
         .filter-select {
-            padding: 8px 12px;
-            border: 1px solid var(--secondary-color);
-            border-radius: 5px;
-            background-color: var(--white);
-            transition: border-color 0.3s;
+            padding: 12px 15px;
+            border: 2px solid var(--light);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: var(--white);
         }
 
+        .filter-input:focus,
         .filter-select:focus {
             outline: none;
-            border-color: var(--accent-color);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .month-select {
-            padding: 10px;
-            border: 1px solid var(--secondary-color);
-            border-radius: 5px;
-            background-color: var(--white);
-            font-size: 16px;
-            margin-bottom: 15px;
+        /* Search */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid var(--light);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-light);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        th, td {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            text-align: left;
+            background: var(--white);
         }
 
         th {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: var(--white);
+            padding: 16px 12px;
+            text-align: left;
             font-weight: 600;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
 
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--light);
+        }
+
+        tr {
+            transition: all 0.3s;
         }
 
         tr:hover {
-            background-color: #f1f1f1;
+            background-color: #f0f9ff;
+            transform: scale(1.01);
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        tfoot td {
+            font-weight: 700;
+            background-color: var(--light);
+            padding: 16px 12px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .badge-senior {
+            background: linear-gradient(135deg, #f87171, var(--danger));
+        }
+
+        .badge-mid {
+            background: linear-gradient(135deg, #fbbf24, var(--warning));
+        }
+
+        .badge-junior {
+            background: linear-gradient(135deg, #34d399, var(--success));
         }
 
         .missing-data {
-            color: var(--warning-color);
+            color: var(--danger);
             font-style: italic;
             font-weight: 500;
         }
 
-        .service-time-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-            color: white;
+        /* Row Highlights */
+        .row-senior {
+            background-color: rgba(239, 68, 68, 0.05) !important;
+            border-left: 4px solid var(--danger);
         }
 
-        .senior-badge {
-            background-color: var(--warning-color);
+        .row-mid {
+            background-color: rgba(245, 158, 11, 0.05) !important;
+            border-left: 4px solid var(--warning);
         }
 
-        .mid-senior-badge {
-            background-color: #f39c12;
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
         }
 
-        .junior-badge {
-            background-color: var(--success-color);
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
         }
 
-        .senior-row {
-            background-color: rgba(231, 76, 60, 0.05) !important;
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--white);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
         }
 
-        .mid-senior-row {
-            background-color: rgba(243, 156, 18, 0.05) !important;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
         }
 
-        .birthday-header {
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            background-color: var(--accent-color);
-            color: var(--white);
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+            transition: color 0.3s;
         }
 
-        tfoot {
-            font-weight: bold;
-            background-color: #f1f1f1;
+        .modal-close:hover {
+            color: var(--danger);
         }
 
+        /* Footer */
         .footer {
             text-align: center;
+            padding: 20px;
             margin-top: 30px;
-            padding: 15px;
-            background-color: var(--secondary-color);
-            color: var(--white);
-            border-radius: 5px;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            color: var(--dark);
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--primary-light);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
-                gap: 15px;
                 text-align: center;
             }
-            
-            .controls {
+
+            .header-stats {
                 flex-direction: column;
-                align-items: stretch;
+                width: 100%;
             }
-            
-            .search-container {
-                max-width: 100%;
+
+            .stat-card {
+                width: 100%;
             }
-            
-            .filters-section {
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
                 flex-direction: column;
             }
+
+            .btn {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Proteção contra seleção */
+        ::selection {
+            background: rgba(59, 130, 246, 0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Company Logo" class="company-logo">
-            <h1>
-                <i class="fas fa-file-import"></i>
-                Coletor de Dados de Funcionários
-            </h1>
-        </div>
-        
-        <div class="input-section">
-            <textarea id="dataInput" placeholder="Cole os dados aqui..."></textarea>
-            <div class="controls">
-                <button onclick="processData()" class="btn">
-                    <i class="fas fa-check"></i> Processar
-                </button>
-               
-                <div class="search-container">
-                    <input type="text" id="nameSearch" class="search-input" placeholder="Buscar por nome" oninput="filterByName()" />
-                    <i class="fas fa-search search-icon"></i>
+            <div class="header-left">
+                <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Dom Pedro" class="company-logo">
+                <h1>
+                    <i class="fas fa-users-cog"></i>
+                    Sistema de Gestão de Funcionários
+                </h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <span class="stat-number" id="totalEmployees">0</span>
+                    <span class="stat-label">Funcionários</span>
                 </div>
-                <div class="search-container">
-                    <input type="text" id="obsSearch" class="search-input" placeholder="Buscar por cargo" oninput="filterByRole()" />
-                    <i class="fas fa-search search-icon"></i>
+                <div class="stat-card" style="background: linear-gradient(135deg, var(--success), #059669);">
+                    <span class="stat-number" id="totalCompanies">0</span>
+                    <span class="stat-label">Empresas</span>
                 </div>
             </div>
         </div>
 
-        <!-- Filtros de Tempo de Serviço -->
-        <div class="filters-section">
-            <div class="filter-group">
-                <label for="serviceTimeFilter">Filtrar por Tempo de Serviço:</label>
-                <select id="serviceTimeFilter" class="filter-select" onchange="filterByServiceTime()">
-                    <option value="all">Todos</option>
-                    <option value="over30">Mais de 30 anos</option>
-                    <option value="over25">Mais de 25 anos</option>
-                    <option value="over20">Mais de 20 anos</option>
-                    <option value="over15">Mais de 15 anos</option>
-                    <option value="over10">Mais de 10 anos</option>
-                    <option value="over5">Mais de 5 anos</option>
-                    <option value="under5">Menos de 5 anos</option>
-                    <option value="custom">Personalizado</option>
-                </select>
+        <!-- Input Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-file-import"></i>
+                    Importar Dados
+                </h2>
             </div>
-            
-            <div class="filter-group" id="customYearsFilter" style="display: none;">
-                <label for="customYears">Anos específicos (>=):</label>
-                <input type="number" id="customYears" class="filter-select" min="0" max="50" placeholder="Ex: 15" onchange="filterByCustomYears()">
-            </div>
-            
-            <div class="filter-group">
-                <button onclick="showSeniorEmployees()" class="btn btn-warning">
-                    <i class="fas fa-crown"></i> Mais de 20 anos
-                </button>
-            </div>
-            
-            <div class="filter-group">
-                <button onclick="showMidSeniorEmployees()" class="btn" style="background-color: #f39c12;">
-                    <i class="fas fa-star"></i> 10-20 anos
-                </button>
-            </div>
-            
-            <div class="filter-group">
-                <button onclick="showJuniorEmployees()" class="btn btn-success">
-                    <i class="fas fa-seedling"></i> Menos de 10 anos
-                </button>
-            </div>
-            
-            <div class="filter-group">
-                <button onclick="exportServiceTime()" class="btn" style="background-color: #9b59b6;">
-                    <i class="fas fa-file-export"></i> Exportar Tempo de Serviço
-                </button>
+            <div class="input-area">
+                <textarea id="dataInput" placeholder="Cole os dados dos funcionários aqui...&#10;&#10;Formato esperado:&#10;Empresa: [código] - [nome]&#10;| Código | Nome | CPF | Obs | Data Admissão | Nascimento | Cargo |"></textarea>
+                <div class="btn-group">
+                    <button onclick="processData()" class="btn btn-primary">
+                        <i class="fas fa-cogs"></i> Processar Dados
+                    </button>
+                    <button onclick="clearData()" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Limpar Tudo
+                    </button>
+                    <button onclick="exportToCSV()" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Exportar CSV
+                    </button>
+                </div>
             </div>
         </div>
 
-        <label for="monthSelect">Escolha o mês:</label>
-        <select id="monthSelect" class="month-select" onchange="showBirthdayEmployees()">
-            <option value="1">Janeiro</option>
-            <option value="2">Fevereiro</option>
-            <option value="3">Março</option>
-            <option value="4">Abril</option>
-            <option value="5">Maio</option>
-            <option value="6">Junho</option>
-            <option value="7">Julho</option>
-            <option value="8">Agosto</option>
-            <option value="9">Setembro</option>
-            <option value="10">Outubro</option>
-            <option value="11">Novembro</option>
-            <option value="12">Dezembro</option>
-        </select>
+        <!-- Tabs -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('table')">
+                    <i class="fas fa-table"></i> Tabela de Dados
+                </button>
+                <button class="tab" onclick="switchTab('charts')">
+                    <i class="fas fa-chart-bar"></i> Gráficos e Estatísticas
+                </button>
+                <button class="tab" onclick="switchTab('positions')">
+                    <i class="fas fa-briefcase"></i> Análise de Cargos
+                </button>
+            </div>
 
-        <h2 id="companyName"></h2>
+            <!-- Tab 1: Tabela -->
+            <div id="tabTable" class="tab-content active">
+                <!-- Filtros -->
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>
+                            <i class="fas fa-building"></i> Filtrar por Empresa
+                        </label>
+                        <select id="companyFilter" class="filter-select" onchange="applyFilters()">
+                            <option value="all">Todas as Empresas</option>
+                        </select>
+                    </div>
 
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Data Admissão</th>
-                    <th>Nascimento</th>
-                    <th>Cargo</th>
-                    <th>Tempo de Serviço</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="5">Qt Funcionários</td>
-                    <td id="totalCount">0</td>
-                </tr>
-            </tfoot>
-        </table>
+                    <div class="filter-group">
+                        <label>
+                            <i class="fas fa-search"></i> Buscar por Nome
+                        </label>
+                        <div class="search-container">
+                            <input type="text" id="nameSearch" class="search-input" placeholder="Digite o nome..." oninput="applyFilters()">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>
+                            <i class="fas fa-briefcase"></i> Buscar por Cargo
+                        </label>
+                        <div class="search-container">
+                            <input type="text" id="roleSearch" class="search-input" placeholder="Digite o cargo..." oninput="applyFilters()">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>
+                            <i class="fas fa-clock"></i> Tempo de Serviço
+                        </label>
+                        <select id="serviceTimeFilter" class="filter-select" onchange="applyFilters()">
+                            <option value="all">Todos</option>
+                            <option value="over30">Mais de 30 anos</option>
+                            <option value="over25">Mais de 25 anos</option>
+                            <option value="over20">Mais de 20 anos</option>
+                            <option value="over15">Mais de 15 anos</option>
+                            <option value="over10">Mais de 10 anos</option>
+                            <option value="over5">Mais de 5 anos</option>
+                            <option value="under5">Menos de 5 anos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>
+                            <i class="fas fa-birthday-cake"></i> Aniversariantes
+                        </label>
+                        <select id="monthFilter" class="filter-select" onchange="applyFilters()">
+                            <option value="all">Todos os Meses</option>
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="showEmptyPositions()" class="btn btn-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Cargos Não Preenchidos
+                    </button>
+                    <button onclick="resetFilters()" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Resetar Filtros
+                    </button>
+                </div>
+
+                <!-- Tabela -->
+                <div class="table-container" style="margin-top: 20px;">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th>Empresa</th>
+                                <th>Data Admissão</th>
+                                <th>Nascimento</th>
+                                <th>Cargo</th>
+                                <th>Tempo de Serviço</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6">Total de Funcionários Exibidos</td>
+                                <td id="displayCount">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Gráficos -->
+            <div id="tabCharts" class="tab-content">
+                <h3 class="card-title" style="margin-bottom: 20px;">
+                    <i class="fas fa-birthday-cake"></i>
+                    Aniversariantes por Mês
+                </h3>
+                <div class="chart-container">
+                    <canvas id="birthdayChart"></canvas>
+                </div>
+
+                <h3 class="card-title" style="margin: 30px 0 20px 0;">
+                    <i class="fas fa-chart-pie"></i>
+                    Distribuição por Tempo de Serviço
+                </h3>
+                <div class="chart-container">
+                    <canvas id="serviceTimeChart"></canvas>
+                </div>
+
+                <h3 class="card-title" style="margin: 30px 0 20px 0;">
+                    <i class="fas fa-building"></i>
+                    Funcionários por Empresa (Top 10)
+                </h3>
+                <div class="chart-container">
+                    <canvas id="companyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tab 3: Análise de Cargos -->
+            <div id="tabPositions" class="tab-content">
+                <h3 class="card-title" style="margin-bottom: 20px;">
+                    <i class="fas fa-briefcase"></i>
+                    Análise de Cargos
+                </h3>
+                
+                <div class="filters-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalPositions">0</span>
+                        <span class="stat-label">Cargos Diferentes</span>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
+                        <span class="stat-number" id="emptyPositions">0</span>
+                        <span class="stat-label">Cargos Vazios</span>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="positionsTable">
+                        <thead>
+                            <tr>
+                                <th>Cargo</th>
+                                <th>Quantidade</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <h3 class="card-title" style="margin: 30px 0 20px 0;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Funcionários com Cargo Não Preenchido
+                </h3>
+                <div class="table-container">
+                    <table id="emptyPositionsTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th>Empresa</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
-        Desenvolvido por Waldeci Ramos | © 2024 Todos os direitos reservados
+        <p><strong>Sistema de Gestão de Funcionários Dom Pedro</strong></p>
+        <p>Desenvolvido por Waldeci Ramos | © 2024 Todos os direitos reservados</p>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
     <script>
-        const empresasNomes = {  
-            "2": "DOM PEDRO 1",
-            "3": "DOM PEDRO ITATIAIUÇU",
-            "4": "DOM PEDRO LEME",
-            "5": "DOM PEDRO PINDA ROTA NORTE",
-            "6": "DOM PEDRO 2",
-            "7": "DOM PEDRO POUSO ALEGRE",
-            "8": "DOM PEDRO ATIBAIA",
-            "9": "DOM PEDRO ITAPEVA",
-            "10": "DOM PEDRO CAETANÓPOLIS",
-            "11": "DOM PEDRO BETIM 1 ROTA SUL",
-            "13": "DOM PEDRO TURIM",
-            "14": "DOM PEDRO SANTA LUZIA",
-            "15": "DOM PEDRO SALINAS",
-            "17": "DOM PEDRO APARECIDA",
-            "18": "DOM PEDRO MURIAÉ",
-            "19": "DOM PEDRO PARAOPEBA",
-            "20": "DOM PEDRO CONTAGEM NORTE",
-            "21": "DOM PEDRO CONTAGEM SUL",
-            "22": "DOM PEDRO CAMBUÍ",
-            "24": "DOM PEDRO GUARA RODOV.",
-            "25": "DOM PEDRO PINDA ROTA SUL",
-            "26": "DOM PEDRO MIRACATU ROTA NORTE",
-            "27": "DOM PEDRO JK ESTIVA SUL",
-            "28": "DOM PEDRO ALIANÇA",
-            "29": "DOM PEDRO OLIVEIRA",
-            "30": "DOM PEDRO CAMBUÍ URBANO 1",
-            "31": "DOM PEDRO JAGUAQUARA",
-            "32": "DOM PEDRO SÃO GONÇALO",
-            "33": "DOM PEDRO NOVA SERRANA",
-            "34": "DOM PEDRO IGARATINGA",
-            "35": "DOM PEDRO CARMÓPOLIS",
-            "36": "DOM PEDRO BETIM 2 ROTA SUL",
-            "37": "DOM PEDRO PARAGOMINAS",
-            "38": "DOM PEDRO URUAÇU",
-            "41": "DOM PEDRO DIVISA ALEGRE",
-            "42": "DOM PEDRO CAMBUÍ URBANO 2",
-            "43": "DOM PEDRO CONTAGEM FERNÃO DIAS",
-            "44": "DOM PEDRO CACHOEIRA DE PAJEÚ",
-            "45": "DOM PEDRO TOCANTINS",
-            "47": "CENTRAL ADMINISTRATIVA",
-            "48": "DOM PEDRO SANTO ESTEVÃO",
-            "49": "DOM PEDRO SÃO GONÇALO URB.",
-            "50": "DOM PEDRO ITAGUARA",
-            "51": "DOM PEDRO SENADOR AMARAL",
-            "53": "DOM PEDRO SÃO GONÇALO URB. 2",
-            "54": "DOM PEDRO LORENA",
-            "55": "DOM PEDRO DIVISA ALEGRE 2",
-            "56": "DOM PEDRO INCONFIDENTES",
-            "57": "DOM PEDRO JUIZ DE FORA URBANO",
-            "58": "DOM PEDRO BUENO BRANDÃO",
-            "59": "DOM PEDRO POUSO A LEGRE URBANO",
-            "60": "DOM PEDRO CAMANDUCAIA URBANO 1",
-            "61": "DOM PEDRO OURO FINO",
-            "63": "DOM PEDRO CAMANDUCAIA URBANO 2",
-            "64": "DOM PEDRO GUARÁ URBANO 2",
-            "65": "DOM PEDRO GUARÁ URBANO 3",
-            "66": "DOM PEDRO BRAGANÇA URBANO",
-            "67": "DOM PEDRO JACAREÍ URBANO",
-            "68": "DOM PEDRO ATIBAIA URBANO",
-            "69": "DOM PEDRO POUSO ALEGRE URB 2",
-            "70": "DOM PEDRO EXTREMA URBANO",
-            "75": "DOM PEDRO ITATIBA URBANO 1",
-            "76": "DOM PEDRO ITATIBA URBANO 2",
-            "77": "DOM PEDRO POUSO ALEGRE URB 3",
-            "78": "DOM PEDRO SALES OLIVEIRA",
-            "79": "DOM PEDRO VITÓRIA DA CONQUISTA",
-            "80": "DOM PEDRO JUIZ DE FORA RODOVIA",
-            "81": "DOM PEDRO MONTES CLAROS",
-            "82": "DOM PEDRO VARGEM",
-            "83": "DOM PEDRO SÃO JORGE",
-            "86": "DOM PEDRO S. JOSÉ DOS CAMPOS URB",
-            "87": "DOM PEDRO FREI INOCÊNCIO",
-            "88": "DOM PEDRO BRAGANÇA RODOVIA",
-            "89": "DOM PEDRO BARRA MANSA NORTE",
-            "90": "DOM PEDRO BARRA MANSA SUL",
-            "91": "DOM PEDRO CONSELHEIRA LAFAIETE",
-            "92": "DOM PEDRO PLANALTO",
-            "93": "DOM PEDRO SANTO ESTEVÃO 2",
-            "94": "DOM PEDRO SANTO ESTEVÃO 3",
-            "95": "DOM PEDRO SÃO CRISTOVÃO",
-            "96": "DOM PEDRO BARREIRAS",
-            "97": "DOM PEDRO DE POSTOS LTDA DP ITABERABA",
-            "98": "DOM PEDRO DE POSTOS LTDA DP VALENCA",
-            "99": "DOM PEDRO SAO GONCALO RODOVIA 2",
-            "100": "DOM PEDRO SAO GONCALO RODOVIA 3",
-            "102": "DOM PEDRO RUSSAS",
-            "103": "DOM PEDRO INHAPIM",
-            "104": "DOM PEDRO LUZ"
+        // Proteção contra F12, Ctrl+Shift+I, etc.
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Dados globais
+        const empresasNomes = {
+            "2": "DOM PEDRO 1", "3": "DOM PEDRO ITATIAIUÇU", "4": "DOM PEDRO LEME",
+            "5": "DOM PEDRO PINDA ROTA NORTE", "6": "DOM PEDRO 2", "7": "DOM PEDRO POUSO ALEGRE",
+            "8": "DOM PEDRO ATIBAIA", "9": "DOM PEDRO ITAPEVA", "10": "DOM PEDRO CAETANÓPOLIS",
+            "11": "DOM PEDRO BETIM 1 ROTA SUL", "13": "DOM PEDRO TURIM", "14": "DOM PEDRO SANTA LUZIA",
+            "15": "DOM PEDRO SALINAS", "17": "DOM PEDRO APARECIDA", "18": "DOM PEDRO MURIAÉ",
+            "19": "DOM PEDRO PARAOPEBA", "20": "DOM PEDRO CONTAGEM NORTE", "21": "DOM PEDRO CONTAGEM SUL",
+            "22": "DOM PEDRO CAMBUÍ", "24": "DOM PEDRO GUARA RODOV.", "25": "DOM PEDRO PINDA ROTA SUL",
+            "26": "DOM PEDRO MIRACATU ROTA NORTE", "27": "DOM PEDRO JK ESTIVA SUL", "28": "DOM PEDRO ALIANÇA",
+            "29": "DOM PEDRO OLIVEIRA", "30": "DOM PEDRO CAMBUÍ URBANO 1", "31": "DOM PEDRO JAGUAQUARA",
+            "32": "DOM PEDRO SÃO GONÇALO", "33": "DOM PEDRO NOVA SERRANA", "34": "DOM PEDRO IGARATINGA",
+            "35": "DOM PEDRO CARMÓPOLIS", "36": "DOM PEDRO BETIM 2 ROTA SUL", "37": "DOM PEDRO PARAGOMINAS",
+            "38": "DOM PEDRO URUAÇU", "41": "DOM PEDRO DIVISA ALEGRE", "42": "DOM PEDRO CAMBUÍ URBANO 2",
+            "43": "DOM PEDRO CONTAGEM FERNÃO DIAS", "44": "DOM PEDRO CACHOEIRA DE PAJEÚ",
+            "45": "DOM PEDRO TOCANTINS", "47": "CENTRAL ADMINISTRATIVA", "48": "DOM PEDRO SANTO ESTEVÃO",
+            "49": "DOM PEDRO SÃO GONÇALO URB.", "50": "DOM PEDRO ITAGUARA", "51": "DOM PEDRO SENADOR AMARAL",
+            "53": "DOM PEDRO SÃO GONÇALO URB. 2", "54": "DOM PEDRO LORENA", "55": "DOM PEDRO DIVISA ALEGRE 2",
+            "56": "DOM PEDRO INCONFIDENTES", "57": "DOM PEDRO JUIZ DE FORA URBANO",
+            "58": "DOM PEDRO BUENO BRANDÃO", "59": "DOM PEDRO POUSO A LEGRE URBANO",
+            "60": "DOM PEDRO CAMANDUCAIA URBANO 1", "61": "DOM PEDRO OURO FINO",
+            "63": "DOM PEDRO CAMANDUCAIA URBANO 2", "64": "DOM PEDRO GUARÁ URBANO 2",
+            "65": "DOM PEDRO GUARÁ URBANO 3", "66": "DOM PEDRO BRAGANÇA URBANO",
+            "67": "DOM PEDRO JACAREÍ URBANO", "68": "DOM PEDRO ATIBAIA URBANO",
+            "69": "DOM PEDRO POUSO ALEGRE URB 2", "70": "DOM PEDRO EXTREMA URBANO",
+            "75": "DOM PEDRO ITATIBA URBANO 1", "76": "DOM PEDRO ITATIBA URBANO 2",
+            "77": "DOM PEDRO POUSO ALEGRE URB 3", "78": "DOM PEDRO SALES OLIVEIRA",
+            "79": "DOM PEDRO VITÓRIA DA CONQUISTA", "80": "DOM PEDRO JUIZ DE FORA RODOVIA",
+            "81": "DOM PEDRO MONTES CLAROS", "82": "DOM PEDRO VARGEM", "83": "DOM PEDRO SÃO JORGE",
+            "86": "DOM PEDRO S. JOSÉ DOS CAMPOS URB", "87": "DOM PEDRO FREI INOCÊNCIO",
+            "88": "DOM PEDRO BRAGANÇA RODOVIA", "89": "DOM PEDRO BARRA MANSA NORTE",
+            "90": "DOM PEDRO BARRA MANSA SUL", "91": "DOM PEDRO CONSELHEIRA LAFAIETE",
+            "92": "DOM PEDRO PLANALTO", "93": "DOM PEDRO SANTO ESTEVÃO 2", "94": "DOM PEDRO SANTO ESTEVÃO 3",
+            "95": "DOM PEDRO SÃO CRISTOVÃO", "96": "DOM PEDRO BARREIRAS",
+            "97": "DOM PEDRO DE POSTOS LTDA DP ITABERABA", "98": "DOM PEDRO DE POSTOS LTDA DP VALENCA",
+            "99": "DOM PEDRO SAO GONCALO RODOVIA 2", "100": "DOM PEDRO SAO GONCALO RODOVIA 3",
+            "102": "DOM PEDRO RUSSAS", "103": "DOM PEDRO INHAPIM", "104": "DOM PEDRO LUZ"
         };
 
-        let employeesData = [];  
-        let companyName = 'Empresa não encontrada';  
+        let employeesData = [];
+        let filteredData = [];
+        let charts = {};
 
-        // Função para calcular o tempo de serviço
+        // Calcular tempo de serviço
         function calculateServiceTime(admissionDate) {
             if (!admissionDate || admissionDate.trim() === '') {
                 return { years: 0, months: 0, error: true };
             }
-            
+
             const today = new Date();
             const [day, month, year] = admissionDate.split('/').map(Number);
-            
-            // Verifica se a data é válida
+
             if (!day || !month || !year || year < 1900 || year > today.getFullYear()) {
                 return { years: 0, months: 0, error: true };
             }
-            
+
             const admission = new Date(year, month - 1, day);
-            
             let years = today.getFullYear() - admission.getFullYear();
             let months = today.getMonth() - admission.getMonth();
-            
+
             if (months < 0) {
                 years--;
                 months += 12;
             }
-            
-            // Ajuste para dias
+
             if (today.getDate() < admission.getDate()) {
                 months--;
                 if (months < 0) {
@@ -554,311 +917,452 @@
                     months += 12;
                 }
             }
-            
+
             return { years, months, error: false };
         }
 
-        // Função para formatar o tempo de serviço
+        // Formatar tempo de serviço
         function formatServiceTime(years, months, error) {
-            if (error) {
-                return '<span class="missing-data">Data inválida</span>';
-            }
-            
-            if (years === 0 && months === 0) {
-                return "Recém-admitido";
-            } else if (years === 0) {
-                return `${months} ${months === 1 ? 'mês' : 'meses'}`;
-            } else if (months === 0) {
-                return `${years} ${years === 1 ? 'ano' : 'anos'}`;
-            } else {
-                return `${years} ${years === 1 ? 'ano' : 'anos'} e ${months} ${months === 1 ? 'mês' : 'meses'}`;
-            }
+            if (error) return '<span class="missing-data">Data inválida</span>';
+            if (years === 0 && months === 0) return "Recém-admitido";
+            if (years === 0) return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+            if (months === 0) return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+            return `${years} ${years === 1 ? 'ano' : 'anos'} e ${months} ${months === 1 ? 'mês' : 'meses'}`;
         }
 
-        // Função para obter a classe CSS baseada no tempo de serviço
-        function getServiceTimeClass(years, error) {
-            if (error) {
-                return '';
+        // Processar dados
+        function processData() {
+            const input = document.getElementById('dataInput').value;
+            if (!input.trim()) {
+                alert('Por favor, cole os dados antes de processar!');
+                return;
             }
-            
-            if (years >= 20) {
-                return 'senior-badge';
-            } else if (years >= 10) {
-                return 'mid-senior-badge';
-            } else {
-                return 'junior-badge';
-            }
-        }
 
-        // Função para obter a classe da linha baseada no tempo de serviço
-        function getServiceTimeRowClass(years, error) {
-            if (error) {
-                return '';
-            }
-            
-            if (years >= 20) {
-                return 'senior-row';
-            } else if (years >= 10) {
-                return 'mid-senior-row';
-            } else {
-                return '';
-            }
-        }
+            const lines = input.trim().split('\n');
+            employeesData = [];
+            let currentCompany = '';
+            let currentCompanyCode = '';
 
-        function processData() {  
-            const input = document.getElementById('dataInput').value;  
-            const lines = input.trim().split('\n');  
-
-            const tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];  
-            tableBody.innerHTML = '';  
-            employeesData = [];  
-
-            let currentCompanyCode = null;
-
-            lines.forEach(line => {  
-                const companyLineMatch = line.match(/Empresa:\s*(\d+)\s*-\s*(.+)/);  
-                if (companyLineMatch) {
-                    currentCompanyCode = companyLineMatch[1].trim();
-                    companyName = empresasNomes[currentCompanyCode] || companyLineMatch[2].trim(); 
-                    const companyHeaderRow = tableBody.insertRow();
-                    companyHeaderRow.innerHTML = `<td colspan="6" style="font-weight: bold; text-align: center; background-color: #f1f1f1;">${companyName}</td>`;
-                    return;  // Pula para a próxima linha
+            lines.forEach(line => {
+                const companyMatch = line.match(/Empresa:\s*(\d+)\s*-\s*(.+)/);
+                if (companyMatch) {
+                    currentCompanyCode = companyMatch[1].trim();
+                    currentCompany = empresasNomes[currentCompanyCode] || companyMatch[2].trim();
+                    return;
                 }
 
-                const match = line.match(/\|\s*(\d+)\s*\|\s*(.+?)\s*\|\s*([^\|]+)\s*\|\s*([^\|]*)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*/);  
+                const match = line.match(/\|\s*(\d+)\s*\|\s*(.+?)\s*\|\s*([^\|]+)\s*\|\s*([^\|]*)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*\|\s*([^\|]+)\s*/);
                 
-                if (match && match[1] !== 'Código') {  
-                    const [, code, name, cpf, obs, admissionDate, birthDate, role] = match;  
-                    
-                    // Verificar se os dados estão completos
-                    const hasAdmissionDate = admissionDate && admissionDate.trim() !== '';
-                    const hasBirthDate = birthDate && birthDate.trim() !== '';
-                    
-                    // Calcular tempo de serviço
-                    const serviceTime = calculateServiceTime(admissionDate);
-                    const formattedServiceTime = formatServiceTime(serviceTime.years, serviceTime.months, serviceTime.error);
-                    const serviceTimeClass = getServiceTimeClass(serviceTime.years, serviceTime.error);
-                    const rowClass = getServiceTimeRowClass(serviceTime.years, serviceTime.error);
-                    
-                    const row = tableBody.insertRow();  
-                    if (rowClass) row.className = rowClass;
-                    
-                    row.innerHTML = `  
-                        <td>${code}</td>  
-                        <td>${name}</td>  
-                        <td>${hasAdmissionDate ? admissionDate : '<span class="missing-data">Falta preencher</span>'}</td>  
-                        <td>${hasBirthDate ? birthDate : '<span class="missing-data">Falta preencher</span>'}</td>  
-                        <td>${role || '<span class="missing-data">Falta preencher</span>'}</td>  
-                        <td><span class="service-time-badge ${serviceTimeClass}">${formattedServiceTime}</span></td>  
-                    `;  
+                if (match && match[1] !== 'Código') {
+                    const [, code, name, cpf, obs, admissionDate, birthDate, role] = match;
+                    const serviceTime = calculateServiceTime(admissionDate.trim());
 
-                    employeesData.push({  
-                        code,  
-                        name,  
-                        admissionDate: hasAdmissionDate ? admissionDate : '',  
-                        birthDate: hasBirthDate ? birthDate : '',  
-                        role: role || '',
+                    employeesData.push({
+                        code: code.trim(),
+                        name: name.trim(),
+                        company: currentCompany,
+                        companyCode: currentCompanyCode,
+                        admissionDate: admissionDate.trim(),
+                        birthDate: birthDate.trim(),
+                        role: role.trim(),
                         serviceYears: serviceTime.years,
                         serviceMonths: serviceTime.months,
-                        formattedServiceTime: formattedServiceTime,
-                        serviceTimeClass: serviceTimeClass,
-                        rowClass: rowClass,
                         hasServiceTimeError: serviceTime.error
-                    });  
-                }  
-            });  
+                    });
+                }
+            });
 
-            // Atualiza o total de funcionários  
-            document.getElementById('totalCount').textContent = employeesData.length;  
-        }  
-
-        function showBirthdayEmployees() {  
-            const currentMonth = parseInt(document.getElementById('monthSelect').value, 10);
-            const monthNames = [
-                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", 
-                "Junho", "Julho", "Agosto", "Setembro", "Outubro", 
-                "Novembro", "Dezembro"
-            ];
-            const birthdayEmployees = employeesData.filter(emp => {  
-                if (!emp.birthDate) return false;
-                const birthParts = emp.birthDate.split('/');  
-                const birthMonth = parseInt(birthParts[1], 10);  
-                return birthMonth === currentMonth;  
-            });  
-
-            // Limpa a tabela
-            const birthdayTableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-            birthdayTableBody.innerHTML = ''; 
-
-            // Adiciona cabeçalho personalizado
-            const headerRow = birthdayTableBody.insertRow();
-            headerRow.innerHTML = `<td colspan="6" class="birthday-header">
-                <i class="fas fa-birthday-cake birthday-icon"></i>
-                Aniversariantes do Mês de ${monthNames[currentMonth - 1]}
-            </td>`;
+            updateStats();
+            populateFilters();
+            applyFilters();
+            updateCharts();
+            updatePositionsAnalysis();
             
-            // Exibir aniversariantes
-            birthdayEmployees.forEach(emp => {
-                const birthParts = emp.birthDate.split('/');
-                const day = birthParts[0];
+            alert(`✅ Dados processados com sucesso!\n${employeesData.length} funcionários carregados.`);
+        }
 
-                const row = birthdayTableBody.insertRow();
+        // Atualizar estatísticas
+        function updateStats() {
+            document.getElementById('totalEmployees').textContent = employeesData.length;
+            const uniqueCompanies = [...new Set(employeesData.map(e => e.companyCode))];
+            document.getElementById('totalCompanies').textContent = uniqueCompanies.length;
+        }
+
+        // Popular filtros
+        function populateFilters() {
+            const companyFilter = document.getElementById('companyFilter');
+            const uniqueCompanies = [...new Set(employeesData.map(e => ({ code: e.companyCode, name: e.company })))];
+            
+            companyFilter.innerHTML = '<option value="all">Todas as Empresas</option>';
+            uniqueCompanies
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company.code;
+                    option.textContent = company.name;
+                    companyFilter.appendChild(option);
+                });
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            filteredData = employeesData.filter(emp => {
+                // Filtro de empresa
+                const companyFilter = document.getElementById('companyFilter').value;
+                if (companyFilter !== 'all' && emp.companyCode !== companyFilter) return false;
+
+                // Filtro de nome
+                const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
+                if (nameSearch && !emp.name.toLowerCase().includes(nameSearch)) return false;
+
+                // Filtro de cargo
+                const roleSearch = document.getElementById('roleSearch').value.toLowerCase();
+                if (roleSearch && !emp.role.toLowerCase().includes(roleSearch)) return false;
+
+                // Filtro de tempo de serviço
+                const serviceFilter = document.getElementById('serviceTimeFilter').value;
+                if (serviceFilter !== 'all') {
+                    if (emp.hasServiceTimeError) return false;
+                    
+                    switch(serviceFilter) {
+                        case 'over30': if (emp.serviceYears < 30) return false; break;
+                        case 'over25': if (emp.serviceYears < 25) return false; break;
+                        case 'over20': if (emp.serviceYears < 20) return false; break;
+                        case 'over15': if (emp.serviceYears < 15) return false; break;
+                        case 'over10': if (emp.serviceYears < 10) return false; break;
+                        case 'over5': if (emp.serviceYears < 5) return false; break;
+                        case 'under5': if (emp.serviceYears >= 5) return false; break;
+                    }
+                }
+
+                // Filtro de mês de aniversário
+                const monthFilter = document.getElementById('monthFilter').value;
+                if (monthFilter !== 'all') {
+                    if (!emp.birthDate) return false;
+                    const birthMonth = parseInt(emp.birthDate.split('/')[1]);
+                    if (birthMonth !== parseInt(monthFilter)) return false;
+                }
+
+                return true;
+            });
+
+            updateTable();
+        }
+
+        // Atualizar tabela
+        function updateTable() {
+            const tbody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            filteredData.forEach(emp => {
+                const row = tbody.insertRow();
+                
+                // Adicionar classe de destaque
+                if (!emp.hasServiceTimeError) {
+                    if (emp.serviceYears >= 20) row.className = 'row-senior';
+                    else if (emp.serviceYears >= 10) row.className = 'row-mid';
+                }
+
+                const serviceTimeFormatted = formatServiceTime(emp.serviceYears, emp.serviceMonths, emp.hasServiceTimeError);
+                let badgeClass = '';
+                if (!emp.hasServiceTimeError) {
+                    if (emp.serviceYears >= 20) badgeClass = 'badge-senior';
+                    else if (emp.serviceYears >= 10) badgeClass = 'badge-mid';
+                    else badgeClass = 'badge-junior';
+                }
+
                 row.innerHTML = `
                     <td>${emp.code}</td>
                     <td>${emp.name}</td>
+                    <td>${emp.company}</td>
                     <td>${emp.admissionDate || '<span class="missing-data">Falta preencher</span>'}</td>
-                    <td>${day}</td>
+                    <td>${emp.birthDate || '<span class="missing-data">Falta preencher</span>'}</td>
                     <td>${emp.role || '<span class="missing-data">Falta preencher</span>'}</td>
-                    <td><span class="service-time-badge ${emp.serviceTimeClass}">${emp.formattedServiceTime}</span></td>
+                    <td><span class="badge ${badgeClass}">${serviceTimeFormatted}</span></td>
                 `;
             });
 
-            // Atualiza o total de funcionários na interface
-            document.getElementById('totalCount').textContent = birthdayEmployees.length;
-            document.getElementById('companyName').textContent = `Aniversariantes do Mês de ${monthNames[currentMonth - 1]}`;  
+            document.getElementById('displayCount').textContent = filteredData.length;
         }
 
-        function filterByName() {  
-            const query = document.getElementById('nameSearch').value.toLowerCase().trim();  
-            const filteredData = employeesData.filter(emp =>  
-                emp.name.toLowerCase().includes(query)  
-            );  
-
-            updateTable(filteredData);  
+        // Resetar filtros
+        function resetFilters() {
+            document.getElementById('companyFilter').value = 'all';
+            document.getElementById('nameSearch').value = '';
+            document.getElementById('roleSearch').value = '';
+            document.getElementById('serviceTimeFilter').value = 'all';
+            document.getElementById('monthFilter').value = 'all';
+            applyFilters();
         }
 
-        function filterByRole() {  
-            const query = document.getElementById('obsSearch').value.toLowerCase().trim();  
-            const filteredData = employeesData.filter(emp =>  
-                emp.role.toLowerCase().includes(query)  
-            );  
-
-            updateTable(filteredData);  
+        // Mostrar cargos vazios
+        function showEmptyPositions() {
+            filteredData = employeesData.filter(emp => !emp.role || emp.role.trim() === '');
+            updateTable();
+            switchTab('table');
         }
 
-        // Função para filtrar por tempo de serviço
-        function filterByServiceTime() {
-            const filterValue = document.getElementById('serviceTimeFilter').value;
-            const customYearsFilter = document.getElementById('customYearsFilter');
-            
-            // Mostrar/ocultar filtro personalizado
-            if (filterValue === 'custom') {
-                customYearsFilter.style.display = 'flex';
-                return;
-            } else {
-                customYearsFilter.style.display = 'none';
+        // Limpar dados
+        function clearData() {
+            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
+                document.getElementById('dataInput').value = '';
+                employeesData = [];
+                filteredData = [];
+                updateStats();
+                updateTable();
+                updateCharts();
+                updatePositionsAnalysis();
             }
-            
-            let filteredData = [];
-            
-            switch(filterValue) {
-                case 'over30':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 30 && !emp.hasServiceTimeError);
-                    break;
-                case 'over25':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 25 && !emp.hasServiceTimeError);
-                    break;
-                case 'over20':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 20 && !emp.hasServiceTimeError);
-                    break;
-                case 'over15':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 15 && !emp.hasServiceTimeError);
-                    break;
-                case 'over10':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 10 && !emp.hasServiceTimeError);
-                    break;
-                case 'over5':
-                    filteredData = employeesData.filter(emp => emp.serviceYears >= 5 && !emp.hasServiceTimeError);
-                    break;
-                case 'under5':
-                    filteredData = employeesData.filter(emp => emp.serviceYears < 5 && !emp.hasServiceTimeError);
-                    break;
-                case 'all':
-                default:
-                    filteredData = employeesData;
-                    break;
-            }
-            
-            updateTable(filteredData);
         }
 
-        // Função para filtrar por anos personalizados
-        function filterByCustomYears() {
-            const years = parseInt(document.getElementById('customYears').value) || 0;
-            const filteredData = employeesData.filter(emp => emp.serviceYears >= years && !emp.hasServiceTimeError);
-            updateTable(filteredData);
-        }
-
-        // Funções para mostrar funcionários por faixa de tempo
-        function showSeniorEmployees() {
-            const filteredData = employeesData.filter(emp => emp.serviceYears >= 20 && !emp.hasServiceTimeError);
-            updateTable(filteredData);
-        }
-
-        function showMidSeniorEmployees() {
-            const filteredData = employeesData.filter(emp => emp.serviceYears >= 10 && emp.serviceYears < 20 && !emp.hasServiceTimeError);
-            updateTable(filteredData);
-        }
-
-        function showJuniorEmployees() {
-            const filteredData = employeesData.filter(emp => emp.serviceYears < 10 && !emp.hasServiceTimeError);
-            updateTable(filteredData);
-        }
-
-        function updateTable(filteredData) {
-            const tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];  
-            tableBody.innerHTML = '';  
-
-            filteredData.forEach(emp => {  
-                const row = tableBody.insertRow();  
-                if (emp.rowClass) row.className = emp.rowClass;
-                
-                row.innerHTML = `  
-                    <td>${emp.code}</td>  
-                    <td>${emp.name}</td>  
-                    <td>${emp.admissionDate || '<span class="missing-data">Falta preencher</span>'}</td>  
-                    <td>${emp.birthDate || '<span class="missing-data">Falta preencher</span>'}</td>  
-                    <td>${emp.role || '<span class="missing-data">Falta preencher</span>'}</td>  
-                    <td><span class="service-time-badge ${emp.serviceTimeClass}">${emp.formattedServiceTime}</span></td>  
-                `;  
-            });  
-
-            document.getElementById('totalCount').textContent = filteredData.length;  
-        }
-
-        // Função para exportar dados de tempo de serviço
-        function exportServiceTime() {
+        // Exportar CSV
+        function exportToCSV() {
             if (employeesData.length === 0) {
-                alert('Não há dados para exportar. Processe os dados primeiro.');
+                alert('Não há dados para exportar!');
                 return;
             }
 
-            // Criar cabeçalho do CSV
-            let csvContent = "Código,Nome,Data Admissão,Tempo de Serviço (Anos),Tempo de Serviço (Meses),Tempo de Serviço (Formatado),Cargo\n";
+            let csv = 'Código,Nome,Empresa,Data Admissão,Nascimento,Cargo,Anos de Serviço,Meses de Serviço\n';
             
-            // Adicionar dados de cada funcionário
             employeesData.forEach(emp => {
-                const code = emp.code || '';
-                const name = emp.name || '';
-                const admissionDate = emp.admissionDate || '';
-                const serviceYears = emp.hasServiceTimeError ? 'N/A' : emp.serviceYears;
-                const serviceMonths = emp.hasServiceTimeError ? 'N/A' : emp.serviceMonths;
-                const formattedServiceTime = emp.formattedServiceTime.replace(/<[^>]*>/g, '') || '';
-                const role = emp.role || '';
-                
-                csvContent += `"${code}","${name}","${admissionDate}","${serviceYears}","${serviceMonths}","${formattedServiceTime}","${role}"\n`;
+                csv += `"${emp.code}","${emp.name}","${emp.company}","${emp.admissionDate}","${emp.birthDate}","${emp.role}","${emp.serviceYears}","${emp.serviceMonths}"\n`;
             });
 
-            // Criar blob e link para download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'tempo_servico_funcionarios.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
+            link.href = url;
+            link.download = `funcionarios_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
-            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Trocar aba
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.add('active');
+
+            if (tabName === 'charts') updateCharts();
+            if (tabName === 'positions') updatePositionsAnalysis();
+        }
+
+        // Atualizar gráficos
+        function updateCharts() {
+            updateBirthdayChart();
+            updateServiceTimeChart();
+            updateCompanyChart();
+        }
+
+        // Gráfico de aniversariantes
+        function updateBirthdayChart() {
+            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const birthdayCount = new Array(12).fill(0);
+
+            employeesData.forEach(emp => {
+                if (emp.birthDate) {
+                    const month = parseInt(emp.birthDate.split('/')[1]) - 1;
+                    if (month >= 0 && month < 12) birthdayCount[month]++;
+                }
+            });
+
+            if (charts.birthday) charts.birthday.destroy();
+
+            const ctx = document.getElementById('birthdayChart').getContext('2d');
+            charts.birthday = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthNames,
+                    datasets: [{
+                        label: 'Aniversariantes',
+                        data: birthdayCount,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: `Mês com mais aniversariantes: ${monthNames[birthdayCount.indexOf(Math.max(...birthdayCount))]} (${Math.max(...birthdayCount)} funcionários)`,
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de tempo de serviço
+        function updateServiceTimeChart() {
+            const categories = {
+                'Menos de 5 anos': 0,
+                '5 a 10 anos': 0,
+                '10 a 15 anos': 0,
+                '15 a 20 anos': 0,
+                '20 a 25 anos': 0,
+                'Mais de 25 anos': 0
+            };
+
+            employeesData.forEach(emp => {
+                if (!emp.hasServiceTimeError) {
+                    if (emp.serviceYears < 5) categories['Menos de 5 anos']++;
+                    else if (emp.serviceYears < 10) categories['5 a 10 anos']++;
+                    else if (emp.serviceYears < 15) categories['10 a 15 anos']++;
+                    else if (emp.serviceYears < 20) categories['15 a 20 anos']++;
+                    else if (emp.serviceYears < 25) categories['20 a 25 anos']++;
+                    else categories['Mais de 25 anos']++;
+                }
+            });
+
+            if (charts.serviceTime) charts.serviceTime.destroy();
+
+            const ctx = document.getElementById('serviceTimeChart').getContext('2d');
+            charts.serviceTime = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(220, 38, 38, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de funcionários por empresa
+        function updateCompanyChart() {
+            const companyCount = {};
+            employeesData.forEach(emp => {
+                companyCount[emp.company] = (companyCount[emp.company] || 0) + 1;
+            });
+
+            const sorted = Object.entries(companyCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (charts.company) charts.company.destroy();
+
+            const ctx = document.getElementById('companyChart').getContext('2d');
+            charts.company = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(([name]) => name.length > 30 ? name.substring(0, 30) + '...' : name),
+                    datasets: [{
+                        label: 'Funcionários',
+                        data: sorted.map(([, count]) => count),
+                        backgroundColor: 'rgba(124, 58, 237, 0.7)',
+                        borderColor: 'rgba(124, 58, 237, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // Análise de cargos
+        function updatePositionsAnalysis() {
+            const positionCount = {};
+            let emptyCount = 0;
+
+            employeesData.forEach(emp => {
+                const position = emp.role || 'Não Preenchido';
+                if (!emp.role || emp.role.trim() === '') {
+                    emptyCount++;
+                }
+                positionCount[position] = (positionCount[position] || 0) + 1;
+            });
+
+            document.getElementById('totalPositions').textContent = Object.keys(positionCount).length - (emptyCount > 0 ? 1 : 0);
+            document.getElementById('emptyPositions').textContent = emptyCount;
+
+            // Tabela de cargos
+            const tbody = document.getElementById('positionsTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            Object.entries(positionCount)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([position, count]) => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${position}</td>
+                        <td><span class="badge badge-junior">${count}</span></td>
+                        <td><button class="btn btn-info" onclick="filterByPosition('${position.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button></td>
+                    `;
+                });
+
+            // Tabela de funcionários com cargo vazio
+            const emptyTbody = document.getElementById('emptyPositionsTable').getElementsByTagName('tbody')[0];
+            emptyTbody.innerHTML = '';
+
+            employeesData
+                .filter(emp => !emp.role || emp.role.trim() === '')
+                .forEach(emp => {
+                    const row = emptyTbody.insertRow();
+                    row.innerHTML = `
+                        <td>${emp.code}</td>
+                        <td>${emp.name}</td>
+                        <td>${emp.company}</td>
+                    `;
+                });
+        }
+
+        // Filtrar por cargo específico
+        function filterByPosition(position) {
+            switchTab('table');
+            document.getElementById('roleSearch').value = position === 'Não Preenchido' ? '' : position;
+            if (position === 'Não Preenchido') {
+                showEmptyPositions();
+            } else {
+                applyFilters();
+            }
+        }
+
+        // Modal
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
         }
     </script>
 </body>
