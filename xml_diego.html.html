@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador NF-e | CSOSN e CST Separados | Múltiplos XMLs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f0fdf4; padding: 20px; color: #1a3a2a; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #0d5c3b, #1b8c4a); color: white; border-radius: 20px; padding: 20px 28px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 8px 20px; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; transition: 0.2s; }
+        .btn-primary { background: #fbbf24; color: #0d5c3b; }
+        .btn-primary:hover { background: #f59e0b; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 1px solid white; color: white; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .upload-area { border: 2px dashed #1b8c4a; border-radius: 20px; padding: 25px; text-align: center; background: #f0fdf4; cursor: pointer; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 15px 0; }
+        .filter-input { padding: 10px 16px; border-radius: 40px; border: 1px solid #d1d5db; font-size: 14px; }
+        .report-container { background: white; border-radius: 16px; overflow-x: auto; }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 15px; }
+        .stat-card { background: #ecfdf5; border-radius: 12px; padding: 10px 20px; border-left: 4px solid #1b8c4a; }
+        h3 { font-size: 1.2rem; font-weight: 600; margin: 15px 0 12px; border-left: 5px solid #1b8c4a; padding-left: 14px; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .report-table th { background: #0d5c3b; color: white; padding: 12px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
+        .report-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
+        .report-table tr:hover { background: #f0fdf4; }
+        .report-table .total-row { background: #e2e8f0; font-weight: 700; }
+        .badge-csosn { background: #dbeafe; color: #1e40af; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .badge-cst { background: #fef3c7; color: #b45309; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .badge-desconto { background: #dcfce7; color: #166534; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .scroll-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .summary-cards { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; }
+        .summary-item { background: white; border-radius: 12px; padding: 10px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 130px; }
+        .summary-label { font-size: 11px; color: #5b6e5b; text-transform: uppercase; }
+        .summary-value { font-size: 18px; font-weight: 700; color: #0d5c3b; }
+        .file-list { margin-top: 10px; font-size: 12px; color: #4b5563; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-file-invoice-dollar"></i> Leitor NF-e Completo</h1>
+            <p>CSOSN e CST separados | Filtros individuais | Múltiplos XMLs</p>
+        </div>
+        <div>
+            <button id="exportCsvBtn" class="btn btn-outline"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+            <button id="darkBtn" class="btn btn-outline"><i class="fas fa-moon"></i> Modo Escuro</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt fa-2x" style="color:#1b8c4a;"></i>
+            <p style="margin-top: 8px;"><strong>Clique ou arraste arquivos XML da NF-e</strong><br>(Múltiplos arquivos)</p>
+            <input type="file" id="xmlFiles" multiple accept=".xml" style="display: none;">
+            <div id="fileStatus" class="badge" style="margin-top: 10px; display: inline-block; background: #e5e7eb; padding: 6px 14px; border-radius: 30px;">Nenhum arquivo selecionado</div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+        
+        <h3><i class="fas fa-filter"></i> Filtros de Busca</h3>
+        <div class="filters-grid">
+            <input type="text" id="filterProduto" class="filter-input" placeholder="🔍 Produto (descrição)">
+            <input type="text" id="filterEmitente" class="filter-input" placeholder="🔍 Emitente (CNPJ ou nome)">
+            <input type="text" id="filterCFOP" class="filter-input" placeholder="🔍 CFOP">
+            <input type="text" id="filterCSOSN" class="filter-input" placeholder="🔍 CSOSN (ex: 102, 500, 900)">
+            <input type="text" id="filterCST" class="filter-input" placeholder="🔍 CST (ex: 00, 49, 53)">
+        </div>
+        
+        <button id="processBtn" class="btn btn-primary" style="width: auto; margin-top: 10px;"><i class="fas fa-cogs"></i> Processar XMLs</button>
+        
+        <div class="stats" id="statsArea"></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-chart-simple"></i> Relatório Detalhado</h3>
+        <div id="reportContainer" class="report-container">
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione um ou mais arquivos XML e clique em <strong>Processar XMLs</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================= FUNÇÕES AUXILIARES =======================
+    function getText(parent, tag, def = '') {
+        if (!parent) return def;
+        const el = parent.getElementsByTagName(tag)[0];
+        return el ? el.textContent.trim() : def;
+    }
+
+    function getFloat(parent, tag, def = 0) {
+        const val = getText(parent, tag, '0');
+        return parseFloat(val) || def;
+    }
+
+    // Função para somar todos os descontos (vDesc) do produto
+    function getTotalDesconto(detNode) {
+        let totalDesconto = 0;
+        // Busca todas as tags vDesc dentro do produto
+        const descNodes = detNode.getElementsByTagName('vDesc');
+        for (let descNode of descNodes) {
+            const valor = parseFloat(descNode.textContent) || 0;
+            totalDesconto += valor;
+        }
+        return totalDesconto;
+    }
+
+    function formatMoney(value) {
+        if (value === null || value === undefined || isNaN(value)) return '0,00';
+        return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatQuantity(value) {
+        if (value === null || value === undefined || isNaN(value)) return '0';
+        if (Math.abs(value - Math.round(value)) < 0.000001) {
+            return Math.round(value).toString();
+        }
+        return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 3 });
+    }
+
+    // Busca CSOSN e CST separadamente
+    function getCSOSNandCST(detNode) {
+        const icmsTags = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS51', 'ICMS60', 'ICMS61', 'ICMS70', 'ICMS90', 
+                          'ICMSSN102', 'ICMSSN201', 'ICMSSN202', 'ICMSSN500', 'ICMSSN900', 'ICMSSN101', 'ICMSSN505'];
+        for (let tag of icmsTags) {
+            let node = detNode.getElementsByTagName(tag)[0];
+            if (node) {
+                let csosn = getText(node, 'CSOSN');
+                let cst = getText(node, 'CST');
+                return { csosn: csosn || '', cst: cst || '' };
+            }
+        }
+        return { csosn: '', cst: '' };
+    }
+
+    function getEmitente(xmlDoc) {
+        const emit = xmlDoc.getElementsByTagName('emit')[0];
+        if (!emit) return {};
+        return {
+            cnpj: getText(emit, 'CNPJ'),
+            nome: getText(emit, 'xNome'),
+            fantasia: getText(emit, 'xFant'),
+            uf: getText(emit, 'UF')
+        };
+    }
+
+    function getIdeInfo(xmlDoc) {
+        const ide = xmlDoc.getElementsByTagName('ide')[0];
+        if (!ide) return {};
+        return {
+            nNF: getText(ide, 'nNF'),
+            serie: getText(ide, 'serie'),
+            dhEmi: getText(ide, 'dhEmi'),
+            dataEmissao: getText(ide, 'dhEmi') ? new Date(getText(ide, 'dhEmi')).toLocaleDateString('pt-BR') : ''
+        };
+    }
+
+    function extractTaxes(detNode) {
+        const impostos = {};
+        const impostoNode = detNode.getElementsByTagName('imposto')[0];
+        if (!impostoNode) return impostos;
+        
+        impostos.vTotTrib = getFloat(impostoNode, 'vTotTrib');
+        
+        const icmsTags = ['ICMS00', 'ICMS10', 'ICMS20', 'ICMS30', 'ICMS40', 'ICMS51', 'ICMS60', 'ICMS61', 'ICMS70', 'ICMS90', 
+                          'ICMSSN102', 'ICMSSN201', 'ICMSSN202', 'ICMSSN500', 'ICMSSN900'];
+        for (let tag of icmsTags) {
+            let node = impostoNode.getElementsByTagName(tag)[0];
+            if (node) {
+                impostos.pICMS = getFloat(node, 'pICMS');
+                impostos.vBC = getFloat(node, 'vBC');
+                impostos.vICMS = getFloat(node, 'vICMS');
+                break;
+            }
+        }
+        
+        const pisNode = impostoNode.getElementsByTagName('PIS')[0];
+        if (pisNode) {
+            let aliqq = pisNode.getElementsByTagName('PISAliq')[0];
+            if (aliqq) impostos.PIS_vPIS = getFloat(aliqq, 'vPIS');
+        }
+        
+        const cofinsNode = impostoNode.getElementsByTagName('COFINS')[0];
+        if (cofinsNode) {
+            let aliqq = cofinsNode.getElementsByTagName('COFINSAliq')[0];
+            if (aliqq) impostos.COFINS_vCOFINS = getFloat(aliqq, 'vCOFINS');
+        }
+        
+        return impostos;
+    }
+    
+    function extractFullProduct(detNode, ideInfo, emitente, fileName) {
+        const prodNode = detNode.getElementsByTagName('prod')[0];
+        if (!prodNode) return null;
+        
+        const csosnCst = getCSOSNandCST(detNode);
+        const impostos = extractTaxes(detNode);
+        const desconto = getTotalDesconto(detNode);
+        
+        return {
+            arquivo: fileName,
+            nNF: ideInfo.nNF,
+            serie: ideInfo.serie,
+            dataEmissao: ideInfo.dataEmissao,
+            cnpjEmitente: emitente.cnpj,
+            nomeEmitente: emitente.nome,
+            nomeFantasia: emitente.fantasia,
+            ufEmitente: emitente.uf,
+            codigoProduto: getText(prodNode, 'cProd'),
+            descricaoProduto: getText(prodNode, 'xProd'),
+            NCM: getText(prodNode, 'NCM'),
+            CFOP: getText(prodNode, 'CFOP'),
+            quantidade: getFloat(prodNode, 'qCom'),
+            valorUnitario: getFloat(prodNode, 'vUnCom'),
+            valorTotalProduto: getFloat(prodNode, 'vProd'),
+            desconto: desconto,
+            valorLiquido: getFloat(prodNode, 'vProd') - desconto,
+            CSOSN: csosnCst.csosn,
+            CST: csosnCst.cst,
+            pICMS: impostos.pICMS,
+            vBC: impostos.vBC,
+            vICMS: impostos.vICMS,
+            PIS_vPIS: impostos.PIS_vPIS,
+            COFINS_vCOFINS: impostos.COFINS_vCOFINS,
+            vTotTrib: impostos.vTotTrib
+        };
+    }
+    
+    async function processXmlFile(file) {
+        const text = await file.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, "text/xml");
+        if (xmlDoc.getElementsByTagName('parsererror').length > 0) return [];
+        
+        const ideInfo = getIdeInfo(xmlDoc);
+        const emitente = getEmitente(xmlDoc);
+        const detNodes = xmlDoc.getElementsByTagName('det');
+        const produtos = [];
+        
+        for (let det of detNodes) {
+            const prod = extractFullProduct(det, ideInfo, emitente, file.name);
+            if (prod) produtos.push(prod);
+        }
+        return produtos;
+    }
+    
+    function gerarRelatorioHtml(todosProdutos, filtros) {
+        let filtrados = todosProdutos;
+        
+        if (filtros.produto) filtrados = filtrados.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) filtrados = filtrados.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) filtrados = filtrados.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) filtrados = filtrados.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) filtrados = filtrados.filter(p => p.CST === filtros.cst);
+        
+        let totalQuantidade = 0;
+        let totalValor = 0;
+        let totalDesconto = 0;
+        let totalValorLiquido = 0;
+        let totalICMS = 0;
+        let totalPIS = 0;
+        let totalCOFINS = 0;
+        
+        filtrados.forEach(p => {
+            totalQuantidade += p.quantidade || 0;
+            totalValor += p.valorTotalProduto || 0;
+            totalDesconto += p.desconto || 0;
+            totalValorLiquido += p.valorLiquido || 0;
+            totalICMS += p.vICMS || 0;
+            totalPIS += p.PIS_vPIS || 0;
+            totalCOFINS += p.COFINS_vCOFINS || 0;
+        });
+        
+        let tableHtml = `
+            <div class="summary-cards">
+                <div class="summary-item"><div class="summary-label">📦 Quantidade Total</div><div class="summary-value">${formatQuantity(totalQuantidade)}</div></div>
+                <div class="summary-item"><div class="summary-label">💰 Valor Bruto</div><div class="summary-value">R$ ${formatMoney(totalValor)}</div></div>
+                <div class="summary-item"><div class="summary-label">🏷️ Desconto Total</div><div class="summary-value" style="color: #dc2626;">R$ ${formatMoney(totalDesconto)}</div></div>
+                <div class="summary-item"><div class="summary-label">✅ Valor Líquido</div><div class="summary-value">R$ ${formatMoney(totalValorLiquido)}</div></div>
+                <div class="summary-item"><div class="summary-label">📊 Total ICMS</div><div class="summary-value">R$ ${formatMoney(totalICMS)}</div></div>
+                <div class="summary-item"><div class="summary-label">📈 Total PIS</div><div class="summary-value">R$ ${formatMoney(totalPIS)}</div></div>
+                <div class="summary-item"><div class="summary-label">📉 Total COFINS</div><div class="summary-value">R$ ${formatMoney(totalCOFINS)}</div></div>
+            </div>
+            <div class="scroll-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th><th>NF-e</th><th>Emitente</th><th>CNPJ</th><th>UF</th>
+                            <th>Produto</th><th>Código</th><th>NCM</th><th>CFOP</th>
+                            <th>Qtde</th><th>Vl.Unit (R$)</th><th>Vl.Bruto (R$)</th><th>Desconto</th><th>Vl.Líquido</th>
+                            <th>CSOSN</th><th>CST</th>
+                            <th>Base ICMS</th><th>% ICMS</th><th>Vl.ICMS</th>
+                            <th>PIS</th><th>COFINS</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        
+        if (filtrados.length === 0) {
+            tableHtml += `<tr><td colspan="21" style="text-align: center; padding: 40px;">⚠️ Nenhum produto encontrado com os filtros aplicados</td></tr>`;
+        } else {
+            filtrados.forEach(p => {
+                const hasDesconto = p.desconto > 0;
+                tableHtml += `
+                    <tr>
+                        <td>${p.dataEmissao}</td>
+                        <td>${p.nNF}</td>
+                        <td title="${p.nomeEmitente}">${(p.nomeFantasia || p.nomeEmitente).substring(0, 28)}</td>
+                        <td>${p.cnpjEmitente}</td>
+                        <td>${p.ufEmitente}</td>
+                        <td title="${p.descricaoProduto}">${p.descricaoProduto.substring(0, 35)}</td>
+                        <td>${p.codigoProduto}</td>
+                        <td>${p.NCM}</td>
+                        <td>${p.CFOP}</td>
+                        <td style="text-align: right;">${formatQuantity(p.quantidade)}</td>
+                        <td style="text-align: right;">${formatMoney(p.valorUnitario)}</td>
+                        <td style="text-align: right;">${formatMoney(p.valorTotalProduto)}</td>
+                        <td style="text-align: right; ${hasDesconto ? 'color: #dc2626; font-weight: bold;' : ''}">${hasDesconto ? formatMoney(p.desconto) : '-'}</td>
+                        <td style="text-align: right; font-weight: 500;">${formatMoney(p.valorLiquido)}</td>
+                        <td style="text-align: center;">${p.CSOSN ? `<span class="badge-csosn">${p.CSOSN}</span>` : '-'}</td>
+                        <td style="text-align: center;">${p.CST ? `<span class="badge-cst">${p.CST}</span>` : '-'}</td>
+                        <td style="text-align: right;">${formatMoney(p.vBC)}</td>
+                        <td style="text-align: center;">${p.pICMS ? p.pICMS.toFixed(2) + '%' : '-'}</td>
+                        <td style="text-align: right;">${formatMoney(p.vICMS)}</td>
+                        <td style="text-align: right;">${formatMoney(p.PIS_vPIS)}</td>
+                        <td style="text-align: right;">${formatMoney(p.COFINS_vCOFINS)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        tableHtml += `
+                    <tr class="total-row">
+                        <td colspan="9" style="text-align: right; font-weight: 700;">TOTAIS:</td>
+                        <td style="text-align: right; font-weight: 700;">${formatQuantity(totalQuantidade)}</td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right; font-weight: 700;">R$ ${formatMoney(totalValor)}</td>
+                        <td style="text-align: right; font-weight: 700; color: #dc2626;">R$ ${formatMoney(totalDesconto)}</td>
+                        <td style="text-align: right; font-weight: 700;">R$ ${formatMoney(totalValorLiquido)}</td>
+                        <td colspan="2"></td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right;"></td>
+                        <td style="text-align: right; font-weight: 700;">R$ ${formatMoney(totalICMS)}</td>
+                        <td style="text-align: right;">R$ ${formatMoney(totalPIS)}</td>
+                        <td style="text-align: right;">R$ ${formatMoney(totalCOFINS)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <p style="margin-top: 16px; font-size: 11px; color: #6b7280; text-align: center;">
+                <i class="fas fa-info-circle"></i> Relatório gerado em ${new Date().toLocaleString()} | ${filtrados.length} itens exibidos | Quantidades sem decimais | Valores formatados (1.000,00)
+            </p>
+        `;
+        
+        return tableHtml;
+    }
+    
+    function atualizarStats(produtos, filtradosCount) {
+        const statsDiv = document.getElementById('statsArea');
+        const totalValor = produtos.reduce((s, p) => s + p.valorTotalProduto, 0);
+        const totalDesconto = produtos.reduce((s, p) => s + (p.desconto || 0), 0);
+        const totalLiquido = produtos.reduce((s, p) => s + (p.valorLiquido || 0), 0);
+        statsDiv.innerHTML = `
+            <div class="stat-card"><i class="fas fa-box"></i> <strong>${produtos.length}</strong> produtos totais</div>
+            <div class="stat-card"><i class="fas fa-dollar-sign"></i> <strong>R$ ${formatMoney(totalValor)}</strong> valor bruto</div>
+            <div class="stat-card"><i class="fas fa-tag"></i> <strong>R$ ${formatMoney(totalDesconto)}</strong> descontos</div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i> <strong>R$ ${formatMoney(totalLiquido)}</strong> valor líquido</div>
+            <div class="stat-card"><i class="fas fa-filter"></i> <strong>${filtradosCount}</strong> itens filtrados</div>
+        `;
+    }
+    
+    function atualizarListaArquivos(files) {
+        const fileListDiv = document.getElementById('fileList');
+        if (files.length > 0) {
+            const nomes = Array.from(files).map(f => f.name).join(', ');
+            fileListDiv.innerHTML = `<i class="fas fa-file-alt"></i> ${files.length} arquivo(s): ${nomes.substring(0, 80)}${nomes.length > 80 ? '...' : ''}`;
+        } else {
+            fileListDiv.innerHTML = '';
+        }
+    }
+    
+    let globalProdutos = [];
+    const fileInput = document.getElementById('xmlFiles');
+    const fileStatus = document.getElementById('fileStatus');
+    const reportContainer = document.getElementById('reportContainer');
+    
+    const filterProduto = document.getElementById('filterProduto');
+    const filterEmitente = document.getElementById('filterEmitente');
+    const filterCFOP = document.getElementById('filterCFOP');
+    const filterCSOSN = document.getElementById('filterCSOSN');
+    const filterCST = document.getElementById('filterCST');
+    
+    function getFiltros() {
+        return {
+            produto: filterProduto.value.trim(),
+            emitente: filterEmitente.value.trim(),
+            cfop: filterCFOP.value.trim(),
+            csosn: filterCSOSN.value.trim(),
+            cst: filterCST.value.trim()
+        };
+    }
+    
+    async function carregarXmls(files) {
+        let todos = [];
+        for (let file of files) {
+            const prods = await processXmlFile(file);
+            todos.push(...prods);
+        }
+        globalProdutos = todos;
+        atualizarRelatorio();
+        fileStatus.innerHTML = `${files.length} arquivo(s) | ${globalProdutos.length} produtos extraídos`;
+        atualizarListaArquivos(files);
+    }
+    
+    function atualizarRelatorio() {
+        if (globalProdutos.length === 0) {
+            reportContainer.innerHTML = `
+                <div style="text-align: center; padding: 60px; color: #6b7280;">
+                    <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Selecione um ou mais arquivos XML e clique em <strong>Processar XMLs</strong></p>
+                </div>
+            `;
+            atualizarStats([], 0);
+            return;
+        }
+        const filtros = getFiltros();
+        let filtrados = globalProdutos;
+        if (filtros.produto) filtrados = filtrados.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) filtrados = filtrados.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) filtrados = filtrados.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) filtrados = filtrados.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) filtrados = filtrados.filter(p => p.CST === filtros.cst);
+        
+        const html = gerarRelatorioHtml(globalProdutos, filtros);
+        reportContainer.innerHTML = html;
+        atualizarStats(globalProdutos, filtrados.length);
+    }
+    
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (globalProdutos.length === 0) return alert("Nenhum dado para exportar.");
+        const filtros = getFiltros();
+        let data = globalProdutos;
+        if (filtros.produto) data = data.filter(p => p.descricaoProduto.toLowerCase().includes(filtros.produto.toLowerCase()));
+        if (filtros.emitente) data = data.filter(p => p.cnpjEmitente.includes(filtros.emitente) || p.nomeEmitente.toLowerCase().includes(filtros.emitente.toLowerCase()));
+        if (filtros.cfop) data = data.filter(p => p.CFOP.includes(filtros.cfop));
+        if (filtros.csosn) data = data.filter(p => p.CSOSN === filtros.csosn);
+        if (filtros.cst) data = data.filter(p => p.CST === filtros.cst);
+        
+        const headers = ["Data", "NF-e", "Emitente", "CNPJ", "UF", "Produto", "Código", "NCM", "CFOP", "Qtde", "Vl.Unitário", "Vl.Bruto", "Desconto", "Vl.Líquido", "CSOSN", "CST", "BaseICMS", "AliqICMS", "VlICMS", "PIS", "COFINS"];
+        const rows = data.map(p => [
+            p.dataEmissao, p.nNF, p.nomeFantasia || p.nomeEmitente, p.cnpjEmitente, p.ufEmitente,
+            p.descricaoProduto, p.codigoProduto, p.NCM, p.CFOP,
+            formatQuantity(p.quantidade), formatMoney(p.valorUnitario), formatMoney(p.valorTotalProduto),
+            p.desconto > 0 ? formatMoney(p.desconto) : '0,00', formatMoney(p.valorLiquido),
+            p.CSOSN, p.CST, formatMoney(p.vBC), p.pICMS ? p.pICMS.toFixed(2) + '%' : '', formatMoney(p.vICMS),
+            formatMoney(p.PIS_vPIS), formatMoney(p.COFINS_vCOFINS)
+        ]);
+        let csv = headers.join(",") + "\n" + rows.map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `exportacao_nfe_${new Date().toISOString().slice(0,19)}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    });
+    
+    document.getElementById('processBtn').addEventListener('click', async () => {
+        const files = fileInput.files;
+        if (files.length === 0) { alert("Selecione pelo menos um arquivo XML."); return; }
+        await carregarXmls(files);
+    });
+    
+    document.getElementById('uploadArea').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            fileStatus.innerHTML = `${e.target.files.length} arquivo(s) selecionado(s) - clique em Processar`;
+            atualizarListaArquivos(e.target.files);
+        } else {
+            fileStatus.innerHTML = "Nenhum arquivo selecionado";
+            document.getElementById('fileList').innerHTML = '';
+        }
+    });
+    
+    filterProduto.addEventListener('input', atualizarRelatorio);
+    filterEmitente.addEventListener('input', atualizarRelatorio);
+    filterCFOP.addEventListener('input', atualizarRelatorio);
+    filterCSOSN.addEventListener('input', atualizarRelatorio);
+    filterCST.addEventListener('input', atualizarRelatorio);
+    
+    let darkMode = false;
+    document.getElementById('darkBtn').addEventListener('click', () => {
+        darkMode = !darkMode;
+        document.body.style.background = darkMode ? '#0f172a' : '#f0fdf4';
+        document.querySelectorAll('.card').forEach(c => c.style.background = darkMode ? '#1e293b' : 'white');
+        document.querySelectorAll('.card').forEach(c => c.style.color = darkMode ? '#e2e8f0' : '#1a3a2a');
+        document.getElementById('darkBtn').innerHTML = darkMode ? '<i class="fas fa-sun"></i> Modo Claro' : '<i class="fas fa-moon"></i> Modo Escuro';
+    });
+</script>
+</body>
+</html>
