@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark Complete Viewer - Visualizador de Conversas</title>
+    <title>Spark Viewer Pro - Visualizador de Conversas</title>
     <style>
         * {
             margin: 0;
@@ -11,63 +11,67 @@
             box-sizing: border-box;
         }
 
-        /* Temas */
+        /* Temas com efeitos translúcidos */
         :root {
-            /* Tema Claro (padrão) */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --bg-sidebar: #ffffff;
-            --border-color: #e2e8f0;
+            --bg-primary: rgba(248, 250, 252, 0.95);
+            --bg-secondary: rgba(255, 255, 255, 0.85);
+            --bg-tertiary: rgba(241, 245, 249, 0.9);
+            --bg-sidebar: rgba(255, 255, 255, 0.9);
+            --border-color: rgba(226, 232, 240, 0.5);
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --text-muted: #64748b;
             --accent-primary: #3b82f6;
             --accent-hover: #2563eb;
-            --message-outgoing: #3b82f6;
-            --message-incoming: #f1f5f9;
+            --message-outgoing: linear-gradient(135deg, #3b82f6, #2563eb);
+            --message-incoming: rgba(241, 245, 249, 0.9);
             --message-text-out: #ffffff;
             --message-text-in: #0f172a;
-            --hover-bg: #f8fafc;
-            --active-bg: #dbeafe;
-            --scrollbar-track: #f1f5f9;
-            --scrollbar-thumb: #cbd5e1;
+            --hover-bg: rgba(248, 250, 252, 0.8);
+            --active-bg: rgba(219, 234, 254, 0.9);
+            --scrollbar-track: rgba(241, 245, 249, 0.5);
+            --scrollbar-thumb: rgba(203, 213, 225, 0.7);
+            --glass-effect: rgba(255, 255, 255, 0.7);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         body.dark {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --bg-sidebar: #1e293b;
-            --border-color: #334155;
+            --bg-primary: rgba(15, 23, 42, 0.95);
+            --bg-secondary: rgba(30, 41, 59, 0.85);
+            --bg-tertiary: rgba(51, 65, 85, 0.9);
+            --bg-sidebar: rgba(30, 41, 59, 0.9);
+            --border-color: rgba(51, 65, 85, 0.5);
             --text-primary: #e2e8f0;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
             --accent-primary: #3b82f6;
             --accent-hover: #2563eb;
-            --message-outgoing: #3b82f6;
-            --message-incoming: #334155;
+            --message-outgoing: linear-gradient(135deg, #3b82f6, #1e40af);
+            --message-incoming: rgba(51, 65, 85, 0.9);
             --message-text-out: #ffffff;
             --message-text-in: #e2e8f0;
-            --hover-bg: #334155;
-            --active-bg: #1e40af;
-            --scrollbar-track: #1e293b;
-            --scrollbar-thumb: #475569;
+            --hover-bg: rgba(51, 65, 85, 0.8);
+            --active-bg: rgba(30, 64, 175, 0.9);
+            --scrollbar-track: rgba(30, 41, 59, 0.5);
+            --scrollbar-thumb: rgba(71, 85, 105, 0.7);
+            --glass-effect: rgba(30, 41, 59, 0.7);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: var(--bg-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: background 0.3s ease, color 0.3s ease;
+            backdrop-filter: blur(0px);
         }
 
         .header {
-            background: var(--bg-secondary);
+            background: var(--glass-effect);
+            backdrop-filter: blur(10px);
             padding: 16px 24px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -75,6 +79,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+            box-shadow: var(--shadow);
         }
 
         .header h1 {
@@ -100,6 +105,7 @@
             padding: 6px 12px;
             border-radius: 20px;
             font-family: monospace;
+            backdrop-filter: blur(5px);
         }
 
         .theme-toggle {
@@ -111,25 +117,32 @@
             font-size: 0.8rem;
             color: var(--text-primary);
             transition: all 0.2s;
+            backdrop-filter: blur(5px);
         }
 
         .theme-toggle:hover {
             background: var(--hover-bg);
+            transform: scale(1.02);
         }
 
         .main {
             display: flex;
             flex: 1;
             overflow: hidden;
+            padding: 12px;
+            gap: 12px;
         }
 
         .sidebar {
             width: 480px;
             background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
 
         .sidebar-header {
@@ -152,14 +165,17 @@
             padding: 10px 12px 10px 35px;
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             color: var(--text-primary);
             font-size: 0.85rem;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         .search-box input:focus {
             border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            transform: scale(1.01);
         }
 
         .search-box::before {
@@ -183,10 +199,16 @@
             padding: 8px;
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 0.75rem;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-filters input:focus {
+            border-color: var(--accent-primary);
+            outline: none;
         }
 
         .filter-options {
@@ -207,20 +229,28 @@
             padding: 4px 10px;
             border-radius: 20px;
             color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .filter-options label:hover {
+            background: var(--hover-bg);
+            transform: scale(1.02);
         }
 
         .clear-filters {
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             padding: 4px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             color: var(--text-primary);
             font-size: 0.7rem;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
         .clear-filters:hover {
             background: var(--hover-bg);
+            transform: scale(1.02);
         }
 
         .stats-info {
@@ -228,7 +258,7 @@
             color: var(--text-muted);
             padding: 8px 10px;
             background: var(--bg-primary);
-            border-radius: 6px;
+            border-radius: 10px;
             margin-top: 8px;
         }
 
@@ -240,22 +270,24 @@
 
         .conv-item {
             padding: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             background: var(--bg-primary);
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             border-left: 3px solid transparent;
         }
 
         .conv-item:hover {
             background: var(--hover-bg);
-            transform: translateX(2px);
+            transform: translateX(4px) scale(1.01);
+            box-shadow: var(--shadow);
         }
 
         .conv-item.active {
             background: var(--active-bg);
             border-left-color: var(--accent-primary);
+            transform: scale(1.02);
         }
 
         .conv-name {
@@ -277,6 +309,11 @@
             font-size: 0.8rem;
             flex-shrink: 0;
             color: white;
+            transition: transform 0.2s;
+        }
+
+        .conv-item:hover .avatar {
+            transform: scale(1.1);
         }
 
         .conv-preview {
@@ -313,6 +350,10 @@
             flex-direction: column;
             overflow: hidden;
             background: var(--bg-primary);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
         }
 
         .chat-header {
@@ -323,6 +364,7 @@
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            border-radius: 16px 16px 0 0;
         }
 
         .chat-header .avatar {
@@ -335,6 +377,11 @@
             justify-content: center;
             font-size: 1.5rem;
             color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-header .avatar:hover {
+            transform: rotate(360deg) scale(1.1);
         }
 
         .chat-header .info {
@@ -349,7 +396,7 @@
         .contact-details {
             background: var(--bg-primary);
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 0.7rem;
             display: flex;
             gap: 15px;
@@ -360,7 +407,14 @@
         .contact-details span {
             background: var(--bg-tertiary);
             padding: 2px 8px;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .contact-details span:hover {
+            transform: scale(1.05);
+            background: var(--accent-primary);
+            color: white;
         }
 
         .messages-container {
@@ -375,12 +429,18 @@
         .message {
             display: flex;
             max-width: 85%;
-            animation: fadeIn 0.2s ease;
+            animation: fadeInUp 0.4s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.outgoing {
@@ -392,20 +452,28 @@
         }
 
         .message-bubble {
-            padding: 10px 14px;
-            border-radius: 18px;
+            padding: 12px 16px;
+            border-radius: 20px;
             position: relative;
             max-width: 100%;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .message-bubble:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow);
         }
 
         .message.outgoing .message-bubble {
             background: var(--message-outgoing);
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
         }
 
         .message.incoming .message-bubble {
             background: var(--message-incoming);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 6px;
+            border: 1px solid var(--border-color);
         }
 
         .message.outgoing .message-bubble .message-text {
@@ -449,7 +517,7 @@
 
         .message-text {
             font-size: 0.85rem;
-            line-height: 1.4;
+            line-height: 1.5;
             word-break: break-word;
             white-space: pre-wrap;
         }
@@ -462,14 +530,6 @@
             font-family: monospace;
         }
 
-        .message.outgoing .message-meta {
-            color: #bfdbfe;
-        }
-
-        .message.incoming .message-meta {
-            color: var(--text-muted);
-        }
-
         .import-area {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border-color);
@@ -478,21 +538,25 @@
             gap: 12px;
             align-items: center;
             flex-wrap: wrap;
+            border-radius: 0 0 16px 16px;
         }
 
         .import-btn {
             background: var(--accent-primary);
             border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
+            padding: 10px 24px;
+            border-radius: 12px;
             color: white;
             cursor: pointer;
             font-size: 0.8rem;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
         .import-btn:hover {
             background: var(--accent-hover);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
         }
 
         .path-info {
@@ -503,14 +567,18 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            background: var(--bg-primary);
+            padding: 6px 12px;
+            border-radius: 8px;
         }
 
         .instruction-box {
-            background: var(--bg-primary);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 12px;
             margin-bottom: 12px;
+            backdrop-filter: blur(5px);
         }
 
         .instruction-box h4 {
@@ -539,13 +607,26 @@
 
         .empty-state .icon {
             font-size: 4rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         mark {
-            background: #f59e0b;
-            color: #000;
-            padding: 0 2px;
-            border-radius: 3px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: bold;
+            animation: highlight 0.5s ease;
+        }
+
+        @keyframes highlight {
+            from { background: #fbbf24; transform: scale(1.1); }
+            to { background: linear-gradient(135deg, #f59e0b, #f97316); transform: scale(1); }
         }
 
         .date-group {
@@ -556,25 +637,47 @@
         .date-separator {
             text-align: center;
             background: var(--bg-tertiary);
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 6px 16px;
+            border-radius: 25px;
             font-size: 0.7rem;
             display: inline-block;
             margin-bottom: 12px;
             color: var(--text-secondary);
+            font-weight: 600;
+            backdrop-filter: blur(5px);
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
             background: var(--scrollbar-track);
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
             background: var(--scrollbar-thumb);
-            border-radius: 3px;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        .quick-path-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .quick-path-btn:hover {
+            background: var(--accent-primary);
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -583,6 +686,10 @@
             }
             .message {
                 max-width: 95%;
+            }
+            .main {
+                padding: 8px;
+                gap: 8px;
             }
         }
     </style>
@@ -608,9 +715,14 @@
             <div class="sidebar-header">
                 <div class="instruction-box">
                     <h4>📁 Como usar:</h4>
-                    <p>1. Clique em "📂 Selecionar PASTA transcripts"</p>
-                    <p>2. Navegue até: <strong>C:\Users\SEU_USUARIO\AppData\Roaming\Spark\user\SEU_EMAIL\transcripts</strong></p>
-                    <p>3. Selecione a PASTA "transcripts" (não os arquivos individualmente)</p>
+                    <p>1. Copie o caminho abaixo e cole no Explorador de Arquivos:</p>
+                    <p style="background: var(--bg-primary); padding: 6px; border-radius: 6px; margin: 6px 0;">
+                        📂 <strong id="sparkPath">%appdata%\Spark\user\</strong>
+                        <button class="quick-path-btn" onclick="copyPath()" style="margin-left: 8px;">📋 Copiar</button>
+                        <button class="quick-path-btn" onclick="openSparkFolder()" style="margin-left: 4px;">📂 Abrir Pasta</button>
+                    </p>
+                    <p>2. Localize a pasta do SEU E-MAIL e dentro dela a pasta "transcripts"</p>
+                    <p>3. No botão abaixo, selecione a PASTA "transcripts"</p>
                     <p>4. O sistema lê TODOS os arquivos *_current.xml automaticamente</p>
                 </div>
                 <div class="search-section">
@@ -665,13 +777,25 @@
             <div class="import-area">
                 <button class="import-btn" id="importBtn">📂 Selecionar PASTA transcripts</button>
                 <div class="path-info" id="pathInfo">
-                    💡 Caminho: C:\Users\SEU_USUARIO\AppData\Roaming\Spark\user\SEU_EMAIL\transcripts
+                    💡 Dica: Use %appdata%\Spark\user\ no Explorador de Arquivos
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Funções auxiliares para o caminho do Spark
+        function copyPath() {
+            const path = '%appdata%\\Spark\\user\\';
+            navigator.clipboard.writeText(path);
+            alert('✅ Caminho copiado! Cole no Explorador de Arquivos (Win + E)');
+        }
+        
+        function openSparkFolder() {
+            // Tenta abrir a pasta (funciona em navegadores modernos)
+            window.open('file:///' + '%appdata%\\Spark\\user\\'.replace(/\\\\/g, '/'), '_blank');
+        }
+        
         // Tema
         function toggleTheme() {
             const body = document.body;
@@ -690,7 +814,6 @@
             }
         }
         
-        // Carregar tema salvo
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             document.body.classList.add('dark');
@@ -730,7 +853,7 @@
                 const xmlFiles = files.filter(f => f.name.endsWith('.xml'));
                 
                 if (xmlFiles.length === 0) {
-                    alert('Nenhum arquivo .xml encontrado na pasta selecionada.');
+                    alert('Nenhum arquivo .xml encontrado na pasta selecionada.\n\nCertifique-se de selecionar a pasta "transcripts" que contém os arquivos *_current.xml');
                     return;
                 }
                 
@@ -741,7 +864,7 @@
         });
 
         async function loadAllConversations(files) {
-            elements.conversationsList.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Carregando conversas...</p></div>';
+            elements.conversationsList.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Carregando conversas...</p><p style="font-size:0.7rem">Isso pode levar alguns segundos...</p></div>';
             allConversations = [];
             
             for (const file of files) {
@@ -765,6 +888,17 @@
             
             if (allConversations.length > 0) {
                 selectConversation(allConversations[0]);
+                const firstItem = document.querySelector('.conv-item');
+                if (firstItem) firstItem.classList.add('active');
+            } else {
+                elements.conversationsList.innerHTML = `
+                    <div class="empty-state" style="padding: 40px;">
+                        <div class="icon">⚠️</div>
+                        <p>Nenhuma conversa encontrada</p>
+                        <p style="font-size:0.7rem">Verifique se você selecionou a pasta "transcripts" correta</p>
+                        <p style="font-size:0.7rem">O caminho correto é: %appdata%\\Spark\\user\\SEU_EMAIL\\transcripts\\</p>
+                    </div>
+                `;
             }
         }
         
@@ -941,7 +1075,7 @@
             }
             
             if (filtered.length === 0) {
-                elements.conversationsList.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum contato encontrado</p></div>`;
+                elements.conversationsList.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum contato encontrado</p><p style="font-size:0.7rem">Tente outra busca</p></div>`;
                 return;
             }
             
@@ -976,7 +1110,7 @@
         }
         
         function getAvatar(name) {
-            const icons = ['👤', '👨', '👩', '🧑', '💼', '📱'];
+            const icons = ['👤', '👨', '👩', '🧑', '💼', '📱', '⭐', '🌟', '💬', '🗨️'];
             return icons[name.length % icons.length];
         }
         
@@ -1017,7 +1151,7 @@
             elements.chatAvatar.textContent = getAvatar(conv.contactName);
             
             if (messagesToShow.length === 0) {
-                elements.messagesContainer.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h3>Nenhuma mensagem encontrada</h3></div>`;
+                elements.messagesContainer.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h3>Nenhuma mensagem encontrada</h3><p>Não há mensagens com os filtros atuais</p></div>`;
                 return;
             }
             
@@ -1046,14 +1180,14 @@
             }
             
             const direction = msg.isOutgoing ? 'outgoing' : 'incoming';
-            const senderDisplay = msg.isOutgoing ? 'Você (Enviou)' : msg.sender;
+            const senderDisplay = msg.isOutgoing ? '📤 Você (Enviou)' : `📥 ${msg.sender}`;
             
             return `
                 <div class="message ${direction}">
                     <div class="message-bubble">
                         <div class="message-sender">
                             <span class="sender-name">${escapeHtml(senderDisplay)}</span>
-                            <span class="message-datetime">📅 ${escapeHtml(msg.dateTimeStr || msg.rawDate || 'Data não disponível')}</span>
+                            <span class="message-datetime">⏰ ${escapeHtml(msg.dateTimeStr || msg.rawDate || 'Data não disponível')}</span>
                         </div>
                         <div class="message-text">${messageText.replace(/\n/g, '<br>')}</div>
                         <div class="message-meta">
