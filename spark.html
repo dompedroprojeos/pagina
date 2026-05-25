@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark Complete Viewer - Visualizador de Conversas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Temas */
+        :root {
+            /* Tema Claro (padrão) */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-sidebar: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --message-outgoing: #3b82f6;
+            --message-incoming: #f1f5f9;
+            --message-text-out: #ffffff;
+            --message-text-in: #0f172a;
+            --hover-bg: #f8fafc;
+            --active-bg: #dbeafe;
+            --scrollbar-track: #f1f5f9;
+            --scrollbar-thumb: #cbd5e1;
+        }
+
+        body.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-sidebar: #1e293b;
+            --border-color: #334155;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --message-outgoing: #3b82f6;
+            --message-incoming: #334155;
+            --message-text-out: #ffffff;
+            --message-text-in: #e2e8f0;
+            --hover-bg: #334155;
+            --active-bg: #1e40af;
+            --scrollbar-track: #1e293b;
+            --scrollbar-thumb: #475569;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            background: var(--accent-primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: normal;
+            color: white;
+        }
+
+        .user-info {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: monospace;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover-bg);
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 480px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-section {
+            margin-bottom: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 35px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+        }
+
+        .date-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .date-filters input {
+            flex: 1;
+            padding: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .filter-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            background: var(--bg-primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: var(--text-secondary);
+        }
+
+        .clear-filters {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .clear-filters:hover {
+            background: var(--hover-bg);
+        }
+
+        .stats-info {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 8px 10px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .conv-item {
+            padding: 12px;
+            margin-bottom: 6px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .conv-item:hover {
+            background: var(--hover-bg);
+            transform: translateX(2px);
+        }
+
+        .conv-item.active {
+            background: var(--active-bg);
+            border-left-color: var(--accent-primary);
+        }
+
+        .conv-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .conv-name .avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-primary), #1e40af);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            color: white;
+        }
+
+        .conv-preview {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            margin-left: 40px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conv-date {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-left: 40px;
+            margin-top: 4px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .conv-count {
+            font-size: 0.65rem;
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chat-header .avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent-primary), #1e40af);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .chat-header .info {
+            flex: 1;
+        }
+
+        .chat-header .info h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .contact-details {
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .contact-details span {
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            display: flex;
+            max-width: 85%;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.outgoing {
+            align-self: flex-end;
+        }
+
+        .message.incoming {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 18px;
+            position: relative;
+            max-width: 100%;
+        }
+
+        .message.outgoing .message-bubble {
+            background: var(--message-outgoing);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.incoming .message-bubble {
+            background: var(--message-incoming);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.outgoing .message-bubble .message-text {
+            color: var(--message-text-out);
+        }
+
+        .message.incoming .message-bubble .message-text {
+            color: var(--message-text-in);
+        }
+
+        .message-sender {
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .message.outgoing .message-sender {
+            color: #bfdbfe;
+        }
+
+        .message.incoming .message-sender {
+            color: var(--text-secondary);
+        }
+
+        .message-sender .sender-name {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .message-sender .message-datetime {
+            font-size: 0.6rem;
+            font-weight: normal;
+            font-family: monospace;
+        }
+
+        .message-text {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message-meta {
+            font-size: 0.6rem;
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-family: monospace;
+        }
+
+        .message.outgoing .message-meta {
+            color: #bfdbfe;
+        }
+
+        .message.incoming .message-meta {
+            color: var(--text-muted);
+        }
+
+        .import-area {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .import-btn {
+            background: var(--accent-primary);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .import-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .path-info {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .instruction-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .instruction-box h4 {
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            color: var(--accent-primary);
+        }
+
+        .instruction-box p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-muted);
+            gap: 12px;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+        }
+
+        mark {
+            background: #f59e0b;
+            color: #000;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        .date-group {
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .date-separator {
+            text-align: center;
+            background: var(--bg-tertiary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 320px;
+            }
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            💬 Spark Complete Viewer
+            <span class="badge">Modo Claro</span>
+        </h1>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="user-info">
+                📧 waldeci.ramos@chat.rededompedro.com
+            </div>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                🌙 Modo Escuro
+            </button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="instruction-box">
+                    <h4>📁 Como usar:</h4>
+                    <p>1. Clique em "📂 Selecionar PASTA transcripts"</p>
+                    <p>2. Navegue até: <strong>C:\Users\SEU_USUARIO\AppData\Roaming\Spark\user\SEU_EMAIL\transcripts</strong></p>
+                    <p>3. Selecione a PASTA "transcripts" (não os arquivos individualmente)</p>
+                    <p>4. O sistema lê TODOS os arquivos *_current.xml automaticamente</p>
+                </div>
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="🔍 Buscar por contato, mensagem, data ou e-mail...">
+                    </div>
+                    <div class="date-filters">
+                        <input type="date" id="startDate" placeholder="Data inicial">
+                        <input type="date" id="endDate" placeholder="Data final">
+                        <button class="clear-filters" id="clearDates">Limpar</button>
+                    </div>
+                    <div class="filter-options">
+                        <label>
+                            <input type="checkbox" id="filterByDateRange">
+                            📅 Filtrar por período
+                        </label>
+                        <label>
+                            <input type="checkbox" id="groupByDate">
+                            📆 Agrupar por data
+                        </label>
+                    </div>
+                </div>
+                <div class="stats-info" id="statsInfo">
+                    📁 Nenhuma conversa carregada
+                </div>
+            </div>
+            <div class="conversations-list" id="conversationsList">
+                <div class="empty-state" style="padding: 40px;">
+                    <div class="icon">📂</div>
+                    <p>Clique em "Selecionar PASTA transcripts"</p>
+                    <p style="font-size:0.7rem">Selecione a pasta que contém os arquivos .xml</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header" id="chatHeader" style="display: none;">
+                <div class="avatar" id="chatAvatar">👤</div>
+                <div class="info">
+                    <h2 id="chatContactName">Contato</h2>
+                    <div class="contact-details" id="contactDetails"></div>
+                </div>
+                <div style="margin-left: auto; font-size: 0.7rem; background: var(--bg-primary); padding: 4px 10px; border-radius: 20px;" id="messageCount"></div>
+            </div>
+            <div class="messages-container" id="messagesContainer">
+                <div class="empty-state">
+                    <div class="icon">💬</div>
+                    <h3>Nenhuma conversa selecionada</h3>
+                    <p>Escolha um contato na lista ao lado</p>
+                </div>
+            </div>
+            <div class="import-area">
+                <button class="import-btn" id="importBtn">📂 Selecionar PASTA transcripts</button>
+                <div class="path-info" id="pathInfo">
+                    💡 Caminho: C:\Users\SEU_USUARIO\AppData\Roaming\Spark\user\SEU_EMAIL\transcripts
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tema
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                themeToggle.innerHTML = '🌙 Modo Escuro';
+                document.querySelector('.badge').textContent = 'Modo Claro';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark');
+                themeToggle.innerHTML = '☀️ Modo Claro';
+                document.querySelector('.badge').textContent = 'Modo Escuro';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Carregar tema salvo
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+            document.getElementById('themeToggle').innerHTML = '☀️ Modo Claro';
+            document.querySelector('.badge').textContent = 'Modo Escuro';
+        }
+        
+        let allConversations = [];
+        let currentContact = null;
+        let currentUser = 'waldeci.ramos@chat.rededompedro.com';
+
+        const elements = {
+            conversationsList: document.getElementById('conversationsList'),
+            messagesContainer: document.getElementById('messagesContainer'),
+            chatHeader: document.getElementById('chatHeader'),
+            chatContactName: document.getElementById('chatContactName'),
+            contactDetails: document.getElementById('contactDetails'),
+            messageCount: document.getElementById('messageCount'),
+            chatAvatar: document.getElementById('chatAvatar'),
+            searchInput: document.getElementById('searchInput'),
+            statsInfo: document.getElementById('statsInfo'),
+            filterByDateRange: document.getElementById('filterByDateRange'),
+            startDate: document.getElementById('startDate'),
+            endDate: document.getElementById('endDate'),
+            clearDates: document.getElementById('clearDates'),
+            groupByDate: document.getElementById('groupByDate')
+        };
+
+        document.getElementById('importBtn').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.webkitdirectory = true;
+            input.directory = true;
+            
+            input.onchange = async (e) => {
+                const files = Array.from(e.target.files);
+                const xmlFiles = files.filter(f => f.name.endsWith('.xml'));
+                
+                if (xmlFiles.length === 0) {
+                    alert('Nenhum arquivo .xml encontrado na pasta selecionada.');
+                    return;
+                }
+                
+                await loadAllConversations(xmlFiles);
+            };
+            
+            input.click();
+        });
+
+        async function loadAllConversations(files) {
+            elements.conversationsList.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Carregando conversas...</p></div>';
+            allConversations = [];
+            
+            for (const file of files) {
+                try {
+                    const content = await readFileContent(file);
+                    const parsed = parseSparkXML(content, file.name);
+                    if (parsed && parsed.messages.length > 0) {
+                        allConversations.push(parsed);
+                    }
+                } catch (err) {
+                    console.error(`Erro no arquivo ${file.name}:`, err);
+                }
+            }
+            
+            allConversations.sort((a, b) => a.contactName.localeCompare(b.contactName));
+            
+            const totalMessages = allConversations.reduce((sum, c) => sum + c.messages.length, 0);
+            elements.statsInfo.innerHTML = `📁 ${allConversations.length} conversas | 💬 ${totalMessages} mensagens | 📄 ${files.length} arquivos`;
+            
+            renderConversationsList();
+            
+            if (allConversations.length > 0) {
+                selectConversation(allConversations[0]);
+            }
+        }
+        
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+        
+        function parseSparkXML(content, filename) {
+            let contactName = filename.replace(/\.xml$/i, '');
+            contactName = contactName.replace(/_current$/, '');
+            contactName = contactName.replace(/^([^@]+)@.*$/, '$1');
+            contactName = contactName.replace(/[._-]/g, ' ');
+            contactName = contactName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            
+            const messages = [];
+            const uniqueSenders = new Set();
+            
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(content, 'text/xml');
+                
+                if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                    return null;
+                }
+                
+                const messageNodes = xmlDoc.getElementsByTagName('message');
+                
+                for (let i = 0; i < messageNodes.length; i++) {
+                    const msgNode = messageNodes[i];
+                    
+                    const toNode = msgNode.getElementsByTagName('to')[0];
+                    const to = toNode ? toNode.textContent.trim() : '';
+                    
+                    const fromNode = msgNode.getElementsByTagName('from')[0];
+                    let from = fromNode ? fromNode.textContent.trim() : '';
+                    
+                    const bodyNode = msgNode.getElementsByTagName('body')[0];
+                    const body = bodyNode ? bodyNode.textContent.trim() : '';
+                    
+                    if (!body) continue;
+                    
+                    const dateNode = msgNode.getElementsByTagName('date')[0];
+                    const dateStr = dateNode ? dateNode.textContent.trim() : '';
+                    
+                    let date = null;
+                    let formattedDate = '';
+                    let formattedTime = '';
+                    let dateTimeStr = '';
+                    let dateISO = '';
+                    
+                    if (dateStr) {
+                        const cleanDate = dateStr.replace(/BRST|BRT/g, '').trim();
+                        date = new Date(cleanDate);
+                        
+                        if (!isNaN(date.getTime())) {
+                            formattedDate = date.toLocaleDateString('pt-BR');
+                            formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            dateTimeStr = `${formattedDate} ${formattedTime}`;
+                            dateISO = date.toISOString().split('T')[0];
+                        } else {
+                            const match = dateStr.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+                            if (match) {
+                                const [_, ymd, hms] = match;
+                                const [y, m, d] = ymd.split('-');
+                                formattedDate = `${d}/${m}/${y}`;
+                                formattedTime = hms;
+                                dateTimeStr = `${formattedDate} ${formattedTime}`;
+                                dateISO = ymd;
+                            }
+                        }
+                    }
+                    
+                    const isOutgoing = from && from.toLowerCase().includes(currentUser.toLowerCase());
+                    
+                    let senderName = '';
+                    if (isOutgoing) {
+                        senderName = 'Waldeci Ramos (Você)';
+                        uniqueSenders.add('Waldeci Ramos');
+                    } else {
+                        if (from && from !== 'null') {
+                            senderName = from.split('/')[0].split('@')[0];
+                            senderName = senderName.replace(/[._-]/g, ' ');
+                            senderName = senderName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                            if (!senderName || senderName === 'null') senderName = contactName;
+                        } else {
+                            senderName = contactName;
+                        }
+                        uniqueSenders.add(senderName);
+                    }
+                    
+                    messages.push({
+                        to: to,
+                        from: from,
+                        text: body,
+                        isOutgoing: isOutgoing,
+                        sender: senderName,
+                        dateFormatted: formattedDate,
+                        timeFormatted: formattedTime,
+                        dateTimeStr: dateTimeStr,
+                        dateISO: dateISO,
+                        timestamp: date ? date.getTime() : 0,
+                        rawDate: dateStr
+                    });
+                }
+            } catch(e) {
+                console.error('Erro ao processar XML:', e);
+                return null;
+            }
+            
+            messages.sort((a, b) => a.timestamp - b.timestamp);
+            
+            if (messages.length === 0) return null;
+            
+            const firstMsg = messages[0];
+            const lastMsg = messages[messages.length - 1];
+            
+            return {
+                contactName: contactName,
+                filename: filename,
+                messages: messages,
+                totalMessages: messages.length,
+                firstMessageDate: firstMsg.dateFormatted,
+                lastMessageDate: lastMsg.dateFormatted,
+                senders: Array.from(uniqueSenders),
+                participants: uniqueSenders.size
+            };
+        }
+        
+        function filterMessagesByDate(messages) {
+            if (!elements.filterByDateRange.checked) return messages;
+            
+            const startDate = elements.startDate.value;
+            const endDate = elements.endDate.value;
+            
+            if (!startDate && !endDate) return messages;
+            
+            return messages.filter(msg => {
+                if (!msg.dateISO) return false;
+                if (startDate && msg.dateISO < startDate) return false;
+                if (endDate && msg.dateISO > endDate) return false;
+                return true;
+            });
+        }
+        
+        function groupMessagesByDate(messages) {
+            const groups = {};
+            messages.forEach(msg => {
+                const dateKey = msg.dateFormatted || 'Sem data';
+                if (!groups[dateKey]) groups[dateKey] = [];
+                groups[dateKey].push(msg);
+            });
+            return groups;
+        }
+        
+        function renderConversationsList() {
+            const searchTerm = elements.searchInput.value.toLowerCase().trim();
+            
+            let filtered = [...allConversations];
+            
+            if (searchTerm) {
+                filtered = allConversations.filter(conv => {
+                    if (conv.contactName.toLowerCase().includes(searchTerm)) return true;
+                    return conv.messages.some(msg => 
+                        msg.text.toLowerCase().includes(searchTerm) ||
+                        msg.dateFormatted.includes(searchTerm) ||
+                        msg.from.toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+            
+            if (filtered.length === 0) {
+                elements.conversationsList.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum contato encontrado</p></div>`;
+                return;
+            }
+            
+            elements.conversationsList.innerHTML = filtered.map(conv => `
+                <div class="conv-item" data-contact="${escapeHtml(conv.contactName)}">
+                    <div class="conv-name">
+                        <div class="avatar">${getAvatar(conv.contactName)}</div>
+                        <span style="flex:1;">${escapeHtml(conv.contactName)}</span>
+                        <span class="conv-count">${conv.messages.length}</span>
+                    </div>
+                    <div class="conv-preview">
+                        ${escapeHtml(conv.messages[conv.messages.length-1]?.text.substring(0, 60) || 'Sem mensagens')}
+                    </div>
+                    <div class="conv-date">
+                        <span>📅 ${conv.firstMessageDate || '?'} → ${conv.lastMessageDate || '?'}</span>
+                        <span>👥 ${conv.participants} participante(s)</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.conv-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const contactName = item.dataset.contact;
+                    const conv = filtered.find(c => c.contactName === contactName);
+                    if (conv) {
+                        selectConversation(conv);
+                        document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        function getAvatar(name) {
+            const icons = ['👤', '👨', '👩', '🧑', '💼', '📱'];
+            return icons[name.length % icons.length];
+        }
+        
+        function selectConversation(conv) {
+            currentContact = conv;
+            
+            elements.chatHeader.style.display = 'flex';
+            elements.chatContactName.textContent = conv.contactName;
+            
+            elements.contactDetails.innerHTML = `
+                <span>📄 ${conv.filename}</span>
+                <span>💬 ${conv.totalMessages} mensagens</span>
+                <span>📅 Primeira: ${conv.firstMessageDate || 'N/A'}</span>
+                <span>📅 Última: ${conv.lastMessageDate || 'N/A'}</span>
+                <span>👥 ${conv.senders.join(', ')}</span>
+            `;
+            
+            renderMessages(conv);
+        }
+        
+        function renderMessages(conv) {
+            let messagesToShow = [...conv.messages];
+            
+            if (elements.filterByDateRange.checked) {
+                messagesToShow = filterMessagesByDate(conv.messages);
+            }
+            
+            const searchTerm = elements.searchInput.value.toLowerCase();
+            if (searchTerm) {
+                messagesToShow = messagesToShow.filter(msg => 
+                    msg.text.toLowerCase().includes(searchTerm) ||
+                    msg.dateFormatted.includes(searchTerm) ||
+                    msg.from.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            elements.messageCount.textContent = `📝 ${messagesToShow.length} de ${conv.totalMessages}`;
+            elements.chatAvatar.textContent = getAvatar(conv.contactName);
+            
+            if (messagesToShow.length === 0) {
+                elements.messagesContainer.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h3>Nenhuma mensagem encontrada</h3></div>`;
+                return;
+            }
+            
+            if (elements.groupByDate.checked) {
+                const groups = groupMessagesByDate(messagesToShow);
+                let html = '';
+                for (const [date, msgs] of Object.entries(groups)) {
+                    html += `<div class="date-group"><div style="text-align: center;"><span class="date-separator">📅 ${date}</span></div>`;
+                    html += msgs.map(msg => renderMessage(msg, searchTerm)).join('');
+                    html += `</div>`;
+                }
+                elements.messagesContainer.innerHTML = html;
+            } else {
+                elements.messagesContainer.innerHTML = messagesToShow.map(msg => renderMessage(msg, searchTerm)).join('');
+            }
+            
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
+        
+        function renderMessage(msg, searchTerm) {
+            let messageText = msg.text;
+            
+            if (searchTerm && msg.text.toLowerCase().includes(searchTerm)) {
+                const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
+                messageText = msg.text.replace(regex, '<mark>$1</mark>');
+            }
+            
+            const direction = msg.isOutgoing ? 'outgoing' : 'incoming';
+            const senderDisplay = msg.isOutgoing ? 'Você (Enviou)' : msg.sender;
+            
+            return `
+                <div class="message ${direction}">
+                    <div class="message-bubble">
+                        <div class="message-sender">
+                            <span class="sender-name">${escapeHtml(senderDisplay)}</span>
+                            <span class="message-datetime">📅 ${escapeHtml(msg.dateTimeStr || msg.rawDate || 'Data não disponível')}</span>
+                        </div>
+                        <div class="message-text">${messageText.replace(/\n/g, '<br>')}</div>
+                        <div class="message-meta">
+                            📧 De: ${escapeHtml(msg.from || '?')}<br>
+                            📧 Para: ${escapeHtml(msg.to || '?')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        elements.searchInput.addEventListener('input', () => {
+            renderConversationsList();
+            if (currentContact) renderMessages(currentContact);
+        });
+        
+        elements.startDate.addEventListener('change', () => {
+            if (currentContact) renderMessages(currentContact);
+        });
+        
+        elements.endDate.addEventListener('change', () => {
+            if (currentContact) renderMessages(currentContact);
+        });
+        
+        elements.filterByDateRange.addEventListener('change', () => {
+            if (currentContact) renderMessages(currentContact);
+        });
+        
+        elements.groupByDate.addEventListener('change', () => {
+            if (currentContact) renderMessages(currentContact);
+        });
+        
+        elements.clearDates.addEventListener('click', () => {
+            elements.startDate.value = '';
+            elements.endDate.value = '';
+            elements.filterByDateRange.checked = false;
+            if (currentContact) renderMessages(currentContact);
+        });
+    </script>
+</body>
+</html>
