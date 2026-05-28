@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -51,6 +50,15 @@ body{
 }
 .btn-special:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(242,122,45,.7)!important}
 .btn-tabelionato{background:rgba(242,122,45,.15)!important;border-color:var(--laranja)!important;color:#F9B67A!important}
+.btn-empresa{background:rgba(10,37,64,.4)!important;border-color:rgba(10,150,220,.5)!important;color:#7ECFFF!important}
+
+/* ── SELETOR DE EMPRESA (toolbar) ── */
+#empresaSelect{
+  background:rgba(10,37,64,.6)!important;
+  border:1px solid rgba(10,150,220,.5)!important;
+  color:#7ECFFF!important;font-weight:700!important;
+  min-width:180px;
+}
 
 /* ── PÁGINA ── */
 #page-wrapper{padding:24px 20px 60px;display:flex;justify-content:center}
@@ -100,6 +108,9 @@ body{
 .hdr-brand-name span{color:var(--laranja);}
 .hdr-tagline{font-size:9px;font-weight:800;color:#6C7A89;letter-spacing:2.2px;text-transform:uppercase;margin-top:4px;}
 .hdr-cnpj{font-size:10px;color:#8899AA;font-weight:700;letter-spacing:.5px;margin-top:3px;}
+/* Endereço no header */
+.hdr-endereco{font-size:9.5px;color:#6C7A89;font-weight:600;letter-spacing:.3px;margin-top:2px;}
+
 .hdr-doc-type{
   position:absolute;right:34px;top:50%;transform:translateY(-50%);
   z-index:5;text-align:right;
@@ -127,8 +138,35 @@ body{
 }
 .body-meta-date{
   font-family:'Cormorant Garamond',serif;
-  font-size:13px;color:#6A7F8F;
-  text-align:right;
+  font-size:16px;color:#3A4E60;
+  text-align:right;font-weight:600;
+  letter-spacing:.3px;
+}
+/* Span editável da cidade */
+.cidade-edit{
+  display:inline;
+  border-bottom:2px dashed rgba(242,122,45,.5);
+  outline:none;
+  cursor:text;
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px;
+  color:#3A4E60;
+  font-weight:600;
+  padding:0 3px;
+  border-radius:3px;
+  min-width:60px;
+  transition:background .2s, border-color .2s;
+}
+.cidade-edit:focus{
+  background:rgba(242,122,45,.08);
+  border-bottom-color:var(--laranja);
+  border-bottom-style:solid;
+}
+.data-texto{
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px;
+  color:#3A4E60;
+  font-weight:600;
 }
 
 /* Destinatário */
@@ -297,6 +335,18 @@ body{
 .bd:hover{background:rgba(231,76,60,.4);}
 .modal-hr{border:none;border-top:1px solid rgba(242,122,45,.2);margin:16px 0;}
 
+/* Modal Empresa */
+.empresa-card{
+  background:rgba(10,150,220,.08);border:1px solid rgba(10,150,220,.25);
+  border-radius:16px;padding:14px 18px;
+  cursor:pointer;margin-bottom:10px;transition:all .2s;
+}
+.empresa-card:hover{background:rgba(10,150,220,.18);border-color:rgba(10,150,220,.6);transform:translateX(4px);}
+.empresa-card.active{background:rgba(242,122,45,.15);border-color:var(--laranja);}
+.emp-nome{color:#7ECFFF;font-size:14px;font-weight:800;margin-bottom:4px;}
+.emp-cnpj{color:#9AAEBF;font-size:11px;font-weight:600;}
+.emp-end{color:#7A8E9F;font-size:11px;margin-top:3px;}
+
 /* TOAST */
 .toast{
   position:fixed;bottom:28px;right:28px;
@@ -315,6 +365,7 @@ body{
   .lh-header,.lh-footer,.ref-block,.destinatario-block{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   #tabelaTitulos thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   td[contenteditable]{outline:none!important;}
+  .cidade-edit{border-bottom:none!important;}
 }
 </style>
 </head>
@@ -346,6 +397,13 @@ body{
   </select>
   <input type="color" title="Cor do texto" onchange="fmt('foreColor',this.value)" value="#2C3E4E">
   <div class="sep"></div>
+  <!-- SELETOR DE EMPRESA -->
+  <select id="empresaSelect" onchange="selecionarEmpresa(this.value)">
+    <option value="">⚡ Selecionar Posto…</option>
+    <option value="0">DOM PEDRO 1 – Estiva MG</option>
+    <option value="1">DOM PEDRO ITATIAIUÇU</option>
+  </select>
+  <div class="sep"></div>
   <button class="btn-tabelionato" onclick="openTabelModal()">🏛 Tabelionatos</button>
   <div class="sep"></div>
   <button onclick="addRow()">➕ Linha</button>
@@ -368,9 +426,10 @@ body{
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%230A2540%27/%3E%3Ctext x=%2750%27 y=%2765%27 font-size=%2740%27 text-anchor=%27middle%27 fill=%27%23F27A2D%27 font-weight=%27bold%27%3EDP%3C/text%3E%3C/svg%3E'">
       </div>
       <div class="hdr-brand-block">
-        <div class="hdr-brand-name">DOM <span>PEDRO</span></div>
-        <div class="hdr-tagline">REDE DE POSTOS &nbsp;⚡&nbsp; ENERGIA QUE MOVE</div>
-        <div class="hdr-cnpj">CNPJ: 20.415.295/0001-74</div>
+        <div class="hdr-brand-name" id="hdrNome">DOM <span>PEDRO</span></div>
+        <div class="hdr-tagline" id="hdrTagline">REDE DE POSTOS &nbsp;⚡&nbsp; ENERGIA QUE MOVE</div>
+        <div class="hdr-cnpj" id="hdrCnpj">CNPJ: 20.415.295/0001-74</div>
+        <div class="hdr-endereco" id="hdrEnd">Rod. Fernão Dias – Km 880 · Estiva, MG · CEP 37542-000</div>
       </div>
     </div>
     <div class="hdr-doc-type">
@@ -387,7 +446,9 @@ body{
 
     <!-- Data -->
     <div class="body-meta">
-      <div class="body-meta-date" contenteditable="true" id="dateField" spellcheck="false"></div>
+      <div class="body-meta-date">
+        <span class="cidade-edit" id="cidadeEdit" contenteditable="true" spellcheck="false" title="Clique para editar a cidade">Estiva MG</span><span class="data-texto" id="dataTexto">, 28 de maio de 2026</span>
+      </div>
     </div>
 
     <!-- Destinatário -->
@@ -464,7 +525,7 @@ body{
     <div class="footer-blob"></div>
     <div class="ft-item">
       <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-      contato@rededompedro.com
+      <span id="ftEmail">contato@rededompedro.com</span>
     </div>
     <div class="ft-sep"></div>
     <div class="ft-item">
@@ -474,7 +535,7 @@ body{
     <div class="ft-sep"></div>
     <div class="ft-item">
       <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
-      KM 880 — Estiva-MG
+      <span id="ftEndereco">KM 880 — Estiva-MG</span>
     </div>
     <div class="ft-sep"></div>
     <div class="ft-item">
@@ -483,7 +544,7 @@ body{
     </div>
     <div class="ft-sep"></div>
     <div class="ft-item" style="font-size:9.5px;opacity:.8;">
-      CNPJ: 20.415.295/0001-74
+      <span id="ftCnpj">CNPJ: 20.415.295/0001-74</span>
     </div>
   </div>
 
@@ -517,11 +578,70 @@ body{
 <script>
 const $ = id => document.getElementById(id);
 
+/* ── DADOS DAS EMPRESAS ── */
+const empresasData = [
+  {
+    codigo: "2",
+    nome: "DOM PEDRO 1",
+    cnpj: "20.415.295/0001-74",
+    inscricao: "245.068303.00-24",
+    endereco: "Rodovia Fernão Dias – Km 880, Bairro: Espraiado",
+    cidade: "ESTIVA",
+    uf: "MG",
+    cep: "37542-000",
+    razaoSocial: "REDE DOM PEDRO DE POSTOS LTDA",
+    email: "contato@rededompedro.com",
+    tel: "0800 723 1188"
+  },
+  {
+    codigo: "3",
+    nome: "DOM PEDRO ITATIAIUÇU",
+    cnpj: "20.415.295/0009-21",
+    inscricao: "337.104007-0040",
+    endereco: "Rodovia Br 381 – Km 57, Bairro: Pinheiros",
+    cidade: "ITATIAIUÇU",
+    uf: "MG",
+    cep: "35685-000",
+    razaoSocial: "REDE DOM PEDRO DE POSTOS LTDA",
+    email: "contato@rededompedro.com",
+    tel: "0800 723 1188"
+  }
+];
+
+/* ── Selecionar empresa e atualizar doc inteiro ── */
+function selecionarEmpresa(idx) {
+  if (idx === '') return;
+  const e = empresasData[parseInt(idx)];
+  const endCompleto = `${e.endereco} – ${e.cidade}, ${e.uf} · CEP ${e.cep}`;
+  const endCurto = `${e.endereco.split('–')[0].trim()} – ${e.cidade}-${e.uf}`;
+
+  // Header
+  $('hdrNome').innerHTML = `${e.razaoSocial.split(' ')[0]} <span>${e.razaoSocial.split(' ').slice(1).join(' ')}</span>`;
+  $('hdrCnpj').textContent = 'CNPJ: ' + e.cnpj;
+  $('hdrEnd').textContent = endCompleto;
+
+  // Cidade na data
+  const cidadeTit = e.cidade.charAt(0) + e.cidade.slice(1).toLowerCase();
+  $('cidadeEdit').textContent = `${cidadeTit} ${e.uf}`;
+
+  // Assinatura
+  $('sigScript').textContent = e.razaoSocial;
+  $('sigRole').textContent = 'CNPJ: ' + e.cnpj;
+  $('sigDept').textContent = endCurto;
+
+  // Footer
+  $('ftEmail').textContent = e.email || 'contato@rededompedro.com';
+  $('ftEndereco').textContent = endCurto;
+  $('ftCnpj').textContent = 'CNPJ: ' + e.cnpj;
+
+  showToast('✓ Posto "' + e.nome + '" aplicado ao documento');
+}
+
 /* ── Data automática ── */
 (()=>{
   const d = new Date();
   const M = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  $('dateField').textContent = 'São Paulo, ' + d.getDate() + ' de ' + M[d.getMonth()] + ' de ' + d.getFullYear();
+  $('dataTexto').textContent = ', ' + d.getDate() + ' de ' + M[d.getMonth()] + ' de ' + d.getFullYear();
 })();
 
 /* ── Toast ── */
@@ -563,7 +683,6 @@ function delLastRow(){
 /* ── Tabelionatos (localStorage) ── */
 const TABEL_KEY='rdp_tabelionatos';
 
-// pré-cadastrados
 function getTabels(){
   let saved=localStorage.getItem(TABEL_KEY);
   if(!saved){
