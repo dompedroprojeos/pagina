@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedido de Retirada – Pessoa Jurídica | Rede Dom Pedro</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Lato:wght@300;400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --laranja:#F27A2D;
+  --laranja-escuro:#E05E1A;
+  --azul-rei:#0A2540;
+  --azul-rei-claro:#1C3E5C;
+  --cinza-escuro:#1A1F2C;
+  --bg-escuro:#0C1119;
+  --texto-escuro:#2C3E4E;
+  --borda-clara:#E9ECEF;
+  --branco:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:radial-gradient(ellipse at 20% 50%, #121826 0%, #070b10 100%);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  user-select:auto;
+}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  width:100%;
+  background:linear-gradient(90deg,#0A1C2A,#122433 60%,#0A1C2A);
+  border-bottom:3px solid var(--laranja);
+  padding:8px 20px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 6px 24px rgba(0,0,0,.6);
+}
+#toolbar button,#toolbar select{
+  background:rgba(255,255,255,.07);color:#EFF3F8;
+  border:1px solid rgba(242,122,45,.25);border-radius:10px;
+  padding:6px 12px;cursor:pointer;font-size:12.5px;
+  font-family:'Nunito',sans-serif;transition:all .2s;font-weight:600;
+}
+#toolbar button:hover{background:var(--laranja);color:#0A1C2A;border-color:var(--laranja);transform:translateY(-1px);}
+#toolbar input[type=color]{padding:2px;width:34px;height:30px;border-radius:8px;border:1px solid var(--laranja);background:#111;cursor:pointer}
+.sep{width:1px;height:28px;background:rgba(242,122,45,.35);margin:0 4px}
+.btn-special{
+  background:linear-gradient(135deg,var(--laranja),var(--laranja-escuro))!important;
+  color:#0A1C2A!important;border:none!important;font-weight:800!important;
+  padding:6px 18px!important;box-shadow:0 3px 12px rgba(242,122,45,.5);
+}
+.btn-special:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(242,122,45,.7)!important}
+.btn-tabelionato{background:rgba(242,122,45,.15)!important;border-color:var(--laranja)!important;color:#F9B67A!important}
+.btn-empresa{background:rgba(10,37,64,.4)!important;border-color:rgba(10,150,220,.5)!important;color:#7ECFFF!important}
+
+#empresaSelect{
+  background:rgba(10,37,64,.6)!important;
+  border:1px solid rgba(10,150,220,.5)!important;
+  color:#7ECFFF!important;font-weight:700!important;
+  min-width:180px;
+}
+#fontSelect{
+  background:rgba(30,30,30,.8)!important;
+  border:1px solid rgba(242,122,45,.3)!important;
+  color:#EEE!important;font-weight:600!important;
+  min-width:160px;
+}
+
+/* ── PÁGINA ── */
+#page-wrapper{padding:24px 20px 60px;display:flex;justify-content:center}
+#letter{
+  width:794px;min-height:1123px;background:var(--branco);
+  position:relative;display:flex;flex-direction:column;
+  box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 0 1px rgba(242,122,45,.2);
+  border-radius:2px;overflow:hidden;
+}
+
+/* ── HEADER ── */
+.lh-header{
+  position:relative;height:148px;overflow:hidden;flex-shrink:0;
+  background:linear-gradient(115deg,#FFFFFF 0%,#FEF7F0 100%);
+}
+.hdr-azul-bg{
+  position:absolute;top:-20px;right:-30px;width:340px;height:220px;
+  background:linear-gradient(145deg,var(--azul-rei),var(--azul-rei-claro));
+  border-radius:50% 30% 45% 55% / 60% 40% 60% 40%;
+  opacity:.92;z-index:1;box-shadow:-10px 10px 25px rgba(0,0,0,.2);
+}
+.hdr-blob-laranja{
+  position:absolute;top:-8px;right:70px;width:130px;height:135px;
+  background:var(--laranja);
+  border-radius:55% 45% 65% 35% / 45% 55% 45% 55%;
+  z-index:2;opacity:.85;
+}
+.hdr-sidebar{
+  position:absolute;left:0;top:0;bottom:0;width:20px;
+  background:linear-gradient(135deg,var(--laranja),#E05E1A);
+  z-index:3;border-radius:0 14px 14px 0;
+}
+.hdr-logo-area{
+  position:absolute;left:34px;top:0;bottom:0;
+  display:flex;align-items:center;gap:18px;z-index:4;
+}
+.hdr-logo-circle{
+  width:72px;height:72px;background:var(--azul-rei);
+  border-radius:20px 8px 20px 8px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 18px rgba(10,37,64,.35);
+  flex-shrink:0;
+}
+.hdr-logo-circle img{width:58px;height:58px;object-fit:contain;filter:brightness(1) drop-shadow(0 2px 2px rgba(0,0,0,.2));}
+.hdr-brand-block{display:flex;flex-direction:column;gap:3px;}
+.hdr-brand-name{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:var(--azul-rei);letter-spacing:-.5px;line-height:1;}
+.hdr-brand-name span{color:var(--laranja);}
+.hdr-tagline{font-size:9px;font-weight:800;color:#6C7A89;letter-spacing:2.2px;text-transform:uppercase;margin-top:4px;}
+.hdr-cnpj{font-size:10px;color:#8899AA;font-weight:700;letter-spacing:.5px;margin-top:3px;}
+.hdr-endereco{font-size:9.5px;color:#6C7A89;font-weight:600;letter-spacing:.3px;margin-top:2px;}
+
+.hdr-doc-type{
+  position:absolute;right:34px;top:50%;transform:translateY(-50%);
+  z-index:5;text-align:right;
+}
+.hdr-doc-type-inner{
+  font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:#FFFFFF;
+  text-align:right;line-height:1.5;letter-spacing:.4px;text-transform:uppercase;
+  background:rgba(10,37,64,.7);padding:8px 16px;border-radius:40px;
+  backdrop-filter:blur(3px);border:1px solid rgba(242,122,45,.5);
+  white-space:nowrap;
+}
+/* Linha 1 do doc-type editável */
+#hdrDocLinha1{
+  display:block;
+  outline:none;
+  cursor:text;
+  font-size:11px;font-weight:800;color:#FFFFFF;
+  letter-spacing:.4px;text-transform:uppercase;
+  border-bottom:1px dashed rgba(255,255,255,.3);
+  min-width:40px;
+  padding:1px 2px;
+}
+#hdrDocLinha1:focus{background:rgba(255,255,255,.1);border-radius:3px;border-bottom-style:solid;}
+/* Linha 2 do doc-type editável */
+#hdrDocLinha2{
+  display:block;
+  outline:none;
+  cursor:text;
+  font-size:10px;color:#F9A66C;letter-spacing:.3px;
+  border-bottom:1px dashed rgba(249,166,108,.3);
+  min-width:40px;
+  padding:1px 2px;
+  margin-top:2px;
+}
+#hdrDocLinha2:focus{background:rgba(249,166,108,.1);border-radius:3px;border-bottom-style:solid;}
+
+.hdr-line{height:4px;background:linear-gradient(90deg,var(--laranja),#F9A66C,#F27A2D);flex-shrink:0;border-radius:4px;}
+
+/* ── CORPO DA CARTA ── */
+.letter-content{
+  flex:1;padding:28px 40px 24px;
+  font-size:13px;color:#2C3E4E;line-height:1.9;
+  background:#fff;
+}
+
+/* Cabeçalho do corpo: data + cidade */
+.body-meta{
+  display:flex;justify-content:flex-end;
+  margin-bottom:22px;
+}
+.body-meta-date{
+  font-family:'Cormorant Garamond',serif;
+  font-size:19px; /* aumentado */
+  color:#3A4E60;
+  text-align:right;font-weight:600;
+  letter-spacing:.3px;
+  display:flex;align-items:baseline;gap:3px;
+  flex-wrap:wrap;justify-content:flex-end;
+}
+.cidade-edit{
+  display:inline;
+  border-bottom:2px dashed rgba(242,122,45,.5);
+  outline:none;
+  cursor:text;
+  font-family:inherit;
+  font-size:inherit;
+  color:inherit;
+  font-weight:600;
+  padding:0 3px;
+  border-radius:3px;
+  min-width:60px;
+  transition:background .2s, border-color .2s;
+}
+.cidade-edit:focus{
+  background:rgba(242,122,45,.08);
+  border-bottom-color:var(--laranja);
+  border-bottom-style:solid;
+}
+.data-texto{
+  font-family:inherit;
+  font-size:inherit;
+  color:inherit;
+  font-weight:600;
+  cursor:pointer;
+  border-bottom:2px dashed rgba(100,150,200,.4);
+  padding:0 3px;
+  border-radius:3px;
+  transition:background .2s;
+}
+.data-texto:hover{background:rgba(100,150,220,.08);}
+
+/* Destinatário */
+.destinatario-label{
+  font-size:11px;font-weight:800;color:#8899AA;
+  letter-spacing:1.5px;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.destinatario-block{
+  border-left:3px solid var(--laranja);
+  padding:10px 16px;
+  background:rgba(242,122,45,.04);
+  border-radius:0 10px 10px 0;
+  margin-bottom:22px;
+}
+.dest-nome{font-weight:800;font-size:14px;color:var(--azul-rei);}
+.dest-end{font-size:12px;color:#5A6E7F;margin-top:3px;}
+
+/* Referência editável */
+.ref-block{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--azul-rei),var(--azul-rei-claro));
+  color:#fff;padding:7px 20px;border-radius:40px;
+  font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  margin-bottom:24px;
+  box-shadow:0 4px 12px rgba(10,37,64,.3);
+  cursor:text;
+}
+.ref-label{color:var(--laranja);margin-right:2px;flex-shrink:0;}
+#refTexto{
+  outline:none;
+  display:inline;
+  border-bottom:1px dashed rgba(255,255,255,.4);
+  color:#fff;
+  font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  min-width:60px;
+  padding:0 2px;
+}
+#refTexto:focus{background:rgba(255,255,255,.12);border-radius:3px;border-bottom-style:solid;}
+
+/* Corpo textual editável */
+.body-text{
+  outline:none;font-size:13px;color:#2C3E4E;line-height:1.9;
+  min-height:80px;
+}
+.body-text:focus{outline:2px dashed rgba(242,122,45,.3);outline-offset:4px;border-radius:6px;}
+
+/* ── TABELA DE TÍTULOS ── */
+.tabela-titulo{
+  font-size:11px;font-weight:800;color:var(--azul-rei);
+  letter-spacing:1.2px;text-transform:uppercase;
+  margin:22px 0 8px;
+  display:flex;align-items:center;gap:8px;
+}
+.tabela-titulo::before{content:'';width:16px;height:3px;background:var(--laranja);border-radius:2px;display:inline-block;}
+
+#tabelaTitulos{
+  width:100%;border-collapse:collapse;
+  font-size:12px;margin-bottom:24px;
+}
+#tabelaTitulos thead tr{
+  background:linear-gradient(90deg,var(--azul-rei),var(--azul-rei-claro));
+}
+#tabelaTitulos thead th{
+  color:#fff;font-weight:800;font-size:10px;
+  letter-spacing:.6px;text-transform:uppercase;
+  padding:9px 10px;text-align:left;
+  border:none;
+}
+#tabelaTitulos thead th:first-child{border-radius:8px 0 0 0;}
+#tabelaTitulos thead th:last-child{border-radius:0 8px 0 0;}
+#tabelaTitulos tbody tr:nth-child(even){background:rgba(10,37,64,.04);}
+#tabelaTitulos tbody tr:nth-child(odd){background:#fff;}
+#tabelaTitulos tbody tr:hover{background:rgba(242,122,45,.07);}
+#tabelaTitulos tbody td{
+  padding:8px 10px;border-bottom:1px solid #EDF0F3;
+  color:#2C3E4E;font-size:12px;
+  outline:none;position:relative;
+}
+#tabelaTitulos tbody td:focus{background:rgba(242,122,45,.08);outline:2px dashed rgba(242,122,45,.4);}
+
+/* Placeholder visual nas células */
+#tabelaTitulos tbody td[data-col="0"]:empty:before{content:attr(data-ph);color:#AABBCC;font-size:11px;pointer-events:none;}
+#tabelaTitulos tbody td[data-col="1"]:empty:before{content:'00/00/0000';color:#AABBCC;font-size:11px;pointer-events:none;}
+#tabelaTitulos tbody td[data-col="2"]:empty:before{content:'00/00/0000';color:#AABBCC;font-size:11px;pointer-events:none;}
+#tabelaTitulos tbody td[data-col="3"]:empty:before{content:'0.000,00';color:#AABBCC;font-size:11px;pointer-events:none;}
+#tabelaTitulos tbody td[data-col="4"]:empty:before{content:'0.000,00';color:#AABBCC;font-size:11px;pointer-events:none;}
+#tabelaTitulos tbody td[data-col="5"]:empty:before{content:'Nome do devedor';color:#AABBCC;font-size:11px;pointer-events:none;}
+
+.btn-row{
+  display:flex;gap:8px;margin-bottom:20px;
+}
+.btn-row button{
+  padding:6px 16px;border:none;border-radius:40px;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;
+  cursor:pointer;transition:all .2s;
+}
+.btn-add-row{background:var(--laranja);color:#0A1C2A;}
+.btn-add-row:hover{background:var(--laranja-escuro);transform:translateY(-1px);}
+.btn-del-row{background:rgba(231,76,60,.15);color:#C0392B;}
+.btn-del-row:hover{background:rgba(231,76,60,.3);}
+
+/* ── COMPLEMENTO / TEXTO FINAL ── */
+.body-final{
+  outline:none;font-size:13px;color:#2C3E4E;line-height:1.9;
+  min-height:60px;margin-bottom:18px;
+}
+.body-final:focus{outline:2px dashed rgba(242,122,45,.3);outline-offset:4px;border-radius:6px;}
+
+/* ── ASSINATURA ── */
+.letter-sig{
+  padding:14px 40px 30px;
+  border-top:1px solid var(--borda-clara);
+  flex-shrink:0;background:#fff;
+}
+.sig-script{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:27px;color:var(--azul-rei);line-height:1.2;margin-bottom:6px;font-weight:600;
+}
+.sig-role{font-size:12px;color:var(--laranja);font-weight:800;margin-top:4px;}
+.sig-dept{font-size:11.5px;color:#6B7F8F;margin-top:2px;}
+
+/* ── BLOCO DE ASSINATURA MANUAL ── */
+.assinatura-manual{
+  margin-top:36px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:0;
+}
+.assinatura-linha{
+  width:340px;
+  border-bottom:1.5px solid #2C3E4E;
+  margin-bottom:8px;
+}
+.assinatura-nome{
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;font-weight:600;color:var(--azul-rei);
+  letter-spacing:.3px;
+}
+.assinatura-cargo{
+  font-size:11.5px;color:#6B7F8F;margin-top:2px;
+  font-weight:600;
+}
+
+/* ── FOOTER ── */
+.lh-footer{
+  background:linear-gradient(100deg,var(--azul-rei),#0E2F48);
+  position:relative;overflow:hidden;
+  padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;flex-shrink:0;
+  border-top:3px solid var(--laranja);
+}
+.footer-blob{position:absolute;left:-20px;bottom:-25px;width:100px;height:100px;background:var(--laranja);border-radius:70% 30% 60% 40% / 45% 55% 45% 55%;opacity:.25;z-index:0;}
+.ft-item{display:flex;align-items:center;gap:7px;color:#E8F0F8;font-size:10.5px;font-weight:600;line-height:1.3;position:relative;z-index:1;background:rgba(255,255,255,.07);padding:5px 12px;border-radius:40px;}
+.ft-item svg{width:14px;height:14px;fill:var(--laranja);flex-shrink:0;}
+.ft-sep{width:1px;height:22px;background:rgba(242,122,45,.5);position:relative;z-index:1;border-radius:2px;}
+
+/* Dev watermark */
+.dev-watermark{
+  position:relative;z-index:1;
+  margin-left:auto;
+  font-size:9px;color:rgba(255,255,255,.25);
+  font-family:'Nunito',sans-serif;
+  font-weight:400;
+  letter-spacing:.5px;
+  text-align:right;
+  white-space:nowrap;
+}
+
+/* ── MODAIS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:500;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{
+  background:linear-gradient(145deg,#11212E,#0A1924);
+  border:1px solid rgba(242,122,45,.4);border-radius:28px;
+  padding:28px;width:560px;max-width:95vw;
+  box-shadow:0 30px 60px rgba(0,0,0,.8);position:relative;max-height:90vh;overflow-y:auto;
+}
+.modal h2{font-family:'Cormorant Garamond',serif;color:#F2E8CF;font-size:22px;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.modal h2 span{color:var(--laranja);}
+.modal label{color:#B0C4DE;font-size:11px;display:block;margin-bottom:5px;letter-spacing:.6px;text-transform:uppercase;}
+.modal input,.modal textarea{
+  width:100%;background:rgba(255,255,255,.08);
+  border:1px solid rgba(242,122,45,.3);border-radius:14px;
+  padding:11px 15px;color:#FFF4EA;font-family:'Nunito',sans-serif;font-size:13px;
+  margin-bottom:14px;outline:none;resize:vertical;
+}
+.modal input:focus,.modal textarea:focus{border-color:var(--laranja);box-shadow:0 0 0 2px rgba(242,122,45,.2);}
+.btn-modal-save{
+  width:100%;padding:12px;background:linear-gradient(135deg,var(--laranja),#E05E1A);
+  color:#0A1C2A;font-weight:800;font-size:14px;border:none;border-radius:40px;
+  cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.6px;transition:all .2s;margin-top:6px;
+}
+.btn-modal-save:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(242,122,45,.5);}
+.modal-close{
+  position:absolute;top:14px;right:18px;background:rgba(255,255,255,.1);border:none;
+  color:#EFF3F8;border-radius:50%;width:30px;height:30px;cursor:pointer;
+  font-size:16px;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.modal-close:hover{background:var(--laranja);color:#0A1C2A;}
+.tabel-item{
+  background:rgba(242,122,45,.07);border:1px solid rgba(242,122,45,.2);
+  border-radius:16px;padding:12px 16px;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin-bottom:10px;
+}
+.tabel-item-body{flex:1;}
+.tabel-item-nome{color:#F2D4B3;font-size:13px;font-weight:800;margin-bottom:3px;}
+.tabel-item-end{color:#9AAEBF;font-size:11px;}
+.tabel-item-btns{display:flex;gap:6px;flex-shrink:0;}
+.tabel-item-btns button{padding:5px 12px;font-size:11px;border-radius:40px;border:none;font-weight:700;cursor:pointer;transition:all .2s;}
+.bu{background:var(--laranja);color:#0A1C2A;}
+.bu:hover{background:var(--laranja-escuro);}
+.be{background:rgba(255,255,255,.12);color:#DDD;}
+.be:hover{background:rgba(255,255,255,.2);}
+.bd{background:rgba(231,76,60,.2);color:#FF9E8A;}
+.bd:hover{background:rgba(231,76,60,.4);}
+.modal-hr{border:none;border-top:1px solid rgba(242,122,45,.2);margin:16px 0;}
+
+/* Modal Empresa */
+.empresa-card{
+  background:rgba(10,150,220,.08);border:1px solid rgba(10,150,220,.25);
+  border-radius:16px;padding:14px 18px;
+  cursor:pointer;margin-bottom:10px;transition:all .2s;
+}
+.empresa-card:hover{background:rgba(10,150,220,.18);border-color:rgba(10,150,220,.6);transform:translateX(4px);}
+.empresa-card.active{background:rgba(242,122,45,.15);border-color:var(--laranja);}
+.emp-nome{color:#7ECFFF;font-size:14px;font-weight:800;margin-bottom:4px;}
+.emp-cnpj{color:#9AAEBF;font-size:11px;font-weight:600;}
+.emp-end{color:#7A8E9F;font-size:11px;margin-top:3px;}
+
+/* Modal Data */
+.modal-date-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;}
+.modal-date-grid input{margin-bottom:0;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:linear-gradient(135deg,var(--laranja),var(--laranja-escuro));
+  color:#0A1C2A;padding:12px 24px;border-radius:50px;
+  font-weight:800;font-size:13px;box-shadow:0 8px 20px rgba(242,122,45,.5);
+  z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media print{
+  body{background:#fff;}
+  #toolbar,.overlay,.toast,.btn-row,.no-print{display:none!important;}
+  #page-wrapper{padding:0;}
+  #letter{width:210mm;min-height:297mm;box-shadow:none;margin:0 auto;}
+  .lh-header,.lh-footer,.ref-block,.destinatario-block{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #tabelaTitulos thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  td[contenteditable]{outline:none!important;}
+  .cidade-edit{border-bottom:none!important;}
+  #hdrDocLinha1,#hdrDocLinha2,#refTexto{border-bottom:none!important;outline:none!important;}
+  .data-texto{border-bottom:none!important;}
+  .dev-watermark{color:rgba(255,255,255,.18)!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <button onclick="fmt('bold')"><b>B</b></button>
+  <button onclick="fmt('italic')"><i>I</i></button>
+  <button onclick="fmt('underline')"><u>U</u></button>
+  <div class="sep"></div>
+  <button onclick="fmt('justifyLeft')">⬅</button>
+  <button onclick="fmt('justifyCenter')">⬛</button>
+  <button onclick="fmt('justifyRight')">➡</button>
+  <button onclick="fmt('justifyFull')">☰</button>
+  <div class="sep"></div>
+  <select id="fontSelect" onchange="changeFont(this.value)" title="Fonte do documento">
+    <option value="Nunito">Nunito</option>
+    <option value="Cormorant Garamond">Cormorant</option>
+    <option value="Playfair Display">Playfair Display</option>
+    <option value="Merriweather">Merriweather</option>
+    <option value="Lato">Lato</option>
+    <option value="Source Serif 4">Source Serif</option>
+    <option value="EB Garamond">EB Garamond</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Arial">Arial</option>
+    <option value="Times New Roman">Times New Roman</option>
+  </select>
+  <select onchange="fmt('fontSize',this.value)">
+    <option value="1">9</option>
+    <option value="2">10</option>
+    <option value="3" selected>13</option>
+    <option value="4">15</option>
+    <option value="5">18</option>
+  </select>
+  <input type="color" title="Cor do texto" onchange="fmt('foreColor',this.value)" value="#2C3E4E">
+  <div class="sep"></div>
+  <select id="empresaSelect" onchange="selecionarEmpresa(this.value)">
+    <option value="">⚡ Selecionar Posto…</option>
+    <option value="0">DOM PEDRO 1 – Estiva MG</option>
+    <option value="1">DOM PEDRO ITATIAIUÇU</option>
+  </select>
+  <div class="sep"></div>
+  <button class="btn-tabelionato" onclick="openTabelModal()">🏛 Tabelionatos</button>
+  <div class="sep"></div>
+  <button onclick="addRow()">➕ Linha</button>
+  <button onclick="delLastRow()">➖ Linha</button>
+  <div class="sep"></div>
+  <button class="btn-special" onclick="window.print()">🖨 Imprimir / PDF</button>
+</div>
+
+<div id="page-wrapper">
+<div id="letter">
+
+  <!-- HEADER -->
+  <div class="lh-header">
+    <div class="hdr-azul-bg"></div>
+    <div class="hdr-blob-laranja"></div>
+    <div class="hdr-sidebar"></div>
+    <div class="hdr-logo-area">
+      <div class="hdr-logo-circle">
+        <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png" alt="Logo Dom Pedro"
+          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%230A2540%27/%3E%3Ctext x=%2750%27 y=%2765%27 font-size=%2740%27 text-anchor=%27middle%27 fill=%27%23F27A2D%27 font-weight=%27bold%27%3EDP%3C/text%3E%3C/svg%3E'">
+      </div>
+      <div class="hdr-brand-block">
+        <div class="hdr-brand-name" id="hdrNome">DOM <span>PEDRO</span></div>
+        <div class="hdr-tagline" id="hdrTagline">REDE DE POSTOS &nbsp; - &nbsp; ENERGIA QUE MOVE</div>
+        <div class="hdr-cnpj" id="hdrCnpj">CNPJ: 20.415.295/0001-74</div>
+        <div class="hdr-endereco" id="hdrEnd">Rod.Fernão Dias–Km 880-Estiva, MG-CEP 37542-000</div>
+      </div>
+    </div>
+    <!-- TIPO DO DOCUMENTO (editável) -->
+    <div class="hdr-doc-type">
+      <div class="hdr-doc-type-inner">
+        <span id="hdrDocLinha1" contenteditable="true" spellcheck="false" title="Clique para editar o tipo do documento">PEDIDO DE RETIRADA</span>
+        <span id="hdrDocLinha2" contenteditable="true" spellcheck="false" title="Clique para editar o subtipo">PESSOA JURÍDICA</span>
+      </div>
+    </div>
+  </div>
+  <div class="hdr-line"></div>
+
+  <!-- CORPO -->
+  <div class="letter-content">
+
+    <!-- Data -->
+    <div class="body-meta">
+      <div class="body-meta-date" id="metaDateBlock">
+        <span class="cidade-edit" id="cidadeEdit" contenteditable="true" spellcheck="false" title="Clique para editar a cidade">Estiva MG</span><span class="data-texto" id="dataTexto" title="Clique para editar a data" onclick="openDateModal()">, 29 de maio de 2026</span>
+      </div>
+    </div>
+
+    <!-- Destinatário -->
+    <div class="destinatario-label">Ao</div>
+    <div class="destinatario-block" id="destBlock">
+      <div class="dest-nome" id="destNome">2º Tabelião de Protesto de Letras e Títulos de São Paulo</div>
+      <div class="dest-end" id="destEnd">Avenida Paulista, Nº 688, 6º Andar - Jardim Bela Vista, São Paulo - SP - CEP 01310-100</div>
+    </div>
+
+    <!-- Referência (editável) -->
+    <div class="ref-block">
+      <span class="ref-label">Ref:</span>
+      <span id="refTexto" contenteditable="true" spellcheck="false" title="Clique para editar a referência">RETIRADA DE TÍTULO SEM PROTESTO</span>
+    </div>
+
+    <!-- Texto inicial -->
+    <div class="body-text" id="bodyText" contenteditable="true" spellcheck="false">
+      <p><strong>Prezados Senhores:</strong></p>
+      <p>Pelo presente, na qualidade de apresentante do(s) título(s) abaixo relacionado(s), venho formalizar o pedido de desistência do(s) protesto(s), de conformidade com o item 57 e 57.1 das Normas da Corregedoria Geral da Justiça.</p>
+    </div>
+
+    <!-- Tabela de títulos -->
+    <div class="tabela-titulo">Títulos para Retirada</div>
+
+    <div class="btn-row no-print">
+      <button class="btn-add-row" onclick="addRow()">➕ Adicionar linha</button>
+      <button class="btn-del-row" onclick="delLastRow()">➖ Remover última</button>
+    </div>
+
+    <table id="tabelaTitulos">
+      <thead>
+        <tr>
+          <th>Protocolo</th>
+          <th>Data Proto.</th>
+          <th>Data Vcto.</th>
+          <th>Valor (R$)</th>
+          <th>Valor Cobrado (R$)</th>
+          <th>Nome do Devedor</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaBody">
+      </tbody>
+    </table>
+
+    <!-- Texto final -->
+    <div class="body-final" id="bodyFinal" contenteditable="true" spellcheck="false">
+      <p>Nestes termos, peço deferimento.</p>
+    </div>
+
+  </div><!-- /letter-content -->
+
+  <!-- ASSINATURA -->
+  <div class="letter-sig">
+    <div class="sig-script" id="sigScript">Rede Dom Pedro</div>
+    <div class="sig-role" id="sigRole">CNPJ: 20.415.295/0001-74</div>
+    <div class="sig-dept" id="sigDept">Rod. Fernão Dias, Km 880 – Estiva, MG</div>
+
+    <!-- Linha de assinatura manual -->
+    <div class="assinatura-manual">
+      <div class="assinatura-linha"></div>
+      <div class="assinatura-nome">Laerte Alves de Oliveira</div>
+      <div class="assinatura-cargo">Proprietário (Administrador)</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="lh-footer">
+    <div class="footer-blob"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      <span id="ftEmail">contato@rededompedro.com</span>
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      rededompedro.com
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+      <span id="ftEndereco">KM 880 — Estiva-MG</span>
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      0800 723 1188
+    </div>
+    <div class="ft-sep"></div>
+    <div class="ft-item" style="font-size:9.5px;opacity:.8;">
+      <span id="ftCnpj">CNPJ: 20.415.295/0001-74</span>
+    </div>
+    <!-- Developer credit -->
+    <div class="dev-watermark">dev. waldeciramos &copy; 2026</div>
+  </div>
+
+</div><!-- /letter -->
+</div><!-- /page-wrapper -->
+
+<!-- MODAL TABELIONATOS -->
+<div class="overlay" id="tabelOverlay">
+  <div class="modal" style="width:580px;">
+    <button class="modal-close" onclick="closeModal('tabelOverlay')">✕</button>
+    <h2>🏛 <span>Tabelionatos</span></h2>
+    <div id="tabelList"></div>
+    <hr class="modal-hr">
+    <p style="color:#9AAEBF;font-size:12px;margin-bottom:14px;">➕ Adicionar / editar tabelionato:</p>
+    <label>Nome do Tabelionato</label>
+    <input type="text" id="tNome" placeholder="Ex: 3º Tabelião de Protesto de Letras e Títulos de SP">
+    <label>Endereço Completo</label>
+    <input type="text" id="tEnd" placeholder="Av. ..., Nº ... – Bairro, Cidade - UF - CEP">
+    <input type="hidden" id="tEditId">
+    <button class="btn-modal-save" onclick="saveTabel()">💾 Salvar Tabelionato</button>
+  </div>
+</div>
+
+<!-- MODAL DATA -->
+<div class="overlay" id="dateOverlay">
+  <div class="modal" style="width:400px;">
+    <button class="modal-close" onclick="closeModal('dateOverlay')">✕</button>
+    <h2>📅 <span>Editar Data</span></h2>
+    <label>Data</label>
+    <input type="date" id="dateInput" style="color:#FFF4EA;">
+    <button class="btn-modal-save" onclick="applyDate()">✓ Aplicar Data</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Bloqueio de código-fonte ── */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  // F12
+  if(e.key === 'F12'){ e.preventDefault(); return false; }
+  // Ctrl+U / Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C
+  if(e.ctrlKey && (e.key==='u'||e.key==='U')){ e.preventDefault(); return false; }
+  if(e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c','K','k'].includes(e.key)){ e.preventDefault(); return false; }
+  // DevTools via Cmd (Mac)
+  if(e.metaKey && e.altKey && ['I','i','J','j','C','c'].includes(e.key)){ e.preventDefault(); return false; }
+});
+
+const $ = id => document.getElementById(id);
+
+/* ── DADOS DAS EMPRESAS ── */
+const empresasData = [
+  {
+    codigo:"2",nome:"DOM PEDRO 1",cnpj:"20.415.295/0001-74",
+    inscricao:"245.068303.00-24",
+    endereco:"Rodovia Fernão Dias–Km 880, Bairro: Espraiado",
+    cidade:"ESTIVA",uf:"MG",cep:"37542-000",
+    razaoSocial:"REDE DOM PEDRO DE POSTOS LTDA",
+    email:"contato@rededompedro.com",tel:"0800 723 1188"
+  },
+  {
+    codigo:"3",nome:"DOM PEDRO ITATIAIUÇU",cnpj:"20.415.295/0009-21",
+    inscricao:"337.104007-0040",
+    endereco:"Rodovia Br 381 – Km 57, Bairro: Pinheiros",
+    cidade:"ITATIAIUÇU",uf:"MG",cep:"35685-000",
+    razaoSocial:"REDE DOM PEDRO DE POSTOS LTDA",
+    email:"contato@rededompedro.com",tel:"0800 723 1188"
+  }
+];
+
+/* ── Selecionar empresa ── */
+function selecionarEmpresa(idx){
+  if(idx==='') return;
+  const e=empresasData[parseInt(idx)];
+  const endCompleto=`${e.endereco} – ${e.cidade}, ${e.uf} · CEP ${e.cep}`;
+  const endCurto=`${e.endereco.split('–')[0].trim()} – ${e.cidade}-${e.uf}`;
+  const palavras=e.razaoSocial.split(' ');
+  $('hdrNome').innerHTML=`${palavras[0]} <span>${palavras.slice(1).join(' ')}</span>`;
+  $('hdrCnpj').textContent='CNPJ: '+e.cnpj;
+  $('hdrEnd').textContent=endCompleto;
+  const cidTit=e.cidade.charAt(0)+e.cidade.slice(1).toLowerCase();
+  $('cidadeEdit').textContent=`${cidTit} ${e.uf}`;
+  $('sigScript').textContent=e.razaoSocial;
+  $('sigRole').textContent='CNPJ: '+e.cnpj;
+  $('sigDept').textContent=endCurto;
+  $('ftEmail').textContent=e.email||'contato@rededompedro.com';
+  $('ftEndereco').textContent=endCurto;
+  $('ftCnpj').textContent='CNPJ: '+e.cnpj;
+  showToast('✓ Posto "'+e.nome+'" aplicado');
+}
+
+/* ── Data automática ── */
+const MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+(()=>{
+  const d=new Date();
+  $('dataTexto').textContent=', '+d.getDate()+' de '+MESES[d.getMonth()]+' de '+d.getFullYear();
+})();
+
+/* ── Modal Data ── */
+function openDateModal(){
+  const d=new Date();
+  // formato YYYY-MM-DD para o input[type=date]
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  $('dateInput').value=`${y}-${m}-${dd}`;
+  openModal('dateOverlay');
+}
+function applyDate(){
+  const val=$('dateInput').value;
+  if(!val){ showToast('⚠ Selecione uma data'); return; }
+  const [y,m,day]=val.split('-');
+  const texto=`, ${parseInt(day)} de ${MESES[parseInt(m)-1]} de ${y}`;
+  $('dataTexto').textContent=texto;
+  closeModal('dateOverlay');
+  showToast('✓ Data atualizada');
+}
+
+/* ── Toast ── */
+function showToast(m){
+  const t=$('toast'); t.textContent=m; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ── Modais ── */
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('mousedown',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+/* ── Formatar texto ── */
+function fmt(cmd,val){
+  const b=$('bodyText'); b.focus();
+  document.execCommand(cmd,false,val||null);
+}
+
+/* ── Mudar fonte geral do documento ── */
+function changeFont(font){
+  const lc=document.querySelector('.letter-content');
+  const sig=document.querySelector('.letter-sig');
+  if(lc){ lc.style.fontFamily=`'${font}', serif`; }
+  if(sig){ sig.style.fontFamily=`'${font}', serif`; }
+  showToast('✓ Fonte alterada: '+font);
+}
+
+/* ── Tabela: criar linha ── */
+function createRow(){
+  const tr=document.createElement('tr');
+  const configs=[
+    {col:0, ph:'Protocolo'},
+    {col:1, ph:'00/00/0000', mask:'date'},
+    {col:2, ph:'00/00/0000', mask:'date'},
+    {col:3, ph:'0.000,00',   mask:'brl'},
+    {col:4, ph:'0.000,00',   mask:'brl'},
+    {col:5, ph:'Nome do devedor'}
+  ];
+  configs.forEach(cfg=>{
+    const td=document.createElement('td');
+    td.contentEditable='true';
+    td.spellcheck=false;
+    td.setAttribute('data-col', cfg.col);
+    td.setAttribute('data-ph', cfg.ph);
+    if(cfg.mask==='date'){
+      td.addEventListener('input', ()=>applyDateMask(td));
+      td.addEventListener('keypress', e=>{ if(!/[\d/]/.test(e.key)) e.preventDefault(); });
+    }
+    if(cfg.mask==='brl'){
+      td.addEventListener('input', ()=>applyBrlMask(td));
+      td.addEventListener('keypress', e=>{ if(!/[\d,.]/.test(e.key)) e.preventDefault(); });
+    }
+    tr.appendChild(td);
+  });
+  return tr;
+}
+
+function addRow(){
+  $('tabelaBody').appendChild(createRow());
+}
+function delLastRow(){
+  const tbody=$('tabelaBody');
+  if(tbody.rows.length>1) tbody.deleteRow(tbody.rows.length-1);
+  else showToast('⚠ Mantenha ao menos uma linha.');
+}
+
+/* ── Máscara de data DD/MM/AAAA ── */
+function applyDateMask(td){
+  let v=td.textContent.replace(/\D/g,'');
+  if(v.length>8) v=v.slice(0,8);
+  let fmt='';
+  if(v.length<=2) fmt=v;
+  else if(v.length<=4) fmt=v.slice(0,2)+'/'+v.slice(2);
+  else fmt=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+  if(td.textContent!==fmt){
+    td.textContent=fmt;
+    // mover cursor ao fim
+    const range=document.createRange(), sel=window.getSelection();
+    if(td.childNodes.length>0){
+      range.setStart(td.childNodes[0], fmt.length);
+      range.collapse(true);
+      sel.removeAllRanges(); sel.addRange(range);
+    }
+  }
+}
+
+/* ── Máscara monetária BRL ── */
+function applyBrlMask(td){
+  let v=td.textContent.replace(/\D/g,'');
+  if(!v){ td.textContent=''; return; }
+  const num=parseInt(v,10)/100;
+  const fmt=num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(td.textContent!==fmt){
+    td.textContent=fmt;
+    const range=document.createRange(), sel=window.getSelection();
+    if(td.childNodes.length>0){
+      range.setStart(td.childNodes[0], fmt.length);
+      range.collapse(true);
+      sel.removeAllRanges(); sel.addRange(range);
+    }
+  }
+}
+
+/* ── Criar 2 linhas iniciais e focar na primeira célula ── */
+(()=>{
+  addRow(); addRow();
+  // focar na 1ª célula da 1ª linha
+  setTimeout(()=>{
+    const firstCell=$('tabelaBody').rows[0]?.cells[0];
+    if(firstCell){ firstCell.focus(); }
+  },100);
+})();
+
+/* ── Tabelionatos (localStorage) ── */
+const TABEL_KEY='rdp_tabelionatos';
+function getTabels(){
+  let saved=localStorage.getItem(TABEL_KEY);
+  if(!saved){
+    const defaults=[{id:1,nome:'2º Tabelião de Protesto de Letras e Títulos de São Paulo',end:'Avenida Paulista, Nº 688, 6º Andar - Jardim Bela Vista, São Paulo - SP - CEP 01310-100'}];
+    localStorage.setItem(TABEL_KEY,JSON.stringify(defaults));
+    return defaults;
+  }
+  return JSON.parse(saved);
+}
+function setTabels(arr){ localStorage.setItem(TABEL_KEY,JSON.stringify(arr)); }
+function renderTabelList(){
+  const arr=getTabels();
+  const list=$('tabelList');
+  list.innerHTML='';
+  if(!arr.length){
+    list.innerHTML='<p style="color:#9AAEBF;font-size:12px;text-align:center;padding:10px;">Nenhum tabelionato cadastrado.</p>';
+    return;
+  }
+  arr.forEach((t,i)=>{
+    const el=document.createElement('div');
+    el.className='tabel-item';
+    el.innerHTML=`
+      <div class="tabel-item-body">
+        <div class="tabel-item-nome">${esc(t.nome)}</div>
+        <div class="tabel-item-end">${esc(t.end)}</div>
+      </div>
+      <div class="tabel-item-btns">
+        <button class="bu" onclick="useTabel(${i})">Usar</button>
+        <button class="be" onclick="editTabel(${i})">Editar</button>
+        <button class="bd" onclick="delTabel(${i})">✕</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+function esc(s){ return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function useTabel(i){
+  const t=getTabels()[i];
+  $('destNome').textContent=t.nome;
+  $('destEnd').textContent=t.end;
+  closeModal('tabelOverlay');
+  showToast('✓ Tabelionato selecionado');
+}
+function editTabel(i){
+  const t=getTabels()[i];
+  $('tNome').value=t.nome; $('tEnd').value=t.end; $('tEditId').value=i;
+  $('tNome').scrollIntoView({behavior:'smooth'});
+}
+function delTabel(i){
+  if(!confirm('Excluir este tabelionato?')) return;
+  const arr=getTabels(); arr.splice(i,1); setTabels(arr); renderTabelList();
+  showToast('🗑 Tabelionato removido');
+}
+function saveTabel(){
+  const nome=$('tNome').value.trim(), end=$('tEnd').value.trim();
+  if(!nome||!end){ showToast('⚠ Preencha nome e endereço'); return; }
+  const arr=getTabels(), eid=$('tEditId').value;
+  if(eid!==''){
+    arr[parseInt(eid)]={id:arr[parseInt(eid)].id,nome,end};
+    $('tEditId').value='';
+  } else {
+    arr.push({id:Date.now(),nome,end});
+  }
+  setTabels(arr); renderTabelList();
+  $('tNome').value=''; $('tEnd').value='';
+  showToast('✓ Tabelionato salvo');
+}
+function openTabelModal(){ renderTabelList(); openModal('tabelOverlay'); }
+</script>
+</body>
+</html>
