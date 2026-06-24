@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDP Transportes - Movimento de Entradas v4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d2137;
+    --navy2: #132d47;
+    --blue: #1a4a6e;
+    --accent: #e8a020;
+    --accent2: #f5b940;
+    --surface: #f4f7fb;
+    --surface2: #eef2f8;
+    --border: #dce4ef;
+    --text: #1a2a3a;
+    --muted: #6b7e93;
+    --white: #ffffff;
+    --green: #1a7a50;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Syne', sans-serif;
+    --shadow: 0 4px 24px rgba(13,33,55,0.10);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--surface); color: var(--text); min-height: 100vh; }
+
+  .page-header { background: var(--navy); padding: 0; position: relative; overflow: hidden; }
+  .page-header::before { content:''; position:absolute; inset:0; background: repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(232,160,32,0.04) 60px, rgba(232,160,32,0.04) 61px); }
+  .page-header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--accent), var(--accent2), var(--accent)); }
+  .header-inner { max-width:1280px; margin:0 auto; padding:28px 32px 24px; position:relative; display:flex; align-items:flex-end; gap:24px; }
+  .header-logo { width:52px; height:52px; background:linear-gradient(135deg, var(--accent), var(--accent2)); border-radius:14px; display:flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:800; font-size:1.35rem; color:var(--navy); flex-shrink:0; }
+  .header-text h1 { font-family:var(--display); font-size:1.55rem; font-weight:800; color:var(--white); letter-spacing:-0.02em; line-height:1.1; }
+  .header-text h1 span { color: var(--accent); }
+  .header-text p { font-size:0.78rem; color:rgba(255,255,255,0.55); margin-top:5px; font-family:var(--mono); letter-spacing:0.03em; }
+  .header-badge { margin-left:auto; background:rgba(232,160,32,0.15); border:1px solid rgba(232,160,32,0.3); color:var(--accent2); font-family:var(--mono); font-size:0.7rem; padding:6px 14px; border-radius:40px; white-space:nowrap; }
+
+  .page-body { max-width:1280px; margin:0 auto; padding:32px 32px 48px; }
+
+  .card { background:var(--white); border-radius:18px; border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; margin-bottom:24px; }
+  .card-header { padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+  .card-header-icon { width:32px; height:32px; background:var(--surface2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; }
+  .card-header-title { font-family:var(--display); font-weight:700; font-size:0.95rem; color:var(--navy); }
+  .card-header-sub { font-size:0.72rem; color:var(--muted); margin-left:auto; }
+  .card-body { padding:20px 24px; }
+
+  textarea#rawData { width:100%; height:200px; font-family:var(--mono); font-size:11px; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); resize:vertical; line-height:1.5; }
+  textarea#rawData:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(232,160,32,0.15); }
+
+  .btn-row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 22px; border-radius:40px; font-family:var(--display); font-weight:700; font-size:0.82rem; border:none; cursor:pointer; transition:all 0.18s; }
+  .btn-primary { background:var(--navy); color:var(--white); }
+  .btn-primary:hover { background:var(--blue); transform:translateY(-1px); }
+  .btn-export { background:var(--green); color:var(--white); }
+  .btn-export:hover { background:#155f3e; transform:translateY(-1px); }
+  .btn-secondary { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+  .btn-secondary:hover { background:var(--border); color:var(--text); }
+
+  .filters-card { background:var(--white); border-radius:18px; border:1px solid var(--border); box-shadow:var(--shadow); padding:18px 24px; margin-bottom:24px; display:none; }
+  .filters-title { font-family:var(--display); font-weight:700; font-size:0.88rem; color:var(--navy); margin-bottom:14px; }
+  .filters-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media(max-width:900px){.filters-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.filters-grid{grid-template-columns:1fr;}}
+  .filter-group label { font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; display:block; margin-bottom:6px; }
+  .filter-input-wrap { position:relative; }
+  .filter-input-wrap .fi-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:0.85rem; pointer-events:none; color:var(--muted); }
+  .filter-input-wrap input, .filter-input-wrap select { width:100%; padding:9px 12px 9px 32px; border:1.5px solid var(--border); border-radius:9px; font-family:var(--sans); font-size:0.82rem; background:var(--surface); color:var(--text); }
+  .filter-input-wrap input:focus, .filter-input-wrap select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(232,160,32,0.12); }
+
+  .summary-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }
+  @media(max-width:900px){.summary-strip{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:600px){.summary-strip{grid-template-columns:1fr 1fr;}}
+  .stat-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; flex-direction:column; gap:4px; }
+  .stat-card.highlight { background:var(--navy); border-color:var(--navy); }
+  .stat-label { font-size:0.68rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+  .stat-card.highlight .stat-label { color:rgba(255,255,255,0.55); }
+  .stat-value { font-family:var(--mono); font-size:1.2rem; font-weight:600; color:var(--text); line-height:1; }
+  .stat-card.highlight .stat-value { color:var(--accent2); }
+
+  .table-card { background:var(--white); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; }
+  .table-scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:0.75rem; min-width:900px; }
+  thead th { background:var(--navy); color:rgba(255,255,255,0.7); font-family:var(--mono); font-size:0.65rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:10px 12px; text-align:left; white-space:nowrap; border-bottom:2px solid rgba(232,160,32,0.4); }
+  tbody tr:nth-child(even) td { background:var(--surface); }
+  tbody tr:hover td { background:#fef8ec !important; }
+  td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .col-number { font-family:var(--mono); font-weight:600; text-align:right; }
+  .col-cst { font-family:var(--mono); font-weight:600; text-align:center; }
+  .col-cst span { display:inline-block; background:var(--surface2); padding:2px 8px; border-radius:12px; font-size:0.7rem; }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  #resultArea { display:none; }
+
+  #debugPanel { display:none; background:#1a1a2e; color:#00ff88; font-family:var(--mono); font-size:10px; padding:12px 16px; border-radius:10px; margin-top:10px; max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-inner">
+    <div class="header-logo">DP</div>
+    <div class="header-text">
+      <h1>RDP <span>Rede Dom Pedro de Postos</span> LTDA</h1>
+      <p>MOVIMENTO DE ENTRADAS · VALOR PRODUTO + VALOR CONTÁBIL + BASE PIS</p>
+    </div>
+    <div class="header-badge">⚡ v4 · Parser Corrigido</div>
+  </div>
+</div>
+
+<div class="page-body">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div class="card-header-title">Colar Relatório Bruto</div>
+      <div class="card-header-sub">Cole o conteúdo do Detalhamento de Movimento de Entradas</div>
+    </div>
+    <div class="card-body">
+      <textarea id="rawData" placeholder="Cole aqui o conteúdo exportado do sistema..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="processBtn">▶ Processar Relatório</button>
+        <button class="btn btn-secondary" id="clearBtn">✕ Limpar</button>
+        <button class="btn btn-secondary" id="debugBtn" style="font-size:0.72rem; padding:7px 14px;">🔍 Debug</button>
+      </div>
+      <div id="debugPanel"></div>
+    </div>
+  </div>
+
+  <div class="filters-card" id="filtersArea">
+    <div class="filters-title">🔍 Filtros</div>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Número da NF</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">#</span>
+          <input type="text" id="docFilter" placeholder="Nº da Nota Fiscal">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Produto</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">📦</span>
+          <select id="produtoFilter"><option value="todos">Todos</option></select>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>CST</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">🔢</span>
+          <select id="cstFilter">
+            <option value="todos">Todos</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Destaque coluna</label>
+        <div class="filter-input-wrap">
+          <span class="fi-icon">💰</span>
+          <select id="valorFilter">
+            <option value="valor_produto">Valor Produto</option>
+            <option value="valor_contabil" selected>Valor Contábil</option>
+            <option value="base_pis">Base PIS</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:12px; flex-wrap:wrap;">
+      <div style="font-family:var(--display); font-weight:800; font-size:0.9rem; color:var(--navy); display:flex; align-items:center; gap:8px;">
+        📊 Itens do Movimento
+        <span style="flex:1; height:1px; background:var(--border); display:inline-block; min-width:40px;"></span>
+      </div>
+      <button class="btn btn-export" id="exportCsvBtn">⬇ Exportar CSV</button>
+    </div>
+    <div class="summary-strip">
+      <div class="stat-card"><div class="stat-label">Itens exibidos</div><div class="stat-value" id="itemCount">0</div></div>
+      <div class="stat-card"><div class="stat-label">Produtos distintos</div><div class="stat-value" id="prodCount">0</div></div>
+      <div class="stat-card"><div class="stat-label">Soma Valor Produto</div><div class="stat-value" id="sumValorProduto">R$ 0,00</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Soma Valor Contábil</div><div class="stat-value" id="sumValorContabil">R$ 0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Soma Base PIS</div><div class="stat-value" id="sumBasePis">R$ 0,00</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>NF (Documento)</th>
+              <th>Data</th>
+              <th>Produto</th>
+              <th style="text-align:right">Valor Produto</th>
+              <th style="text-align:right">Valor Contábil</th>
+              <th style="text-align:right">Base PIS</th>
+              <th>CFOP</th>
+              <th>CST</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8"><div class="empty-state">📂 Nenhum dado processado</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /*
+   * MAPEAMENTO DE COLUNAS (baseado nas imagens do relatório):
+   *
+   * Linha "Produto:": "Produto: CODIGO - NOME DO PRODUTO"
+   *   → captura CODIGO e NOME separadamente
+   *
+   * Linha de dados (tokens separados por espaço, 0-indexed):
+   *   [0]  = Seq (número sequencial)
+   *   [1]  = Data (dd/mm/yyyy)
+   *   [2]  = ?
+   *   [3]  = ?
+   *   [4]  = ?
+   *   [5]  = Código do produto (ex: 2000000028434, ou "1" para Diesel)
+   *   [6]  = Número da NF (documento fiscal, ex: 31021010)
+   *   [7]  = Valor Produto (ex: 97,62)
+   *   [8]  = Valor Contábil (ex: 97,62)
+   *   [9]  = CFOP (ex: 2-653)
+   *   [10] = ?
+   *   [11] = CST (ex: 50)
+   *   [12] = ?
+   *   [13] = Base PIS (ex: 80,05)
+   */
+
+  const $ = id => document.getElementById(id);
+  const textarea    = $('rawData');
+  const processBtn  = $('processBtn');
+  const clearBtn    = $('clearBtn');
+  const debugBtn    = $('debugBtn');
+  const debugPanel  = $('debugPanel');
+  const resultArea  = $('resultArea');
+  const filtersArea = $('filtersArea');
+  const tableBody   = $('tableBody');
+  const itemCountEl      = $('itemCount');
+  const prodCountEl      = $('prodCount');
+  const sumValorProdutoEl  = $('sumValorProduto');
+  const sumValorContabilEl = $('sumValorContabil');
+  const sumBasePisEl       = $('sumBasePis');
+  const produtoFilter = $('produtoFilter');
+  const docFilter     = $('docFilter');
+  const cstFilter     = $('cstFilter');
+  const valorFilter   = $('valorFilter');
+
+  let allItems  = [];
+  let debugLog  = [];
+
+  function parseMoney(str) {
+    if (!str) return 0;
+    const v = parseFloat(str.replace(/\./g,'').replace(',','.'));
+    return isNaN(v) ? 0 : v;
+  }
+  function isMoney(str) {
+    return /^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(str);
+  }
+  function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function fmt(n) {
+    return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  }
+
+  function extrairItens(raw) {
+    const lines  = raw.split(/\r?\n/);
+    const items  = [];
+    debugLog     = [];
+    let prodNome = '';
+    let prodCod  = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // ── Linha de cabeçalho de produto ──────────────────────────────
+      // "Produto: 2000000028434 - ARLA A GRANEL"
+      // "Produto: 1 - DIESEL COMUM"
+      const mProd = line.match(/^Produto:\s*(\S+)\s+-\s+(.+)$/i);
+      if (mProd) {
+        prodCod  = mProd[1].trim();
+        prodNome = mProd[2].trim();
+        debugLog.push(`[PROD] cod="${prodCod}" nome="${prodNome}"`);
+        continue;
+      }
+
+      // Ignora linhas de totais, cabeçalhos etc.
+      if (/^Total:/i.test(line))    continue;
+      if (/^Empresa:/i.test(line))  continue;
+      if (/^Per[ií]odo/i.test(line)) continue;
+      if (/^Seq\b/i.test(line))     continue;
+      if (/^Emitente/i.test(line))  continue;
+
+      // ── Linha de dados ─────────────────────────────────────────────
+      const tokens = line.split(/\s+/);
+
+      // Mínimo de tokens; tokens[0] = seq numérico; tokens[1] = data
+      if (tokens.length < 10) continue;
+      if (!/^\d+$/.test(tokens[0])) continue;
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(tokens[1])) continue;
+
+      const data  = tokens[1];
+      const nf    = tokens[6] || '';          // coluna 6 = número da NF
+      const vProd = isMoney(tokens[7])  ? parseMoney(tokens[7])  : 0;
+      const vCont = isMoney(tokens[8])  ? parseMoney(tokens[8])  : 0;
+      const cfop  = /^\d-\d{3}$/.test(tokens[9] || '')  ? tokens[9] : 'N/I';
+      const cst   = /^\d+$/.test(tokens[11] || '')       ? tokens[11] : 'N/I';
+      const bPIS  = tokens.length > 13 && isMoney(tokens[13]) ? parseMoney(tokens[13]) : 0;
+
+      // Precisa ter NF e pelo menos um valor
+      if (!nf || (!vProd && !vCont)) {
+        debugLog.push(`[SKIP] linha ${i+1}: nf="${nf}" vProd=${vProd} vCont=${vCont}`);
+        continue;
+      }
+
+      const nome = prodNome || prodCod || '(produto desconhecido)';
+      debugLog.push(`[OK]   nf="${nf}" data="${data}" prod="${nome}" vP=${vProd} vC=${vCont} cfop="${cfop}" cst="${cst}" bPIS=${bPIS}`);
+
+      items.push({
+        documento: nf,
+        data,
+        produto:        nome,
+        valor_produto:  vProd,
+        valor_contabil: vCont,
+        base_pis:       bPIS,
+        cfop,
+        cst
+      });
+    }
+
+    debugLog.push(`\n[TOTAL] ${items.length} itens extraídos de ${lines.length} linhas.`);
+    return items;
+  }
+
+  function popularFiltros(items) {
+    // Produtos
+    const prods = [...new Set(items.map(i => i.produto))].sort();
+    produtoFilter.innerHTML = '<option value="todos">Todos os produtos</option>';
+    prods.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p;
+      o.textContent = p.length > 60 ? p.slice(0,60)+'…' : p;
+      produtoFilter.appendChild(o);
+    });
+    // CSTs
+    const csts = [...new Set(items.map(i => i.cst))].sort();
+    cstFilter.innerHTML = '<option value="todos">Todos</option>';
+    csts.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c;
+      o.textContent = 'CST ' + c;
+      cstFilter.appendChild(o);
+    });
+  }
+
+  function getFiltered() {
+    let r = [...allItems];
+    const fProd = produtoFilter.value;
+    const fDoc  = docFilter.value.trim().toLowerCase();
+    const fCST  = cstFilter.value;
+    if (fProd !== 'todos') r = r.filter(i => i.produto === fProd);
+    if (fDoc)              r = r.filter(i => i.documento.toLowerCase().includes(fDoc));
+    if (fCST !== 'todos')  r = r.filter(i => i.cst === fCST);
+    return r;
+  }
+
+  function render() {
+    const filtered  = getFiltered();
+    const tipoValor = valorFilter.value;
+
+    itemCountEl.textContent = filtered.length;
+    prodCountEl.textContent = new Set(filtered.map(i => i.produto)).size;
+    sumValorProdutoEl.textContent  = fmt(filtered.reduce((s,i)=>s+i.valor_produto,0));
+    sumValorContabilEl.textContent = fmt(filtered.reduce((s,i)=>s+i.valor_contabil,0));
+    sumBasePisEl.textContent       = fmt(filtered.reduce((s,i)=>s+i.base_pis,0));
+
+    if (!filtered.length) {
+      tableBody.innerHTML = '<tr><td colspan="8"><div class="empty-state">🔍 Nenhum resultado</div></td></tr>';
+      return;
+    }
+    const hl = col => tipoValor===col ? ' style="background:#e8f5e9;font-weight:700;"' : '';
+    tableBody.innerHTML = filtered.map(item=>`
+      <tr>
+        <td style="font-family:var(--mono);font-weight:700;">${escHtml(item.documento)}</td>
+        <td style="font-family:var(--mono);">${escHtml(item.data)}</td>
+        <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(item.produto)}">${escHtml(item.produto.length>42?item.produto.slice(0,42)+'…':item.produto)}</td>
+        <td class="col-number"${hl('valor_produto')}>${fmt(item.valor_produto)}</td>
+        <td class="col-number"${hl('valor_contabil')}>${fmt(item.valor_contabil)}</td>
+        <td class="col-number"${hl('base_pis')}>${fmt(item.base_pis)}</td>
+        <td style="font-family:var(--mono);">${escHtml(item.cfop)}</td>
+        <td class="col-cst"><span>${escHtml(item.cst)}</span></td>
+      </tr>`).join('');
+  }
+
+  function processData() {
+    const raw = textarea.value;
+    if (!raw.trim()) { alert('Cole os dados do relatório.'); return; }
+    allItems = extrairItens(raw);
+    if (!allItems.length) {
+      debugPanel.style.display = 'block';
+      debugPanel.textContent   = debugLog.join('\n');
+      alert('Nenhum item encontrado. Veja o debug abaixo.\n\nEstrutura esperada:\nProduto: CODIGO - NOME\n[seq] [dd/mm/yyyy] ... [codProd] [NF] [vProd] [vCont] [CFOP] [?] [CST] [?] [bPIS]');
+      return;
+    }
+    popularFiltros(allItems);
+    docFilter.value = ''; produtoFilter.value = 'todos'; cstFilter.value = 'todos';
+    filtersArea.style.display = 'block';
+    resultArea.style.display  = 'block';
+    textarea.style.display    = 'none';
+    processBtn.style.display  = 'none';
+    render();
+  }
+
+  function clearAll() {
+    allItems = []; debugLog = [];
+    textarea.value = '';
+    textarea.style.display   = '';
+    processBtn.style.display = '';
+    filtersArea.style.display = 'none';
+    resultArea.style.display  = 'none';
+    debugPanel.style.display  = 'none';
+    debugPanel.textContent    = '';
+    tableBody.innerHTML = '<tr><td colspan="8"><div class="empty-state">📂 Nenhum dado processado</div></td></tr>';
+    produtoFilter.innerHTML = '<option value="todos">Todos</option>';
+    cstFilter.innerHTML     = '<option value="todos">Todos</option>';
+    docFilter.value = ''; valorFilter.value = 'valor_contabil';
+  }
+
+  function exportCSV() {
+    const filtered = getFiltered();
+    if (!filtered.length) { alert('Nenhum dado para exportar.'); return; }
+    const BOM='\uFEFF', sep=';';
+    const rows=[['NF (Documento)','Data','Produto','Valor Produto (R$)','Valor Contábil (R$)','Base PIS (R$)','CFOP','CST'].join(sep)];
+    filtered.forEach(i=>rows.push([
+      i.documento, i.data,
+      '"'+i.produto.replace(/"/g,'""')+'"',
+      i.valor_produto.toFixed(2).replace('.',','),
+      i.valor_contabil.toFixed(2).replace('.',','),
+      i.base_pis.toFixed(2).replace('.',','),
+      i.cfop, i.cst
+    ].join(sep)));
+    const blob=new Blob([BOM+rows.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='movimento_entradas_v4_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
+  debugBtn.addEventListener('click', ()=>{
+    if (debugPanel.style.display==='block') { debugPanel.style.display='none'; return; }
+    debugPanel.textContent = debugLog.length ? debugLog.slice(0,100).join('\n') : 'Processe um relatório primeiro.';
+    debugPanel.style.display='block';
+  });
+  processBtn.addEventListener('click', processData);
+  clearBtn.addEventListener('click', clearAll);
+  produtoFilter.addEventListener('change', render);
+  docFilter.addEventListener('input', render);
+  cstFilter.addEventListener('change', render);
+  valorFilter.addEventListener('change', render);
+  $('exportCsvBtn').addEventListener('click', exportCSV);
+})();
+</script>
+</body>
+</html>
