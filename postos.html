@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -662,7 +663,7 @@
 <body>
 <div class="container">
 
-    <!-- HEADER NOVO -->
+    <!-- HEADER -->
     <header>
         <div class="header-content">
             <div class="logo-area">
@@ -686,7 +687,7 @@
             <label><i class="fas fa-search"></i> Buscar posto</label>
             <div class="search-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" class="filter-input" placeholder="Nome, cidade ou razão social...">
+                <input type="text" id="searchInput" class="filter-input" placeholder="Nome, cidade, CNPJ (sufixo)...">
             </div>
         </div>
         <div class="filter-group">
@@ -763,8 +764,8 @@
 
 <script>
     // ------------------------------------------------------------
-    // DADOS (mesmo array do original)
-     const postosData = [
+    // DADOS (array completo - mesmo da versão anterior)
+    const postosData = [
             {codigo: 1, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA", nomeReduzido: "REDE DOM PEDRO DE POSTOS LTD", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "237950644", endereco: "ROD FERNAO DIAS, SN - SN", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "", fax: "", contato: "DIRCEU", ativo: true},
             {codigo: 2, razaoSocial: "MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 1)", nomeReduzido: "DP 1", cnpj: "20.415.295/0001-74", ie: "245068303002", im: "2450291", endereco: "ROD FERNAO DIAS  KM 880,", bairro: "ESPRAIADO", cidade: "ESTIVA", cep: "37.542-0", estado: "MG", municipio: "ESTIVA", pais: "BRASIL", fone: "35 34621188", fax: "35 34621188", contato: "DIRCEU", ativo: true},
             {codigo: 3, razaoSocial: "MG - REDE DOM PEDRO DE POSTOS LTDA (DP ITATIAIUCU)", nomeReduzido: "DP ITATIAIUCU", cnpj: "20.415.295/0009-21", ie: "245068303093", im: "167", endereco: "ROD BR 381, SN - KM 57", bairro: "PINHEIROS", cidade: "ITATIAIUCU", cep: "35.685-0", estado: "MG", municipio: "TATIAIUCU", pais: "BRASIL", fone: "3534622135", fax: "3534622136", contato: "VANDERCELIO", ativo: true},
@@ -897,23 +898,10 @@
             {codigo: 2300, razaoSocial: "XP TRANSPORTES LTDA", nomeReduzido: "XP TRANSPORTES LTDA", cnpj: "14.099.141/0012-70", ie: "ISENTO", im: "ISENTO", endereco: "RODOVIA SANTOS DUMONT, S", bairro: "TABULEIRO", cidade: "RUSSAS", cep: "62.904-1", estado: "CE", municipio: "RUSSAS", pais: "BRASIL", fone: "", fax: "", contato: "", ativo: true}
         ];
 
-    // Para economia de espaço, usamos o array original, mas você deve copiar o mesmo array da versão anterior.
-    // Por questão de brevidade, assuma que o array postosData está completo (110+ itens). Vou utilizar o mesmo.
-
-    // CÓPIA DO ARRAY ORIGINAL (inserido anteriormente) – por questão de espaço não repeti, mas deve ser o mesmo.
-    // No código real, substitua pelo array completo.
-    // (mantive o original, só omiti daqui para não repetir 200 linhas, mas está idêntico ao fornecido)
-    // ------------------------------------------------------------
-    // ATENÇÃO: utilize o array postosData exatamente como na versão anterior (com 110+ objetos)
-    // Aqui vou apenas indicar, mas ao implementar, cole o array inteiro.
-    // Por causa do tamanho, omiti, mas o funcionamento é com o array completo.
-    // *** COLE O ARRAY ORIGINAL AQUI ***
-    // (já está no código do usuário, então manteremos)
-    
     // Estado da aplicação
-    let currentView = 'table';        // 'table' ou 'cards'
+    let currentView = 'table';
     let filteredData = [...postosData];
-    let showInativos = false;         // de acordo com o toggle (checkbox false = oculta inativos)
+    let showInativos = false;
     
     // Elementos
     const searchInput = document.getElementById('searchInput');
@@ -943,19 +931,36 @@
     }
     updateStats();
     
+    // Função de busca ampliada: suporte para final de CNPJ
+    function matchesSearch(posto, term) {
+        if (!term) return true;
+        const lower = term.toLowerCase();
+        // Busca em nome, cidade, razão social
+        if (posto.nomeReduzido.toLowerCase().includes(lower)) return true;
+        if (posto.cidade.toLowerCase().includes(lower)) return true;
+        if (posto.razaoSocial.toLowerCase().includes(lower)) return true;
+        
+        // Busca por final de CNPJ: remove pontos, barras e hífens para comparação
+        const cnpjClean = posto.cnpj.replace(/[.\-\/]/g, '');
+        const termClean = term.replace(/[.\-\/]/g, '');
+        // Verifica se o termo está no final do CNPJ (ou em qualquer parte)
+        if (cnpjClean.includes(termClean)) return true;
+        
+        // Busca também no formato original com separadores (ex: "32-70")
+        if (posto.cnpj.includes(term)) return true;
+        
+        return false;
+    }
+    
     // Renderiza conforme filtros e view
     function refreshDisplay() {
-        // Aplica filtros: search, estado, e regra de inativos
-        const searchTerm = searchInput.value.trim().toLowerCase();
+        const searchTerm = searchInput.value.trim();
         const estado = estadoSelect.value;
         
         filteredData = postosData.filter(posto => {
-            const matchSearch = searchTerm === '' || 
-                posto.nomeReduzido.toLowerCase().includes(searchTerm) ||
-                posto.cidade.toLowerCase().includes(searchTerm) ||
-                posto.razaoSocial.toLowerCase().includes(searchTerm);
+            const matchSearch = matchesSearch(posto, searchTerm);
             const matchEstado = estado === 'all' || posto.estado === estado;
-            const matchStatus = showInativosCheck.checked ? true : posto.ativo === true;  // se false, só ativos
+            const matchStatus = showInativosCheck.checked ? true : posto.ativo === true;
             return matchSearch && matchEstado && matchStatus;
         });
         
@@ -972,7 +977,6 @@
         
         resultMeta.innerText = `${filteredData.length} resultado${filteredData.length !== 1 ? 's' : ''} encontrado${filteredData.length !== 1 ? 's' : ''}`;
         
-        // Renderiza view atual
         if (currentView === 'table') renderTable();
         else renderCards();
     }
@@ -985,7 +989,6 @@
         activeTags.appendChild(tag);
     }
     
-    // Renderiza tabela
     function renderTable() {
         tableBody.innerHTML = '';
         if (filteredData.length === 0) {
@@ -1015,7 +1018,6 @@
         });
     }
     
-    // Renderiza cards
     function renderCards() {
         cardsContainer.innerHTML = '';
         if (filteredData.length === 0) {
@@ -1074,11 +1076,11 @@
     clearBtn.addEventListener('click', () => {
         searchInput.value = '';
         estadoSelect.value = 'all';
-        showInativosCheck.checked = false; // oculta inativos (padrão)
+        showInativosCheck.checked = false;
         refreshDisplay();
     });
     
-    // Exportar CSV (igual ao original)
+    // Exportar CSV
     function exportData() {
         const data = filteredData.length ? filteredData : postosData;
         let csv = "Código;Nome Reduzido;Razão Social;Estado;Cidade;CNPJ;Contato;Status\n";
@@ -1090,10 +1092,6 @@
     }
     exportBtn.addEventListener('click', exportData);
     
-    // Ordenação (mantida da original, simplificada)
-    // Pode reutilizar a função sortTable se desejar, mas não é essencial para a demo
-    
-    // Funções globais para botões
     window.viewDetails = (codigo) => {
         const posto = postosData.find(p => p.codigo === codigo);
         if (!posto) return;
@@ -1118,11 +1116,9 @@
     
     window.editPosto = (codigo) => alert(`Editar posto ${codigo} (modo demonstração)`);
     
-    // Fechar modal
     document.getElementById('closeModal').addEventListener('click', () => document.getElementById('detailModal').style.display = 'none');
     window.addEventListener('click', e => { if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').style.display = 'none'; });
     
-    // Inicialização
     refreshDisplay();
 </script>
 </body>
