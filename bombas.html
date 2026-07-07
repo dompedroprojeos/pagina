@@ -84,6 +84,51 @@
         .empty-state { text-align:center; padding:3rem; color:var(--gray-400); }
         .empty-state i { font-size:3rem; margin-bottom:1rem; }
         .footer { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:.75rem; }
+
+        /* ===== DASHBOARD / GRÁFICO DE MARCAS ===== */
+        .dashboard-section { background:#fff; border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow-md); border:1px solid var(--orange-100); }
+        .dashboard-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.1rem; flex-wrap:wrap; gap:.5rem; }
+        .dashboard-title { font-size:1.05rem; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:.55rem; }
+        .dashboard-title i { color:var(--orange-500); }
+        .dashboard-sub { font-size:.78rem; color:var(--gray-500); }
+        .chart-list { display:flex; flex-direction:column; gap:.65rem; }
+        .chart-row { display:grid; grid-template-columns:140px 1fr 70px; align-items:center; gap:.75rem; }
+        .chart-label { font-size:.82rem; font-weight:600; color:var(--gray-700); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .chart-track { background:var(--gray-100); border-radius:2rem; height:.85rem; overflow:hidden; position:relative; }
+        .chart-fill { height:100%; border-radius:2rem; background:linear-gradient(90deg,var(--orange-400),var(--orange-600)); transition:width .5s ease; }
+        .chart-value { font-size:.8rem; font-weight:700; color:var(--orange-700); text-align:right; }
+        .dashboard-empty { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:.85rem; }
+
+        /* ===== COLAPSO DE LACRES POR BOMBA ===== */
+        .bomba-toggle-btn { background:var(--orange-100); color:var(--orange-700); border:none; border-radius:2rem; width:1.6rem; height:1.6rem; font-size:.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1; transition:background .15s; flex-shrink:0; }
+        .bomba-toggle-btn:hover { background:var(--orange-200); }
+        .lacres-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows .25s ease; }
+        .lacres-wrap.aberto { grid-template-rows:1fr; }
+        .lacres-wrap-inner { overflow:hidden; }
+        .lacres-summary { font-size:.78rem; color:var(--gray-500); margin-top:.2rem; }
+
+        /* ===== BOTÃO RELATÓRIO ===== */
+        .btn-relatorio { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); color:#fff; border-radius:2rem; padding:.35rem .8rem; font-size:.78rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+        .btn-relatorio:hover { background:rgba(255,255,255,.3); }
+
+        /* ===== MODAL RELATÓRIO ===== */
+        .modal-overlay { position:fixed; inset:0; background:rgba(45,42,36,.55); display:flex; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
+        .modal-overlay.hidden { display:none; }
+        .modal-box { background:#fff; border-radius:var(--radius-lg); max-width:420px; width:100%; box-shadow:var(--shadow-lg); overflow:hidden; }
+        .modal-head { background:linear-gradient(135deg,var(--orange-600),var(--orange-700)); color:#fff; padding:1.1rem 1.4rem; display:flex; justify-content:space-between; align-items:center; }
+        .modal-head h3 { font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+        .modal-close { background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; opacity:.85; }
+        .modal-close:hover { opacity:1; }
+        .modal-body { padding:1.3rem 1.4rem; }
+        .modal-body p { font-size:.82rem; color:var(--gray-600); margin-bottom:1rem; }
+        .modal-check-row { display:flex; align-items:center; gap:.6rem; padding:.55rem 0; border-bottom:1px solid var(--gray-100); }
+        .modal-check-row input { width:1.05rem; height:1.05rem; accent-color:var(--orange-500); cursor:pointer; }
+        .modal-check-row label { font-size:.9rem; color:var(--gray-700); cursor:pointer; flex:1; }
+        .modal-foot { padding:1rem 1.4rem 1.4rem; display:flex; gap:.6rem; justify-content:flex-end; }
+        .btn-outline { background:#fff; color:var(--gray-600); border:1px solid var(--gray-300); border-radius:.6rem; padding:.6rem 1.1rem; font-size:.85rem; font-weight:600; cursor:pointer; }
+        .btn-outline:hover { background:var(--gray-50); }
+        .btn-primary { background:var(--orange-500); color:#fff; border:none; border-radius:.6rem; padding:.6rem 1.2rem; font-size:.85rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem; }
+        .btn-primary:hover { background:var(--orange-600); }
         ::-webkit-scrollbar { width:8px; height:8px; }
         ::-webkit-scrollbar-track { background:var(--orange-50); }
         ::-webkit-scrollbar-thumb { background:var(--orange-300); border-radius:4px; }
@@ -122,6 +167,14 @@
             <div class="stat-card"><div class="stat-label"><i class="fas fa-eye-slash"></i> Postos ocultos (inativos)</div><div class="stat-value" id="totalOcultos">0</div></div>
         </div>
 
+        <div class="dashboard-section">
+            <div class="dashboard-header">
+                <div class="dashboard-title"><i class="fas fa-chart-simple"></i> Marcas com mais bombas ativas</div>
+                <div class="dashboard-sub" id="dashboardSub"></div>
+            </div>
+            <div class="chart-list" id="chartMarcas"></div>
+        </div>
+
         <div class="search-section">
             <label class="search-label"><i class="fas fa-search"></i> Buscar por nº de série da bomba, nome ou código do posto</label>
             <div class="search-wrapper">
@@ -142,6 +195,27 @@
     </div>
 
     <div class="footer"><i class="fas fa-database"></i> Waldeci Ramos · Sistemas &amp; Tecnologia</div>
+</div>
+
+<div class="modal-overlay hidden" id="modalRelatorio">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3><i class="fas fa-file-lines"></i> Gerar relatório</h3>
+            <button class="modal-close" onclick="fecharModalRelatorio()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="modalRelatorioPosto">Selecione as colunas que deseja no relatório. Apenas bombas <strong>ativas</strong> serão listadas.</p>
+            <div class="modal-check-row"><input type="checkbox" id="colStatus" checked><label for="colStatus">Status</label></div>
+            <div class="modal-check-row"><input type="checkbox" id="colCadastro" checked><label for="colCadastro">Cadastro</label></div>
+            <div class="modal-check-row"><input type="checkbox" id="colInativacao" checked><label for="colInativacao">Inativação</label></div>
+            <div class="modal-check-row"><input type="checkbox" id="colNrLacre" checked><label for="colNrLacre">Nr. lacre</label></div>
+            <div class="modal-check-row"><input type="checkbox" id="colObservacao" checked><label for="colObservacao">Observação</label></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-outline" onclick="fecharModalRelatorio()">Cancelar</button>
+            <button class="btn-primary" onclick="gerarRelatorio()"><i class="fas fa-print"></i> Gerar relatório</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -240,6 +314,7 @@ function iniciarApp() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     updateStats();
+    renderDashboard();
     setupSearch();
     initFilters();
     render();
@@ -258,6 +333,171 @@ function updateStats() {
     document.getElementById('totalLacresAtivos').textContent = totalLacresAtivos;
     document.getElementById('totalOcultos').textContent = ocultos;
 }
+
+// ==================== DASHBOARD — MARCAS COM MAIS BOMBAS ====================
+function renderDashboard() {
+    const box = document.getElementById('chartMarcas');
+    const sub = document.getElementById('dashboardSub');
+    const contagem = {};
+    let totalAtivas = 0;
+
+    empresasData.forEach(emp => {
+        emp.bombas.forEach(bomba => {
+            if (!bombaAtiva(bomba)) return;
+            totalAtivas++;
+            const marca = (bomba.fabricante || 'Não informado').trim() || 'Não informado';
+            contagem[marca] = (contagem[marca] || 0) + 1;
+        });
+    });
+
+    const ranking = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
+    sub.textContent = `${totalAtivas} bombas ativas · ${ranking.length} marca(s)`;
+
+    if (ranking.length === 0) {
+        box.innerHTML = '<div class="dashboard-empty"><i class="fas fa-chart-simple"></i><p>Sem dados suficientes para o gráfico.</p></div>';
+        return;
+    }
+
+    const max = ranking[0][1];
+    box.innerHTML = ranking.slice(0, 10).map(([marca, qtd]) => {
+        const pct = Math.max(4, Math.round((qtd / max) * 100));
+        return `
+        <div class="chart-row">
+            <div class="chart-label" title="${escapeHtml(marca)}">${escapeHtml(marca)}</div>
+            <div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div>
+            <div class="chart-value">${qtd}</div>
+        </div>`;
+    }).join('');
+}
+
+// ==================== RELATÓRIO POR POSTO ====================
+let relatorioEmpresaCodigo = null;
+const LOGO_REDE = 'https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png';
+
+function abrirModalRelatorio(codigo) {
+    relatorioEmpresaCodigo = codigo;
+    const emp = empresasData.find(e => e.codigo === codigo);
+    document.getElementById('modalRelatorioPosto').innerHTML =
+        `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong>. Selecione as colunas do relatório de lacres. Apenas bombas <strong>ativas</strong> serão listadas.`;
+    document.getElementById('modalRelatorio').classList.remove('hidden');
+}
+window.abrirModalRelatorio = abrirModalRelatorio;
+
+function fecharModalRelatorio() {
+    document.getElementById('modalRelatorio').classList.add('hidden');
+    relatorioEmpresaCodigo = null;
+}
+window.fecharModalRelatorio = fecharModalRelatorio;
+
+function gerarRelatorio() {
+    const emp = empresasData.find(e => e.codigo === relatorioEmpresaCodigo);
+    if (!emp) { fecharModalRelatorio(); return; }
+
+    const colunas = [
+        { key: 'status', label: 'Status', on: document.getElementById('colStatus').checked },
+        { key: 'cadastro', label: 'Cadastro', on: document.getElementById('colCadastro').checked },
+        { key: 'inativacao', label: 'Inativação', on: document.getElementById('colInativacao').checked },
+        { key: 'nrLacre', label: 'Nr. lacre', on: document.getElementById('colNrLacre').checked },
+        { key: 'observacao', label: 'Observação', on: document.getElementById('colObservacao').checked }
+    ].filter(c => c.on);
+
+    if (colunas.length === 0) { alert('Selecione pelo menos uma coluna.'); return; }
+
+    const bombasAtivas = emp.bombas.filter(bombaAtiva);
+    const dataGeracao = new Date().toLocaleString('pt-BR');
+
+    const linhaValor = (l, key) => {
+        if (key === 'status') return `<span class="rp-badge ${l.status === 'ATIVO' ? 'rp-ativo' : 'rp-inativo'}">${l.status}</span>`;
+        if (key === 'cadastro') return l.cadastro || '-';
+        if (key === 'inativacao') return l.inativacao || '-';
+        if (key === 'nrLacre') return escapeHtml(l.nrLacre) || '-';
+        if (key === 'observacao') return escapeHtml(l.observacao) || '-';
+        return '-';
+    };
+
+    const blocosBombas = bombasAtivas.map(bomba => {
+        const lacres = bomba.lacres || [];
+        const linhas = lacres.length > 0
+            ? lacres.map(l => `<tr>${colunas.map(c => `<td>${linhaValor(l, c.key)}</td>`).join('')}</tr>`).join('')
+            : `<tr><td colspan="${colunas.length}" class="rp-empty">Nenhum lacre registrado</td></tr>`;
+        return `
+        <div class="rp-bomba">
+            <div class="rp-bomba-title">
+                <span><i class="rp-icon"></i> Bomba ${escapeHtml(bomba.numero)} — ${escapeHtml(bomba.tipo) || ''}</span>
+                <span class="rp-meta">Fabricante: <strong>${escapeHtml(bomba.fabricante) || '-'}</strong> · Nº Série: <strong>${escapeHtml(bomba.nrSerie) || '-'}</strong> · Modelo: ${escapeHtml(bomba.modelo) || '-'}</span>
+            </div>
+            <table class="rp-table">
+                <thead><tr>${colunas.map(c => `<th>${c.label}</th>`).join('')}</tr></thead>
+                <tbody>${linhas}</tbody>
+            </table>
+        </div>`;
+    }).join('') || '<p class="rp-empty" style="padding:2rem;text-align:center;">Nenhuma bomba ativa neste posto.</p>';
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Relatório de Bombas — ${escapeHtml(emp.nome)}</title>
+<style>
+    @page { size: A4; margin: 22mm 14mm 20mm; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI', Arial, sans-serif; color:#2D2A24; font-size:11px; }
+    .rp-header { display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #EA580C; padding-bottom:10px; margin-bottom:16px; }
+    .rp-header img { height:46px; }
+    .rp-header .rp-title { text-align:right; }
+    .rp-header .rp-title h1 { font-size:16px; color:#C2410C; margin-bottom:2px; }
+    .rp-header .rp-title p { font-size:10px; color:#6B7280; }
+    .rp-posto-box { background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .rp-posto-box .rp-nome { font-size:14px; font-weight:700; color:#9A3412; }
+    .rp-posto-box .rp-info { font-size:10px; color:#6B7280; }
+    .rp-bomba { margin-bottom:14px; page-break-inside:avoid; }
+    .rp-bomba-title { display:flex; flex-direction:column; gap:2px; background:#F97316; color:#fff; padding:6px 10px; border-radius:6px 6px 0 0; font-size:11px; font-weight:600; }
+    .rp-bomba-title .rp-meta { font-size:9.5px; font-weight:400; opacity:.95; }
+    .rp-table { width:100%; border-collapse:collapse; }
+    .rp-table th { background:#FFEDD5; color:#9A3412; text-align:left; padding:5px 8px; font-size:9.5px; border-bottom:1px solid #FED7AA; }
+    .rp-table td { padding:5px 8px; font-size:9.5px; border-bottom:1px solid #F3F4F6; }
+    .rp-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:9px; font-weight:700; }
+    .rp-ativo { background:#DCFCE7; color:#166534; }
+    .rp-inativo { background:#FEE2E2; color:#991B1B; }
+    .rp-empty { color:#9CA3AF; font-style:italic; }
+    .rp-footer { position:fixed; bottom:-14mm; left:0; right:0; display:flex; justify-content:space-between; font-size:9px; color:#9CA3AF; border-top:1px solid #E5E7EB; padding-top:5px; }
+    .rp-toolbar { text-align:center; margin-bottom:16px; }
+    .rp-toolbar button { background:#F97316; color:#fff; border:none; border-radius:6px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; margin:0 4px; }
+    @media print { .rp-toolbar { display:none; } }
+</style>
+</head>
+<body>
+    <div class="rp-toolbar">
+        <button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+        <button onclick="window.close()">Fechar</button>
+    </div>
+    <div class="rp-header">
+        <img src="${LOGO_REDE}" alt="Rede Dom Pedro">
+        <div class="rp-title">
+            <h1>Relatório de Bombas e Lacres</h1>
+            <p>Rede Dom Pedro de Postos LTDA</p>
+        </div>
+    </div>
+    <div class="rp-posto-box">
+        <div><div class="rp-nome">${escapeHtml(emp.nome)}</div><div class="rp-info">Código: ${escapeHtml(emp.codigo)}</div></div>
+        <div class="rp-info">Gerado em: ${dataGeracao}<br>${bombasAtivas.length} bomba(s) ativa(s)</div>
+    </div>
+    ${blocosBombas}
+    <div class="rp-footer">
+        <span>Rede Dom Pedro de Postos LTDA — Relatório de Bombas</span>
+        <span>${escapeHtml(emp.nome)} · ${dataGeracao}</span>
+    </div>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para gerar o relatório.'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    fecharModalRelatorio();
+}
+window.gerarRelatorio = gerarRelatorio;
 
 // ==================== BUSCA RÁPIDA (nº de série) ====================
 function renderQuickResults(term) {
@@ -348,12 +588,15 @@ function render() {
                 <div class="empresa-stats">
                     <span><i class="fas fa-oil-can"></i> ${empresa.bombas.length} bombas</span>
                     <span><i class="fas fa-check-circle"></i> ${bombasAtivasCount} ativas</span>
+                    <button class="btn-relatorio" onclick="event.stopPropagation(); abrirModalRelatorio('${escapeHtml(empresa.codigo)}')"><i class="fas fa-file-lines"></i> Relatório</button>
                     <span><i class="fas fa-chevron-down" id="icon-${escapeHtml(empresa.codigo)}"></i></span>
                 </div>
             </div>
             <div class="bombas-container ${expandido ? '' : 'hidden'}" id="bombas-${escapeHtml(empresa.codigo)}">
                 ${empresa.bombas.map(bomba => {
                     const bAtiva = bombaAtiva(bomba);
+                    const bombaId = `${empresa.codigo}_${bomba.numero}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+                    const lacresAtivos = bomba.lacres.filter(l => l.status === 'ATIVO').length;
                     return `
                     <div class="bomba-item">
                         <div class="bomba-header">
@@ -361,6 +604,7 @@ function render() {
                             <div class="bomba-tags">
                                 <span class="tag tag-tipo">${escapeHtml(bomba.tipo)}</span>
                                 <span class="tag ${bAtiva ? 'tag-status-ativa' : 'tag-status-inativa'}">${bAtiva ? 'ATIVA' : 'INATIVA'}</span>
+                                ${bomba.lacres.length > 0 ? `<button class="bomba-toggle-btn" id="btn-${bombaId}" onclick="toggleLacres('${bombaId}')" title="Ver lacres"><i class="fas fa-plus" id="ic-${bombaId}"></i></button>` : ''}
                             </div>
                         </div>
                         <div class="bomba-detalhes">
@@ -369,20 +613,25 @@ function render() {
                             <div class="detalhe-item"><span class="detalhe-label">Modelo:</span><span>${escapeHtml(bomba.modelo) || '-'}</span></div>
                         </div>
                         ${bomba.lacres.length > 0 ? `
-                            <div class="lacres-table-wrapper">
-                                <table class="lacres-table">
-                                    <thead><tr><th>Status</th><th>Cadastro</th><th>Inativação</th><th>Nr. lacre</th><th>Observação</th></tr></thead>
-                                    <tbody>
-                                        ${bomba.lacres.map(l => `
-                                            <tr>
-                                                <td><span class="status-badge ${l.status === 'ATIVO' ? 'status-ativo' : 'status-inativo'}">${l.status}</span></td>
-                                                <td>${l.cadastro || '-'}</td>
-                                                <td>${l.inativacao || '-'}</td>
-                                                <td><code>${escapeHtml(l.nrLacre)}</code></td>
-                                                <td>${escapeHtml(l.observacao) || '-'}</td>
-                                            </tr>`).join('')}
-                                    </tbody>
-                                </table>
+                            <div class="lacres-summary">${bomba.lacres.length} lacre(s) registrado(s) · ${lacresAtivos} ativo(s) — clique no <i class="fas fa-plus" style="font-size:.65rem;"></i> para ver</div>
+                            <div class="lacres-wrap" id="wrap-${bombaId}">
+                                <div class="lacres-wrap-inner">
+                                    <div class="lacres-table-wrapper" style="margin-top:.6rem;">
+                                        <table class="lacres-table">
+                                            <thead><tr><th>Status</th><th>Cadastro</th><th>Inativação</th><th>Nr. lacre</th><th>Observação</th></tr></thead>
+                                            <tbody>
+                                                ${bomba.lacres.map(l => `
+                                                    <tr>
+                                                        <td><span class="status-badge ${l.status === 'ATIVO' ? 'status-ativo' : 'status-inativo'}">${l.status}</span></td>
+                                                        <td>${l.cadastro || '-'}</td>
+                                                        <td>${l.inativacao || '-'}</td>
+                                                        <td><code>${escapeHtml(l.nrLacre)}</code></td>
+                                                        <td>${escapeHtml(l.observacao) || '-'}</td>
+                                                    </tr>`).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>` : '<div style="padding:.5rem;text-align:center;color:var(--gray-400);">Nenhum lacre registrado</div>'}
                     </div>`;
                 }).join('')}
@@ -409,6 +658,15 @@ function toggleEmpresa(codigo) {
     }
 }
 window.toggleEmpresa = toggleEmpresa;
+
+function toggleLacres(bombaId) {
+    const wrap = document.getElementById(`wrap-${bombaId}`);
+    const icon = document.getElementById(`ic-${bombaId}`);
+    if (!wrap) return;
+    wrap.classList.toggle('aberto');
+    if (icon) { icon.classList.toggle('fa-plus'); icon.classList.toggle('fa-minus'); }
+}
+window.toggleLacres = toggleLacres;
 
 // ==================== BUSCA E FILTROS ====================
 function setupSearch() {
