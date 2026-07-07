@@ -40,6 +40,14 @@
         .header h1 { font-size:1.55rem; font-weight:800; letter-spacing:-.02em; display:flex; align-items:center; gap:.55rem; }
         .header p { opacity:.92; font-size:.85rem; margin-top:.2rem; max-width:52ch; }
         .header-pump { margin-left:auto; font-size:2.4rem; opacity:.25; align-self:flex-start; }
+        /* ícones de combustível flutuando no cabeçalho principal (mesmo efeito da tela de login) */
+        .header .fuel-icon { position:absolute; color:rgba(255,255,255,.16); animation:fuelFloatHeader linear infinite; pointer-events:none; z-index:0; }
+        @keyframes fuelFloatHeader {
+            0% { transform:translateY(20px) rotate(-6deg); opacity:0; }
+            15% { opacity:.9; }
+            85% { opacity:.9; }
+            100% { transform:translateY(-160px) rotate(8deg); opacity:0; }
+        }
 
         /* barra de fonte recolhida dentro do header */
         .source-inline { position:relative; z-index:1; margin-top:1.1rem; }
@@ -224,6 +232,52 @@
         .flagged-item .fi-posto { font-weight:700; color:var(--gray-800); }
         .flagged-item .fi-bomba { color:var(--gray-500); }
         .flagged-item .fi-fab { color:#B91C1C; font-weight:600; background:#FEE2E2; padding:.1rem .5rem; border-radius:.4rem; }
+
+        /* ===== ABAS (Bombas / Postos) ===== */
+        .top-tabs { display:flex; gap:.5rem; margin-bottom:1rem; }
+        .top-tab { background:#fff; border:1px solid var(--orange-200); color:var(--gray-600); border-radius:2rem; padding:.55rem 1.1rem; font-size:.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem; transition:background .15s,color .15s; }
+        .top-tab.active { background:var(--orange-500); color:#fff; border-color:var(--orange-500); box-shadow:var(--shadow-sm); }
+        .top-tab:hover:not(.active) { background:var(--orange-50); }
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+
+        /* ===== PAINEL POSTOS (mesclado do postos.html) ===== */
+        .postos-toolbar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
+        .postos-search { flex:1; min-width:220px; }
+        .pt-status { font-weight:700; font-size:.72rem; padding:.2rem .6rem; border-radius:2rem; display:inline-block; }
+        .pt-status.ok { background:#DCFCE7; color:#166534; }
+        .pt-status.no { background:#FEE2E2; color:#991B1B; }
+        .gerente-box { display:flex; flex-direction:column; gap:.1rem; font-size:.78rem; }
+        .gerente-box .g-nome { font-weight:700; color:var(--gray-800); }
+        .gerente-box .g-fone { color:var(--gray-500); }
+        .gerente-box .g-vazio { color:var(--gray-400); font-style:italic; }
+        .btn-edit-gerente { background:var(--orange-100); color:var(--orange-700); border:none; border-radius:.5rem; padding:.3rem .5rem; font-size:.72rem; cursor:pointer; margin-top:.25rem; }
+        .btn-edit-gerente:hover { background:var(--orange-200); }
+        .gerente-form { display:flex; flex-direction:column; gap:.35rem; margin-top:.3rem; }
+        .gerente-form input { border:1px solid var(--orange-200); border-radius:.4rem; padding:.35rem .5rem; font-size:.78rem; }
+        .gerente-form-btns { display:flex; gap:.35rem; }
+        .gerente-form-btns button { flex:1; border:none; border-radius:.4rem; padding:.3rem; font-size:.72rem; font-weight:700; cursor:pointer; }
+        .gerente-form-btns .g-salvar { background:var(--orange-500); color:#fff; }
+        .gerente-form-btns .g-cancelar { background:var(--gray-200); color:var(--gray-700); }
+
+        /* ===== HISTÓRICO DE NOME (timeline por posto) ===== */
+        .btn-historico { background:rgba(255,255,255,.55); color:var(--orange-700); border:1px solid var(--orange-200); border-radius:2rem; padding:.25rem .65rem; font-size:.7rem; font-weight:700; cursor:pointer; display:inline-flex; gap:.3rem; align-items:center; }
+        .timeline-wrap { display:flex; flex-direction:column; gap:.6rem; }
+        .timeline-item { display:flex; align-items:center; gap:.6rem; font-size:.85rem; }
+        .timeline-item .t-antigo { color:var(--gray-500); text-decoration:line-through; }
+        .timeline-item .t-arrow { color:var(--orange-500); }
+        .timeline-item .t-novo { color:var(--gray-800); font-weight:700; }
+        .timeline-item .t-data { margin-left:auto; font-size:.72rem; color:var(--gray-400); }
+
+        /* ===== NÚMEROS DE BOMBA DUPLICADOS ===== */
+        .dup-toggle {
+            display:flex; align-items:center; gap:.5rem; cursor:pointer; user-select:none;
+            background:#FFFBEB; border:1px solid #FDE68A; color:#92400E; font-weight:700; font-size:.82rem;
+            padding:.6rem .9rem; border-radius:.7rem; margin-top:.6rem;
+        }
+        .dup-toggle .dc-count { background:#D97706; color:#fff; border-radius:2rem; padding:.1rem .55rem; font-size:.75rem; }
+        .dup-toggle .dc-chevron { margin-left:auto; transition:transform .2s; }
+        .dup-toggle.aberto .dc-chevron { transform:rotate(180deg); }
 
         /* ===== COLAPSO DE LACRES POR BOMBA ===== */
         .bomba-toggle-btn { background:var(--orange-100); color:var(--orange-700); border:none; border-radius:2rem; width:1.6rem; height:1.6rem; font-size:.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1; transition:background .15s; flex-shrink:0; }
@@ -428,9 +482,10 @@
                 <h1><i class="fas fa-gas-pump"></i> Painel de Controle de Bombas</h1>
                 <p>Acompanhe em tempo real os postos, bombas e lacres ativos da rede.</p>
             </div>
-            <i class="fas fa-gas-pump header-pump"></i>
+            <i class="fas fa-gas-pump header-pump" title="Rede Dom Pedro"></i>
             <button class="btn-sair" id="btnSair" title="Sair"><i class="fas fa-right-from-bracket"></i> Sair</button>
         </div>
+        <div id="headerFuelIcons"></div>
 
         <div class="source-inline">
             <div class="source-summary">
@@ -451,6 +506,12 @@
     </div>
 
     <div id="mainContent" style="display:none;">
+        <div class="top-tabs">
+            <button class="top-tab active" id="tabBtnBombas" onclick="mudarAba('bombas')"><i class="fas fa-gas-pump"></i> Bombas</button>
+            <button class="top-tab" id="tabBtnPostos" onclick="mudarAba('postos')"><i class="fas fa-building"></i> Postos &amp; Gerentes</button>
+        </div>
+
+        <div id="painelBombas" class="tab-panel active">
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card"><div class="stat-icon"><i class="fas fa-building"></i></div><div class="stat-text"><div class="stat-label">Postos</div><div class="stat-value" id="totalPostos">0</div></div></div>
             <div class="stat-card"><div class="stat-icon"><i class="fas fa-oil-can"></i></div><div class="stat-text"><div class="stat-label">Bombas</div><div class="stat-value" id="totalBombas">0</div></div></div>
@@ -468,6 +529,7 @@
                 <div class="chart-list" id="chartMarcas"></div>
             </div>
             <div class="flagged-wrap" id="flaggedWrap"></div>
+            <div class="flagged-wrap" id="dupWrap"></div>
         </div>
 
         <div class="search-section">
@@ -493,9 +555,46 @@
         </div>
 
         <div id="empresasContainer"></div>
+        </div>
+
+        <div id="painelPostos" class="tab-panel">
+            <div class="postos-toolbar">
+                <button class="top-tab" onclick="mudarAba('bombas')"><i class="fas fa-arrow-left"></i> Voltar para Bombas</button>
+                <div class="search-wrapper postos-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="postosSearchInput" placeholder="Buscar posto por nome, código, cidade ou gerente...">
+                </div>
+            </div>
+            <div class="postos-table-wrapper">
+                <table class="postos-table">
+                    <thead>
+                        <tr>
+                            <th>Posto</th><th>Código</th><th>Cidade/UF</th><th>Telefone</th><th>Status</th><th>Gerente / Contato</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postosTableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div class="footer"><i class="fas fa-database"></i> Waldeci Ramos · Sistemas &amp; Tecnologia</div>
+</div>
+
+<div class="modal-overlay hidden" id="modalHistorico">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3><i class="fas fa-clock-rotate-left"></i> Histórico do posto</h3>
+            <button class="modal-close" onclick="fecharModalHistorico()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="modalHistoricoPosto"></p>
+            <div class="timeline-wrap" id="timelineBody"></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-outline" onclick="fecharModalHistorico()">Fechar</button>
+        </div>
+    </div>
 </div>
 
 <div class="modal-overlay hidden" id="modalRelatorio">
@@ -521,10 +620,42 @@
 
 <script>
 let empresasData = [];
+let postosData = [];
 let currentFilter = 'active';
 let currentSearchTerm = '';
 let currentView = 'cards';
 let forcedExpand = new Set();
+let postosSearchTerm = '';
+
+// ==================== GERENTES (registro editável, salvo no navegador) ====================
+// Os dados "oficiais" (gerente/telefoneGerente) vêm do bombas.json, mas como esse arquivo
+// costuma ser regerado a partir da fonte externa, guardamos as edições feitas por aqui
+// separadamente no localStorage, pra não se perderem numa próxima geração do bombas.json.
+const GERENTES_KEY = 'dp_gerentes_v1';
+function carregarGerentesLocal() {
+    try { return JSON.parse(localStorage.getItem(GERENTES_KEY)) || {}; }
+    catch { return {}; }
+}
+function salvarGerenteLocal(codigo, nome, telefone) {
+    const dados = carregarGerentesLocal();
+    dados[codigo] = { nome, telefone };
+    localStorage.setItem(GERENTES_KEY, JSON.stringify(dados));
+}
+function getGerente(codigo) {
+    const local = carregarGerentesLocal()[codigo];
+    if (local) return local;
+    const emp = empresasData.find(e => e.codigo === codigo);
+    if (emp && (emp.gerente || emp.telefoneGerente)) return { nome: emp.gerente || '', telefone: emp.telefoneGerente || '' };
+    return { nome: '', telefone: '' };
+}
+// seed inicial: Dom Pedro 1 (código 2) = Dirceu do Carmo (só aplica se ainda não houver nada salvo)
+(function seedGerentePadrao() {
+    const dados = carregarGerentesLocal();
+    if (!dados['2']) {
+        dados['2'] = { nome: 'Dirceu do Carmo', telefone: '(35) 98401-6706' };
+        localStorage.setItem(GERENTES_KEY, JSON.stringify(dados));
+    }
+})();
 
 // paleta categórica — cor FIXA por nome de marca (não depende mais da posição
 // no ranking). Assim nenhuma marca conhecida fica sem cor, não importa a ordem.
@@ -599,12 +730,20 @@ function carregarViaFetch() {
     });
 }
 
+function carregarPostosViaFetch() {
+    return fetch('postos.json?_=' + Date.now(), { cache: 'no-store' }).then(resp => {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    });
+}
+
 async function carregarDados() {
     const sourceText = document.getElementById('sourceText');
 
     try {
         empresasData = await carregarViaFetch();
         sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
+        try { postosData = await carregarPostosViaFetch(); } catch (e2) { postosData = []; }
         iniciarApp();
     } catch (e) {
         sourceText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Não foi possível carregar bombas.json`;
@@ -650,6 +789,159 @@ function iniciarApp() {
     initFilters();
     initViewToggle();
     render();
+    setupPostosSearch();
+    renderPostosTable();
+    criarIconesHeader();
+}
+
+// ==================== ABAS (Bombas / Postos) ====================
+function mudarAba(aba) {
+    const painelB = document.getElementById('painelBombas');
+    const painelP = document.getElementById('painelPostos');
+    const btnB = document.getElementById('tabBtnBombas');
+    const btnP = document.getElementById('tabBtnPostos');
+    if (aba === 'postos') {
+        painelB.classList.remove('active'); painelP.classList.add('active');
+        btnB.classList.remove('active'); btnP.classList.add('active');
+        renderPostosTable();
+    } else {
+        painelP.classList.remove('active'); painelB.classList.add('active');
+        btnP.classList.remove('active'); btnB.classList.add('active');
+    }
+}
+window.mudarAba = mudarAba;
+
+// ==================== PAINEL POSTOS & GERENTES ====================
+function setupPostosSearch() {
+    const input = document.getElementById('postosSearchInput');
+    if (!input) return;
+    let debounce;
+    input.addEventListener('input', (e) => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            postosSearchTerm = e.target.value.trim().toLowerCase();
+            renderPostosTable();
+        }, 200);
+    });
+}
+
+function renderPostosTable() {
+    const tbody = document.getElementById('postosTableBody');
+    if (!tbody) return;
+    let lista = [...postosData];
+    if (postosSearchTerm) {
+        const t = postosSearchTerm;
+        lista = lista.filter(p => {
+            const g = getGerente(String(p.codigo));
+            return (p.nomeReduzido || '').toLowerCase().includes(t) ||
+                   String(p.codigo).toLowerCase().includes(t) ||
+                   (p.cidade || '').toLowerCase().includes(t) ||
+                   (g.nome || '').toLowerCase().includes(t);
+        });
+    }
+    if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:2rem;">Nenhum posto encontrado.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = lista.map(p => {
+        const codigo = String(p.codigo);
+        const g = getGerente(codigo);
+        return `
+        <tr>
+            <td><div class="pt-nome">${escapeHtml(p.nomeReduzido)}</div><div class="pt-cod">${escapeHtml(p.cidade)}${p.estado ? '/' + escapeHtml(p.estado) : ''}</div></td>
+            <td><span class="pt-cod">${escapeHtml(codigo)}</span></td>
+            <td>${escapeHtml(p.cidade) || '-'}${p.estado ? '/' + escapeHtml(p.estado) : ''}</td>
+            <td>${escapeHtml(p.fone) || '-'}</td>
+            <td><span class="pt-status ${p.ativo ? 'ok' : 'no'}">${p.ativo ? 'ATIVO' : 'INATIVO'}</span></td>
+            <td>${renderGerenteCell(codigo, g)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderGerenteCell(codigo, g) {
+    const idBox = `gbox-${codigo}`;
+    if (g.nome || g.telefone) {
+        return `
+        <div class="gerente-box" id="${idBox}">
+            <span class="g-nome"><i class="fas fa-user-tie"></i> ${escapeHtml(g.nome) || '(sem nome)'}</span>
+            ${g.telefone ? `<span class="g-fone"><i class="fas fa-phone"></i> ${escapeHtml(g.telefone)}</span>` : ''}
+            <button class="btn-edit-gerente" onclick="abrirFormGerente('${codigo}')"><i class="fas fa-pen"></i> Editar</button>
+        </div>`;
+    }
+    return `
+    <div class="gerente-box" id="${idBox}">
+        <span class="g-vazio">Nenhum gerente cadastrado</span>
+        <button class="btn-edit-gerente" onclick="abrirFormGerente('${codigo}')"><i class="fas fa-plus"></i> Cadastrar</button>
+    </div>`;
+}
+
+function abrirFormGerente(codigo) {
+    const box = document.getElementById(`gbox-${codigo}`);
+    if (!box) return;
+    const g = getGerente(codigo);
+    box.innerHTML = `
+        <div class="gerente-form">
+            <input type="text" id="ginput-nome-${codigo}" placeholder="Nome do gerente" value="${escapeHtml(g.nome)}">
+            <input type="text" id="ginput-fone-${codigo}" placeholder="Telefone (ex: (35) 98401-6706)" value="${escapeHtml(g.telefone)}">
+            <div class="gerente-form-btns">
+                <button class="g-salvar" onclick="salvarFormGerente('${codigo}')"><i class="fas fa-check"></i> Salvar</button>
+                <button class="g-cancelar" onclick="renderPostosTable()"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>`;
+}
+window.abrirFormGerente = abrirFormGerente;
+
+function salvarFormGerente(codigo) {
+    const nome = document.getElementById(`ginput-nome-${codigo}`).value.trim();
+    const telefone = document.getElementById(`ginput-fone-${codigo}`).value.trim();
+    salvarGerenteLocal(codigo, nome, telefone);
+    renderPostosTable();
+}
+window.salvarFormGerente = salvarFormGerente;
+
+// ==================== HISTÓRICO DE NOME DO POSTO (timeline) ====================
+function abrirModalHistorico(codigo) {
+    const emp = empresasData.find(e => e.codigo === codigo);
+    const hist = (emp && emp.historicoNome) || [];
+    document.getElementById('modalHistoricoPosto').innerHTML =
+        `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong> (código ${escapeHtml(codigo)})`;
+    const body = document.getElementById('timelineBody');
+    if (hist.length === 0) {
+        body.innerHTML = `<p style="color:var(--gray-400);font-size:.85rem;text-align:center;padding:1rem 0;">Nenhuma alteração de nome registrada para este posto ainda.</p>`;
+    } else {
+        body.innerHTML = hist.map(h => `
+            <div class="timeline-item">
+                <i class="fas fa-clock-rotate-left" style="color:var(--gray-400);"></i>
+                <span class="t-antigo">${escapeHtml(h.nomeAnterior)}</span>
+                <i class="fas fa-arrow-right t-arrow"></i>
+                <span class="t-novo">${escapeHtml(h.nomeAtual)}</span>
+                ${h.data ? `<span class="t-data">${escapeHtml(h.data)}</span>` : ''}
+            </div>`).join('');
+    }
+    document.getElementById('modalHistorico').classList.remove('hidden');
+}
+window.abrirModalHistorico = abrirModalHistorico;
+
+function fecharModalHistorico() {
+    document.getElementById('modalHistorico').classList.add('hidden');
+}
+window.fecharModalHistorico = fecharModalHistorico;
+
+// ==================== ÍCONES FLUTUANTES NO CABEÇALHO ====================
+function criarIconesHeader() {
+    const container = document.getElementById('headerFuelIcons');
+    if (!container || container.childElementCount > 0) return;
+    const icones = ['fa-gas-pump', 'fa-oil-can', 'fa-droplet', 'fa-gauge-high'];
+    for (let i = 0; i < 8; i++) {
+        const el = document.createElement('i');
+        el.className = 'fas ' + icones[i % icones.length] + ' fuel-icon';
+        el.style.left = Math.random() * 100 + '%';
+        el.style.bottom = '-30px';
+        el.style.animationDuration = (6 + Math.random() * 6) + 's';
+        el.style.animationDelay = (Math.random() * 6) + 's';
+        el.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
+        container.appendChild(el);
+    }
 }
 
 // ==================== STATS ====================
@@ -722,9 +1014,12 @@ function renderDashboard() {
             const pctDoTotal = Math.round((qtd / totalAtivas) * 100);
             const topCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
             const cor = corPorMarca[marca];
+            // ranks 4+ não têm gradiente fixo no CSS (só top1/2/3) — aplica a cor da própria
+            // marca via style inline pra nenhuma posição ficar "sem cor".
+            const rankStyle = topCls ? '' : `style="background:${cor}22;color:${cor};border-color:${cor}55;"`;
             return `
             <div class="chart-row">
-                <div class="chart-rank ${topCls}">${i + 1}</div>
+                <div class="chart-rank ${topCls}" ${rankStyle}>${i + 1}</div>
                 <div class="chart-label" title="${escapeHtml(marca)}">${escapeHtml(marca)}</div>
                 <div class="chart-track"><div class="chart-fill" data-pct="${pct}" style="background:linear-gradient(90deg, ${cor}99, ${cor})"></div></div>
                 <div class="chart-value-wrap">
@@ -735,13 +1030,8 @@ function renderDashboard() {
         }).join('');
 
         // ----- donut (estilo "Total") -----
-        // mostra todas as marcas individualmente no donut (até 10) — só cai em
-        // "OUTRAS" se houver mais de 10 marcas simultâneas, o que não deve
-        // acontecer com a whitelist atual (14 marcas conhecidas, mas raro ter
-        // mais de 8-10 ativas ao mesmo tempo numa rede real)
-        const LIMITE_DONUT = 10;
-        const topN = ranking.slice(0, LIMITE_DONUT);
-        const restoQtd = ranking.slice(LIMITE_DONUT).reduce((a, [, q]) => a + q, 0);
+        const topN = ranking.slice(0, 5);
+        const restoQtd = ranking.slice(5).reduce((a, [, q]) => a + q, 0);
         const segmentos = topN.map(([marca, qtd]) => ({ marca, qtd, cor: corPorMarca[marca] }));
         if (restoQtd > 0) segmentos.push({ marca: 'OUTRAS', qtd: restoQtd, cor: COR_OUTRAS });
 
@@ -811,6 +1101,54 @@ function renderDashboard() {
             document.getElementById('flaggedBody').classList.toggle('aberto');
         });
     }
+
+    // ----- painel: números de bomba duplicados dentro do mesmo posto -----
+    renderDuplicados();
+}
+
+function renderDuplicados() {
+    const dupWrap = document.getElementById('dupWrap');
+    if (!dupWrap) return;
+    const duplicados = [];
+    empresasData.forEach(emp => {
+        const porNumero = {};
+        emp.bombas.forEach(b => { (porNumero[b.numero] = porNumero[b.numero] || []).push(b); });
+        Object.entries(porNumero).forEach(([numero, lista]) => {
+            if (lista.length > 1) duplicados.push({ posto: emp.nome, codigo: emp.codigo, numero, qtd: lista.length });
+        });
+    });
+
+    if (duplicados.length === 0) {
+        dupWrap.innerHTML = '';
+        return;
+    }
+    dupWrap.innerHTML = `
+        <div class="dup-toggle" id="dupToggle">
+            <i class="fas fa-clone"></i>
+            <span>Números de bomba duplicados no mesmo posto</span>
+            <span class="dc-count">${duplicados.length}</span>
+            <i class="fas fa-chevron-down dc-chevron"></i>
+        </div>
+        <div class="flagged-body-wrap" id="dupBody">
+            <div class="flagged-body-inner">
+                <div class="flagged-list">
+                    ${duplicados.map(d => `
+                        <div class="flagged-item">
+                            <span class="fi-posto">${escapeHtml(d.posto)}${d.codigo ? ' (' + escapeHtml(d.codigo) + ')' : ''}</span>
+                            <span class="fi-bomba">Bomba nº ${escapeHtml(d.numero)}</span>
+                            <span class="fi-fab">aparece ${d.qtd}x</span>
+                        </div>`).join('')}
+                </div>
+                <p style="font-size:.75rem;color:var(--gray-400);margin-top:.6rem;">
+                    Essas bombas têm o mesmo número dentro do mesmo posto — provavelmente erro de
+                    cadastro (numeração repetida). Corrija na origem e gere o bombas.json novamente.
+                </p>
+            </div>
+        </div>`;
+    document.getElementById('dupToggle').addEventListener('click', () => {
+        document.getElementById('dupToggle').classList.toggle('aberto');
+        document.getElementById('dupBody').classList.toggle('aberto');
+    });
 }
 
 // ==================== RELATÓRIO POR POSTO ====================
@@ -1079,6 +1417,7 @@ function renderCards(filtered, container) {
                 <div class="empresa-stats">
                     <span><i class="fas fa-oil-can"></i> ${empresa.bombas.length} bombas</span>
                     <span><i class="fas fa-check-circle"></i> ${bombasAtivasCount} ativas</span>
+                    ${empresa.historicoNome && empresa.historicoNome.length > 0 ? `<button class="btn-historico" onclick="event.stopPropagation(); abrirModalHistorico('${escapeHtml(empresa.codigo)}')"><i class="fas fa-clock-rotate-left"></i> Histórico</button>` : ''}
                     <button class="btn-relatorio" onclick="event.stopPropagation(); abrirModalRelatorio('${escapeHtml(empresa.codigo)}')"><i class="fas fa-file-lines"></i> Relatório</button>
                     <span><i class="fas fa-chevron-down" id="icon-${escapeHtml(empresa.codigo)}"></i></span>
                 </div>
