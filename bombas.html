@@ -434,7 +434,7 @@
 
         <div class="source-inline">
             <div class="source-summary">
-                <span id="sourceText"><i class="fas fa-spinner fa-spin"></i> Procurando bombas.js / bombas.json...</span>
+                <span id="sourceText"><i class="fas fa-spinner fa-spin"></i> Carregando bombas.json...</span>
                 <button class="source-toggle" id="btnToggleSource"><i class="fas fa-sliders" id="iconToggleSource"></i> Fonte</button>
             </div>
             <div class="source-actions" id="sourceActions">
@@ -526,20 +526,34 @@ let currentSearchTerm = '';
 let currentView = 'cards';
 let forcedExpand = new Set();
 
-// paleta categórica — uma cor diferente por marca (não é mais tudo laranja)
-const BRAND_COLORS = [
-    '#EA580C', // laranja  (Wayne)
-    '#2563EB', // azul     (Gilbarco)
-    '#16A34A', // verde    (Ipiranga)
-    '#7C3AED', // roxo     (Dresser)
-    '#DB2777', // pink     (Raizen)
-    '#0891B2', // ciano    (Petrobras)
-    '#CA8A04', // dourado
-    '#DC2626', // vermelho
-    '#4F46E5', // índigo
-    '#059669'  // esmeralda
-];
+// paleta categórica — cor FIXA por nome de marca (não depende mais da posição
+// no ranking). Assim nenhuma marca conhecida fica sem cor, não importa a ordem.
+const CORES_PREFERIDAS = {
+    WAYNE: '#EA580C',        // laranja
+    GILBARCO: '#2563EB',     // azul
+    IPIRANGA: '#16A34A',     // verde
+    DRESSER: '#7C3AED',      // roxo
+    RAIZEN: '#DB2777',       // pink
+    PETROBRAS: '#0891B2',    // ciano
+    TATSUNO: '#CA8A04',      // dourado
+    SCHLUMBERGER: '#DC2626', // vermelho
+    TOKHEIM: '#4F46E5',      // índigo
+    SMAR: '#059669',         // esmeralda
+    LIQUID: '#D97706',       // âmbar
+    ADAST: '#0D9488',        // teal
+    BENNETT: '#9333EA',      // violeta
+    GAS: '#65A30D'           // lima
+};
 const COR_OUTRAS = '#CBD5E1';
+
+// gera uma cor determinística (nunca repete, nunca fica "sem cor") pra
+// qualquer marca que não esteja no mapa acima — útil se aparecer uma marca
+// nova nos dados que ainda não foi adicionada em CORES_PREFERIDAS.
+function corParaMarca(marca, indiceFallback) {
+    if (CORES_PREFERIDAS[marca]) return CORES_PREFERIDAS[marca];
+    const hue = (indiceFallback * 137.508) % 360; // ângulo áureo: distribui cores sem repetir
+    return `hsl(${hue.toFixed(0)}, 65%, 45%)`;
+}
 
 // Marcas/fabricantes conhecidos e aceitos no gráfico. Se o campo "fabricante"
 // de uma bomba não começar com nenhum destes nomes, ela NÃO entra no ranking —
@@ -575,20 +589,9 @@ function normalizarMarca(fabricante) {
 }
 
 // ==================== CARREGAMENTO ====================
-function carregarViaScriptTag() {
-    return new Promise((resolve, reject) => {
-        if (window.BOMBAS_DATA) { resolve(window.BOMBAS_DATA); return; }
-        const script = document.createElement('script');
-        script.src = 'bombas.js?_=' + Date.now();
-        script.onload = () => {
-            if (window.BOMBAS_DATA) resolve(window.BOMBAS_DATA);
-            else reject(new Error('bombas.js encontrado, mas não definiu BOMBAS_DATA'));
-        };
-        script.onerror = () => reject(new Error('bombas.js não encontrado nesta pasta'));
-        document.head.appendChild(script);
-    });
-}
-
+// fonte única de dados: bombas.json, sempre buscado via fetch. O bombas.json
+// é a fonte "viva" (editada/gerada diretamente); não depende mais de nenhum
+// bombas.js estático, então nunca mais fica desatualizado.
 function carregarViaFetch() {
     return fetch('bombas.json?_=' + Date.now(), { cache: 'no-store' }).then(resp => {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -600,23 +603,17 @@ async function carregarDados() {
     const sourceText = document.getElementById('sourceText');
 
     try {
-        empresasData = await carregarViaScriptTag();
-        sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.js</b> · ${empresasData.length} postos`;
+        empresasData = await carregarViaFetch();
+        sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
         iniciarApp();
-        return;
-    } catch (e1) {
-        try {
-            empresasData = await carregarViaFetch();
-            sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
-            iniciarApp();
-            return;
-        } catch (e2) {
-            sourceText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Nenhum arquivo encontrado`;
-            document.getElementById('sourceActions').classList.add('open');
-            document.getElementById('loading').innerHTML = `
-                <i class="fas fa-file-circle-question"></i>
-                <p>Nenhum dado carregado ainda. Use "Carregar arquivo" no cabeçalho ou o conversor pra gerar o bombas.json.</p>`;
-        }
+    } catch (e) {
+        sourceText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Não foi possível carregar bombas.json`;
+        document.getElementById('sourceActions').classList.add('open');
+        document.getElementById('loading').innerHTML = `
+            <i class="fas fa-file-circle-question"></i>
+            <p>Não foi possível carregar o bombas.json. Verifique se o arquivo está na mesma pasta do bombas.html
+            e sendo servido via http(s):// (não abra o arquivo direto no navegador). Você também pode usar
+            "Carregar arquivo" no cabeçalho para selecionar o bombas.json manualmente.</p>`;
     }
 }
 
@@ -707,9 +704,10 @@ function renderDashboard() {
     });
 
     const ranking = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-    // mapa marca -> cor, na mesma ordem do ranking (consistente entre barras e donut)
+    // mapa marca -> cor: cor fixa por nome (CORES_PREFERIDAS), com fallback
+    // determinístico pra marca desconhecida — nunca fica sem cor.
     const corPorMarca = {};
-    ranking.forEach(([marca], i) => { corPorMarca[marca] = BRAND_COLORS[i % BRAND_COLORS.length]; });
+    ranking.forEach(([marca], i) => { corPorMarca[marca] = corParaMarca(marca, i); });
 
     sub.innerHTML = `<i class="fas fa-gas-pump"></i> ${totalAtivas} bombas ativas · ${ranking.length} marca(s)`;
 
