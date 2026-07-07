@@ -735,8 +735,13 @@ function renderDashboard() {
         }).join('');
 
         // ----- donut (estilo "Total") -----
-        const topN = ranking.slice(0, 5);
-        const restoQtd = ranking.slice(5).reduce((a, [, q]) => a + q, 0);
+        // mostra todas as marcas individualmente no donut (até 10) — só cai em
+        // "OUTRAS" se houver mais de 10 marcas simultâneas, o que não deve
+        // acontecer com a whitelist atual (14 marcas conhecidas, mas raro ter
+        // mais de 8-10 ativas ao mesmo tempo numa rede real)
+        const LIMITE_DONUT = 10;
+        const topN = ranking.slice(0, LIMITE_DONUT);
+        const restoQtd = ranking.slice(LIMITE_DONUT).reduce((a, [, q]) => a + q, 0);
         const segmentos = topN.map(([marca, qtd]) => ({ marca, qtd, cor: corPorMarca[marca] }));
         if (restoQtd > 0) segmentos.push({ marca: 'OUTRAS', qtd: restoQtd, cor: COR_OUTRAS });
 
