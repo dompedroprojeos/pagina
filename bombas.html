@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🔧 Dom Pedro Bombas | Consulta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:#FFF7F0; color:#2D2A24; line-height:1.5; }
+        :root {
+            --orange-50:#FFF7ED; --orange-100:#FFEDD5; --orange-200:#FED7AA; --orange-300:#FDBA74;
+            --orange-400:#FB923C; --orange-500:#F97316; --orange-600:#EA580C; --orange-700:#C2410C;
+            --orange-800:#9A3412; --orange-900:#7C2D12;
+            --gray-50:#F9FAFB; --gray-100:#F3F4F6; --gray-200:#E5E7EB; --gray-300:#D1D5DB;
+            --gray-400:#9CA3AF; --gray-500:#6B7280; --gray-600:#4B5563; --gray-700:#374151; --gray-800:#1F2937;
+            --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .05); --shadow-md:0 4px 6px -1px rgb(0 0 0 / .1); --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .1);
+            --radius-lg:1rem; --radius-md:.75rem; --radius-sm:.5rem;
+        }
+        .app-container { max-width:1600px; margin:0 auto; padding:1.5rem; }
+        .header { background:linear-gradient(135deg,var(--orange-600),var(--orange-700)); border-radius:var(--radius-lg); padding:2rem 2rem 1.5rem; margin-bottom:1.25rem; color:#fff; box-shadow:var(--shadow-lg); }
+        .header h1 { font-size:1.875rem; font-weight:700; margin-bottom:.5rem; display:flex; align-items:center; gap:.75rem; }
+        .header p { opacity:.9; font-size:.875rem; }
+        .source-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; background:#fff; border:1px solid var(--orange-100); border-radius:var(--radius-md); padding:.75rem 1rem; margin-bottom:1.5rem; font-size:.82rem; color:var(--gray-600); }
+        .source-bar.ok { border-color:#BBF7D0; }
+        .source-bar.warn { border-color:#FDE68A; background:#FFFBEB; }
+        .source-bar b { color:var(--orange-700); }
+        .source-actions { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+        .btn-small { background:var(--orange-500); color:#fff; border:none; border-radius:.5rem; padding:.4rem .8rem; font-size:.78rem; font-weight:600; cursor:pointer; display:inline-flex; gap:.4rem; align-items:center; }
+        .btn-small:hover { background:var(--orange-600); }
+        .btn-small.ghost { background:#fff; color:var(--orange-700); border:1px solid var(--orange-300); }
+        input[type=file] { display:none; }
+        .loading { text-align:center; padding:3rem; color:var(--orange-600); }
+        .loading i { font-size:3rem; margin-bottom:1rem; }
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .stat-card { background:#fff; border-radius:var(--radius-md); padding:1.1rem; box-shadow:var(--shadow-sm); border:1px solid var(--orange-100); }
+        .stat-label { font-size:.72rem; text-transform:uppercase; font-weight:600; color:var(--orange-600); letter-spacing:.5px; }
+        .stat-value { font-size:1.75rem; font-weight:700; color:var(--gray-800); margin-top:.4rem; }
+        .search-section { background:#fff; border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:1rem; box-shadow:var(--shadow-md); border:1px solid var(--orange-100); }
+        .search-label { font-weight:600; color:var(--gray-700); margin-bottom:.5rem; display:block; }
+        .search-wrapper { position:relative; }
+        .search-wrapper i { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--gray-400); }
+        #searchInput { width:100%; padding:.875rem 1rem .875rem 2.75rem; border:2px solid var(--orange-100); border-radius:var(--radius-md); font-size:1rem; background:var(--gray-50); }
+        #searchInput:focus { outline:none; border-color:var(--orange-400); background:#fff; box-shadow:0 0 0 3px rgba(249,115,22,.1); }
+        .quick-results { margin-bottom:1.25rem; }
+        .quick-card { background:#fff; border:2px solid var(--orange-400); border-radius:var(--radius-md); padding:1rem 1.25rem; margin-bottom:.75rem; box-shadow:var(--shadow-md); }
+        .quick-card .qtitle { font-size:.72rem; text-transform:uppercase; font-weight:700; color:var(--orange-600); margin-bottom:.4rem; }
+        .quick-card .qrow { display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; align-items:center; }
+        .quick-card .qposto { font-weight:700; font-size:1.05rem; color:var(--gray-800); }
+        .quick-card .qmeta { font-size:.85rem; color:var(--gray-600); }
+        .quick-card button { margin-top:.6rem; }
+        .filters-bar { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin-bottom:1.25rem; padding:1rem; background:var(--gray-50); border-radius:var(--radius-md); }
+        .filter-badge { display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; background:#fff; border-radius:2rem; border:1px solid var(--orange-200); cursor:pointer; font-size:.875rem; }
+        .filter-badge.active { background:var(--orange-500); border-color:var(--orange-500); color:#fff; }
+        .filter-badge:hover { border-color:var(--orange-400); background:var(--orange-50); }
+        .empresa-card { background:#fff; border-radius:var(--radius-lg); margin-bottom:1.25rem; overflow:hidden; box-shadow:var(--shadow-sm); border:1px solid var(--orange-100); }
+        .empresa-header { background:linear-gradient(135deg,var(--orange-500),var(--orange-600)); padding:1.1rem 1.5rem; color:#fff; cursor:pointer; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+        .empresa-header.inativa { background:linear-gradient(135deg,#9CA3AF,#6B7280); }
+        .empresa-info h3 { font-size:1.15rem; font-weight:600; margin-bottom:.2rem; }
+        .empresa-info .codigo { font-size:.72rem; opacity:.9; font-family:monospace; }
+        .empresa-stats { display:flex; gap:.6rem; font-size:.82rem; flex-wrap:wrap; }
+        .empresa-stats span { background:rgba(255,255,255,.2); padding:.2rem .65rem; border-radius:2rem; white-space:nowrap; }
+        .bombas-container.hidden { display:none; }
+        .bomba-item { border-bottom:1px solid var(--orange-100); padding:1.1rem 1.5rem; }
+        .bomba-item:hover { background:var(--orange-50); }
+        .bomba-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem; }
+        .bomba-numero { font-weight:700; font-size:1.05rem; color:var(--orange-700); }
+        .bomba-tags { display:flex; gap:.4rem; flex-wrap:wrap; }
+        .tag { padding:.2rem .65rem; border-radius:2rem; font-size:.7rem; font-weight:600; }
+        .tag-tipo { background:var(--orange-100); color:var(--orange-700); }
+        .tag-status-ativa { background:#DCFCE7; color:#166534; }
+        .tag-status-inativa { background:#FEE2E2; color:#991B1B; }
+        .bomba-detalhes { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.6rem; background:var(--gray-50); padding:.65rem; border-radius:var(--radius-sm); margin-bottom:.75rem; font-size:.85rem; }
+        .detalhe-item { display:flex; gap:.4rem; }
+        .detalhe-label { font-weight:600; color:var(--gray-600); }
+        .lacres-table-wrapper { overflow-x:auto; }
+        .lacres-table { width:100%; border-collapse:collapse; font-size:.75rem; }
+        .lacres-table th { background:var(--orange-50); padding:.65rem; text-align:left; font-weight:600; color:var(--orange-800); border-bottom:2px solid var(--orange-200); }
+        .lacres-table td { padding:.65rem; border-bottom:1px solid var(--orange-100); vertical-align:top; }
+        .status-badge { display:inline-block; padding:.2rem .5rem; border-radius:2rem; font-size:.68rem; font-weight:600; }
+        .status-ativo { background:#DCFCE7; color:#166534; }
+        .status-inativo { background:#FEE2E2; color:#991B1B; }
+        .empty-state { text-align:center; padding:3rem; color:var(--gray-400); }
+        .empty-state i { font-size:3rem; margin-bottom:1rem; }
+        .footer { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:.75rem; }
+        ::-webkit-scrollbar { width:8px; height:8px; }
+        ::-webkit-scrollbar-track { background:var(--orange-50); }
+        ::-webkit-scrollbar-thumb { background:var(--orange-300); border-radius:4px; }
+        @media (max-width:768px) {
+            .app-container { padding:1rem; }
+            .empresa-header, .bomba-header { flex-direction:column; align-items:flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1><i class="fas fa-gas-pump"></i> Dom Pedro Bombas</h1>
+        <p>Consulta de bombas, lacres e postos — lê direto do bombas.json, sem banco de dados.</p>
+    </div>
+
+    <div id="sourceBar" class="source-bar">
+        <span id="sourceText"><i class="fas fa-spinner fa-spin"></i> Procurando bombas.js / bombas.json na pasta...</span>
+        <div class="source-actions">
+            <button class="btn-small ghost" id="btnCarregarManual"><i class="fas fa-folder-open"></i> Carregar arquivo</button>
+            <a class="btn-small ghost" href="bombas-conversor.html" style="text-decoration:none;"><i class="fas fa-file-import"></i> Gerar bombas.json</a>
+            <input type="file" id="fileInput" accept=".json,application/json">
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        <i class="fas fa-spinner fa-pulse"></i>
+        <p>Carregando dados...</p>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-label"><i class="fas fa-building"></i> Postos</div><div class="stat-value" id="totalPostos">0</div></div>
+            <div class="stat-card"><div class="stat-label"><i class="fas fa-oil-can"></i> Bombas</div><div class="stat-value" id="totalBombas">0</div></div>
+            <div class="stat-card"><div class="stat-label"><i class="fas fa-check-circle"></i> Lacres Ativos</div><div class="stat-value" id="totalLacresAtivos">0</div></div>
+            <div class="stat-card"><div class="stat-label"><i class="fas fa-eye-slash"></i> Postos ocultos (inativos)</div><div class="stat-value" id="totalOcultos">0</div></div>
+        </div>
+
+        <div class="search-section">
+            <label class="search-label"><i class="fas fa-search"></i> Buscar por nº de série da bomba, nome ou código do posto</label>
+            <div class="search-wrapper">
+                <i class="fas fa-store"></i>
+                <input type="text" id="searchInput" placeholder="Ex: 521022, DP 1, BEL POSTO...">
+            </div>
+        </div>
+
+        <div id="quickResults" class="quick-results"></div>
+
+        <div class="filters-bar">
+            <div class="filter-badge active" data-filter="active"><i class="fas fa-check-circle"></i> Ativos</div>
+            <div class="filter-badge" data-filter="all"><i class="fas fa-th-large"></i> Todos</div>
+            <div class="filter-badge" data-filter="inactive"><i class="fas fa-ban"></i> Inativos</div>
+        </div>
+
+        <div id="empresasContainer"></div>
+    </div>
+
+    <div class="footer"><i class="fas fa-database"></i> Waldeci Ramos · Sistemas &amp; Tecnologia</div>
+</div>
+
+<script>
+let empresasData = [];
+let currentFilter = 'active';
+let currentSearchTerm = '';
+let forcedExpand = new Set();
+
+// ==================== STATUS COMPUTADO ====================
+function bombaAtiva(bomba) {
+    return bomba.lacres.some(l => l.status === 'ATIVO');
+}
+function empresaAtiva(empresa) {
+    if (typeof empresa.ativa === 'boolean') return empresa.ativa;
+    return empresa.bombas.some(b => bombaAtiva(b));
+}
+
+// ==================== CARREGAMENTO ====================
+// Estratégia dupla: primeiro tenta bombas.js (via <script src>, funciona mesmo
+// abrindo o HTML direto do disco, sem servidor — não sofre bloqueio de CORS).
+// Se não existir, tenta bombas.json via fetch (ótimo quando publicado num servidor
+// web, ex: Apache). Só se os dois falharem é que pede carregamento manual.
+function carregarViaScriptTag() {
+    return new Promise((resolve, reject) => {
+        if (window.BOMBAS_DATA) { resolve(window.BOMBAS_DATA); return; }
+        const script = document.createElement('script');
+        script.src = 'bombas.js?_=' + Date.now();
+        script.onload = () => {
+            if (window.BOMBAS_DATA) resolve(window.BOMBAS_DATA);
+            else reject(new Error('bombas.js encontrado, mas não definiu BOMBAS_DATA'));
+        };
+        script.onerror = () => reject(new Error('bombas.js não encontrado nesta pasta'));
+        document.head.appendChild(script);
+    });
+}
+
+function carregarViaFetch() {
+    return fetch('bombas.json', { cache: 'no-store' }).then(resp => {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    });
+}
+
+async function carregarDados() {
+    const sourceBar = document.getElementById('sourceBar');
+    const sourceText = document.getElementById('sourceText');
+
+    try {
+        empresasData = await carregarViaScriptTag();
+        sourceBar.classList.add('ok');
+        sourceText.innerHTML = `<i class="fas fa-check-circle" style="color:#166534;"></i> Carregado automaticamente de <b>bombas.js</b> (${empresasData.length} postos)`;
+        iniciarApp();
+        return;
+    } catch (e1) {
+        try {
+            empresasData = await carregarViaFetch();
+            sourceBar.classList.add('ok');
+            sourceText.innerHTML = `<i class="fas fa-check-circle" style="color:#166534;"></i> Carregado automaticamente de <b>bombas.json</b> (${empresasData.length} postos)`;
+            iniciarApp();
+            return;
+        } catch (e2) {
+            sourceBar.classList.add('warn');
+            sourceText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#92400E;"></i>
+                Nenhum <b>bombas.js</b> ou <b>bombas.json</b> encontrado nesta pasta.
+                Gere os arquivos no conversor ou carregue manualmente.`;
+            document.getElementById('loading').innerHTML = `
+                <i class="fas fa-file-circle-question"></i>
+                <p>Nenhum dado carregado ainda. Use "Carregar arquivo" acima ou o conversor pra gerar o bombas.json.</p>`;
+        }
+    }
+}
+
+document.getElementById('btnCarregarManual').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            empresasData = JSON.parse(ev.target.result);
+            const sourceBar = document.getElementById('sourceBar');
+            sourceBar.classList.remove('warn'); sourceBar.classList.add('ok');
+            document.getElementById('sourceText').innerHTML =
+                `<i class="fas fa-check-circle" style="color:#166534;"></i> Carregado manualmente de <b>${file.name}</b> (${empresasData.length} postos)`;
+            iniciarApp();
+        } catch (err) {
+            alert('Arquivo inválido: ' + err.message);
+        }
+    };
+    reader.readAsText(file, 'utf-8');
+});
+
+function iniciarApp() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    updateStats();
+    setupSearch();
+    initFilters();
+    render();
+}
+
+// ==================== STATS ====================
+function updateStats() {
+    const totalPostos = empresasData.length;
+    const totalBombas = empresasData.reduce((a, e) => a + e.bombas.length, 0);
+    const totalLacresAtivos = empresasData.reduce((a, e) =>
+        a + e.bombas.reduce((ba, b) => ba + b.lacres.filter(l => l.status === 'ATIVO').length, 0), 0);
+    const ocultos = empresasData.filter(e => !empresaAtiva(e)).length;
+
+    document.getElementById('totalPostos').textContent = totalPostos;
+    document.getElementById('totalBombas').textContent = totalBombas;
+    document.getElementById('totalLacresAtivos').textContent = totalLacresAtivos;
+    document.getElementById('totalOcultos').textContent = ocultos;
+}
+
+// ==================== BUSCA RÁPIDA (nº de série) ====================
+function renderQuickResults(term) {
+    const box = document.getElementById('quickResults');
+    box.innerHTML = '';
+    if (!term || term.length < 3) return;
+
+    const t = term.toLowerCase();
+    const matches = [];
+    empresasData.forEach(emp => {
+        emp.bombas.forEach(bomba => {
+            if (bomba.nrSerie && bomba.nrSerie.toLowerCase().includes(t)) {
+                matches.push({ emp, bomba });
+            }
+        });
+    });
+    if (matches.length === 0) return;
+
+    box.innerHTML = matches.slice(0, 10).map(({ emp, bomba }, idx) => {
+        const ativa = bombaAtiva(bomba);
+        return `
+        <div class="quick-card">
+            <div class="qtitle"><i class="fas fa-bolt"></i> Bomba encontrada por nº de série</div>
+            <div class="qrow">
+                <span class="qposto">${escapeHtml(emp.nome)}</span>
+                <span class="qmeta">Código: ${escapeHtml(emp.codigo)}</span>
+                <span class="status-badge ${empresaAtiva(emp) ? 'status-ativo' : 'status-inativo'}">Posto ${empresaAtiva(emp) ? 'ATIVO' : 'INATIVO'}</span>
+            </div>
+            <div class="qrow" style="margin-top:.4rem;">
+                <span class="qmeta"><strong>Bomba ${escapeHtml(bomba.numero)}</strong> · ${escapeHtml(bomba.fabricante) || '-'} · ${escapeHtml(bomba.nrSerie)}</span>
+                <span class="status-badge ${ativa ? 'status-ativo' : 'status-inativo'}">Bomba ${ativa ? 'ATIVA' : 'INATIVA'}</span>
+            </div>
+            <button class="btn-small" onclick="irParaPosto('${emp.codigo}')"><i class="fas fa-arrow-right"></i> Ver posto</button>
+        </div>`;
+    }).join('') + (matches.length > 10 ? `<p style="font-size:.8rem;color:var(--gray-500);">+${matches.length - 10} outro(s) resultado(s)...</p>` : '');
+}
+
+function irParaPosto(codigo) {
+    forcedExpand.add(codigo);
+    currentFilter = 'all';
+    document.querySelectorAll('.filter-badge').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    render();
+    setTimeout(() => {
+        const el = document.querySelector(`.empresa-card[data-codigo="${CSS.escape(codigo)}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+}
+window.irParaPosto = irParaPosto;
+
+// ==================== FILTRO E RENDER DE POSTOS ====================
+function filterEmpresas() {
+    let filtered = [...empresasData];
+    if (currentFilter === 'active') filtered = filtered.filter(e => empresaAtiva(e));
+    else if (currentFilter === 'inactive') filtered = filtered.filter(e => !empresaAtiva(e));
+
+    if (currentSearchTerm) {
+        const term = currentSearchTerm.toLowerCase();
+        filtered = filtered.filter(e =>
+            e.nome.toLowerCase().includes(term) ||
+            e.codigo.toLowerCase().includes(term) ||
+            e.bombas.some(b => (b.nrSerie || '').toLowerCase().includes(term))
+        );
+    }
+    return filtered;
+}
+
+function render() {
+    renderQuickResults(currentSearchTerm);
+    const filtered = filterEmpresas();
+    const container = document.getElementById('empresasContainer');
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>Nenhum posto encontrado com os filtros atuais.</p></div>`;
+        return;
+    }
+
+    container.innerHTML = filtered.map(empresa => {
+        const ativa = empresaAtiva(empresa);
+        const expandido = forcedExpand.has(empresa.codigo);
+        const bombasAtivasCount = empresa.bombas.filter(bombaAtiva).length;
+        return `
+        <div class="empresa-card" data-codigo="${escapeHtml(empresa.codigo)}">
+            <div class="empresa-header ${ativa ? '' : 'inativa'}" onclick="toggleEmpresa('${escapeHtml(empresa.codigo)}')">
+                <div class="empresa-info">
+                    <h3>${escapeHtml(empresa.nome)}</h3>
+                    <div class="codigo">Código: ${escapeHtml(empresa.codigo)} ${!ativa ? '· POSTO INATIVO' : ''}</div>
+                </div>
+                <div class="empresa-stats">
+                    <span><i class="fas fa-oil-can"></i> ${empresa.bombas.length} bombas</span>
+                    <span><i class="fas fa-check-circle"></i> ${bombasAtivasCount} ativas</span>
+                    <span><i class="fas fa-chevron-down" id="icon-${escapeHtml(empresa.codigo)}"></i></span>
+                </div>
+            </div>
+            <div class="bombas-container ${expandido ? '' : 'hidden'}" id="bombas-${escapeHtml(empresa.codigo)}">
+                ${empresa.bombas.map(bomba => {
+                    const bAtiva = bombaAtiva(bomba);
+                    return `
+                    <div class="bomba-item">
+                        <div class="bomba-header">
+                            <div class="bomba-numero"><i class="fas fa-gas-pump"></i> Bomba ${escapeHtml(bomba.numero)}</div>
+                            <div class="bomba-tags">
+                                <span class="tag tag-tipo">${escapeHtml(bomba.tipo)}</span>
+                                <span class="tag ${bAtiva ? 'tag-status-ativa' : 'tag-status-inativa'}">${bAtiva ? 'ATIVA' : 'INATIVA'}</span>
+                            </div>
+                        </div>
+                        <div class="bomba-detalhes">
+                            <div class="detalhe-item"><span class="detalhe-label">Fabricante:</span><span>${escapeHtml(bomba.fabricante) || '-'}</span></div>
+                            <div class="detalhe-item"><span class="detalhe-label">Nº Série:</span><span><strong>${escapeHtml(bomba.nrSerie) || '-'}</strong></span></div>
+                            <div class="detalhe-item"><span class="detalhe-label">Modelo:</span><span>${escapeHtml(bomba.modelo) || '-'}</span></div>
+                        </div>
+                        ${bomba.lacres.length > 0 ? `
+                            <div class="lacres-table-wrapper">
+                                <table class="lacres-table">
+                                    <thead><tr><th>Status</th><th>Cadastro</th><th>Inativação</th><th>Nr. lacre</th><th>Observação</th></tr></thead>
+                                    <tbody>
+                                        ${bomba.lacres.map(l => `
+                                            <tr>
+                                                <td><span class="status-badge ${l.status === 'ATIVO' ? 'status-ativo' : 'status-inativo'}">${l.status}</span></td>
+                                                <td>${l.cadastro || '-'}</td>
+                                                <td>${l.inativacao || '-'}</td>
+                                                <td><code>${escapeHtml(l.nrLacre)}</code></td>
+                                                <td>${escapeHtml(l.observacao) || '-'}</td>
+                                            </tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>` : '<div style="padding:.5rem;text-align:center;color:var(--gray-400);">Nenhum lacre registrado</div>'}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function escapeHtml(text) {
+    if (!text) return text;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function toggleEmpresa(codigo) {
+    const container = document.getElementById(`bombas-${codigo}`);
+    const icon = document.getElementById(`icon-${codigo}`);
+    if (container) {
+        container.classList.toggle('hidden');
+        if (container.classList.contains('hidden')) forcedExpand.delete(codigo);
+        else forcedExpand.add(codigo);
+        if (icon) { icon.classList.toggle('fa-chevron-down'); icon.classList.toggle('fa-chevron-up'); }
+    }
+}
+window.toggleEmpresa = toggleEmpresa;
+
+// ==================== BUSCA E FILTROS ====================
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    let debounce;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            currentSearchTerm = e.target.value.trim();
+            render();
+        }, 200);
+    });
+}
+
+function initFilters() {
+    document.querySelectorAll('.filter-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
+            badge.classList.add('active');
+            currentFilter = badge.dataset.filter;
+            render();
+        });
+    });
+}
+
+carregarDados();
+</script>
+</body>
+</html>
