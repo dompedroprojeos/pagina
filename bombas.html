@@ -236,6 +236,8 @@
         /* ===== BOTÃO RELATÓRIO ===== */
         .btn-relatorio { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); color:#fff; border-radius:2rem; padding:.35rem .8rem; font-size:.78rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
         .btn-relatorio:hover { background:rgba(255,255,255,.3); }
+        .btn-sair { background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:2rem; padding:.4rem .9rem; font-size:.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.45rem; margin-left:.6rem; transition:background .15s; }
+        .btn-sair:hover { background:rgba(0,0,0,.32); }
 
         /* ===== MODAL RELATÓRIO ===== */
         .modal-overlay { position:fixed; inset:0; background:rgba(45,42,36,.55); display:flex; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
@@ -427,6 +429,7 @@
                 <p>Acompanhe em tempo real os postos, bombas e lacres ativos da rede.</p>
             </div>
             <i class="fas fa-gas-pump header-pump"></i>
+            <button class="btn-sair" id="btnSair" title="Sair"><i class="fas fa-right-from-bracket"></i> Sair</button>
         </div>
 
         <div class="source-inline">
@@ -544,7 +547,8 @@ const COR_OUTRAS = '#CBD5E1';
 // Adicione aqui novas marcas legítimas caso apareçam.
 const MARCAS_CONHECIDAS = [
     'WAYNE', 'GILBARCO', 'IPIRANGA', 'DRESSER', 'RAIZEN', 'PETROBRAS',
-    'TATSUNO', 'SCHLUMBERGER', 'TOKHEIM', 'SMAR', 'LIQUID', 'ADAST', 'BENNETT'
+    'TATSUNO', 'SCHLUMBERGER', 'TOKHEIM', 'SMAR', 'LIQUID', 'ADAST', 'BENNETT',
+    'GAS' // GAS FUTURO SISTEMAS DE COMPRESSAO - EIRELI (fabricante válido, cadastro confirmado)
 ];
 
 // ==================== STATUS COMPUTADO ====================
@@ -1226,10 +1230,9 @@ function liberarAcesso() {
 })();
 
 (function initLogin() {
-    if (sessionStorage.getItem('bombasAutenticado') === 'sim') {
-        liberarAcesso();
-        return;
-    }
+    // sempre exige login ao abrir/atualizar a página — não pula pro painel
+    // mesmo que já tenha autenticado antes na mesma aba/sessão
+    sessionStorage.removeItem('bombasAutenticado');
 
     const form = document.getElementById('loginForm');
     const btnLogin = document.getElementById('btnLogin');
@@ -1269,6 +1272,12 @@ function liberarAcesso() {
         }
     });
 })();
+
+// ==================== SAIR (logout) ====================
+document.getElementById('btnSair').addEventListener('click', () => {
+    sessionStorage.removeItem('bombasAutenticado');
+    location.reload();
+});
 </script>
 </body>
 </html>
