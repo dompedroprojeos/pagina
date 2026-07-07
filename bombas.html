@@ -40,6 +40,12 @@
         .header h1 { font-size:1.55rem; font-weight:800; letter-spacing:-.02em; display:flex; align-items:center; gap:.55rem; }
         .header p { opacity:.92; font-size:.85rem; margin-top:.2rem; max-width:52ch; }
         .header-pump { margin-left:auto; font-size:2.4rem; opacity:.25; align-self:flex-start; }
+        /* mini "posto" ilustrado no cabeçalho do dashboard (mesma arte da tela de login, em miniatura) */
+        .header-mini-pump { display:flex; align-items:flex-end; gap:.35rem; margin-left:.75rem; opacity:.92; flex-shrink:0; }
+        .header-mini-pump .mp-body { width:34px; height:46px; border-radius:6px; background:linear-gradient(160deg,#FDBA74,#EA580C); box-shadow:0 6px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.35); position:relative; }
+        .header-mini-pump .mp-screen { position:absolute; top:5px; left:5px; right:5px; height:13px; border-radius:3px; background:#1F2937; }
+        .header-mini-pump .mp-nozzle { width:6px; height:28px; border-radius:3px 3px 1px 1px; background:linear-gradient(180deg,#FB923C,#C2410C); align-self:flex-end; }
+        .filter-badge.fab-incorreto.active { background:#DC2626; border-color:#DC2626; }
         /* ícones de combustível flutuando no cabeçalho principal (mesmo efeito da tela de login) */
         .header .fuel-icon { position:absolute; color:rgba(255,255,255,.16); animation:fuelFloatHeader linear infinite; pointer-events:none; z-index:0; }
         @keyframes fuelFloatHeader {
@@ -112,14 +118,27 @@
         .view-btn { border:none; background:transparent; color:var(--gray-600); padding:.45rem .95rem; border-radius:2rem; font-size:.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
         .view-btn.active { background:var(--orange-500); color:#fff; box-shadow:var(--shadow-sm); }
 
-        /* ===== CARDS DE POSTO ===== */
+        /* ===== CARDS DE POSTO — grade retangular (~3 por linha, responsiva) ===== */
+        #empresasContainer.grid-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.1rem; align-items:start; }
+        #empresasContainer.grid-cards .empresa-card { margin-bottom:0; display:flex; flex-direction:column; }
         .empresa-card { background:#fff; border-radius:var(--radius-lg); margin-bottom:1.25rem; overflow:hidden; box-shadow:var(--shadow-sm); border:1px solid var(--orange-100); }
         .empresa-header { background:linear-gradient(135deg,var(--orange-500),var(--orange-600)); padding:1.1rem 1.5rem; color:#fff; cursor:pointer; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
         .empresa-header.inativa { background:linear-gradient(135deg,#9CA3AF,#6B7280); }
-        .empresa-info h3 { font-size:1.15rem; font-weight:600; margin-bottom:.2rem; }
-        .empresa-info .codigo { font-size:.72rem; opacity:.9; font-family:monospace; }
-        .empresa-stats { display:flex; gap:.6rem; font-size:.82rem; flex-wrap:wrap; align-items:center; }
-        .empresa-stats span { background:rgba(255,255,255,.2); padding:.2rem .65rem; border-radius:2rem; white-space:nowrap; }
+        .empresa-info h3 { font-size:1.05rem; font-weight:700; margin-bottom:.2rem; line-height:1.25; }
+        .empresa-info .codigo { font-size:.7rem; opacity:.9; font-family:monospace; }
+        .empresa-stats { display:flex; gap:.5rem; font-size:.78rem; flex-wrap:wrap; align-items:center; }
+        .empresa-stats span { background:rgba(255,255,255,.2); padding:.2rem .6rem; border-radius:2rem; white-space:nowrap; }
+
+        /* alternador "mostrar bombas inativas também" dentro do card expandido */
+        .toggle-inativas-row { display:flex; align-items:center; gap:.5rem; padding:.7rem 1.5rem; background:var(--gray-50); border-bottom:1px solid var(--orange-100); font-size:.8rem; color:var(--gray-600); }
+        .switch { position:relative; display:inline-block; width:38px; height:21px; flex-shrink:0; }
+        .switch input { opacity:0; width:0; height:0; }
+        .switch-slider { position:absolute; cursor:pointer; inset:0; background:var(--gray-300); border-radius:2rem; transition:background .15s; }
+        .switch-slider::before { content:""; position:absolute; height:15px; width:15px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:transform .15s; }
+        .switch input:checked + .switch-slider { background:var(--orange-500); }
+        .switch input:checked + .switch-slider::before { transform:translateX(17px); }
+        .bombas-oculta-info { font-size:.72rem; color:var(--gray-400); font-style:italic; padding:.5rem 1.5rem; }
+
         .bombas-container.hidden { display:none; }
         .bomba-item { border-bottom:1px solid var(--orange-100); padding:1.1rem 1.5rem; }
         .bomba-item:hover { background:var(--orange-50); }
@@ -171,19 +190,18 @@
         .dashboard-title .dt-ic { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,var(--orange-500),var(--orange-700)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.95rem; box-shadow:var(--shadow-sm); }
         .dashboard-sub { font-size:.78rem; color:var(--gray-500); background:var(--orange-50); padding:.35rem .8rem; border-radius:2rem; font-weight:600; }
 
-        /* grade: donut + barras */
-        .dashboard-grid { display:grid; grid-template-columns:280px 1fr; gap:1.75rem; align-items:center; position:relative; z-index:1; }
-        @media (max-width:820px){ .dashboard-grid { grid-template-columns:1fr; gap:1.5rem; } }
+        /* grade do dashboard: agora só o donut (sem lista de barras) */
+        .dashboard-grid { display:flex; flex-wrap:wrap; gap:2.5rem; align-items:center; justify-content:center; position:relative; z-index:1; }
 
-        /* donut (estilo "Total") */
-        .donut-wrap { display:flex; flex-direction:column; align-items:center; gap:1rem; }
-        .donut { position:relative; width:210px; height:210px; border-radius:50%; }
-        .donut::after { content:""; position:absolute; inset:26px; background:#fff; border-radius:50%; box-shadow:inset 0 0 0 1px var(--orange-100); }
-        .donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2; }
-        .donut-center .dc-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-400); }
-        .donut-center .dc-value { font-size:2.1rem; font-weight:800; color:var(--gray-800); line-height:1; }
-        .donut-center .dc-tag { font-size:.7rem; color:var(--orange-600); font-weight:700; margin-top:.15rem; }
-        .donut-legend { display:flex; flex-direction:column; gap:.45rem; width:100%; max-width:220px; }
+        /* donut SVG "3D" com % dentro das fatias */
+        .donut-wrap { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:1.75rem; width:100%; }
+        .donut-svg { width:280px; height:280px; flex-shrink:0; }
+        .donut-slice-marca { font-size:10px; font-weight:800; fill:#fff; text-shadow:0 1px 2px rgba(0,0,0,.35); text-transform:uppercase; letter-spacing:.3px; pointer-events:none; }
+        .donut-slice-pct { font-size:12px; font-weight:800; fill:#fff; text-shadow:0 1px 2px rgba(0,0,0,.35); pointer-events:none; }
+        .donut-center-label { font-size:11px; font-weight:700; fill:var(--gray-400); letter-spacing:.5px; }
+        .donut-center-value { font-size:34px; font-weight:800; fill:var(--gray-800); }
+        .donut-center-tag { font-size:12px; font-weight:700; fill:var(--orange-600); }
+        .donut-legend { display:flex; flex-direction:column; gap:.5rem; min-width:180px; max-width:240px; }
         .dl-item { display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:var(--gray-700); }
         .dl-dot { width:.7rem; height:.7rem; border-radius:3px; flex-shrink:0; }
         .dl-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
@@ -241,26 +259,22 @@
         .tab-panel { display:none; }
         .tab-panel.active { display:block; }
 
-        /* ===== PAINEL POSTOS (mesclado do postos.html) ===== */
-        .postos-toolbar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
-        .postos-search { flex:1; min-width:220px; }
-        .pt-status { font-weight:700; font-size:.72rem; padding:.2rem .6rem; border-radius:2rem; display:inline-block; }
-        .pt-status.ok { background:#DCFCE7; color:#166534; }
-        .pt-status.no { background:#FEE2E2; color:#991B1B; }
-        .gerente-box { display:flex; flex-direction:column; gap:.1rem; font-size:.78rem; }
-        .gerente-box .g-nome { font-weight:700; color:var(--gray-800); }
-        .gerente-box .g-fone { color:var(--gray-500); }
-        .gerente-box .g-vazio { color:var(--gray-400); font-style:italic; }
-        .btn-edit-gerente { background:var(--orange-100); color:var(--orange-700); border:none; border-radius:.5rem; padding:.3rem .5rem; font-size:.72rem; cursor:pointer; margin-top:.25rem; }
-        .btn-edit-gerente:hover { background:var(--orange-200); }
-        .gerente-form { display:flex; flex-direction:column; gap:.35rem; margin-top:.3rem; }
-        .gerente-form input { border:1px solid var(--orange-200); border-radius:.4rem; padding:.35rem .5rem; font-size:.78rem; }
-        .gerente-form-btns { display:flex; gap:.35rem; }
-        .gerente-form-btns button { flex:1; border:none; border-radius:.4rem; padding:.3rem; font-size:.72rem; font-weight:700; cursor:pointer; }
-        .gerente-form-btns .g-salvar { background:var(--orange-500); color:#fff; }
-        .gerente-form-btns .g-cancelar { background:var(--gray-200); color:var(--gray-700); }
+        /* ===== AVISO: POSTO NOVO SEM CADASTRO EM postos.json ===== */
+        .aviso-novo { display:flex; gap:.7rem; background:#FFFBEB; border:1px solid #FDE68A; color:#92400E; border-radius:.8rem; padding:.9rem 1.1rem; margin-bottom:1rem; font-size:.85rem; }
+        .aviso-novo > i { font-size:1.1rem; margin-top:.15rem; flex-shrink:0; }
+        .aviso-novo-lista { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0; }
+        .aviso-novo-lista span { background:#FEF3C7; border:1px solid #FDE68A; border-radius:.4rem; padding:.15rem .5rem; font-size:.75rem; font-weight:600; }
+        .aviso-novo p { font-size:.78rem; color:#92400E; opacity:.9; }
 
-        /* ===== HISTÓRICO DE NOME (timeline por posto) ===== */
+        /* ===== RASTREAMENTO POR Nº DE SÉRIE ===== */
+        .rastreio-toolbar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.75rem; }
+        .rastreio-contagem { font-size:.78rem; color:var(--gray-500); margin-bottom:1rem; }
+        .rastreio-card { background:#fff; border:1px solid var(--orange-100); border-radius:var(--radius-md); padding:1rem 1.2rem; margin-bottom:1rem; box-shadow:var(--shadow-sm); }
+        .rastreio-card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; flex-wrap:wrap; gap:.4rem; }
+        .rastreio-serie { font-weight:800; color:var(--orange-700); font-size:.9rem; }
+        .rastreio-qtd { font-size:.72rem; color:var(--gray-500); background:var(--gray-100); padding:.15rem .6rem; border-radius:2rem; }
+
+        /* ===== TIMELINE (usada no rastreamento por nº de série) ===== */
         .btn-historico { background:rgba(255,255,255,.55); color:var(--orange-700); border:1px solid var(--orange-200); border-radius:2rem; padding:.25rem .65rem; font-size:.7rem; font-weight:700; cursor:pointer; display:inline-flex; gap:.3rem; align-items:center; }
         .timeline-wrap { display:flex; flex-direction:column; gap:.6rem; }
         .timeline-item { display:flex; align-items:center; gap:.6rem; font-size:.85rem; }
@@ -483,6 +497,10 @@
                 <p>Acompanhe em tempo real os postos, bombas e lacres ativos da rede.</p>
             </div>
             <i class="fas fa-gas-pump header-pump" title="Rede Dom Pedro"></i>
+            <div class="header-mini-pump" title="Rede Dom Pedro">
+                <div class="mp-body"><div class="mp-screen"></div></div>
+                <div class="mp-nozzle"></div>
+            </div>
             <button class="btn-sair" id="btnSair" title="Sair"><i class="fas fa-right-from-bracket"></i> Sair</button>
         </div>
         <div id="headerFuelIcons"></div>
@@ -508,8 +526,10 @@
     <div id="mainContent" style="display:none;">
         <div class="top-tabs">
             <button class="top-tab active" id="tabBtnBombas" onclick="mudarAba('bombas')"><i class="fas fa-gas-pump"></i> Bombas</button>
-            <button class="top-tab" id="tabBtnPostos" onclick="mudarAba('postos')"><i class="fas fa-building"></i> Postos &amp; Gerentes</button>
+            <button class="top-tab" id="tabBtnRastreio" onclick="mudarAba('rastreio')"><i class="fas fa-barcode"></i> Rastreamento por Nº de Série</button>
         </div>
+
+        <div id="avisoPostosNovos"></div>
 
         <div id="painelBombas" class="tab-panel active">
         <div class="stats-grid" id="statsGrid">
@@ -547,6 +567,7 @@
                 <div class="filter-badge active" data-filter="active"><i class="fas fa-check-circle"></i> Ativos</div>
                 <div class="filter-badge" data-filter="all"><i class="fas fa-th-large"></i> Todos</div>
                 <div class="filter-badge" data-filter="inactive"><i class="fas fa-ban"></i> Inativos</div>
+                <div class="filter-badge fab-incorreto" data-filter="fabricante_incorreto"><i class="fas fa-triangle-exclamation"></i> Fabricante Incorreto</div>
             </div>
             <div class="view-toggle" id="viewToggle">
                 <button class="view-btn active" data-view="cards"><i class="fas fa-grip"></i> Cards</button>
@@ -557,44 +578,20 @@
         <div id="empresasContainer"></div>
         </div>
 
-        <div id="painelPostos" class="tab-panel">
-            <div class="postos-toolbar">
+        <div id="painelRastreio" class="tab-panel">
+            <div class="rastreio-toolbar">
                 <button class="top-tab" onclick="mudarAba('bombas')"><i class="fas fa-arrow-left"></i> Voltar para Bombas</button>
                 <div class="search-wrapper postos-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="postosSearchInput" placeholder="Buscar posto por nome, código, cidade ou gerente...">
+                    <input type="text" id="rastreioSearchInput" placeholder="Buscar por nº de série ou nome do posto...">
                 </div>
             </div>
-            <div class="postos-table-wrapper">
-                <table class="postos-table">
-                    <thead>
-                        <tr>
-                            <th>Posto</th><th>Código</th><th>Cidade/UF</th><th>Telefone</th><th>Status</th><th>Gerente / Contato</th>
-                        </tr>
-                    </thead>
-                    <tbody id="postosTableBody"></tbody>
-                </table>
-            </div>
+            <div class="rastreio-contagem" id="rastreioContagem"></div>
+            <div id="rastreioBody"></div>
         </div>
     </div>
 
     <div class="footer"><i class="fas fa-database"></i> Waldeci Ramos · Sistemas &amp; Tecnologia</div>
-</div>
-
-<div class="modal-overlay hidden" id="modalHistorico">
-    <div class="modal-box">
-        <div class="modal-head">
-            <h3><i class="fas fa-clock-rotate-left"></i> Histórico do posto</h3>
-            <button class="modal-close" onclick="fecharModalHistorico()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body">
-            <p id="modalHistoricoPosto"></p>
-            <div class="timeline-wrap" id="timelineBody"></div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn-outline" onclick="fecharModalHistorico()">Fechar</button>
-        </div>
-    </div>
 </div>
 
 <div class="modal-overlay hidden" id="modalRelatorio">
@@ -625,37 +622,7 @@ let currentFilter = 'active';
 let currentSearchTerm = '';
 let currentView = 'cards';
 let forcedExpand = new Set();
-let postosSearchTerm = '';
-
-// ==================== GERENTES (registro editável, salvo no navegador) ====================
-// Os dados "oficiais" (gerente/telefoneGerente) vêm do bombas.json, mas como esse arquivo
-// costuma ser regerado a partir da fonte externa, guardamos as edições feitas por aqui
-// separadamente no localStorage, pra não se perderem numa próxima geração do bombas.json.
-const GERENTES_KEY = 'dp_gerentes_v1';
-function carregarGerentesLocal() {
-    try { return JSON.parse(localStorage.getItem(GERENTES_KEY)) || {}; }
-    catch { return {}; }
-}
-function salvarGerenteLocal(codigo, nome, telefone) {
-    const dados = carregarGerentesLocal();
-    dados[codigo] = { nome, telefone };
-    localStorage.setItem(GERENTES_KEY, JSON.stringify(dados));
-}
-function getGerente(codigo) {
-    const local = carregarGerentesLocal()[codigo];
-    if (local) return local;
-    const emp = empresasData.find(e => e.codigo === codigo);
-    if (emp && (emp.gerente || emp.telefoneGerente)) return { nome: emp.gerente || '', telefone: emp.telefoneGerente || '' };
-    return { nome: '', telefone: '' };
-}
-// seed inicial: Dom Pedro 1 (código 2) = Dirceu do Carmo (só aplica se ainda não houver nada salvo)
-(function seedGerentePadrao() {
-    const dados = carregarGerentesLocal();
-    if (!dados['2']) {
-        dados['2'] = { nome: 'Dirceu do Carmo', telefone: '(35) 98401-6706' };
-        localStorage.setItem(GERENTES_KEY, JSON.stringify(dados));
-    }
-})();
+let mostrarInativasPorCodigo = new Set(); // controla, por posto expandido, se as bombas inativas aparecem
 
 // paleta categórica — cor FIXA por nome de marca (não depende mais da posição
 // no ranking). Assim nenhuma marca conhecida fica sem cor, não importa a ordem.
@@ -742,8 +709,9 @@ async function carregarDados() {
 
     try {
         empresasData = await carregarViaFetch();
-        sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
         try { postosData = await carregarPostosViaFetch(); } catch (e2) { postosData = []; }
+        sincronizarStatusPostos();
+        sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
         iniciarApp();
     } catch (e) {
         sourceText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Não foi possível carregar bombas.json`;
@@ -754,6 +722,49 @@ async function carregarDados() {
             e sendo servido via http(s):// (não abra o arquivo direto no navegador). Você também pode usar
             "Carregar arquivo" no cabeçalho para selecionar o bombas.json manualmente.</p>`;
     }
+}
+
+// ==================== SINCRONIA COM postos.json ====================
+// O bombas-conversor.html gera o bombas.json só com {codigo, nome, bombas} — não carrega
+// status ativo/inativo. Por isso, TODA vez que os dados são carregados, o status "ativa" de
+// cada posto é recalculado aqui a partir do postos.json (fonte de cadastro). Assim, gerar um
+// bombas.json novo nunca mais perde a informação de quais postos estão inativos.
+// Se um posto novo aparecer no bombas.json (bomba nova relatada) e ainda não existir no
+// postos.json, ele fica marcado como "não cadastrado" e aparece num aviso — é o único passo
+// manual que sobra: cadastrar o posto novo (nome, cidade, status etc.) no postos.json.
+let postosNaoCadastrados = [];
+function sincronizarStatusPostos() {
+    const mapa = {};
+    postosData.forEach(p => { mapa[String(p.codigo)] = p; });
+    postosNaoCadastrados = [];
+    empresasData.forEach(emp => {
+        const info = mapa[emp.codigo];
+        if (info) {
+            emp.ativa = info.ativo;
+        } else {
+            postosNaoCadastrados.push(emp);
+        }
+    });
+}
+
+function renderAvisoPostosNovos() {
+    const alvo = document.getElementById('avisoPostosNovos');
+    if (!alvo) return;
+    if (postosNaoCadastrados.length === 0) { alvo.innerHTML = ''; return; }
+    alvo.innerHTML = `
+        <div class="aviso-novo">
+            <i class="fas fa-circle-exclamation"></i>
+            <div>
+                <strong>${postosNaoCadastrados.length} posto(s) do bombas.json ainda não estão cadastrados no postos.json</strong>
+                <div class="aviso-novo-lista">
+                    ${postosNaoCadastrados.map(e => `<span>${escapeHtml(e.nome)} (código ${escapeHtml(e.codigo)})</span>`).join('')}
+                </div>
+                <p>Esses postos estão aparecendo como <strong>ativos por padrão</strong> (pelo status dos lacres) porque
+                não têm cadastro em <code>postos.json</code> ainda. Assim que uma bomba nova for reportada num posto novo,
+                é só adicionar essa entrada no <code>postos.json</code> (nome, cidade, telefone e <code>"ativo": true/false</code>)
+                — isso continua sendo manual, o resto (bombas, lacres, marcas) já é 100% automático a cada conversão.</p>
+            </div>
+        </div>`;
 }
 
 // toggle da fonte de dados recolhida
@@ -770,6 +781,7 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     reader.onload = (ev) => {
         try {
             empresasData = JSON.parse(ev.target.result);
+            sincronizarStatusPostos();
             document.getElementById('sourceText').innerHTML =
                 `<i class="fas fa-check-circle"></i> <b>${file.name}</b> · ${empresasData.length} postos`;
             iniciarApp();
@@ -785,25 +797,26 @@ function iniciarApp() {
     document.getElementById('mainContent').style.display = 'block';
     updateStats();
     renderDashboard();
+    renderAvisoPostosNovos();
     setupSearch();
     initFilters();
     initViewToggle();
     render();
-    setupPostosSearch();
-    renderPostosTable();
+    setupRastreioSearch();
     criarIconesHeader();
 }
 
-// ==================== ABAS (Bombas / Postos) ====================
+// ==================== ABAS (Bombas / Rastreamento por série) ====================
 function mudarAba(aba) {
     const painelB = document.getElementById('painelBombas');
-    const painelP = document.getElementById('painelPostos');
+    const painelP = document.getElementById('painelRastreio');
     const btnB = document.getElementById('tabBtnBombas');
-    const btnP = document.getElementById('tabBtnPostos');
-    if (aba === 'postos') {
+    const btnP = document.getElementById('tabBtnRastreio');
+    if (aba === 'rastreio') {
         painelB.classList.remove('active'); painelP.classList.add('active');
         btnB.classList.remove('active'); btnP.classList.add('active');
-        renderPostosTable();
+        renderRastreioSerie();
+
     } else {
         painelP.classList.remove('active'); painelB.classList.add('active');
         btnP.classList.remove('active'); btnB.classList.add('active');
@@ -811,121 +824,93 @@ function mudarAba(aba) {
 }
 window.mudarAba = mudarAba;
 
-// ==================== PAINEL POSTOS & GERENTES ====================
-function setupPostosSearch() {
-    const input = document.getElementById('postosSearchInput');
+// ==================== RASTREAMENTO DE BOMBAS POR Nº DE SÉRIE ====================
+// Mesmo equipamento físico (nrSerie) pode aparecer registrado em mais de um
+// posto/bomba ao longo do tempo (transferência de equipamento entre postos).
+// Aqui a gente agrupa por nrSerie e mostra "de onde saiu (inativa) -> pra onde
+// foi (ativa agora)", só pros números de série que aparecem em mais de um lugar.
+let rastreioSearchTerm = '';
+
+function nrSerieValido(s) {
+    const v = (s || '').trim().toUpperCase();
+    if (!v) return false;
+    if (['0', '1', 'ARLA', 'S/N', 'SN', '-'].includes(v)) return false;
+    if (v.length < 4) return false;
+    return true;
+}
+
+function montarIndiceSerie() {
+    const porSerie = {};
+    empresasData.forEach(emp => {
+        emp.bombas.forEach(bomba => {
+            const serie = (bomba.nrSerie || '').trim();
+            if (!nrSerieValido(serie)) return;
+            (porSerie[serie] = porSerie[serie] || []).push({
+                posto: emp.nome, codigo: emp.codigo, bombaNumero: bomba.numero,
+                fabricante: bomba.fabricante, modelo: bomba.modelo, ativa: bombaAtiva(bomba)
+            });
+        });
+    });
+    // só interessa quem aparece em mais de um lugar (indício de transferência/duplicidade)
+    return Object.entries(porSerie).filter(([, ocorrencias]) => ocorrencias.length > 1);
+}
+
+function setupRastreioSearch() {
+    const input = document.getElementById('rastreioSearchInput');
     if (!input) return;
     let debounce;
     input.addEventListener('input', (e) => {
         clearTimeout(debounce);
         debounce = setTimeout(() => {
-            postosSearchTerm = e.target.value.trim().toLowerCase();
-            renderPostosTable();
+            rastreioSearchTerm = e.target.value.trim().toLowerCase();
+            renderRastreioSerie();
         }, 200);
     });
 }
 
-function renderPostosTable() {
-    const tbody = document.getElementById('postosTableBody');
-    if (!tbody) return;
-    let lista = [...postosData];
-    if (postosSearchTerm) {
-        const t = postosSearchTerm;
-        lista = lista.filter(p => {
-            const g = getGerente(String(p.codigo));
-            return (p.nomeReduzido || '').toLowerCase().includes(t) ||
-                   String(p.codigo).toLowerCase().includes(t) ||
-                   (p.cidade || '').toLowerCase().includes(t) ||
-                   (g.nome || '').toLowerCase().includes(t);
-        });
+function renderRastreioSerie() {
+    const box = document.getElementById('rastreioBody');
+    const contagem = document.getElementById('rastreioContagem');
+    if (!box) return;
+    let itens = montarIndiceSerie();
+    if (rastreioSearchTerm) {
+        const t = rastreioSearchTerm;
+        itens = itens.filter(([serie, oc]) =>
+            serie.toLowerCase().includes(t) || oc.some(o => o.posto.toLowerCase().includes(t)));
     }
-    if (lista.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:2rem;">Nenhum posto encontrado.</td></tr>`;
+    if (contagem) contagem.textContent = `${itens.length} número(s) de série em mais de um posto/bomba`;
+
+    if (itens.length === 0) {
+        box.innerHTML = `<div class="dashboard-empty"><i class="fas fa-barcode"></i><p>Nenhuma bomba com o mesmo número de série em mais de um posto foi encontrada.</p></div>`;
         return;
     }
-    tbody.innerHTML = lista.map(p => {
-        const codigo = String(p.codigo);
-        const g = getGerente(codigo);
-        return `
-        <tr>
-            <td><div class="pt-nome">${escapeHtml(p.nomeReduzido)}</div><div class="pt-cod">${escapeHtml(p.cidade)}${p.estado ? '/' + escapeHtml(p.estado) : ''}</div></td>
-            <td><span class="pt-cod">${escapeHtml(codigo)}</span></td>
-            <td>${escapeHtml(p.cidade) || '-'}${p.estado ? '/' + escapeHtml(p.estado) : ''}</td>
-            <td>${escapeHtml(p.fone) || '-'}</td>
-            <td><span class="pt-status ${p.ativo ? 'ok' : 'no'}">${p.ativo ? 'ATIVO' : 'INATIVO'}</span></td>
-            <td>${renderGerenteCell(codigo, g)}</td>
-        </tr>`;
-    }).join('');
-}
 
-function renderGerenteCell(codigo, g) {
-    const idBox = `gbox-${codigo}`;
-    if (g.nome || g.telefone) {
+    box.innerHTML = itens.map(([serie, ocorrencias]) => {
+        const ativas = ocorrencias.filter(o => o.ativa);
+        const inativas = ocorrencias.filter(o => !o.ativa);
         return `
-        <div class="gerente-box" id="${idBox}">
-            <span class="g-nome"><i class="fas fa-user-tie"></i> ${escapeHtml(g.nome) || '(sem nome)'}</span>
-            ${g.telefone ? `<span class="g-fone"><i class="fas fa-phone"></i> ${escapeHtml(g.telefone)}</span>` : ''}
-            <button class="btn-edit-gerente" onclick="abrirFormGerente('${codigo}')"><i class="fas fa-pen"></i> Editar</button>
-        </div>`;
-    }
-    return `
-    <div class="gerente-box" id="${idBox}">
-        <span class="g-vazio">Nenhum gerente cadastrado</span>
-        <button class="btn-edit-gerente" onclick="abrirFormGerente('${codigo}')"><i class="fas fa-plus"></i> Cadastrar</button>
-    </div>`;
-}
-
-function abrirFormGerente(codigo) {
-    const box = document.getElementById(`gbox-${codigo}`);
-    if (!box) return;
-    const g = getGerente(codigo);
-    box.innerHTML = `
-        <div class="gerente-form">
-            <input type="text" id="ginput-nome-${codigo}" placeholder="Nome do gerente" value="${escapeHtml(g.nome)}">
-            <input type="text" id="ginput-fone-${codigo}" placeholder="Telefone (ex: (35) 98401-6706)" value="${escapeHtml(g.telefone)}">
-            <div class="gerente-form-btns">
-                <button class="g-salvar" onclick="salvarFormGerente('${codigo}')"><i class="fas fa-check"></i> Salvar</button>
-                <button class="g-cancelar" onclick="renderPostosTable()"><i class="fas fa-times"></i> Cancelar</button>
+        <div class="rastreio-card">
+            <div class="rastreio-card-head">
+                <span class="rastreio-serie"><i class="fas fa-barcode"></i> Nº Série ${escapeHtml(serie)}</span>
+                <span class="rastreio-qtd">${ocorrencias.length} registro(s)</span>
+            </div>
+            <div class="timeline-wrap">
+                ${inativas.map(o => `
+                    <div class="timeline-item">
+                        <i class="fas fa-clock-rotate-left" style="color:var(--gray-400);"></i>
+                        <span class="t-antigo">${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)}</span>
+                        ${ativas.length > 0 ? '<i class="fas fa-arrow-right t-arrow"></i>' : ''}
+                        ${ativas.length === 0 ? '<span class="t-data">sem local ativo no momento</span>' : ''}
+                    </div>`).join('')}
+                ${ativas.map(o => `
+                    <div class="timeline-item">
+                        ${inativas.length === 0 ? '<i class="fas fa-map-pin" style="color:var(--orange-500);"></i>' : ''}
+                        <span class="t-novo"><i class="fas fa-check-circle" style="color:#16A34A;"></i> ${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)} — ATIVA AGORA</span>
+                    </div>`).join('')}
             </div>
         </div>`;
+    }).join('');
 }
-window.abrirFormGerente = abrirFormGerente;
-
-function salvarFormGerente(codigo) {
-    const nome = document.getElementById(`ginput-nome-${codigo}`).value.trim();
-    const telefone = document.getElementById(`ginput-fone-${codigo}`).value.trim();
-    salvarGerenteLocal(codigo, nome, telefone);
-    renderPostosTable();
-}
-window.salvarFormGerente = salvarFormGerente;
-
-// ==================== HISTÓRICO DE NOME DO POSTO (timeline) ====================
-function abrirModalHistorico(codigo) {
-    const emp = empresasData.find(e => e.codigo === codigo);
-    const hist = (emp && emp.historicoNome) || [];
-    document.getElementById('modalHistoricoPosto').innerHTML =
-        `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong> (código ${escapeHtml(codigo)})`;
-    const body = document.getElementById('timelineBody');
-    if (hist.length === 0) {
-        body.innerHTML = `<p style="color:var(--gray-400);font-size:.85rem;text-align:center;padding:1rem 0;">Nenhuma alteração de nome registrada para este posto ainda.</p>`;
-    } else {
-        body.innerHTML = hist.map(h => `
-            <div class="timeline-item">
-                <i class="fas fa-clock-rotate-left" style="color:var(--gray-400);"></i>
-                <span class="t-antigo">${escapeHtml(h.nomeAnterior)}</span>
-                <i class="fas fa-arrow-right t-arrow"></i>
-                <span class="t-novo">${escapeHtml(h.nomeAtual)}</span>
-                ${h.data ? `<span class="t-data">${escapeHtml(h.data)}</span>` : ''}
-            </div>`).join('');
-    }
-    document.getElementById('modalHistorico').classList.remove('hidden');
-}
-window.abrirModalHistorico = abrirModalHistorico;
-
-function fecharModalHistorico() {
-    document.getElementById('modalHistorico').classList.add('hidden');
-}
-window.fecharModalHistorico = fecharModalHistorico;
 
 // ==================== ÍCONES FLUTUANTES NO CABEÇALHO ====================
 function criarIconesHeader() {
@@ -972,14 +957,37 @@ function animarNumero(el, alvo) {
 }
 
 // ==================== DASHBOARD — MARCAS COM MAIS BOMBAS ATIVAS ====================
+let codigosComFabricanteIncorreto = new Set(); // usado pelo filtro "Fabricante Incorreto"
+
+function polarToCartesian(cx, cy, r, angleDeg) {
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+function donutSlicePath(cx, cy, rOuter, rInner, startAngle, endAngle) {
+    const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+    const p1 = polarToCartesian(cx, cy, rOuter, endAngle);
+    const p2 = polarToCartesian(cx, cy, rOuter, startAngle);
+    const p3 = polarToCartesian(cx, cy, rInner, startAngle);
+    const p4 = polarToCartesian(cx, cy, rInner, endAngle);
+    return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${rOuter} ${rOuter} 0 ${largeArc} 0 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)} A ${rInner} ${rInner} 0 ${largeArc} 1 ${p4.x.toFixed(2)} ${p4.y.toFixed(2)} Z`;
+}
+// escurece/clareia uma cor hex pra montar o gradiente "3D" de cada fatia
+function ajustarCor(hex, qtd) {
+    if (!hex.startsWith('#') || hex.length !== 7) return hex;
+    const num = parseInt(hex.slice(1), 16);
+    let r = (num >> 16) + qtd, g = ((num >> 8) & 0xff) + qtd, b = (num & 0xff) + qtd;
+    r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 function renderDashboard() {
-    const box = document.getElementById('chartMarcas');
     const donut = document.getElementById('donutWrap');
     const sub = document.getElementById('dashboardSub');
     const flaggedWrap = document.getElementById('flaggedWrap');
     const contagem = {};
     let totalAtivas = 0;
     const flagged = []; // bombas ativas com fabricante fora da whitelist (cadastro pra corrigir)
+    codigosComFabricanteIncorreto = new Set();
 
     empresasData.forEach(emp => {
         if (!empresaAtiva(emp)) return;
@@ -991,81 +999,85 @@ function renderDashboard() {
                 contagem[marca] = (contagem[marca] || 0) + 1;
             } else {
                 flagged.push({ posto: emp.nome, codigo: emp.codigo, bomba: bomba.numero, fabricante: (bomba.fabricante || '').trim() });
+                codigosComFabricanteIncorreto.add(emp.codigo);
             }
         });
     });
 
+    // TODAS as marcas reconhecidas entram no gráfico com o próprio nome — sem
+    // agrupar as menores num "OUTRAS" fantasma. Só cai fora do gráfico (e vai
+    // pro painel de avisos acima) quem realmente tem cadastro de fabricante errado.
     const ranking = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-    // mapa marca -> cor: cor fixa por nome (CORES_PREFERIDAS), com fallback
-    // determinístico pra marca desconhecida — nunca fica sem cor.
     const corPorMarca = {};
     ranking.forEach(([marca], i) => { corPorMarca[marca] = corParaMarca(marca, i); });
 
     sub.innerHTML = `<i class="fas fa-gas-pump"></i> ${totalAtivas} bombas ativas · ${ranking.length} marca(s)`;
 
     if (ranking.length === 0) {
-        donut.innerHTML = '';
-        box.innerHTML = '<div class="dashboard-empty"><i class="fas fa-gas-pump"></i><p>Sem dados suficientes para o gráfico.</p></div>';
+        donut.innerHTML = '<div class="dashboard-empty"><i class="fas fa-gas-pump"></i><p>Sem dados suficientes para o gráfico.</p></div>';
     } else {
-        // ----- barras (ranking) -----
-        const max = ranking[0][1];
-        box.innerHTML = ranking.slice(0, 10).map(([marca, qtd], i) => {
-            const pct = Math.max(4, Math.round((qtd / max) * 100));
-            const pctDoTotal = Math.round((qtd / totalAtivas) * 100);
-            const topCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-            const cor = corPorMarca[marca];
-            // ranks 4+ não têm gradiente fixo no CSS (só top1/2/3) — aplica a cor da própria
-            // marca via style inline pra nenhuma posição ficar "sem cor".
-            const rankStyle = topCls ? '' : `style="background:${cor}22;color:${cor};border-color:${cor}55;"`;
-            return `
-            <div class="chart-row">
-                <div class="chart-rank ${topCls}" ${rankStyle}>${i + 1}</div>
-                <div class="chart-label" title="${escapeHtml(marca)}">${escapeHtml(marca)}</div>
-                <div class="chart-track"><div class="chart-fill" data-pct="${pct}" style="background:linear-gradient(90deg, ${cor}99, ${cor})"></div></div>
-                <div class="chart-value-wrap">
-                    <div class="chart-value" style="color:${cor}">${qtd}</div>
-                    <div class="chart-pct">${pctDoTotal}%</div>
-                </div>
-            </div>`;
-        }).join('');
-
-        // ----- donut (estilo "Total") -----
-        const topN = ranking.slice(0, 5);
-        const restoQtd = ranking.slice(5).reduce((a, [, q]) => a + q, 0);
-        const segmentos = topN.map(([marca, qtd]) => ({ marca, qtd, cor: corPorMarca[marca] }));
-        if (restoQtd > 0) segmentos.push({ marca: 'OUTRAS', qtd: restoQtd, cor: COR_OUTRAS });
-
+        const cx = 150, cy = 150, rOuter = 130, rInner = 72;
         let acc = 0;
-        const stops = segmentos.map(s => {
-            const ini = (acc / totalAtivas) * 100;
-            acc += s.qtd;
-            const fim = (acc / totalAtivas) * 100;
-            return `${s.cor} ${ini.toFixed(2)}% ${fim.toFixed(2)}%`;
-        }).join(', ');
+        const defs = [];
+        const fatias = [];
+        const rotulos = [];
+        ranking.forEach(([marca, qtd], i) => {
+            const pct = qtd / totalAtivas;
+            const startAngle = acc * 360;
+            acc += pct;
+            const endAngle = acc * 360;
+            const corBase = corPorMarca[marca];
+            const gradId = `slice-grad-${i}`;
+            defs.push(`
+                <radialGradient id="${gradId}" cx="35%" cy="30%" r="75%">
+                    <stop offset="0%" stop-color="${ajustarCor(corBase, 45)}"/>
+                    <stop offset="65%" stop-color="${corBase}"/>
+                    <stop offset="100%" stop-color="${ajustarCor(corBase, -35)}"/>
+                </radialGradient>`);
+            fatias.push(`<path d="${donutSlicePath(cx, cy, rOuter, rInner, startAngle, endAngle)}" fill="url(#${gradId})" stroke="#fff" stroke-width="2.5"><title>${escapeHtml(marca)}: ${qtd} (${Math.round(pct * 100)}%)</title></path>`);
+
+            const pctShow = Math.round(pct * 100);
+            if (pctShow >= 4) {
+                const midAngle = (startAngle + endAngle) / 2;
+                const rLabel = (rOuter + rInner) / 2;
+                const pos = polarToCartesian(cx, cy, rLabel, midAngle);
+                rotulos.push(`
+                    <text x="${pos.x.toFixed(1)}" y="${(pos.y - 6).toFixed(1)}" text-anchor="middle" class="donut-slice-marca">${escapeHtml(marca)}</text>
+                    <text x="${pos.x.toFixed(1)}" y="${(pos.y + 12).toFixed(1)}" text-anchor="middle" class="donut-slice-pct">${pctShow}%</text>`);
+            }
+        });
 
         donut.innerHTML = `
-            <div class="donut" style="background:conic-gradient(${stops});">
-                <div class="donut-center">
-                    <div class="dc-label">Total ativas</div>
-                    <div class="dc-value">${totalAtivas}</div>
-                    <div class="dc-tag">${ranking.length} marcas</div>
-                </div>
-            </div>
+            <svg viewBox="0 0 300 300" class="donut-svg" role="img" aria-label="Distribuição de marcas de bombas ativas">
+                <defs>
+                    ${defs.join('')}
+                    <filter id="donut3d" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.18"/>
+                    </filter>
+                    <radialGradient id="glossHighlight" cx="35%" cy="20%" r="60%">
+                        <stop offset="0%" stop-color="#fff" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <g filter="url(#donut3d)">
+                    ${fatias.join('')}
+                    <circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="url(#glossHighlight)"/>
+                    <circle cx="${cx}" cy="${cy}" r="${rInner - 1}" fill="#fff"/>
+                </g>
+                ${rotulos.join('')}
+                <text x="${cx}" y="${cy - 10}" text-anchor="middle" class="donut-center-label">TOTAL ATIVAS</text>
+                <text x="${cx}" y="${cy + 22}" text-anchor="middle" class="donut-center-value">${totalAtivas}</text>
+                <text x="${cx}" y="${cy + 42}" text-anchor="middle" class="donut-center-tag">${ranking.length} marca(s)</text>
+            </svg>
             <div class="donut-legend">
-                ${segmentos.map(s => {
-                    const pct = Math.round((s.qtd / totalAtivas) * 100);
-                    return `<div class="dl-item">
-                        <span class="dl-dot" style="background:${s.cor};"></span>
-                        <span class="dl-name" title="${escapeHtml(s.marca)}">${escapeHtml(s.marca)}</span>
-                        <span class="dl-val">${s.qtd} · ${pct}%</span>
-                    </div>`;
-                }).join('')}
+                ${ranking.map(([marca, qtd]) => `<div class="dl-item">
+                    <span class="dl-dot" style="background:${corPorMarca[marca]};"></span>
+                    <span class="dl-name" title="${escapeHtml(marca)}">${escapeHtml(marca)}</span>
+                    <span class="dl-val">${qtd}</span>
+                </div>`).join('')}
             </div>`;
-
-        requestAnimationFrame(() => {
-            box.querySelectorAll('.chart-fill').forEach(f => { f.style.width = f.dataset.pct + '%'; });
-        });
     }
+
 
     // ----- painel: bombas com fabricante fora do padrão (cadastro pra corrigir) -----
     if (flagged.length === 0) {
@@ -1241,7 +1253,9 @@ function gerarRelatorio() {
     .rp-ativo { background:#DCFCE7; color:#166534; }
     .rp-inativo { background:#FEE2E2; color:#991B1B; }
     .rp-empty { color:#9CA3AF; font-style:italic; }
-    .rp-footer { position:fixed; bottom:-14mm; left:0; right:0; display:flex; justify-content:space-between; font-size:9px; color:#9CA3AF; border-top:1px solid #E5E7EB; padding-top:5px; }
+    /* estático (não "fixed") — position:fixed com offset negativo causava sobreposição
+       de texto por cima do cabeçalho de bombas em páginas seguintes na impressão */
+    .rp-footer { margin-top:18px; display:flex; justify-content:space-between; font-size:9px; color:#9CA3AF; border-top:1px solid #E5E7EB; padding-top:6px; page-break-inside:avoid; }
     .rp-toolbar { text-align:center; margin-bottom:16px; }
     .rp-toolbar button { background:#F97316; color:#fff; border:none; border-radius:6px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; margin:0 4px; }
     @media print { .rp-toolbar { display:none; } }
@@ -1341,6 +1355,7 @@ function filterEmpresas() {
     let filtered = [...empresasData];
     if (currentFilter === 'active') filtered = filtered.filter(e => empresaAtiva(e));
     else if (currentFilter === 'inactive') filtered = filtered.filter(e => !empresaAtiva(e));
+    else if (currentFilter === 'fabricante_incorreto') filtered = filtered.filter(e => codigosComFabricanteIncorreto.has(e.codigo));
 
     if (currentSearchTerm) {
         const term = currentSearchTerm.toLowerCase();
@@ -1359,11 +1374,17 @@ function render() {
     const container = document.getElementById('empresasContainer');
 
     if (filtered.length === 0) {
+        container.classList.remove('grid-cards');
         container.innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>Nenhum posto encontrado com os filtros atuais.</p></div>`;
         return;
     }
 
-    if (currentView === 'table') { renderTable(filtered, container); return; }
+    if (currentView === 'table') {
+        container.classList.remove('grid-cards');
+        renderTable(filtered, container);
+        return;
+    }
+    container.classList.add('grid-cards');
     renderCards(filtered, container);
 }
 
@@ -1402,11 +1423,58 @@ function renderTable(filtered, container) {
 }
 
 // ----- VISÃO EM CARDS -----
+function renderBombaItem(empresa, bomba) {
+    const bAtiva = bombaAtiva(bomba);
+    const bombaId = `${empresa.codigo}_${bomba.numero}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const lacresAtivos = bomba.lacres.filter(l => l.status === 'ATIVO').length;
+    return `
+    <div class="bomba-item">
+        <div class="bomba-header">
+            <div class="bomba-numero"><i class="fas fa-gas-pump"></i> Bomba ${escapeHtml(bomba.numero)}</div>
+            <div class="bomba-tags">
+                <span class="tag tag-tipo">${escapeHtml(bomba.tipo)}</span>
+                <span class="tag ${bAtiva ? 'tag-status-ativa' : 'tag-status-inativa'}">${bAtiva ? 'ATIVA' : 'INATIVA'}</span>
+                ${bomba.lacres.length > 0 ? `<button class="bomba-toggle-btn" id="btn-${bombaId}" onclick="toggleLacres('${bombaId}')" title="Ver lacres"><i class="fas fa-plus" id="ic-${bombaId}"></i></button>` : ''}
+            </div>
+        </div>
+        <div class="bomba-detalhes">
+            <div class="detalhe-item"><span class="detalhe-label">Fabricante:</span><span>${escapeHtml(bomba.fabricante) || '-'}</span></div>
+            <div class="detalhe-item"><span class="detalhe-label">Nº Série:</span><span><strong>${escapeHtml(bomba.nrSerie) || '-'}</strong></span></div>
+            <div class="detalhe-item"><span class="detalhe-label">Modelo:</span><span>${escapeHtml(bomba.modelo) || '-'}</span></div>
+        </div>
+        ${bomba.lacres.length > 0 ? `
+            <div class="lacres-summary">${bomba.lacres.length} lacre(s) registrado(s) · ${lacresAtivos} ativo(s) — clique no <i class="fas fa-plus" style="font-size:.65rem;"></i> para ver</div>
+            <div class="lacres-wrap" id="wrap-${bombaId}">
+                <div class="lacres-wrap-inner">
+                    <div class="lacres-table-wrapper" style="margin-top:.6rem;">
+                        <table class="lacres-table">
+                            <thead><tr><th>Status</th><th>Cadastro</th><th>Inativação</th><th>Nr. lacre</th><th>Observação</th></tr></thead>
+                            <tbody>
+                                ${bomba.lacres.map(l => `
+                                    <tr>
+                                        <td><span class="status-badge ${l.status === 'ATIVO' ? 'status-ativo' : 'status-inativo'}">${l.status}</span></td>
+                                        <td>${l.cadastro || '-'}</td>
+                                        <td>${l.inativacao || '-'}</td>
+                                        <td><code>${escapeHtml(l.nrLacre)}</code></td>
+                                        <td>${escapeHtml(l.observacao) || '-'}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>` : '<div style="padding:.5rem;text-align:center;color:var(--gray-400);">Nenhum lacre registrado</div>'}
+    </div>`;
+}
+
 function renderCards(filtered, container) {
     container.innerHTML = filtered.map(empresa => {
         const ativa = empresaAtiva(empresa);
         const expandido = forcedExpand.has(empresa.codigo);
-        const bombasAtivasCount = empresa.bombas.filter(bombaAtiva).length;
+        const bombasAtivas = empresa.bombas.filter(bombaAtiva);
+        const bombasInativas = empresa.bombas.filter(b => !bombaAtiva(b));
+        const bombasAtivasCount = bombasAtivas.length;
+        const mostrarInativas = mostrarInativasPorCodigo.has(empresa.codigo);
+        const bombasParaMostrar = mostrarInativas ? empresa.bombas : bombasAtivas;
         return `
         <div class="empresa-card" data-codigo="${escapeHtml(empresa.codigo)}">
             <div class="empresa-header ${ativa ? '' : 'inativa'}" onclick="toggleEmpresa('${escapeHtml(empresa.codigo)}')">
@@ -1417,58 +1485,37 @@ function renderCards(filtered, container) {
                 <div class="empresa-stats">
                     <span><i class="fas fa-oil-can"></i> ${empresa.bombas.length} bombas</span>
                     <span><i class="fas fa-check-circle"></i> ${bombasAtivasCount} ativas</span>
-                    ${empresa.historicoNome && empresa.historicoNome.length > 0 ? `<button class="btn-historico" onclick="event.stopPropagation(); abrirModalHistorico('${escapeHtml(empresa.codigo)}')"><i class="fas fa-clock-rotate-left"></i> Histórico</button>` : ''}
                     <button class="btn-relatorio" onclick="event.stopPropagation(); abrirModalRelatorio('${escapeHtml(empresa.codigo)}')"><i class="fas fa-file-lines"></i> Relatório</button>
                     <span><i class="fas fa-chevron-down" id="icon-${escapeHtml(empresa.codigo)}"></i></span>
                 </div>
             </div>
             <div class="bombas-container ${expandido ? '' : 'hidden'}" id="bombas-${escapeHtml(empresa.codigo)}">
-                ${empresa.bombas.map(bomba => {
-                    const bAtiva = bombaAtiva(bomba);
-                    const bombaId = `${empresa.codigo}_${bomba.numero}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-                    const lacresAtivos = bomba.lacres.filter(l => l.status === 'ATIVO').length;
-                    return `
-                    <div class="bomba-item">
-                        <div class="bomba-header">
-                            <div class="bomba-numero"><i class="fas fa-gas-pump"></i> Bomba ${escapeHtml(bomba.numero)}</div>
-                            <div class="bomba-tags">
-                                <span class="tag tag-tipo">${escapeHtml(bomba.tipo)}</span>
-                                <span class="tag ${bAtiva ? 'tag-status-ativa' : 'tag-status-inativa'}">${bAtiva ? 'ATIVA' : 'INATIVA'}</span>
-                                ${bomba.lacres.length > 0 ? `<button class="bomba-toggle-btn" id="btn-${bombaId}" onclick="toggleLacres('${bombaId}')" title="Ver lacres"><i class="fas fa-plus" id="ic-${bombaId}"></i></button>` : ''}
-                            </div>
-                        </div>
-                        <div class="bomba-detalhes">
-                            <div class="detalhe-item"><span class="detalhe-label">Fabricante:</span><span>${escapeHtml(bomba.fabricante) || '-'}</span></div>
-                            <div class="detalhe-item"><span class="detalhe-label">Nº Série:</span><span><strong>${escapeHtml(bomba.nrSerie) || '-'}</strong></span></div>
-                            <div class="detalhe-item"><span class="detalhe-label">Modelo:</span><span>${escapeHtml(bomba.modelo) || '-'}</span></div>
-                        </div>
-                        ${bomba.lacres.length > 0 ? `
-                            <div class="lacres-summary">${bomba.lacres.length} lacre(s) registrado(s) · ${lacresAtivos} ativo(s) — clique no <i class="fas fa-plus" style="font-size:.65rem;"></i> para ver</div>
-                            <div class="lacres-wrap" id="wrap-${bombaId}">
-                                <div class="lacres-wrap-inner">
-                                    <div class="lacres-table-wrapper" style="margin-top:.6rem;">
-                                        <table class="lacres-table">
-                                            <thead><tr><th>Status</th><th>Cadastro</th><th>Inativação</th><th>Nr. lacre</th><th>Observação</th></tr></thead>
-                                            <tbody>
-                                                ${bomba.lacres.map(l => `
-                                                    <tr>
-                                                        <td><span class="status-badge ${l.status === 'ATIVO' ? 'status-ativo' : 'status-inativo'}">${l.status}</span></td>
-                                                        <td>${l.cadastro || '-'}</td>
-                                                        <td>${l.inativacao || '-'}</td>
-                                                        <td><code>${escapeHtml(l.nrLacre)}</code></td>
-                                                        <td>${escapeHtml(l.observacao) || '-'}</td>
-                                                    </tr>`).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>` : '<div style="padding:.5rem;text-align:center;color:var(--gray-400);">Nenhum lacre registrado</div>'}
-                    </div>`;
-                }).join('')}
+                ${bombasInativas.length > 0 ? `
+                <div class="toggle-inativas-row">
+                    <label class="switch">
+                        <input type="checkbox" ${mostrarInativas ? 'checked' : ''} onchange="toggleMostrarInativas('${escapeHtml(empresa.codigo)}')">
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span>Mostrar bombas inativas também (${bombasInativas.length})</span>
+                </div>` : ''}
+                ${bombasParaMostrar.length === 0
+                    ? '<div style="padding:1rem;text-align:center;color:var(--gray-400);">Nenhuma bomba ativa neste posto.</div>'
+                    : bombasParaMostrar.map(bomba => renderBombaItem(empresa, bomba)).join('')}
             </div>
         </div>`;
     }).join('');
 }
+
+function toggleMostrarInativas(codigo) {
+    if (mostrarInativasPorCodigo.has(codigo)) mostrarInativasPorCodigo.delete(codigo);
+    else mostrarInativasPorCodigo.add(codigo);
+    render();
+    // mantém o card aberto depois de re-renderizar
+    forcedExpand.add(codigo);
+    const el = document.getElementById(`bombas-${codigo}`);
+    if (el) el.classList.remove('hidden');
+}
+window.toggleMostrarInativas = toggleMostrarInativas;
 
 function escapeHtml(text) {
     if (!text) return text;
