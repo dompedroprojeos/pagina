@@ -533,6 +533,7 @@
             <div class="source-actions" id="sourceActions">
                 <button class="btn-small" id="btnCarregarManual"><i class="fas fa-folder-open"></i> Carregar arquivo</button>
                 <a class="btn-small" href="bombas-conversor.html"><i class="fas fa-file-import"></i> Gerar bombas.json</a>
+                <a class="btn-small" href="tanques-conversor.html"><i class="fas fa-file-import"></i> Gerar tanques.json</a>
                 <input type="file" id="fileInput" accept=".json,application/json">
             </div>
         </div>
@@ -546,6 +547,7 @@
     <div id="mainContent" style="display:none;">
         <div class="top-tabs">
             <button class="top-tab active" id="tabBtnBombas" onclick="mudarAba('bombas')"><i class="fas fa-gas-pump"></i> Bombas</button>
+            <button class="top-tab" id="tabBtnTanques" onclick="mudarAba('tanques')"><i class="fas fa-warehouse"></i> Tanques</button>
             <button class="top-tab" id="tabBtnRastreio" onclick="mudarAba('rastreio')"><i class="fas fa-barcode"></i> Rastreamento por Nº de Série</button>
         </div>
 
@@ -585,7 +587,7 @@
         <div id="quickResults" class="quick-results"></div>
 
         <div class="controls-bar">
-            <div class="filters-group">
+            <div class="filters-group" id="filtersBombasGroup">
                 <div class="filter-badge active" data-filter="active"><i class="fas fa-check-circle"></i> Ativos</div>
                 <div class="filter-badge" data-filter="all"><i class="fas fa-th-large"></i> Todos</div>
                 <div class="filter-badge" data-filter="inactive"><i class="fas fa-ban"></i> Inativos</div>
@@ -611,6 +613,36 @@
             </div>
             <div class="rastreio-contagem" id="rastreioContagem"></div>
             <div id="rastreioBody"></div>
+        </div>
+
+        <div id="painelTanques" class="tab-panel">
+            <div id="avisoTanquesSemCadastro"></div>
+
+            <div class="stats-grid" id="statsGridTanques">
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-building"></i></div><div class="stat-text"><div class="stat-label">Postos com tanques ativos</div><div class="stat-value" id="totalPostosTanques">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-warehouse"></i></div><div class="stat-text"><div class="stat-label">Tanques</div><div class="stat-value" id="totalTanques">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-database"></i></div><div class="stat-text"><div class="stat-label">Capacidade total</div><div class="stat-value" id="capacidadeTotalTanques">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-flask"></i></div><div class="stat-text"><div class="stat-label">Produtos distintos</div><div class="stat-value" id="totalProdutosTanques">0</div></div></div>
+            </div>
+
+            <div class="search-section">
+                <label class="search-label"><i class="fas fa-search"></i> Buscar por produto, nome ou código do posto</label>
+                <div class="search-wrapper">
+                    <i class="fas fa-store"></i>
+                    <input type="text" id="searchInputTanques" placeholder="Ex: DIESEL S10, DP 1, ARLA...">
+                </div>
+            </div>
+
+            <div class="controls-bar">
+                <div class="filters-group" id="filtersTanquesGroup">
+                    <div class="filter-badge active" data-filter="active"><i class="fas fa-check-circle"></i> Ativos</div>
+                    <div class="filter-badge" data-filter="all"><i class="fas fa-th-large"></i> Todos</div>
+                    <div class="filter-badge" data-filter="inactive"><i class="fas fa-ban"></i> Inativos</div>
+                    <div class="filter-badge" data-filter="sem_cadastro"><i class="fas fa-triangle-exclamation"></i> Sem cadastro em bombas</div>
+                </div>
+            </div>
+
+            <div id="tanquesContainer"></div>
         </div>
     </div>
 
@@ -641,8 +673,11 @@
 <script>
 let empresasData = [];
 let postosData = [];
+let tanquesData = [];
 let currentFilter = 'active';
 let currentSearchTerm = '';
+let currentFilterTanques = 'active';
+let currentSearchTermTanques = '';
 let currentView = 'cards';
 let forcedExpand = new Set();
 let mostrarInativasPorCodigo = new Set(); // controla, por posto expandido, se as bombas inativas aparecem
@@ -754,12 +789,23 @@ function carregarPostosViaFetch() {
     });
 }
 
+// tanques.json é carregado em paralelo, na mesma pasta, gerado pelo
+// tanques-conversor.html. É opcional: se não existir, a aba Tanques
+// simplesmente fica vazia (não trava o carregamento das bombas).
+function carregarTanquesViaFetch() {
+    return fetch('tanques.json?_=' + Date.now(), { cache: 'no-store' }).then(resp => {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    });
+}
+
 async function carregarDados() {
     const sourceText = document.getElementById('sourceText');
 
     try {
         empresasData = await carregarViaFetch();
         try { postosData = await carregarPostosViaFetch(); } catch (e2) { postosData = []; }
+        try { tanquesData = await carregarTanquesViaFetch(); } catch (e3) { tanquesData = []; }
         sincronizarStatusPostos();
         sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
         iniciarApp();
@@ -857,23 +903,32 @@ function iniciarApp() {
     render();
     setupRastreioSearch();
     criarIconesHeader();
+    setupSearchTanques();
+    initFiltersTanques();
+    renderAvisoTanquesSemCadastro();
+    updateStatsTanques();
+    renderTanques();
 }
 
 // ==================== ABAS (Bombas / Rastreamento por série) ====================
 function mudarAba(aba) {
-    const painelB = document.getElementById('painelBombas');
-    const painelP = document.getElementById('painelRastreio');
-    const btnB = document.getElementById('tabBtnBombas');
-    const btnP = document.getElementById('tabBtnRastreio');
-    if (aba === 'rastreio') {
-        painelB.classList.remove('active'); painelP.classList.add('active');
-        btnB.classList.remove('active'); btnP.classList.add('active');
-        renderRastreioSerie();
-
-    } else {
-        painelP.classList.remove('active'); painelB.classList.add('active');
-        btnP.classList.remove('active'); btnB.classList.add('active');
-    }
+    const paineis = {
+        bombas: document.getElementById('painelBombas'),
+        tanques: document.getElementById('painelTanques'),
+        rastreio: document.getElementById('painelRastreio')
+    };
+    const botoes = {
+        bombas: document.getElementById('tabBtnBombas'),
+        tanques: document.getElementById('tabBtnTanques'),
+        rastreio: document.getElementById('tabBtnRastreio')
+    };
+    Object.keys(paineis).forEach(k => {
+        const ativo = k === aba;
+        paineis[k].classList.toggle('active', ativo);
+        botoes[k].classList.toggle('active', ativo);
+    });
+    if (aba === 'rastreio') renderRastreioSerie();
+    else if (aba === 'tanques') renderTanques();
 }
 window.mudarAba = mudarAba;
 
@@ -1538,7 +1593,7 @@ function irParaPosto(codigo) {
     forcedExpand.add(codigo);
     currentFilter = 'all';
     currentView = 'cards';
-    document.querySelectorAll('.filter-badge').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    document.querySelectorAll('#filtersBombasGroup .filter-badge').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
     document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'cards'));
     render();
     setTimeout(() => {
@@ -1770,9 +1825,9 @@ function setupSearch() {
 }
 
 function initFilters() {
-    document.querySelectorAll('.filter-badge').forEach(badge => {
+    document.querySelectorAll('#filtersBombasGroup .filter-badge').forEach(badge => {
         badge.addEventListener('click', () => {
-            document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#filtersBombasGroup .filter-badge').forEach(b => b.classList.remove('active'));
             badge.classList.add('active');
             currentFilter = badge.dataset.filter;
             render();
@@ -1787,6 +1842,169 @@ function initViewToggle() {
             btn.classList.add('active');
             currentView = btn.dataset.view;
             render();
+        });
+    });
+}
+
+// ==================== TANQUES (pesquisa paralela às bombas) ====================
+// tanques.json tem o mesmo formato de "codigo"/"nome" que bombas.json — o
+// vínculo entre os dois é feito comparando esse código. Se o código do
+// tanques.json não bater com nenhum posto de bombas.json, ou se o posto
+// estiver INATIVO segundo bombas.json, ele fica de fora do filtro padrão
+// "Ativos" (o mesmo critério de ativo/inativo usado nas bombas).
+function empresaBombasPorCodigo(codigo) {
+    return empresasData.find(e => String(e.codigo) === String(codigo));
+}
+
+function tanqueEmpresaStatus(tanqueEmpresa) {
+    const match = empresaBombasPorCodigo(tanqueEmpresa.codigo);
+    if (!match) return { ativa: null, semCadastro: true };
+    return { ativa: empresaAtiva(match), semCadastro: false };
+}
+
+function filterTanques() {
+    let filtered = tanquesData.map(te => {
+        const { ativa, semCadastro } = tanqueEmpresaStatus(te);
+        return Object.assign({}, te, { _ativa: ativa, _semCadastro: semCadastro });
+    });
+
+    if (currentFilterTanques === 'active') filtered = filtered.filter(e => e._ativa === true);
+    else if (currentFilterTanques === 'inactive') filtered = filtered.filter(e => e._ativa === false);
+    else if (currentFilterTanques === 'sem_cadastro') filtered = filtered.filter(e => e._semCadastro);
+    // 'all' não filtra por status — mostra tudo que existe em tanques.json
+
+    if (currentSearchTermTanques) {
+        const term = currentSearchTermTanques.toLowerCase();
+        filtered = filtered.filter(e =>
+            (e.nome || '').toLowerCase().includes(term) ||
+            String(e.codigo).toLowerCase().includes(term) ||
+            e.tanques.some(t => (t.produto || '').toLowerCase().includes(term) || (t.deposito || '').toLowerCase().includes(term))
+        );
+    }
+    return filtered;
+}
+
+function updateStatsTanques() {
+    const ativos = tanquesData.filter(te => tanqueEmpresaStatus(te).ativa === true);
+    const totalTanquesAtivos = ativos.reduce((a, e) => a + e.tanques.length, 0);
+    const capTotal = ativos.reduce((a, e) => a + e.tanques.reduce((b, t) => b + (t.capacidadeLitros || 0), 0), 0);
+    const produtos = new Set();
+    ativos.forEach(e => e.tanques.forEach(t => { if (t.produto) produtos.add(t.produto); }));
+
+    const elPostos = document.getElementById('totalPostosTanques');
+    const elTanques = document.getElementById('totalTanques');
+    const elCap = document.getElementById('capacidadeTotalTanques');
+    const elProd = document.getElementById('totalProdutosTanques');
+    if (elPostos) elPostos.textContent = ativos.length;
+    if (elTanques) elTanques.textContent = totalTanquesAtivos;
+    if (elCap) elCap.textContent = capTotal.toLocaleString('pt-BR') + ' L';
+    if (elProd) elProd.textContent = produtos.size;
+}
+
+function renderAvisoTanquesSemCadastro() {
+    const alvo = document.getElementById('avisoTanquesSemCadastro');
+    if (!alvo) return;
+    const semCadastro = tanquesData.filter(te => tanqueEmpresaStatus(te).semCadastro);
+    if (semCadastro.length === 0) { alvo.innerHTML = ''; return; }
+    alvo.innerHTML = `
+        <div class="aviso-novo">
+            <i class="fas fa-circle-exclamation"></i>
+            <div>
+                <strong>${semCadastro.length} posto(s) do tanques.json sem código correspondente em bombas.json</strong>
+                <div class="aviso-novo-lista">
+                    ${semCadastro.map(e => `<span>${escapeHtml(e.nome)} (código ${escapeHtml(String(e.codigo))})</span>`).join('')}
+                </div>
+                <p>Esses postos não entram no filtro "Ativos" da aba Tanques até que o código bata com um posto
+                cadastrado em <code>bombas.json</code>. Use o filtro "Sem cadastro em bombas" para revisá-los.</p>
+            </div>
+        </div>`;
+}
+
+function renderTanqueItem(t) {
+    return `
+    <div class="bomba-item">
+        <div class="bomba-header">
+            <div class="bomba-numero"><i class="fas fa-warehouse"></i> ${escapeHtml(t.produto) || 'Produto não informado'}</div>
+            <div class="bomba-tags">
+                <span class="tag tag-tipo">${escapeHtml(t.capacidadeTexto) || '-'}</span>
+                ${/ARLA/i.test(t.produto || '') ? `<span class="tag tag-arla"><i class="fas fa-droplet"></i> ARLA</span>` : ''}
+            </div>
+        </div>
+        <div class="bomba-detalhes">
+            <div class="detalhe-item"><span class="detalhe-label">Depósito:</span><span>${escapeHtml(t.deposito) || '-'}</span></div>
+            <div class="detalhe-item"><span class="detalhe-label">Código depósito:</span><span>${escapeHtml(String(t.codigoDeposito || '')) || '-'}</span></div>
+        </div>
+    </div>`;
+}
+
+function renderTanques() {
+    const container = document.getElementById('tanquesContainer');
+    if (!container) return;
+    const filtered = filterTanques();
+
+    if (filtered.length === 0) {
+        container.classList.remove('grid-cards');
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-warehouse"></i><p>Nenhum tanque encontrado com os filtros atuais.${tanquesData.length === 0 ? ' (tanques.json ainda não foi carregado — gere-o no conversor)' : ''}</p></div>`;
+        return;
+    }
+
+    container.classList.add('grid-cards');
+    container.innerHTML = filtered.map(empresa => {
+        const expandido = forcedExpand.has('tk_' + empresa.codigo);
+        const capacidadeTotal = empresa.tanques.reduce((a, t) => a + (t.capacidadeLitros || 0), 0);
+        const statusTxt = empresa._semCadastro ? '· SEM CADASTRO EM BOMBAS' : (!empresa._ativa ? '· POSTO INATIVO' : '');
+        return `
+        <div class="empresa-card" data-codigo="${escapeHtml(String(empresa.codigo))}">
+            <div class="empresa-header ${empresa._ativa ? '' : 'inativa'}" onclick="toggleEmpresaTanque('${escapeHtml(String(empresa.codigo))}')">
+                <div class="empresa-info">
+                    <h3>${escapeHtml(empresa.nome)}</h3>
+                    <div class="codigo">Código: ${escapeHtml(String(empresa.codigo))} ${statusTxt}</div>
+                </div>
+                <div class="empresa-stats">
+                    <span><i class="fas fa-warehouse"></i> ${empresa.tanques.length} tanques</span>
+                    <span><i class="fas fa-database"></i> ${capacidadeTotal.toLocaleString('pt-BR')} L</span>
+                    <span><i class="fas fa-chevron-down" id="icon-tk-${escapeHtml(String(empresa.codigo))}"></i></span>
+                </div>
+            </div>
+            <div class="bombas-container ${expandido ? '' : 'hidden'}" id="tanques-${escapeHtml(String(empresa.codigo))}">
+                ${empresa.tanques.map(renderTanqueItem).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleEmpresaTanque(codigo) {
+    const container = document.getElementById(`tanques-${codigo}`);
+    const icon = document.getElementById(`icon-tk-${codigo}`);
+    if (container) {
+        container.classList.toggle('hidden');
+        if (container.classList.contains('hidden')) forcedExpand.delete('tk_' + codigo);
+        else forcedExpand.add('tk_' + codigo);
+        if (icon) { icon.classList.toggle('fa-chevron-down'); icon.classList.toggle('fa-chevron-up'); }
+    }
+}
+window.toggleEmpresaTanque = toggleEmpresaTanque;
+
+function setupSearchTanques() {
+    const input = document.getElementById('searchInputTanques');
+    if (!input) return;
+    let debounce;
+    input.addEventListener('input', (e) => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            currentSearchTermTanques = e.target.value.trim();
+            renderTanques();
+        }, 200);
+    });
+}
+
+function initFiltersTanques() {
+    document.querySelectorAll('#filtersTanquesGroup .filter-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            document.querySelectorAll('#filtersTanquesGroup .filter-badge').forEach(b => b.classList.remove('active'));
+            badge.classList.add('active');
+            currentFilterTanques = badge.dataset.filter;
+            renderTanques();
         });
     });
 }
