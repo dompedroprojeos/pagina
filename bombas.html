@@ -136,8 +136,20 @@
         .view-btn.active { background:var(--orange-500); color:#fff; box-shadow:var(--shadow-sm); }
 
         /* ===== CARDS DE POSTO — grade retangular (~3 por linha, responsiva) ===== */
-        #empresasContainer.grid-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.1rem; align-items:start; }
-        #empresasContainer.grid-cards .empresa-card { margin-bottom:0; display:flex; flex-direction:column; }
+        #empresasContainer.grid-cards, #tanquesContainer.grid-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.1rem; align-items:start; }
+        #empresasContainer.grid-cards .empresa-card, #tanquesContainer.grid-cards .empresa-card { margin-bottom:0; display:flex; flex-direction:column; }
+        .tanque-produto-group { border-bottom:1px solid var(--orange-100); padding:1rem 1.5rem; }
+        .tanque-produto-group:last-child { border-bottom:none; }
+        .tanque-produto-group:hover { background:var(--orange-50); }
+        .tanque-produto-header { display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; margin-bottom:.65rem; }
+        .tanque-produto-dot { width:.8rem; height:.8rem; border-radius:50%; flex-shrink:0; }
+        .tanque-produto-nome { font-weight:700; color:var(--gray-800); font-size:.92rem; }
+        .tanque-produto-total { margin-left:auto; font-weight:800; color:var(--orange-700); font-size:.85rem; background:var(--orange-50); border:1px solid var(--orange-200); padding:.2rem .65rem; border-radius:1rem; white-space:nowrap; }
+        .tanque-produto-count { font-size:.72rem; color:var(--gray-500); white-space:nowrap; }
+        .tanque-unidades { display:flex; flex-direction:column; gap:.5rem; }
+        .tanque-unidade { display:grid; grid-template-columns:auto 1fr; gap:.15rem .6rem; background:var(--gray-50); padding:.5rem .7rem; border-radius:var(--radius-sm); font-size:.78rem; color:var(--gray-600); }
+        .tanque-unidade .tu-cap { grid-column:1/-1; font-weight:700; color:var(--gray-800); font-size:.82rem; }
+        .tanque-unidade .tu-dep, .tanque-unidade .tu-cod { grid-column:1/-1; }
         .empresa-card { background:#fff; border-radius:var(--radius-lg); margin-bottom:1.25rem; overflow:hidden; box-shadow:var(--shadow-sm); border:1px solid var(--orange-100); }
         .empresa-header { background:linear-gradient(135deg,var(--orange-500),var(--orange-600)); padding:1.1rem 1.5rem; color:#fff; cursor:pointer; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
         .empresa-header.inativa { background:linear-gradient(135deg,#9CA3AF,#6B7280); }
@@ -616,6 +628,7 @@
         </div>
 
         <div id="painelTanques" class="tab-panel">
+            <div id="diagnosticoTanques"></div>
             <div id="avisoTanquesSemCadastro"></div>
 
             <div class="stats-grid" id="statsGridTanques">
@@ -623,6 +636,17 @@
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-warehouse"></i></div><div class="stat-text"><div class="stat-label">Tanques</div><div class="stat-value" id="totalTanques">0</div></div></div>
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-database"></i></div><div class="stat-text"><div class="stat-label">Capacidade total</div><div class="stat-value" id="capacidadeTotalTanques">0</div></div></div>
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-flask"></i></div><div class="stat-text"><div class="stat-label">Produtos distintos</div><div class="stat-value" id="totalProdutosTanques">0</div></div></div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="dashboard-title"><span class="dt-ic"><i class="fas fa-chart-pie"></i></span> Capacidade de tanques por produto</div>
+                    <div class="dashboard-sub" id="dashboardSubTanques"></div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="donut-wrap" id="donutWrapTanques"></div>
+                    <div class="chart-list" id="chartProdutosTanques"></div>
+                </div>
             </div>
 
             <div class="search-section">
@@ -799,13 +823,15 @@ function carregarTanquesViaFetch() {
     });
 }
 
+let tanquesLoadError = null;
 async function carregarDados() {
     const sourceText = document.getElementById('sourceText');
 
     try {
         empresasData = await carregarViaFetch();
         try { postosData = await carregarPostosViaFetch(); } catch (e2) { postosData = []; }
-        try { tanquesData = await carregarTanquesViaFetch(); } catch (e3) { tanquesData = []; }
+        try { tanquesData = await carregarTanquesViaFetch(); tanquesLoadError = null; } catch (e3) { tanquesData = []; tanquesLoadError = e3.message; }
+        corProdutoCache = null;
         sincronizarStatusPostos();
         sourceText.innerHTML = `<i class="fas fa-check-circle"></i> <b>bombas.json</b> · ${empresasData.length} postos`;
         iniciarApp();
@@ -907,6 +933,7 @@ function iniciarApp() {
     initFiltersTanques();
     renderAvisoTanquesSemCadastro();
     updateStatsTanques();
+    renderDashboardTanques();
     renderTanques();
 }
 
@@ -1852,8 +1879,16 @@ function initViewToggle() {
 // tanques.json não bater com nenhum posto de bombas.json, ou se o posto
 // estiver INATIVO segundo bombas.json, ele fica de fora do filtro padrão
 // "Ativos" (o mesmo critério de ativo/inativo usado nas bombas).
+// normaliza um código de posto pra comparação: tira espaços e zeros à
+// esquerda ("002" e "2" e " 2 " viram a mesma coisa). Evita falso-negativo
+// de "não bate" só por causa de formatação diferente entre os dois arquivos.
+function normalizarCodigo(codigo) {
+    return String(codigo == null ? '' : codigo).trim().replace(/^0+(?=\d)/, '');
+}
+
 function empresaBombasPorCodigo(codigo) {
-    return empresasData.find(e => String(e.codigo) === String(codigo));
+    const alvo = normalizarCodigo(codigo);
+    return empresasData.find(e => normalizarCodigo(e.codigo) === alvo);
 }
 
 function tanqueEmpresaStatus(tanqueEmpresa) {
@@ -1862,26 +1897,75 @@ function tanqueEmpresaStatus(tanqueEmpresa) {
     return { ativa: empresaAtiva(match), semCadastro: false };
 }
 
+// diagnóstico sempre visível no topo da aba Tanques: mostra se o
+// tanques.json carregou, quantos postos vieram nele e quantos aparecem
+// no filtro atual — assim dá pra saber na hora se o problema é o arquivo
+// não ter sido encontrado, ou os códigos não baterem com o bombas.json.
+function renderDiagnosticoTanques() {
+    const alvo = document.getElementById('diagnosticoTanques');
+    if (!alvo) return;
+
+    if (tanquesLoadError) {
+        alvo.innerHTML = `
+            <div class="aviso-novo">
+                <i class="fas fa-circle-exclamation"></i>
+                <div>
+                    <strong>Não foi possível carregar tanques.json</strong>
+                    <p>Erro: <code>${escapeHtml(tanquesLoadError)}</code>. Confira se o arquivo <code>tanques.json</code> está
+                    na <b>mesma pasta</b> do bombas.html, com esse nome exato (minúsculas), e sendo acessado via
+                    http(s):// (não abrindo o bombas.html direto como arquivo local).</p>
+                </div>
+            </div>`;
+        return;
+    }
+
+    if (tanquesData.length === 0) {
+        alvo.innerHTML = `
+            <div class="aviso-novo">
+                <i class="fas fa-circle-info"></i>
+                <div><strong>tanques.json carregou, mas está vazio (nenhum posto).</strong></div>
+            </div>`;
+        return;
+    }
+
+    const ativos = tanquesData.filter(te => tanqueEmpresaStatus(te).ativa === true).length;
+    const semCadastro = tanquesData.filter(te => tanqueEmpresaStatus(te).semCadastro).length;
+    const inativos = tanquesData.length - ativos - semCadastro;
+
+    alvo.innerHTML = `
+        <div class="aviso-novo" style="background:#F0FDF4;border-color:#BBF7D0;">
+            <i class="fas fa-circle-check" style="color:#166534;"></i>
+            <div>
+                <strong>tanques.json carregado: ${tanquesData.length} posto(s).</strong>
+                <p>${ativos} ativo(s) (aparecem no filtro "Ativos") · ${inativos} inativo(s) · ${semCadastro} sem código correspondente em bombas.json.
+                ${ativos === 0 ? ' Se você esperava ver postos aqui, use o filtro "Todos" acima pra conferir se os códigos estão batendo.' : ''}</p>
+            </div>
+        </div>`;
+}
+
 function filterTanques() {
-    let filtered = tanquesData.map(te => {
+    let base = tanquesData.map(te => {
         const { ativa, semCadastro } = tanqueEmpresaStatus(te);
         return Object.assign({}, te, { _ativa: ativa, _semCadastro: semCadastro });
     });
 
-    if (currentFilterTanques === 'active') filtered = filtered.filter(e => e._ativa === true);
-    else if (currentFilterTanques === 'inactive') filtered = filtered.filter(e => e._ativa === false);
-    else if (currentFilterTanques === 'sem_cadastro') filtered = filtered.filter(e => e._semCadastro);
-    // 'all' não filtra por status — mostra tudo que existe em tanques.json
-
+    // a busca sempre olha o dataset INTEIRO, independente do filtro de status
+    // selecionado (Ativos/Todos/Inativos) — assim, buscar por um produto ou
+    // posto que esteja inativo (ou sem cadastro em bombas) ainda encontra
+    // resultado, só que já mostrando o rótulo de status no card.
     if (currentSearchTermTanques) {
         const term = currentSearchTermTanques.toLowerCase();
-        filtered = filtered.filter(e =>
+        return base.filter(e =>
             (e.nome || '').toLowerCase().includes(term) ||
             String(e.codigo).toLowerCase().includes(term) ||
             e.tanques.some(t => (t.produto || '').toLowerCase().includes(term) || (t.deposito || '').toLowerCase().includes(term))
         );
     }
-    return filtered;
+
+    if (currentFilterTanques === 'active') return base.filter(e => e._ativa === true);
+    if (currentFilterTanques === 'inactive') return base.filter(e => e._ativa === false);
+    if (currentFilterTanques === 'sem_cadastro') return base.filter(e => e._semCadastro);
+    return base; // 'all'
 }
 
 function updateStatsTanques() {
@@ -1898,7 +1982,13 @@ function updateStatsTanques() {
     if (elPostos) elPostos.textContent = ativos.length;
     if (elTanques) elTanques.textContent = totalTanquesAtivos;
     if (elCap) elCap.textContent = capTotal.toLocaleString('pt-BR') + ' L';
-    if (elProd) elProd.textContent = produtos.size;
+    if (elProd) {
+        elProd.textContent = produtos.size;
+        const nomesProdutos = Array.from(produtos).sort().join(', ');
+        elProd.title = nomesProdutos;
+        const card = elProd.closest('.stat-card');
+        if (card) card.title = nomesProdutos;
+    }
 }
 
 function renderAvisoTanquesSemCadastro() {
@@ -1920,24 +2010,188 @@ function renderAvisoTanquesSemCadastro() {
         </div>`;
 }
 
-function renderTanqueItem(t) {
+// ==================== CORES POR PRODUTO (fixas e consistentes entre o
+// gráfico e os cards) ====================
+const CORES_PRODUTO = {
+    'DIESEL S 10': '#2563EB',
+    'DIESEL S-10': '#2563EB',
+    'DIESEL S 10 ADITIVADO': '#1D4ED8',
+    'DIESEL COMUM': '#0891B2',
+    'GASOLINA COMUM': '#16A34A',
+    'GASOLINA ADITIVADA': '#15803D',
+    'ETANOL': '#F59E0B',
+    'ETANOL COMUM': '#F59E0B',
+    'ETANOL HIDRATADO': '#D97706',
+    'ARLA A GRANEL': '#7C3AED',
+    'ARLA': '#7C3AED',
+    'G N V': '#DC2626'
+};
+// cache com a cor final de cada produto encontrado no tanques.json — construído
+// uma vez a partir de TODOS os dados (não só os ativos), pra que a mesma cor
+// seja usada tanto no gráfico quanto nos cards, independente do filtro atual.
+let corProdutoCache = null;
+function construirCorProdutoCache() {
+    const nomes = Array.from(new Set(
+        tanquesData.flatMap(e => e.tanques.map(t => (t.produto || 'NÃO INFORMADO').trim().toUpperCase()))
+    )).sort();
+    const mapa = {};
+    let i = 0;
+    nomes.forEach(nome => {
+        if (CORES_PRODUTO[nome]) { mapa[nome] = CORES_PRODUTO[nome]; return; }
+        const hue = (i * 137.508) % 360;
+        mapa[nome] = `hsl(${hue.toFixed(0)}, 65%, 45%)`;
+        i++;
+    });
+    corProdutoCache = mapa;
+}
+function corDoProduto(produto) {
+    if (!corProdutoCache) construirCorProdutoCache();
+    const chave = (produto || 'NÃO INFORMADO').trim().toUpperCase();
+    return corProdutoCache[chave] || '#9CA3AF';
+}
+
+// ==================== GRÁFICO: capacidade de tanques por produto ====================
+function renderDashboardTanques() {
+    const donut = document.getElementById('donutWrapTanques');
+    const sub = document.getElementById('dashboardSubTanques');
+    const listEl = document.getElementById('chartProdutosTanques');
+    if (!donut || !sub || !listEl) return;
+
+    construirCorProdutoCache();
+
+    const contagemLitros = {};
+    let totalLitros = 0;
+    let totalTanquesAtivos = 0;
+    tanquesData.forEach(te => {
+        if (tanqueEmpresaStatus(te).ativa !== true) return;
+        te.tanques.forEach(t => {
+            const produto = (t.produto || 'NÃO INFORMADO').trim();
+            contagemLitros[produto] = (contagemLitros[produto] || 0) + (t.capacidadeLitros || 0);
+            totalLitros += (t.capacidadeLitros || 0);
+            totalTanquesAtivos++;
+        });
+    });
+
+    const ranking = Object.entries(contagemLitros).sort((a, b) => b[1] - a[1]);
+    sub.innerHTML = `<i class="fas fa-warehouse"></i> ${totalTanquesAtivos} tanques ativos · ${ranking.length} produto(s)`;
+
+    if (ranking.length === 0 || totalLitros === 0) {
+        donut.innerHTML = '<div class="dashboard-empty"><i class="fas fa-chart-pie"></i><p>Sem dados suficientes para o gráfico.</p></div>';
+        listEl.innerHTML = '';
+        return;
+    }
+
+    const cx = 150, cy = 150, rOuter = 130, rInner = 72;
+    let acc = 0;
+    const defs = [];
+    const fatias = [];
+    const rotulos = [];
+    ranking.forEach(([produto, litros], i) => {
+        const pct = litros / totalLitros;
+        const startAngle = acc * 360;
+        acc += pct;
+        const endAngle = acc * 360;
+        const corBase = corDoProduto(produto);
+        const gradId = `slice-grad-tk-${i}`;
+        defs.push(`
+            <radialGradient id="${gradId}" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="${ajustarCor(corBase, 45)}"/>
+                <stop offset="65%" stop-color="${corBase}"/>
+                <stop offset="100%" stop-color="${ajustarCor(corBase, -35)}"/>
+            </radialGradient>`);
+        fatias.push(`<path d="${donutSlicePath(cx, cy, rOuter, rInner, startAngle, endAngle)}" fill="url(#${gradId})" stroke="#fff" stroke-width="2.5"><title>${escapeHtml(produto)}: ${litros.toLocaleString('pt-BR')} L (${Math.round(pct * 100)}%)</title></path>`);
+
+        const pctShow = Math.round(pct * 100);
+        if (pctShow >= 4) {
+            const midAngle = (startAngle + endAngle) / 2;
+            const rLabel = (rOuter + rInner) / 2;
+            const pos = polarToCartesian(cx, cy, rLabel, midAngle);
+            rotulos.push(`
+                <text x="${pos.x.toFixed(1)}" y="${(pos.y - 6).toFixed(1)}" text-anchor="middle" class="donut-slice-marca">${escapeHtml(produto)}</text>
+                <text x="${pos.x.toFixed(1)}" y="${(pos.y + 12).toFixed(1)}" text-anchor="middle" class="donut-slice-pct">${pctShow}%</text>`);
+        }
+    });
+
+    const totalLegivel = totalLitros >= 1000
+        ? (totalLitros / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + 'k L'
+        : totalLitros.toLocaleString('pt-BR') + ' L';
+
+    donut.innerHTML = `
+        <svg viewBox="0 0 300 300" class="donut-svg" role="img" aria-label="Capacidade de tanques por produto">
+            <defs>
+                ${defs.join('')}
+                <filter id="donut3d-tk" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.18"/>
+                </filter>
+                <radialGradient id="glossHighlightTk" cx="35%" cy="20%" r="60%">
+                    <stop offset="0%" stop-color="#fff" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <g filter="url(#donut3d-tk)">
+                ${fatias.join('')}
+                <circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="url(#glossHighlightTk)"/>
+                <circle cx="${cx}" cy="${cy}" r="${rInner - 1}" fill="#fff"/>
+            </g>
+            ${rotulos.join('')}
+            <text x="${cx}" y="${cy - 10}" text-anchor="middle" class="donut-center-label">CAPACIDADE TOTAL</text>
+            <text x="${cx}" y="${cy + 22}" text-anchor="middle" class="donut-center-value" style="font-size:26px;">${totalLegivel}</text>
+            <text x="${cx}" y="${cy + 42}" text-anchor="middle" class="donut-center-tag">${ranking.length} produto(s)</text>
+        </svg>`;
+
+    listEl.innerHTML = ranking.map(([produto, litros]) => `<div class="dl-item">
+        <span class="dl-dot" style="background:${corDoProduto(produto)};"></span>
+        <span class="dl-name" title="${escapeHtml(produto)}">${escapeHtml(produto)}</span>
+        <span class="dl-val">${litros.toLocaleString('pt-BR')} L</span>
+    </div>`).join('');
+}
+
+// agrupa os tanques de um posto por produto, somando a capacidade de todos
+// os tanques do mesmo produto (ex.: dois tanques de "DIESEL S 10" de 30.000L
+// cada viram um grupo "DIESEL S 10" com total de 60.000L, listando embaixo
+// cada tanque físico individualmente).
+function agruparTanquesPorProduto(tanques) {
+    const grupos = new Map();
+    tanques.forEach(t => {
+        const chave = (t.produto || 'NÃO INFORMADO').trim();
+        if (!grupos.has(chave)) grupos.set(chave, []);
+        grupos.get(chave).push(t);
+    });
+    return Array.from(grupos.entries())
+        .map(([produto, itens]) => ({
+            produto,
+            itens,
+            totalLitros: itens.reduce((a, t) => a + (t.capacidadeLitros || 0), 0)
+        }))
+        .sort((a, b) => b.totalLitros - a.totalLitros);
+}
+
+function renderGrupoProduto(grupo) {
+    const cor = corDoProduto(grupo.produto);
+    const arla = /ARLA/i.test(grupo.produto);
     return `
-    <div class="bomba-item">
-        <div class="bomba-header">
-            <div class="bomba-numero"><i class="fas fa-warehouse"></i> ${escapeHtml(t.produto) || 'Produto não informado'}</div>
-            <div class="bomba-tags">
-                <span class="tag tag-tipo">${escapeHtml(t.capacidadeTexto) || '-'}</span>
-                ${/ARLA/i.test(t.produto || '') ? `<span class="tag tag-arla"><i class="fas fa-droplet"></i> ARLA</span>` : ''}
-            </div>
+    <div class="tanque-produto-group">
+        <div class="tanque-produto-header">
+            <span class="tanque-produto-dot" style="background:${cor};"></span>
+            <i class="fas fa-oil-can" style="color:${cor};"></i>
+            <span class="tanque-produto-nome">${escapeHtml(grupo.produto)}</span>
+            ${arla ? `<span class="tag tag-arla"><i class="fas fa-droplet"></i> ARLA</span>` : ''}
+            <span class="tanque-produto-count">${grupo.itens.length} tanque${grupo.itens.length > 1 ? 's' : ''}</span>
+            <span class="tanque-produto-total">${grupo.totalLitros.toLocaleString('pt-BR')} LITROS</span>
         </div>
-        <div class="bomba-detalhes">
-            <div class="detalhe-item"><span class="detalhe-label">Depósito:</span><span>${escapeHtml(t.deposito) || '-'}</span></div>
-            <div class="detalhe-item"><span class="detalhe-label">Código depósito:</span><span>${escapeHtml(String(t.codigoDeposito || '')) || '-'}</span></div>
+        <div class="tanque-unidades">
+            ${grupo.itens.map(t => `
+                <div class="tanque-unidade">
+                    <span class="tu-cap">${escapeHtml(t.capacidadeTexto) || '-'}</span>
+                    <span class="tu-dep">Depósito: ${escapeHtml(t.deposito) || '-'}</span>
+                    <span class="tu-cod">Código depósito: ${escapeHtml(String(t.codigoDeposito || '')) || '-'}</span>
+                </div>`).join('')}
         </div>
     </div>`;
 }
 
 function renderTanques() {
+    renderDiagnosticoTanques();
     const container = document.getElementById('tanquesContainer');
     if (!container) return;
     const filtered = filterTanques();
@@ -1967,7 +2221,7 @@ function renderTanques() {
                 </div>
             </div>
             <div class="bombas-container ${expandido ? '' : 'hidden'}" id="tanques-${escapeHtml(String(empresa.codigo))}">
-                ${empresa.tanques.map(renderTanqueItem).join('')}
+                ${agruparTanquesPorProduto(empresa.tanques).map(renderGrupoProduto).join('')}
             </div>
         </div>`;
     }).join('');
