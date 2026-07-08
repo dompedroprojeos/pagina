@@ -53,6 +53,13 @@
         .filter-badge.filtro-arla.active { background:#0891B2; border-color:#0891B2; }
         .tag-bicos { background:#DBEAFE; color:#1D4ED8; }
         .tag-arla { background:#CFFAFE; color:#0E7490; }
+
+        /* ===== VISUAL DEDICADO PRO MODO "BOMBAS ARLA" ===== */
+        .empresa-card-arla { border:1px solid #A5F3FC; box-shadow:0 4px 14px rgba(8,145,178,.12); }
+        .empresa-header.header-arla { background:linear-gradient(135deg,#0891B2,#0E7490); }
+        .badge-arla-card { display:inline-flex; align-items:center; gap:.3rem; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.4); padding:.15rem .6rem; border-radius:2rem; font-size:.7rem; font-weight:700; margin-left:.5rem; vertical-align:middle; }
+        .btn-relatorio-arla { background:rgba(8,145,178,.35); border-color:rgba(255,255,255,.45); }
+        .btn-relatorio-arla:hover { background:rgba(8,145,178,.55); }
         /* ícones de combustível flutuando no cabeçalho principal (mesmo efeito da tela de login) */
         .header .fuel-icon { position:absolute; color:rgba(255,255,255,.16); animation:fuelFloatHeader linear infinite; pointer-events:none; z-index:0; }
         @keyframes fuelFloatHeader {
@@ -1276,11 +1283,12 @@ function renderArlaPanel() {
     let totalArla = 0;
 
     empresasData.forEach(emp => {
+        if (!empresaAtiva(emp)) return; // posto inativo não conta em nada aqui — fica oculto por padrão
         emp.bombas.forEach(bomba => {
             if (!ehArla(bomba)) return;
             totalArla++;
             codigosComArla.add(emp.codigo);
-            if (!porPosto[emp.codigo]) porPosto[emp.codigo] = { nome: emp.nome, codigo: emp.codigo, ativa: empresaAtiva(emp), bombas: [] };
+            if (!porPosto[emp.codigo]) porPosto[emp.codigo] = { nome: emp.nome, codigo: emp.codigo, ativa: true, bombas: [] };
             porPosto[emp.codigo].bombas.push(bomba);
         });
     });
@@ -1323,8 +1331,11 @@ function renderArlaPanel() {
                         </div>`).join('')}
                 </div>
                 <p style="font-size:.75rem;color:var(--gray-400);margin-top:.6rem;">
-                    Identificadas pelo texto "ARLA" no fabricante/modelo cadastrado. Use o filtro
-                    "Bombas ARLA" acima da lista de postos pra ver só esses postos.
+                    Considera apenas postos <strong>ativos</strong> — postos inativos não entram nessa
+                    contagem, ficam ocultos por padrão. Identificadas pelo texto "ARLA" no fabricante/modelo
+                    cadastrado. Use o filtro "Bombas ARLA" acima da lista de postos pra ver só esses postos,
+                    ou o rastreamento por nº de série pra ver se uma bomba ARLA foi retirada de um posto
+                    fechado e levada pra um posto ativo.
                 </p>
             </div>
         </div>`;
@@ -1338,11 +1349,15 @@ function renderArlaPanel() {
 let relatorioEmpresaCodigo = null;
 const LOGO_REDE = 'https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png';
 
-function abrirModalRelatorio(codigo) {
+let relatorioSomenteArla = false;
+
+function abrirModalRelatorio(codigo, somenteArla) {
     relatorioEmpresaCodigo = codigo;
+    relatorioSomenteArla = !!somenteArla;
     const emp = empresasData.find(e => e.codigo === codigo);
-    document.getElementById('modalRelatorioPosto').innerHTML =
-        `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong>. Selecione as colunas do relatório de lacres. Apenas bombas <strong>ativas</strong> serão listadas.`;
+    document.getElementById('modalRelatorioPosto').innerHTML = relatorioSomenteArla
+        ? `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong>. Relatório <strong style="color:#0E7490;"><i class="fas fa-droplet"></i> apenas das bombas de ARLA</strong> ativas. Selecione as colunas.`
+        : `Posto: <strong>${escapeHtml(emp ? emp.nome : codigo)}</strong>. Selecione as colunas do relatório de lacres. Apenas bombas <strong>ativas</strong> serão listadas.`;
     document.getElementById('modalRelatorio').classList.remove('hidden');
 }
 window.abrirModalRelatorio = abrirModalRelatorio;
@@ -1350,6 +1365,7 @@ window.abrirModalRelatorio = abrirModalRelatorio;
 function fecharModalRelatorio() {
     document.getElementById('modalRelatorio').classList.add('hidden');
     relatorioEmpresaCodigo = null;
+    relatorioSomenteArla = false;
 }
 window.fecharModalRelatorio = fecharModalRelatorio;
 
@@ -1367,7 +1383,7 @@ function gerarRelatorio() {
 
     if (colunas.length === 0) { alert('Selecione pelo menos uma coluna.'); return; }
 
-    const bombasAtivas = emp.bombas.filter(bombaAtiva);
+    const bombasAtivas = emp.bombas.filter(bombaAtiva).filter(b => !relatorioSomenteArla || ehArla(b));
     const dataGeracao = new Date().toLocaleString('pt-BR');
 
     const linhaValor = (l, key) => {
@@ -1381,13 +1397,14 @@ function gerarRelatorio() {
 
     const blocosBombas = bombasAtivas.map(bomba => {
         const lacres = bomba.lacres || [];
+        const bicos = classificarBicos(bomba);
         const linhas = lacres.length > 0
             ? lacres.map(l => `<tr>${colunas.map(c => `<td>${linhaValor(l, c.key)}</td>`).join('')}</tr>`).join('')
             : `<tr><td colspan="${colunas.length}" class="rp-empty">Nenhum lacre registrado</td></tr>`;
         return `
         <div class="rp-bomba">
             <div class="rp-bomba-title">
-                <span><i class="rp-icon"></i> Bomba ${escapeHtml(bomba.numero)} — ${escapeHtml(bomba.tipo) || ''}</span>
+                <span><i class="rp-icon"></i> Bomba ${escapeHtml(bomba.numero)} — ${escapeHtml(bomba.tipo) || ''}${bicos ? ' · ' + bicos : ''}${ehArla(bomba) ? ' · ARLA' : ''}</span>
                 <span class="rp-meta">Fabricante: <strong>${escapeHtml(bomba.fabricante) || '-'}</strong> · Nº Série: <strong>${escapeHtml(bomba.nrSerie) || '-'}</strong> · Modelo: ${escapeHtml(bomba.modelo) || '-'}</span>
             </div>
             <table class="rp-table">
@@ -1395,30 +1412,36 @@ function gerarRelatorio() {
                 <tbody>${linhas}</tbody>
             </table>
         </div>`;
-    }).join('') || '<p class="rp-empty" style="padding:2rem;text-align:center;">Nenhuma bomba ativa neste posto.</p>';
+    }).join('') || `<p class="rp-empty" style="padding:2rem;text-align:center;">Nenhuma bomba ${relatorioSomenteArla ? 'de ARLA ' : ''}ativa neste posto.</p>`;
+
+    const corTema = relatorioSomenteArla ? '#0891B2' : '#EA580C';
+    const corTemaEscura = relatorioSomenteArla ? '#0E7490' : '#C2410C';
+    const corTemaClara = relatorioSomenteArla ? '#ECFEFF' : '#FFF7ED';
+    const corTemaBorda = relatorioSomenteArla ? '#A5F3FC' : '#FED7AA';
+    const tituloRelatorio = relatorioSomenteArla ? 'Relatório de Bombas ARLA' : 'Relatório de Bombas e Lacres';
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Relatório de Bombas — ${escapeHtml(emp.nome)}</title>
+<title>${escapeHtml(tituloRelatorio)} — ${escapeHtml(emp.nome)}</title>
 <style>
     @page { size: A4; margin: 22mm 14mm 20mm; }
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Segoe UI', Arial, sans-serif; color:#2D2A24; font-size:11px; }
-    .rp-header { display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #EA580C; padding-bottom:10px; margin-bottom:16px; }
+    .rp-header { display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid ${corTema}; padding-bottom:10px; margin-bottom:16px; }
     .rp-header img { height:46px; }
     .rp-header .rp-title { text-align:right; }
-    .rp-header .rp-title h1 { font-size:16px; color:#C2410C; margin-bottom:2px; }
+    .rp-header .rp-title h1 { font-size:16px; color:${corTemaEscura}; margin-bottom:2px; }
     .rp-header .rp-title p { font-size:10px; color:#6B7280; }
-    .rp-posto-box { background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
-    .rp-posto-box .rp-nome { font-size:14px; font-weight:700; color:#9A3412; }
+    .rp-posto-box { background:${corTemaClara}; border:1px solid ${corTemaBorda}; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .rp-posto-box .rp-nome { font-size:14px; font-weight:700; color:${corTemaEscura}; }
     .rp-posto-box .rp-info { font-size:10px; color:#6B7280; }
     .rp-bomba { margin-bottom:14px; page-break-inside:avoid; }
-    .rp-bomba-title { display:flex; flex-direction:column; gap:2px; background:#F97316; color:#fff; padding:6px 10px; border-radius:6px 6px 0 0; font-size:11px; font-weight:600; }
+    .rp-bomba-title { display:flex; flex-direction:column; gap:2px; background:${corTema}; color:#fff; padding:6px 10px; border-radius:6px 6px 0 0; font-size:11px; font-weight:600; }
     .rp-bomba-title .rp-meta { font-size:9.5px; font-weight:400; opacity:.95; }
     .rp-table { width:100%; border-collapse:collapse; }
-    .rp-table th { background:#FFEDD5; color:#9A3412; text-align:left; padding:5px 8px; font-size:9.5px; border-bottom:1px solid #FED7AA; }
+    .rp-table th { background:${corTemaClara}; color:${corTemaEscura}; text-align:left; padding:5px 8px; font-size:9.5px; border-bottom:1px solid ${corTemaBorda}; }
     .rp-table td { padding:5px 8px; font-size:9.5px; border-bottom:1px solid #F3F4F6; }
     .rp-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:9px; font-weight:700; }
     .rp-ativo { background:#DCFCE7; color:#166534; }
@@ -1428,7 +1451,7 @@ function gerarRelatorio() {
        de texto por cima do cabeçalho de bombas em páginas seguintes na impressão */
     .rp-footer { margin-top:18px; display:flex; justify-content:space-between; font-size:9px; color:#9CA3AF; border-top:1px solid #E5E7EB; padding-top:6px; page-break-inside:avoid; }
     .rp-toolbar { text-align:center; margin-bottom:16px; }
-    .rp-toolbar button { background:#F97316; color:#fff; border:none; border-radius:6px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; margin:0 4px; }
+    .rp-toolbar button { background:${corTema}; color:#fff; border:none; border-radius:6px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; margin:0 4px; }
     @media print { .rp-toolbar { display:none; } }
 </style>
 </head>
@@ -1440,13 +1463,13 @@ function gerarRelatorio() {
     <div class="rp-header">
         <img src="${LOGO_REDE}" alt="Rede Dom Pedro">
         <div class="rp-title">
-            <h1>Relatório de Bombas e Lacres</h1>
+            <h1>${escapeHtml(tituloRelatorio)}</h1>
             <p>Rede Dom Pedro de Postos LTDA</p>
         </div>
     </div>
     <div class="rp-posto-box">
         <div><div class="rp-nome">${escapeHtml(emp.nome)}</div><div class="rp-info">Código: ${escapeHtml(emp.codigo)}</div></div>
-        <div class="rp-info">Gerado em: ${dataGeracao}<br>${bombasAtivas.length} bomba(s) ativa(s)</div>
+        <div class="rp-info">Gerado em: ${dataGeracao}<br>${bombasAtivas.length} bomba(s)${relatorioSomenteArla ? ' ARLA' : ''} ativa(s)</div>
     </div>
     ${blocosBombas}
     <div class="rp-footer">
@@ -1531,7 +1554,7 @@ function filterEmpresas() {
     if (currentFilter === 'active') filtered = filtered.filter(e => empresaAtiva(e));
     else if (currentFilter === 'inactive') filtered = filtered.filter(e => !empresaAtiva(e));
     else if (currentFilter === 'fabricante_incorreto') filtered = filtered.filter(e => codigosComFabricanteIncorreto.has(e.codigo));
-    else if (currentFilter === 'arla') filtered = filtered.filter(e => codigosComArla.has(e.codigo));
+    else if (currentFilter === 'arla') filtered = filtered.filter(e => codigosComArla.has(e.codigo) && empresaAtiva(e));
 
     if (currentSearchTerm) {
         const term = currentSearchTerm.toLowerCase();
@@ -1569,6 +1592,7 @@ function renderTable(filtered, container) {
     const linhas = filtered.map(empresa => {
         const ativa = empresaAtiva(empresa);
         const bombasAtivasCount = empresa.bombas.filter(bombaAtiva).length;
+        const temArla = codigosComArla.has(empresa.codigo);
         return `
         <tr>
             <td><div class="pt-nome">${escapeHtml(empresa.nome)}</div></td>
@@ -1580,6 +1604,7 @@ function renderTable(filtered, container) {
                 <div class="pt-actions">
                     <button class="pt-btn ver" onclick="irParaPosto('${escapeHtml(empresa.codigo)}')"><i class="fas fa-eye"></i> Ver</button>
                     <button class="pt-btn rel" onclick="abrirModalRelatorio('${escapeHtml(empresa.codigo)}')"><i class="fas fa-file-lines"></i> Relatório</button>
+                    ${temArla ? `<button class="pt-btn rel" style="background:#0891B2;" onclick="abrirModalRelatorio('${escapeHtml(empresa.codigo)}', true)"><i class="fas fa-droplet"></i> ARLA</button>` : ''}
                 </div>
             </td>
         </tr>`;
@@ -1647,30 +1672,36 @@ function renderBombaItem(empresa, bomba) {
 }
 
 function renderCards(filtered, container) {
+    const modoArla = currentFilter === 'arla';
     container.innerHTML = filtered.map(empresa => {
         const ativa = empresaAtiva(empresa);
-        const expandido = forcedExpand.has(empresa.codigo);
+        const expandido = forcedExpand.has(empresa.codigo) || modoArla;
         const bombasAtivas = empresa.bombas.filter(bombaAtiva);
         const bombasInativas = empresa.bombas.filter(b => !bombaAtiva(b));
         const bombasAtivasCount = bombasAtivas.length;
         const mostrarInativas = mostrarInativasPorCodigo.has(empresa.codigo);
-        const bombasParaMostrar = mostrarInativas ? empresa.bombas : bombasAtivas;
+        const temArla = codigosComArla.has(empresa.codigo);
+        const qtdArla = empresa.bombas.filter(ehArla).length;
+        // no modo "Bombas ARLA" foca só nas bombas de ARLA daquele posto pra facilitar a leitura
+        let bombasParaMostrar = mostrarInativas ? empresa.bombas : bombasAtivas;
+        if (modoArla) bombasParaMostrar = bombasParaMostrar.filter(ehArla);
         return `
-        <div class="empresa-card" data-codigo="${escapeHtml(empresa.codigo)}">
-            <div class="empresa-header ${ativa ? '' : 'inativa'}" onclick="toggleEmpresa('${escapeHtml(empresa.codigo)}')">
+        <div class="empresa-card ${modoArla ? 'empresa-card-arla' : ''}" data-codigo="${escapeHtml(empresa.codigo)}">
+            <div class="empresa-header ${ativa ? '' : 'inativa'} ${modoArla ? 'header-arla' : ''}" onclick="toggleEmpresa('${escapeHtml(empresa.codigo)}')">
                 <div class="empresa-info">
-                    <h3>${escapeHtml(empresa.nome)}</h3>
+                    <h3>${escapeHtml(empresa.nome)} ${modoArla ? `<span class="badge-arla-card"><i class="fas fa-droplet"></i> ${qtdArla} ARLA</span>` : ''}</h3>
                     <div class="codigo">Código: ${escapeHtml(empresa.codigo)} ${!ativa ? '· POSTO INATIVO' : ''}</div>
                 </div>
                 <div class="empresa-stats">
                     <span><i class="fas fa-oil-can"></i> ${empresa.bombas.length} bombas</span>
                     <span><i class="fas fa-check-circle"></i> ${bombasAtivasCount} ativas</span>
                     <button class="btn-relatorio" onclick="event.stopPropagation(); abrirModalRelatorio('${escapeHtml(empresa.codigo)}')"><i class="fas fa-file-lines"></i> Relatório</button>
+                    ${temArla ? `<button class="btn-relatorio btn-relatorio-arla" onclick="event.stopPropagation(); abrirModalRelatorio('${escapeHtml(empresa.codigo)}', true)"><i class="fas fa-droplet"></i> Relatório ARLA</button>` : ''}
                     <span><i class="fas fa-chevron-down" id="icon-${escapeHtml(empresa.codigo)}"></i></span>
                 </div>
             </div>
             <div class="bombas-container ${expandido ? '' : 'hidden'}" id="bombas-${escapeHtml(empresa.codigo)}">
-                ${bombasInativas.length > 0 ? `
+                ${!modoArla && bombasInativas.length > 0 ? `
                 <div class="toggle-inativas-row">
                     <label class="switch">
                         <input type="checkbox" ${mostrarInativas ? 'checked' : ''} onchange="toggleMostrarInativas('${escapeHtml(empresa.codigo)}')">
@@ -1679,7 +1710,7 @@ function renderCards(filtered, container) {
                     <span>Mostrar bombas inativas também (${bombasInativas.length})</span>
                 </div>` : ''}
                 ${bombasParaMostrar.length === 0
-                    ? '<div style="padding:1rem;text-align:center;color:var(--gray-400);">Nenhuma bomba ativa neste posto.</div>'
+                    ? `<div style="padding:1rem;text-align:center;color:var(--gray-400);">Nenhuma bomba ${modoArla ? 'de ARLA ' : 'ativa '}neste posto.</div>`
                     : bombasParaMostrar.map(bomba => renderBombaItem(empresa, bomba)).join('')}
             </div>
         </div>`;
