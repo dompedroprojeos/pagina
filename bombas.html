@@ -280,6 +280,10 @@
         .rastreio-card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; flex-wrap:wrap; gap:.4rem; }
         .rastreio-serie { font-weight:800; color:var(--orange-700); font-size:.9rem; }
         .rastreio-qtd { font-size:.72rem; color:var(--gray-500); background:var(--gray-100); padding:.15rem .6rem; border-radius:2rem; }
+        .rastreio-tag { display:inline-flex; align-items:center; gap:.35rem; font-size:.7rem; font-weight:800; padding:.25rem .65rem; border-radius:2rem; letter-spacing:.3px; }
+        .rastreio-tag-transferida { background:#DBEAFE; color:#1D4ED8; }
+        .rastreio-tag-duplicidade { background:#FEE2E2; color:#B91C1C; }
+        .rastreio-tag-historico { background:var(--gray-100); color:var(--gray-500); }
 
         /* ===== TIMELINE (usada no rastreamento por nº de série) ===== */
         .btn-historico { background:rgba(255,255,255,.55); color:var(--orange-700); border:1px solid var(--orange-200); border-radius:2rem; padding:.25rem .65rem; font-size:.7rem; font-weight:700; cursor:pointer; display:inline-flex; gap:.3rem; align-items:center; }
@@ -851,17 +855,27 @@ function nrSerieValido(s) {
 function montarIndiceSerie() {
     const porSerie = {};
     empresasData.forEach(emp => {
+        const postoAtivo = empresaAtiva(emp);
         emp.bombas.forEach(bomba => {
             const serie = (bomba.nrSerie || '').trim();
             if (!nrSerieValido(serie)) return;
             (porSerie[serie] = porSerie[serie] || []).push({
                 posto: emp.nome, codigo: emp.codigo, bombaNumero: bomba.numero,
-                fabricante: bomba.fabricante, modelo: bomba.modelo, ativa: bombaAtiva(bomba)
+                fabricante: bomba.fabricante, modelo: bomba.modelo,
+                postoAtivo, bombaAtivaFlag: bombaAtiva(bomba)
             });
         });
     });
-    // só interessa quem aparece em mais de um lugar (indício de transferência/duplicidade)
-    return Object.entries(porSerie).filter(([, ocorrencias]) => ocorrencias.length > 1);
+    // só interessa série que aparece em MAIS DE UM POSTO DISTINTO — se repetir
+    // só dentro do mesmo posto (numeração/registro duplicado internamente),
+    // isso não indica transferência nenhuma e fica de fora daqui.
+    return Object.entries(porSerie)
+        .map(([serie, ocorrencias]) => ({
+            serie,
+            ocorrencias,
+            postosDistintos: new Set(ocorrencias.map(o => o.codigo)).size
+        }))
+        .filter(item => item.postosDistintos > 1);
 }
 
 function setupRastreioSearch() {
@@ -884,39 +898,79 @@ function renderRastreioSerie() {
     let itens = montarIndiceSerie();
     if (rastreioSearchTerm) {
         const t = rastreioSearchTerm;
-        itens = itens.filter(([serie, oc]) =>
-            serie.toLowerCase().includes(t) || oc.some(o => o.posto.toLowerCase().includes(t)));
+        itens = itens.filter(({ serie, ocorrencias }) =>
+            serie.toLowerCase().includes(t) || ocorrencias.some(o => o.posto.toLowerCase().includes(t)));
     }
-    if (contagem) contagem.textContent = `${itens.length} número(s) de série em mais de um posto/bomba`;
+    if (contagem) contagem.textContent = `${itens.length} número(s) de série em mais de um posto`;
 
     if (itens.length === 0) {
         box.innerHTML = `<div class="dashboard-empty"><i class="fas fa-barcode"></i><p>Nenhuma bomba com o mesmo número de série em mais de um posto foi encontrada.</p></div>`;
         return;
     }
 
-    box.innerHTML = itens.map(([serie, ocorrencias]) => {
-        const ativas = ocorrencias.filter(o => o.ativa);
-        const inativas = ocorrencias.filter(o => !o.ativa);
+    const chipPosto = (o) => `<span class="status-badge ${o.postoAtivo ? 'status-ativo' : 'status-inativo'}" title="Status do posto">Posto ${o.postoAtivo ? 'ATIVO' : 'INATIVO'}</span>`;
+    const chipBomba = (o) => `<span class="status-badge ${o.bombaAtivaFlag ? 'status-ativo' : 'status-inativo'}" title="Status da bomba">Bomba ${o.bombaAtivaFlag ? 'ATIVA' : 'INATIVA'}</span>`;
+    const linhaOcorrencia = (o, classe) => `
+        <div class="timeline-item">
+            <span class="${classe}">${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)}</span>
+            ${chipPosto(o)} ${chipBomba(o)}
+        </div>`;
+
+    box.innerHTML = itens.map(({ serie, ocorrencias }) => {
+        // "verdadeiramente ativa" = posto ativo E bomba com lacre ativo. Só essa
+        // combinação conta como o local onde a bomba está de fato hoje.
+        const localAtual = ocorrencias.filter(o => o.postoAtivo && o.bombaAtivaFlag);
+        const historico = ocorrencias.filter(o => !(o.postoAtivo && o.bombaAtivaFlag));
+
+        let statusBadge, corpo;
+
+        if (localAtual.length === 1) {
+            // caso normal: saiu de um lugar (ativo ou já fechado) e está ativa em outro
+            statusBadge = `<span class="rastreio-tag rastreio-tag-transferida"><i class="fas fa-truck-fast"></i> TRANSFERIDA</span>`;
+            corpo = `<div class="timeline-wrap">
+                ${historico.map(o => `
+                    <div class="timeline-item">
+                        <i class="fas fa-clock-rotate-left" style="color:var(--gray-400);"></i>
+                        <span class="t-antigo">Estava em: ${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)}</span>
+                        ${chipPosto(o)} ${chipBomba(o)}
+                        <i class="fas fa-arrow-right t-arrow"></i>
+                    </div>`).join('')}
+                <div class="timeline-item">
+                    <i class="fas fa-map-pin" style="color:var(--orange-500);"></i>
+                    <span class="t-novo">Ativa agora em: ${escapeHtml(localAtual[0].posto)} (cód. ${escapeHtml(localAtual[0].codigo)}) · Bomba ${escapeHtml(localAtual[0].bombaNumero)}</span>
+                    ${chipPosto(localAtual[0])} ${chipBomba(localAtual[0])}
+                </div>
+            </div>`;
+        } else if (localAtual.length > 1) {
+            // mesma série ativa em MAIS DE UM posto ativo ao mesmo tempo = suspeita de erro de cadastro
+            statusBadge = `<span class="rastreio-tag rastreio-tag-duplicidade"><i class="fas fa-triangle-exclamation"></i> POSSÍVEL DUPLICIDADE</span>`;
+            corpo = `
+                <p style="font-size:.78rem;color:#B91C1C;margin-bottom:.6rem;">
+                    Este número de série está ativo em <strong>${localAtual.length} postos ativos</strong> ao mesmo tempo — provável erro de cadastro (a bomba física só pode estar em um lugar). Confira e dê baixa no registro incorreto.
+                </p>
+                <div class="timeline-wrap">
+                    ${ocorrencias.map(o => linhaOcorrencia(o, o.postoAtivo && o.bombaAtivaFlag ? 't-novo' : 't-antigo')).join('')}
+                </div>`;
+        } else {
+            // nenhuma ocorrência "verdadeiramente ativa" — bomba parada/desativada em todos os locais
+            statusBadge = `<span class="rastreio-tag rastreio-tag-historico"><i class="fas fa-box-archive"></i> SEM LOCAL ATIVO</span>`;
+            corpo = `
+                <p style="font-size:.78rem;color:var(--gray-500);margin-bottom:.6rem;">Nenhum registro ativo no momento — a bomba está inativa ou o posto está fechado em todos os locais encontrados.</p>
+                <div class="timeline-wrap">
+                    ${ocorrencias.map(o => linhaOcorrencia(o, 't-antigo')).join('')}
+                </div>`;
+        }
+
         return `
         <div class="rastreio-card">
             <div class="rastreio-card-head">
                 <span class="rastreio-serie"><i class="fas fa-barcode"></i> Nº Série ${escapeHtml(serie)}</span>
-                <span class="rastreio-qtd">${ocorrencias.length} registro(s)</span>
+                <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+                    ${statusBadge}
+                    <span class="rastreio-qtd">${ocorrencias.length} registro(s)</span>
+                </div>
             </div>
-            <div class="timeline-wrap">
-                ${inativas.map(o => `
-                    <div class="timeline-item">
-                        <i class="fas fa-clock-rotate-left" style="color:var(--gray-400);"></i>
-                        <span class="t-antigo">${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)}</span>
-                        ${ativas.length > 0 ? '<i class="fas fa-arrow-right t-arrow"></i>' : ''}
-                        ${ativas.length === 0 ? '<span class="t-data">sem local ativo no momento</span>' : ''}
-                    </div>`).join('')}
-                ${ativas.map(o => `
-                    <div class="timeline-item">
-                        ${inativas.length === 0 ? '<i class="fas fa-map-pin" style="color:var(--orange-500);"></i>' : ''}
-                        <span class="t-novo"><i class="fas fa-check-circle" style="color:#16A34A;"></i> ${escapeHtml(o.posto)} (cód. ${escapeHtml(o.codigo)}) · Bomba ${escapeHtml(o.bombaNumero)} — ATIVA AGORA</span>
-                    </div>`).join('')}
-            </div>
+            ${corpo}
         </div>`;
     }).join('');
 }
