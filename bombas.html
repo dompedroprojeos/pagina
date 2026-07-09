@@ -256,6 +256,25 @@
         .chart-pct { font-size:.72rem; font-weight:700; color:var(--gray-400); text-align:right; margin-top:.1rem; }
         .chart-value-wrap { display:flex; flex-direction:column; align-items:flex-end; }
         .dashboard-empty { text-align:center; padding:1.5rem; color:var(--gray-400); font-size:.85rem; }
+        .donut-svg-lg { width:430px; height:430px; }
+        .chart-list-scroll { max-height:480px; overflow-y:auto; padding-right:.4rem; }
+        .chart-list-scroll::-webkit-scrollbar { width:6px; }
+        .chart-list-scroll::-webkit-scrollbar-thumb { background:var(--orange-200); border-radius:3px; }
+        .dl-item .dl-qtd { font-size:.7rem; color:var(--gray-400); font-weight:600; margin-right:.35rem; }
+
+        /* ===== BOTÃO DE IMPRESSÃO (visões em tabela) ===== */
+        .btn-print { border:none; border-radius:.6rem; padding:.55rem 1rem; font-size:.82rem; font-weight:600; cursor:pointer;
+            display:inline-flex; align-items:center; gap:.4rem; background:var(--gray-700); color:#fff; }
+        .btn-print:hover { background:var(--gray-800); }
+
+        /* ===== PAINEL DE BOMBAS ARLA (cards) ===== */
+        .arla-cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr)); gap:.9rem; margin-top:.5rem; }
+        .arla-card { background:#fff; border:1px solid #A5F3FC; border-radius:var(--radius-md); padding:.9rem 1rem; box-shadow:var(--shadow-sm); }
+        .arla-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; margin-bottom:.5rem; flex-wrap:wrap; }
+        .arla-card-nome { font-weight:700; color:var(--gray-800); font-size:.88rem; line-height:1.25; }
+        .arla-card-cod { font-size:.72rem; color:var(--gray-500); font-family:monospace; margin-top:.1rem; }
+        .arla-card-count { background:#CFFAFE; color:#0E7490; font-size:.72rem; font-weight:700; padding:.2rem .6rem; border-radius:2rem; white-space:nowrap; }
+        .arla-card-bombas { display:flex; gap:.35rem; flex-wrap:wrap; padding-top:.5rem; border-top:1px dashed #A5F3FC; }
 
         /* ===== CADASTROS COM ERRO (fabricante não reconhecido) ===== */
         .flagged-wrap { margin-top:1.25rem; position:relative; z-index:1; }
@@ -610,6 +629,7 @@
                 <button class="view-btn active" data-view="cards"><i class="fas fa-grip"></i> Cards</button>
                 <button class="view-btn" data-view="table"><i class="fas fa-table-list"></i> Tabela</button>
             </div>
+            <button class="btn-print" id="btnPrintBombas" style="display:none;" onclick="imprimirTabelaBombas()"><i class="fas fa-print"></i> Imprimir tabela</button>
         </div>
 
         <div id="empresasContainer"></div>
@@ -649,6 +669,14 @@
                 </div>
             </div>
 
+            <div class="dashboard-section">
+                <div class="dashboard-header">
+                    <div class="dashboard-title"><span class="dt-ic"><i class="fas fa-ranking-star"></i></span> Postos por volume total (maior para o menor)</div>
+                    <div class="dashboard-sub" id="dashboardSubPostosVolume"></div>
+                </div>
+                <div class="chart-list chart-list-scroll" id="chartPostosVolume"></div>
+            </div>
+
             <div class="search-section">
                 <label class="search-label"><i class="fas fa-search"></i> Buscar por produto, nome ou código do posto</label>
                 <div class="search-wrapper">
@@ -664,6 +692,11 @@
                     <div class="filter-badge" data-filter="inactive"><i class="fas fa-ban"></i> Inativos</div>
                     <div class="filter-badge" data-filter="sem_cadastro"><i class="fas fa-triangle-exclamation"></i> Sem cadastro em bombas</div>
                 </div>
+                <div class="view-toggle" id="viewToggleTanques">
+                    <button class="view-btn active" data-view="cards"><i class="fas fa-grip"></i> Cards</button>
+                    <button class="view-btn" data-view="table"><i class="fas fa-table-list"></i> Tabela</button>
+                </div>
+                <button class="btn-print" id="btnPrintTanques" style="display:none;" onclick="imprimirTabelaTanques()"><i class="fas fa-print"></i> Imprimir tabela</button>
             </div>
 
             <div id="tanquesContainer"></div>
@@ -703,6 +736,7 @@ let currentSearchTerm = '';
 let currentFilterTanques = 'active';
 let currentSearchTermTanques = '';
 let currentView = 'cards';
+let currentViewTanques = 'cards';
 let forcedExpand = new Set();
 let mostrarInativasPorCodigo = new Set(); // controla, por posto expandido, se as bombas inativas aparecem
 
@@ -925,7 +959,8 @@ function iniciarApp() {
     renderAvisoPostosNovos();
     setupSearch();
     initFilters();
-    initViewToggle();
+    initViewToggle('viewToggle', (v) => { currentView = v; render(); atualizarBotaoPrint(); });
+    initViewToggle('viewToggleTanques', (v) => { currentViewTanques = v; renderTanques(); atualizarBotaoPrintTanques(); });
     render();
     setupRastreioSearch();
     criarIconesHeader();
@@ -1393,15 +1428,17 @@ function renderArlaPanel() {
         </div>
         <div class="flagged-body-wrap" id="arlaBody">
             <div class="flagged-body-inner">
-                <div class="flagged-list">
+                <div class="arla-cards-grid">
                     ${postos.map(p => `
-                        <div class="flagged-item" style="flex-direction:column;align-items:flex-start;">
-                            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;width:100%;">
-                                <span class="fi-posto">${escapeHtml(p.nome)} (cód. ${escapeHtml(p.codigo)})</span>
-                                <span class="status-badge ${p.ativa ? 'status-ativo' : 'status-inativo'}">Posto ${p.ativa ? 'ATIVO' : 'INATIVO'}</span>
-                                <span class="fi-fab" style="background:#CFFAFE;color:#0E7490;">${p.bombas.length} bomba(s) ARLA</span>
+                        <div class="arla-card">
+                            <div class="arla-card-head">
+                                <div>
+                                    <div class="arla-card-nome">${escapeHtml(p.nome)}</div>
+                                    <div class="arla-card-cod">Código: ${escapeHtml(p.codigo)}</div>
+                                </div>
+                                <span class="arla-card-count"><i class="fas fa-droplet"></i> ${p.bombas.length} ARLA</span>
                             </div>
-                            <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;">
+                            <div class="arla-card-bombas">
                                 ${p.bombas.map(b => {
                                     const bicos = classificarBicos(b);
                                     const bAtiva = bombaAtiva(b);
@@ -1576,6 +1613,117 @@ function gerarRelatorio() {
 }
 window.gerarRelatorio = gerarRelatorio;
 
+// ==================== IMPRESSÃO DAS VISÕES EM TABELA ====================
+function abrirImpressaoTabela(titulo, theadHtml, linhasHtml, infoTexto) {
+    const dataGeracao = new Date().toLocaleString('pt-BR');
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(titulo)}</title>
+<style>
+    @page { size: A4 landscape; margin: 14mm 10mm; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI', Arial, sans-serif; color:#2D2A24; font-size:11px; }
+    .rp-header { display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #EA580C; padding-bottom:10px; margin-bottom:14px; }
+    .rp-header img { height:42px; }
+    .rp-header .rp-title { text-align:right; }
+    .rp-header .rp-title h1 { font-size:15px; color:#C2410C; margin-bottom:2px; }
+    .rp-header .rp-title p { font-size:9.5px; color:#6B7280; }
+    .rp-info { font-size:10px; color:#6B7280; margin-bottom:10px; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:#FFF7ED; color:#9A3412; text-align:left; padding:6px 8px; font-size:9.5px; border-bottom:2px solid #FED7AA; text-transform:uppercase; letter-spacing:.3px; }
+    td { padding:5px 8px; font-size:9.5px; border-bottom:1px solid #F3F4F6; }
+    tr:nth-child(even) td { background:#FAFAFA; }
+    .rp-toolbar { text-align:center; margin-bottom:14px; }
+    .rp-toolbar button { background:#EA580C; color:#fff; border:none; border-radius:6px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; margin:0 4px; }
+    @media print { .rp-toolbar { display:none; } }
+    .rp-footer { margin-top:14px; display:flex; justify-content:space-between; font-size:9px; color:#9CA3AF; border-top:1px solid #E5E7EB; padding-top:6px; }
+</style>
+</head>
+<body>
+    <div class="rp-toolbar">
+        <button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+        <button onclick="window.close()">Fechar</button>
+    </div>
+    <div class="rp-header">
+        <img src="${LOGO_REDE}" alt="Rede Dom Pedro">
+        <div class="rp-title">
+            <h1>${escapeHtml(titulo)}</h1>
+            <p>Rede Dom Pedro de Postos LTDA</p>
+        </div>
+    </div>
+    <div class="rp-info">${infoTexto} · Gerado em: ${dataGeracao}</div>
+    <table>
+        <thead><tr>${theadHtml}</tr></thead>
+        <tbody>${linhasHtml}</tbody>
+    </table>
+    <div class="rp-footer">
+        <span>Rede Dom Pedro de Postos LTDA</span>
+        <span>${dataGeracao}</span>
+    </div>
+</body>
+</html>`;
+
+    const largura = 1000, altura = 720;
+    const left = Math.max(0, (window.screen.width - largura) / 2);
+    const top = Math.max(0, (window.screen.height - altura) / 2);
+    const features = `popup=yes,width=${largura},height=${altura},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes`;
+    const win = window.open('', 'impressaoTabela', features);
+    if (!win) { alert('Permita pop-ups para gerar a impressão.'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+}
+
+function imprimirTabelaBombas() {
+    const filtered = filterEmpresas();
+    const linhas = filtered.map(empresa => {
+        const ativa = empresaAtiva(empresa);
+        const bombasAtivasCount = empresa.bombas.filter(bombaAtiva).length;
+        return `<tr>
+            <td>${escapeHtml(empresa.codigo)}</td>
+            <td>${escapeHtml(empresa.nome)}</td>
+            <td>${empresa.bombas.length}</td>
+            <td>${bombasAtivasCount}</td>
+            <td>${ativa ? 'ATIVO' : 'INATIVO'}</td>
+        </tr>`;
+    }).join('') || `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;">Nenhum posto encontrado.</td></tr>`;
+
+    abrirImpressaoTabela(
+        'Relatório de Postos e Bombas',
+        '<th>Código</th><th>Posto</th><th>Bombas</th><th>Ativas</th><th>Status</th>',
+        linhas,
+        `${filtered.length} posto(s) listado(s)`
+    );
+}
+window.imprimirTabelaBombas = imprimirTabelaBombas;
+
+function imprimirTabelaTanques() {
+    const filtered = filterTanques();
+    const linhas = [];
+    filtered.forEach(empresa => {
+        agruparTanquesPorProduto(empresa.tanques).forEach(g => {
+            linhas.push(`<tr>
+                <td>${escapeHtml(String(empresa.codigo))}</td>
+                <td>${escapeHtml(empresa.nome)}</td>
+                <td>${escapeHtml(g.produto)}</td>
+                <td>${g.itens.length}</td>
+                <td>${g.totalLitros.toLocaleString('pt-BR')} L</td>
+            </tr>`);
+        });
+    });
+
+    abrirImpressaoTabela(
+        'Relatório de Tanques por Posto e Produto',
+        '<th>Código</th><th>Posto</th><th>Produto</th><th>Qtd. Tanques</th><th>Total</th>',
+        linhas.join('') || `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;">Nenhum tanque encontrado.</td></tr>`,
+        `${filtered.length} posto(s) listado(s)`
+    );
+}
+window.imprimirTabelaTanques = imprimirTabelaTanques;
+
 // ==================== BUSCA RÁPIDA (nº de série) ====================
 function renderQuickResults(term) {
     const box = document.getElementById('quickResults');
@@ -1621,7 +1769,8 @@ function irParaPosto(codigo) {
     currentFilter = 'all';
     currentView = 'cards';
     document.querySelectorAll('#filtersBombasGroup .filter-badge').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'cards'));
+    document.querySelectorAll('#viewToggle .view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'cards'));
+    atualizarBotaoPrint();
     render();
     setTimeout(() => {
         const el = document.querySelector(`.empresa-card[data-codigo="${CSS.escape(codigo)}"]`);
@@ -1862,15 +2011,24 @@ function initFilters() {
     });
 }
 
-function initViewToggle() {
-    document.querySelectorAll('.view-btn').forEach(btn => {
+function initViewToggle(containerId, onChange) {
+    document.querySelectorAll(`#${containerId} .view-btn`).forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll(`#${containerId} .view-btn`).forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentView = btn.dataset.view;
-            render();
+            onChange(btn.dataset.view);
         });
     });
+}
+
+function atualizarBotaoPrint() {
+    const btn = document.getElementById('btnPrintBombas');
+    if (btn) btn.style.display = currentView === 'table' ? '' : 'none';
+}
+
+function atualizarBotaoPrintTanques() {
+    const btn = document.getElementById('btnPrintTanques');
+    if (btn) btn.style.display = currentViewTanques === 'table' ? '' : 'none';
 }
 
 // ==================== TANQUES (pesquisa paralela às bombas) ====================
@@ -1928,19 +2086,9 @@ function renderDiagnosticoTanques() {
         return;
     }
 
-    const ativos = tanquesData.filter(te => tanqueEmpresaStatus(te).ativa === true).length;
-    const semCadastro = tanquesData.filter(te => tanqueEmpresaStatus(te).semCadastro).length;
-    const inativos = tanquesData.length - ativos - semCadastro;
-
-    alvo.innerHTML = `
-        <div class="aviso-novo" style="background:#F0FDF4;border-color:#BBF7D0;">
-            <i class="fas fa-circle-check" style="color:#166534;"></i>
-            <div>
-                <strong>tanques.json carregado: ${tanquesData.length} posto(s).</strong>
-                <p>${ativos} ativo(s) (aparecem no filtro "Ativos") · ${inativos} inativo(s) · ${semCadastro} sem código correspondente em bombas.json.
-                ${ativos === 0 ? ' Se você esperava ver postos aqui, use o filtro "Todos" acima pra conferir se os códigos estão batendo.' : ''}</p>
-            </div>
-        </div>`;
+    // carregamento OK: não exibe mensagem de confirmação (só erro/vazio acima
+    // seguem visíveis, por serem os únicos casos que precisam de atenção).
+    alvo.innerHTML = '';
 }
 
 function filterTanques() {
@@ -2060,6 +2208,7 @@ function renderDashboardTanques() {
     construirCorProdutoCache();
 
     const contagemLitros = {};
+    const contagemQtd = {};
     let totalLitros = 0;
     let totalTanquesAtivos = 0;
     tanquesData.forEach(te => {
@@ -2067,6 +2216,7 @@ function renderDashboardTanques() {
         te.tanques.forEach(t => {
             const produto = (t.produto || 'NÃO INFORMADO').trim();
             contagemLitros[produto] = (contagemLitros[produto] || 0) + (t.capacidadeLitros || 0);
+            contagemQtd[produto] = (contagemQtd[produto] || 0) + 1;
             totalLitros += (t.capacidadeLitros || 0);
             totalTanquesAtivos++;
         });
@@ -2078,10 +2228,11 @@ function renderDashboardTanques() {
     if (ranking.length === 0 || totalLitros === 0) {
         donut.innerHTML = '<div class="dashboard-empty"><i class="fas fa-chart-pie"></i><p>Sem dados suficientes para o gráfico.</p></div>';
         listEl.innerHTML = '';
+        renderRankingPostosVolume();
         return;
     }
 
-    const cx = 150, cy = 150, rOuter = 130, rInner = 72;
+    const cx = 160, cy = 160, rOuter = 145, rInner = 80;
     let acc = 0;
     const defs = [];
     const fatias = [];
@@ -2117,7 +2268,7 @@ function renderDashboardTanques() {
         : totalLitros.toLocaleString('pt-BR') + ' L';
 
     donut.innerHTML = `
-        <svg viewBox="0 0 300 300" class="donut-svg" role="img" aria-label="Capacidade de tanques por produto">
+        <svg viewBox="0 0 320 320" class="donut-svg donut-svg-lg" role="img" aria-label="Capacidade de tanques por produto">
             <defs>
                 ${defs.join('')}
                 <filter id="donut3d-tk" x="-30%" y="-30%" width="160%" height="160%">
@@ -2142,8 +2293,48 @@ function renderDashboardTanques() {
     listEl.innerHTML = ranking.map(([produto, litros]) => `<div class="dl-item">
         <span class="dl-dot" style="background:${corDoProduto(produto)};"></span>
         <span class="dl-name" title="${escapeHtml(produto)}">${escapeHtml(produto)}</span>
+        <span class="dl-qtd">${contagemQtd[produto] || 0} tanque${(contagemQtd[produto] || 0) > 1 ? 's' : ''}</span>
         <span class="dl-val">${litros.toLocaleString('pt-BR')} L</span>
     </div>`).join('');
+
+    renderRankingPostosVolume();
+}
+
+// ==================== GRÁFICO: postos em ordem decrescente de volume total ====================
+function renderRankingPostosVolume() {
+    const listEl = document.getElementById('chartPostosVolume');
+    const sub = document.getElementById('dashboardSubPostosVolume');
+    if (!listEl || !sub) return;
+
+    const ativos = tanquesData.filter(te => tanqueEmpresaStatus(te).ativa === true);
+    const ranking = ativos
+        .map(e => ({
+            nome: e.nome,
+            codigo: e.codigo,
+            total: e.tanques.reduce((a, t) => a + (t.capacidadeLitros || 0), 0)
+        }))
+        .filter(p => p.total > 0)
+        .sort((a, b) => b.total - a.total);
+
+    sub.innerHTML = `<i class="fas fa-building"></i> ${ranking.length} posto(s)`;
+
+    if (ranking.length === 0) {
+        listEl.innerHTML = '<div class="dashboard-empty"><i class="fas fa-chart-bar"></i><p>Sem dados suficientes para o gráfico.</p></div>';
+        return;
+    }
+
+    const max = ranking[0].total;
+    listEl.innerHTML = ranking.map((p, i) => {
+        const pct = max > 0 ? Math.max(2, Math.round((p.total / max) * 100)) : 0;
+        const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        return `
+        <div class="chart-row">
+            <div class="chart-rank ${rankClass}">${i + 1}</div>
+            <div class="chart-label" title="${escapeHtml(p.nome)} (cód. ${escapeHtml(String(p.codigo))})">${escapeHtml(p.nome)}</div>
+            <div class="chart-track"><div class="chart-fill" style="width:${pct}%;"></div></div>
+            <div class="chart-value-wrap"><span class="chart-value">${p.total.toLocaleString('pt-BR')} L</span></div>
+        </div>`;
+    }).join('');
 }
 
 // agrupa os tanques de um posto por produto, somando a capacidade de todos
@@ -2195,10 +2386,17 @@ function renderTanques() {
     const container = document.getElementById('tanquesContainer');
     if (!container) return;
     const filtered = filterTanques();
+    atualizarBotaoPrintTanques();
 
     if (filtered.length === 0) {
         container.classList.remove('grid-cards');
         container.innerHTML = `<div class="empty-state"><i class="fas fa-warehouse"></i><p>Nenhum tanque encontrado com os filtros atuais.${tanquesData.length === 0 ? ' (tanques.json ainda não foi carregado — gere-o no conversor)' : ''}</p></div>`;
+        return;
+    }
+
+    if (currentViewTanques === 'table') {
+        container.classList.remove('grid-cards');
+        renderTanquesTable(filtered, container);
         return;
     }
 
@@ -2225,6 +2423,42 @@ function renderTanques() {
             </div>
         </div>`;
     }).join('');
+}
+
+// ----- VISÃO EM TABELA DOS TANQUES: código, posto, produto, total (soma
+// se houver mais de um tanque do mesmo produto no mesmo posto) -----
+function renderTanquesTable(filtered, container) {
+    const linhas = [];
+    filtered.forEach(empresa => {
+        agruparTanquesPorProduto(empresa.tanques).forEach(g => {
+            linhas.push({
+                codigo: empresa.codigo,
+                nome: empresa.nome,
+                produto: g.produto,
+                qtd: g.itens.length,
+                total: g.totalLitros
+            });
+        });
+    });
+
+    const linhasHtml = linhas.map(l => `
+        <tr>
+            <td><span class="pt-cod">${escapeHtml(String(l.codigo))}</span></td>
+            <td><div class="pt-nome">${escapeHtml(l.nome)}</div></td>
+            <td>${escapeHtml(l.produto)}</td>
+            <td>${l.qtd}${l.qtd > 1 ? ' (totalizado)' : ''}</td>
+            <td>${l.total.toLocaleString('pt-BR')} L</td>
+        </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--gray-400);">Nenhum tanque encontrado.</td></tr>`;
+
+    container.innerHTML = `
+        <div class="postos-table-wrapper">
+            <table class="postos-table">
+                <thead>
+                    <tr><th>Código</th><th>Posto</th><th>Produto</th><th>Qtd. Tanques</th><th>Total</th></tr>
+                </thead>
+                <tbody>${linhasHtml}</tbody>
+            </table>
+        </div>`;
 }
 
 function toggleEmpresaTanque(codigo) {
