@@ -12,7 +12,7 @@
     --orange:#ef6c1f; --orange-dark:#c9540f; --blue:#0e4f96; --blue-light:#2e75c9;
     --bg:#f6f7f9; --surface:#ffffff; --border:#e3e7ec; --border-soft:#edf0f3;
     --text:#182031; --text-dim:#5c6675; --text-faint:#8a93a1;
-    --green:#1f8a5f; --red:#d1453b; --navy:#0d1b2a;
+    --green:#1f8a5f; --red:#d1453b; --amber:#b9770e; --navy:#0d1b2a;
     --display:'Oswald', sans-serif; --body:'Inter', system-ui, sans-serif; --mono:'IBM Plex Mono', monospace;
     --radius:14px;
   }
@@ -87,6 +87,7 @@
   .stat-row{ display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:18px; }
   .stat{ background:var(--navy); color:#fff; border-radius:10px; padding:12px 14px; }
   .stat .num{ font-family:var(--mono); font-size:22px; font-weight:600; color:var(--orange); }
+  .stat.warn .num{ color:#f2b23b; }
   .stat .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#aeb6bf; margin-top:4px; }
 
   .preview{
@@ -94,6 +95,16 @@
     border-radius:10px; padding:12px 14px; font-family:var(--mono); font-size:11.5px; color:var(--text-dim);
     white-space:pre; margin-bottom:18px;
   }
+
+  .divergencias{ display:none; margin-bottom:18px; }
+  .divergencias.show{ display:block; }
+  .divergencias h3{ font-family:var(--display); font-size:13.5px; margin:0 0 8px; color:var(--amber); display:flex; align-items:center; gap:7px; }
+  .divergencias table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .divergencias th, .divergencias td{ text-align:left; padding:7px 9px; border-bottom:1px solid var(--border-soft); }
+  .divergencias th{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint); }
+  .divergencias td.g{ color: var(--text-dim); }
+  .divergencias td.r{ color: var(--green); font-weight:600; }
+  .divergencias-wrap{ max-height:180px; overflow:auto; border:1px solid var(--border-soft); border-radius:10px; background:var(--bg); }
 
   .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .btn{ font-family:var(--body); font-weight:600; font-size:13.5px; border-radius:10px; padding:11px 18px; cursor:pointer; border:none; display:flex; align-items:center; gap:8px; }
@@ -131,7 +142,7 @@
 <div class="wrap">
   <div class="eyebrow"><span class="dot"></span>Rede Dom Pedro · Ferramenta</div>
   <h1>Conversor de Parceiros: .xlsx → .json</h1>
-  <div class="subtitle">Transforma a planilha de parceiros (abas <b>DADOS GERAL</b> + <b>ROTAS</b>) em um único <code>parceiros.json</code>, pronto pra ser lido automaticamente pelo <code>painel.html</code>.</div>
+  <div class="subtitle">Transforma a planilha de parceiros (abas <b>DADOS GERAL</b> + <b>ROTAS</b>) em um único <code>parceiros.json</code>, pronto pra ser lido automaticamente pelo <code>painel.html</code>. A <b>BANDEIRA</b> final vem da aba <b>ROTAS</b> (com o valor de DADOS GERAL como referência); se os dois divergirem para o mesmo CNPJ, isso é sinalizado abaixo.</div>
 
   <div class="dropzone" id="dropzone">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
@@ -153,7 +164,20 @@
       <div class="stat"><div class="num" id="statUF">–</div><div class="label">Estados</div></div>
       <div class="stat"><div class="num" id="statBandeiras">–</div><div class="label">Bandeiras</div></div>
       <div class="stat"><div class="num" id="statRotas">–</div><div class="label">Com dados de rota</div></div>
+      <div class="stat warn"><div class="num" id="statDivergencias">–</div><div class="label">Bandeira divergente</div></div>
+      <div class="stat warn"><div class="num" id="statSemRota">–</div><div class="label">Sem match c/ ROTAS</div></div>
     </div>
+
+    <div class="divergencias" id="divergenciasBox">
+      <h3>⚠ Bandeira diferente entre DADOS GERAL e ROTAS (usado o valor de ROTAS)</h3>
+      <div class="divergencias-wrap">
+        <table>
+          <thead><tr><th>Unidade</th><th>CNPJ</th><th>Dados Geral</th><th>Rotas (usado)</th></tr></thead>
+          <tbody id="divergenciasBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="preview" id="preview"></div>
     <div class="actions">
       <button class="btn btn-primary" id="downloadJsBtn">
@@ -164,7 +188,7 @@
       <button class="btn btn-secondary" id="copyBtn">Copiar JSON</button>
       <a class="btn btn-secondary" href="painel.html" style="text-decoration:none">Ver no Painel →</a>
     </div>
-    <div class="hint"><b>parceiros-data.js</b> é o arquivo que o <code>painel.html</code> lê sozinho ao abrir — funciona mesmo com duplo-clique, sem servidor. Coloque-o na mesma pasta do painel (substituindo o anterior) e pronto, não precisa importar nada. O <code>parceiros.json</code> é opcional, útil se você quiser usar os dados em outra ferramenta (PHP, Python etc).</div>
+    <div class="hint"><b>parceiros-data.js</b> é o arquivo que o <code>painel.html</code> lê sozinho ao abrir — funciona mesmo com duplo-clique, sem servidor. Coloque-o na mesma pasta do painel (substituindo o anterior) e pronto, não precisa importar nada. O <code>parceiros.json</code> é opcional, útil se você quiser usar os dados em outra ferramenta (PHP, Python etc). O campo <code>bandeiraFonte</code> em cada registro indica de onde veio a bandeira usada (<code>rotas</code>, <code>geral</code> ou <code>divergente</code>).</div>
   </div>
 
   <div class="status" id="status"></div>
@@ -195,6 +219,11 @@
 
   function normalize(str){
     return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+  }
+  // normalização "forte" para casar razão social / nome fantasia mesmo com pequenas
+  // diferenças de espaçamento, pontuação, "LTDA" etc entre as duas abas
+  function normalizeKey(str){
+    return normalize(str).replace(/[.\-\/]/g,'').replace(/\s+/g,' ').trim();
   }
   function findHeaderRow(rows, needle){
     for(let i=0;i<Math.min(rows.length,15);i++){
@@ -261,7 +290,10 @@
         nomeFantasia: get(row, col.fantasia) || razao,
         perfil: get(row, col.perfil),
         cnpj: get(row, col.cnpj),
-        bandeira: get(row, col.bandeira),
+        bandeira: get(row, col.bandeira),        // valor de DADOS GERAL (referência / fallback)
+        bandeiraGeral: get(row, col.bandeira),
+        bandeiraRotas: '',
+        bandeiraFonte: get(row, col.bandeira) ? 'geral' : '',
         endereco: get(row, col.endereco),
         inscEstadual: get(row, col.inscEstadual),
         cidade: get(row, col.cidade),
@@ -273,9 +305,12 @@
         emailCaixa: get(row, col.emailCaixa),
         gerente: get(row, col.gerente),
         contatoGerente: get(row, col.contatoGerente),
-        regiao:'', rota:'', coordenadas:'', anp:''
+        regiao:'', rota:'', coordenadas:'', anp:'', matchRotas:false
       });
     }
+
+    const divergencias = [];
+
     if(rotasName){
       const rotasRows = sheetToRows(wb.Sheets[rotasName], 40, 500);
       const rHeaderIdx = findHeaderRow(rotasRows, 'RAZAO SOCIAL');
@@ -283,22 +318,71 @@
       const rDataStart = rHeaderIdx >= 0 ? rHeaderIdx + 2 : 5;
       const rCol = {
         cnpj: colIndexByHeader(rHeader, ['CNPJ']),
+        razao: colIndexByHeader(rHeader, ['RAZAO SOCIAL']),
+        fantasia: colIndexByHeader(rHeader, ['NOME FANTASIA']),
         coordenadas: colIndexByHeader(rHeader, ['COORDENADAS','LATITUDE']),
         regiao: colIndexByHeader(rHeader, ['REGIAO']),
         rota: colIndexByHeader(rHeader, ['ROTA']),
         anp: colIndexByHeader(rHeader, ['REGISTRO','ANP']),
+        bandeira: colIndexByHeader(rHeader, ['BANDEIRA']),
       };
+
+      // índice principal por CNPJ + índice reserva por razão social / nome fantasia,
+      // usado quando o CNPJ vier vazio em uma das duas abas (acontece em algumas
+      // unidades novas/em construção, onde ainda não há CNPJ cadastrado)
       const byCnpj = {};
+      const byNome = {};
       for(let r = rDataStart; r < rotasRows.length; r++){
         const row = rotasRows[r];
         if(!row) continue;
+        const razaoR = get(row, rCol.razao);
+        const fantasiaR = get(row, rCol.fantasia);
+        if(!razaoR && !fantasiaR) continue;
+        const entry = {
+          coordenadas: get(row, rCol.coordenadas),
+          regiao: get(row, rCol.regiao),
+          rota: get(row, rCol.rota),
+          anp: get(row, rCol.anp),
+          bandeira: get(row, rCol.bandeira),
+        };
         const cnpj = get(row, rCol.cnpj);
-        if(!cnpj) continue;
-        byCnpj[cnpj] = { coordenadas: get(row, rCol.coordenadas), regiao: get(row, rCol.regiao), rota: get(row, rCol.rota), anp: get(row, rCol.anp) };
+        if(cnpj) byCnpj[cnpj] = entry;
+        if(razaoR) byNome[normalizeKey(razaoR)] = entry;
+        if(fantasiaR) byNome[normalizeKey(fantasiaR)] = entry;
       }
-      records.forEach(rec => { const extra = byCnpj[rec.cnpj]; if(extra) Object.assign(rec, extra); });
+
+      records.forEach(rec => {
+        let extra = rec.cnpj ? byCnpj[rec.cnpj] : null;
+        if(!extra) extra = byNome[normalizeKey(rec.razaoSocial)];
+        if(!extra) extra = byNome[normalizeKey(rec.nomeFantasia)];
+        if(!extra) return;
+
+        rec.matchRotas = true;
+        rec.regiao = extra.regiao;
+        rec.rota = extra.rota;
+        rec.coordenadas = extra.coordenadas;
+        rec.anp = extra.anp;
+        rec.bandeiraRotas = extra.bandeira;
+
+        if(extra.bandeira){
+          if(rec.bandeiraGeral && normalize(rec.bandeiraGeral) !== normalize(extra.bandeira)){
+            divergencias.push({
+              razaoSocial: rec.razaoSocial,
+              cnpj: rec.cnpj,
+              bandeiraGeral: rec.bandeiraGeral,
+              bandeiraRotas: extra.bandeira
+            });
+            rec.bandeiraFonte = 'divergente';
+          } else {
+            rec.bandeiraFonte = 'rotas';
+          }
+          rec.bandeira = extra.bandeira; // saída final sempre prioriza ROTAS
+        }
+        // se ROTAS não tiver bandeira preenchida, mantém o valor de DADOS GERAL (fallback já setado)
+      });
     }
-    return records;
+
+    return { records, divergencias };
   }
 
   let CURRENT_JSON = null;
@@ -312,6 +396,8 @@
     panel: document.getElementById('panel'),
     panelTitle: document.getElementById('panelTitle'),
     preview: document.getElementById('preview'),
+    divergenciasBox: document.getElementById('divergenciasBox'),
+    divergenciasBody: document.getElementById('divergenciasBody'),
     downloadJsBtn: document.getElementById('downloadJsBtn'),
     downloadBtn: document.getElementById('downloadBtn'),
     copyBtn: document.getElementById('copyBtn'),
@@ -323,17 +409,36 @@
 
   function handleWorkbook(wb, label){
     try{
-      const records = extractRecords(wb);
+      const { records, divergencias } = extractRecords(wb);
       if(records.length === 0) throw new Error('Nenhuma linha de dados foi encontrada nas abas esperadas.');
       CURRENT_JSON = records;
+
       document.getElementById('statTotal').textContent = records.length;
       document.getElementById('statUF').textContent = new Set(records.map(r=>r.uf).filter(Boolean)).size;
       document.getElementById('statBandeiras').textContent = new Set(records.map(r=>normalize(r.bandeira))).size;
-      document.getElementById('statRotas').textContent = records.filter(r=>r.regiao).length;
+      document.getElementById('statRotas').textContent = records.filter(r=>r.matchRotas).length;
+      document.getElementById('statDivergencias').textContent = divergencias.length;
+      document.getElementById('statSemRota').textContent = records.filter(r=>!r.matchRotas).length;
+
+      if(divergencias.length){
+        els.divergenciasBody.innerHTML = divergencias.map(d =>
+          '<tr><td>' + d.razaoSocial + '</td><td>' + (d.cnpj || '—') + '</td>' +
+          '<td class="g">' + d.bandeiraGeral + '</td><td class="r">' + d.bandeiraRotas + '</td></tr>'
+        ).join('');
+        els.divergenciasBox.classList.add('show');
+      } else {
+        els.divergenciasBox.classList.remove('show');
+      }
+
       els.panelTitle.textContent = 'Planilha carregada: ' + label;
       els.preview.textContent = JSON.stringify(records.slice(0,3), null, 2) + '\n\n… + ' + (records.length-3) + ' registros';
       els.panel.classList.add('show');
-      setStatus('Convertido com sucesso. Revise a prévia e baixe o JSON.', 'success');
+
+      const semRota = records.filter(r=>!r.matchRotas).length;
+      let msg = 'Convertido com sucesso. Revise a prévia e baixe o JSON.';
+      if(divergencias.length) msg += ' ' + divergencias.length + ' unidade(s) com bandeira diferente entre as abas (usado o valor de ROTAS).';
+      if(semRota) msg += ' ' + semRota + ' unidade(s) sem correspondência na aba ROTAS (confira CNPJ/razão social nas duas abas).';
+      setStatus(msg, (divergencias.length || semRota) ? 'error' : 'success');
     }catch(err){
       console.error(err);
       setStatus('Erro ao processar a planilha: ' + err.message, 'error');
