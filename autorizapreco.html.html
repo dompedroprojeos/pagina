@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Autorização de Ajuste de Preço</title>
+<style>
+  :root {
+    --primary: #1f4a5f;
+    --primary-fg: #f4f8fa;
+    --accent: #e8a23d;
+    --accent-fg: #3a2a08;
+    --bg: #eef2f4;
+    --card: #ffffff;
+    --fg: #1e2a33;
+    --muted: #6b7a85;
+    --border: #d8e0e5;
+    --secondary: #f2f6f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 24px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: "Arial Narrow", "Barlow Condensed", sans-serif; }
+
+  /* Barra de ações (não imprime) */
+  .actions {
+    max-width: 210mm; margin: 0 auto 20px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .actions h1 { font-size: 18px; }
+  .actions p { font-size: 12px; color: var(--muted); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--primary); color: var(--primary-fg);
+    border: none; border-radius: 10px; padding: 10px 18px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .1s;
+  }
+  .btn:hover { transform: scale(1.03); }
+  .btn:active { transform: scale(.96); }
+
+  /* Folha A4 */
+  .sheet {
+    width: 210mm; min-height: 297mm; margin: 0 auto;
+    background: var(--card); box-shadow: 0 10px 30px rgba(0,0,0,.12);
+    display: flex; flex-direction: column;
+  }
+
+  header, footer {
+    background: var(--primary); color: var(--primary-fg);
+    padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  header { border-bottom: 4px solid var(--accent); }
+  footer { border-top: 4px solid var(--accent); margin-top: auto; padding: 12px 32px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--accent); color: var(--accent-fg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: .2em; color: rgba(244,248,250,.7); }
+  header h2 { font-size: 24px; line-height: 1.1; }
+  .doc-tag { text-align: right; }
+  .doc-tag .eyebrow { letter-spacing: .18em; }
+  .doc-tag strong { font-size: 14px; }
+
+  main { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 22px; }
+
+  .section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .section-title h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .section-title .rule { flex: 1; height: 1px; background: var(--border); margin-left: 8px; }
+  .ic-primary { color: var(--primary); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 16px; }
+  .col-2 { grid-column: span 2; }
+  .col-3 { grid-column: span 3; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field .lbl {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+  }
+  .field .inp {
+    display: flex; align-items: center; gap: 4px;
+    border: 1px solid var(--border); background: var(--secondary);
+    border-radius: 8px; padding: 7px 10px; transition: border-color .1s, background .1s;
+  }
+  .field .inp:focus-within { border-color: var(--primary); background: var(--card); }
+  .field input { width: 100%; border: none; background: transparent; outline: none; font-size: 14px; font-weight: 500; color: var(--fg); }
+  .field input::placeholder { color: #aab5bd; }
+  .field .suffix { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+  /* Preços */
+  .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+  .price-group { display: flex; flex-direction: column; gap: 8px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; }
+  .tag .badge {
+    background: var(--primary); color: var(--primary-fg);
+    padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .tag .hint { font-size: 9px; font-weight: 500; line-height: 1.25; color: var(--muted); }
+  .rows { display: grid; gap: 6px; }
+  .row { display: grid; grid-template-columns: 44px 1fr; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .row .uf {
+    background: var(--primary); color: var(--primary-fg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+  }
+  .row .fuels > div { display: flex; align-items: center; gap: 8px; padding: 4px 8px; }
+  .row .fuels > div + div { border-top: 1px solid var(--border); }
+  .fuel-name { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; }
+  .price-in { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .price-in span { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .price-in input {
+    width: 64px; text-align: right; border: 1px solid var(--border);
+    background: var(--secondary); border-radius: 4px; padding: 2px 6px;
+    font-size: 11px; font-weight: 600; color: var(--fg); outline: none;
+  }
+  .price-in input:focus { border-color: var(--primary); background: var(--card); }
+
+  .note {
+    margin-top: 12px; border: 1px dashed rgba(232,162,61,.6); background: rgba(232,162,61,.1);
+    border-radius: 6px; padding: 8px 12px; font-size: 10px; font-weight: 500; line-height: 1.5; color: var(--accent-fg);
+  }
+
+  /* Assinaturas */
+  .signatures { margin-top: auto; }
+  .sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding-top: 8px; }
+  .sign { display: flex; flex-direction: column; align-items: center; }
+  .sign .line { height: 32px; width: 100%; border-bottom: 1px solid rgba(30,42,51,.6); }
+  .sign .name { margin-top: 6px; font-size: 12px; font-weight: 600; }
+  .sign .role { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .place { margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  .footer-left { display: flex; align-items: center; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: .15em; color: rgba(244,248,250,.7); }
+  .footer-right { font-size: 10px; font-weight: 600; letter-spacing: .03em; }
+
+  /* Impressão A4 */
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .sheet { width: 210mm; min-height: 297mm; box-shadow: none; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Barra de ações -->
+  <div class="actions no-print">
+    <div>
+      <h1 class="display">Autorização de Ajuste de Preço</h1>
+      <p>Preencha os campos e clique em imprimir para salvar em PDF (A4).</p>
+    </div>
+    <button class="btn" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir / Salvar PDF
+    </button>
+  </div>
+
+  <!-- Folha A4 -->
+  <div class="sheet">
+    <!-- Cabeçalho -->
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+        </div>
+        <div>
+          <p class="eyebrow">Distribuidora de Combustíveis</p>
+          <h2 class="display">Autorização de Ajuste de Preço</h2>
+        </div>
+      </div>
+      <div class="doc-tag">
+        <p class="eyebrow">Documento</p>
+        <strong class="display">AUTORIZA &middot; 2026</strong>
+      </div>
+    </header>
+
+    <main>
+      <!-- Dados da empresa -->
+      <section>
+        <div class="section-title">
+          <svg class="ic-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+          <h3 class="display">Dados da Empresa</h3>
+          <span class="rule"></span>
+        </div>
+        <div class="grid">
+          <label class="field col-2">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/></svg>Empresa</span>
+            <span class="inp"><input placeholder="Razão social" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>Código</span>
+            <span class="inp"><input placeholder="000000" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>Quant. Veículos</span>
+            <span class="inp"><input placeholder="0" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M8 2v4M16 2v4M3 10h18"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>Cliente desde</span>
+            <span class="inp"><input placeholder="mm/aaaa" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Região de Atuação</span>
+            <span class="inp"><input placeholder="Região" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7Z"/></svg>Galonagem mês anterior</span>
+            <span class="inp"><input placeholder="0" /><span class="suffix">lts</span></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>Potencial de Abastecimento</span>
+            <span class="inp"><input placeholder="0" /><span class="suffix">lts</span></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>Prazo</span>
+            <span class="inp"><input placeholder="0 dias" /></span>
+          </label>
+          <label class="field col-2">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Contato da empresa</span>
+            <span class="inp"><input placeholder="(00) 00000-0000" /></span>
+          </label>
+          <label class="field col-3">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></svg>Observação</span>
+            <span class="inp"><input placeholder="Observações gerais" /></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Valores negociados -->
+      <section>
+        <div class="section-title">
+          <svg class="ic-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+          <h3 class="display">Valores Negociados por Região</h3>
+          <span class="rule"></span>
+        </div>
+        <div class="price-grid" id="priceGrid"></div>
+        <p class="note">* Considerar os novos preços a partir da próxima data devido às sincronizações no sistema.</p>
+      </section>
+
+      <!-- Assinaturas -->
+      <section class="signatures">
+        <div class="section-title">
+          <svg class="ic-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <h3 class="display">Diretoria</h3>
+          <span class="rule"></span>
+        </div>
+        <div class="sign-grid">
+          <div class="sign"><div class="line"></div><span class="name">Régis Bittencourt</span><span class="role">Diretoria</span></div>
+          <div class="sign"><div class="line"></div><span class="name">Sandro José Caetano</span><span class="role">Diretoria</span></div>
+        </div>
+        <div class="place">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M8 2v4M16 2v4M3 10h18"/><rect width="18" height="18" x="3" y="4" rx="2"/></svg>
+          Estiva, Junho de 2026
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer>
+      <span class="footer-left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+        Distribuidora de Combustíveis
+      </span>
+      <span class="footer-right">Programação: Waldeci Ramos @2025</span>
+    </footer>
+  </div>
+
+  <script>
+    const fuelIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>';
+    const groups = [
+      { title: 'MGN', hint: 'Norte de Minas: Montes Claros, Salinas, Divisa 1, Divisa 2, Cachoeira do Pajeú e Frei Inocêncio.', ufs: ['MG','SP','BA','TO'] },
+      { title: 'MG SUL', hint: 'Estiva e demais praças da região sul de Minas.', ufs: ['SP','CE','SE','RJ'] }
+    ];
+    const fuels = ['Diesel Comum', 'Diesel S10'];
+    document.getElementById('priceGrid').innerHTML = groups.map(g => `
+      <div class="price-group">
+        <div class="tag"><span class="badge">${g.title}</span><span class="hint">${g.hint}</span></div>
+        <div class="rows">
+          ${g.ufs.map(uf => `
+            <div class="row">
+              <div class="uf">${uf}</div>
+              <div class="fuels">
+                ${fuels.map(f => `
+                  <div>
+                    <span class="fuel-name">${fuelIcon}${f}</span>
+                    <span class="price-in"><span>R$</span><input inputmode="decimal" placeholder="0,000" /></span>
+                  </div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  </script>
+
+</body>
+</html>
