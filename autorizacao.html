@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Autorização de Ajuste de Preço</title>
+<style>
+  :root {
+    --primary: #1f4f8f;
+    --primary-fg: #f4f8fa;
+    --accent: #e37a1d;
+    --accent-fg: #3a2a08;
+    --bg: #eef2f4;
+    --card: #ffffff;
+    --fg: #1e2a33;
+    --muted: #6b7a85;
+    --border: #d8e0e5;
+    --secondary: #f2f6f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 24px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: "Arial Narrow", "Barlow Condensed", sans-serif; }
+
+  /* Barra de ações (não imprime) */
+  .actions {
+    max-width: 210mm; margin: 0 auto 20px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .actions-left { display: flex; align-items: center; gap: 12px; }
+  .actions h1 { font-size: 18px; }
+  .actions p { font-size: 12px; color: var(--muted); }
+  .btn-group { display: flex; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--primary); color: var(--primary-fg);
+    border: none; border-radius: 10px; padding: 10px 18px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .1s;
+  }
+  .btn:hover { transform: scale(1.03); }
+  .btn:active { transform: scale(.96); }
+  .btn-danger { background: #dc3545; }
+  .btn-success { background: #28a745; }
+
+  /* Folha A4 */
+  .sheet {
+    width: 210mm; min-height: 297mm; max-height: 297mm;
+    margin: 0 auto;
+    background: var(--card); box-shadow: 0 10px 30px rgba(0,0,0,.12);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: var(--primary); color: var(--primary-fg);
+    padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    border-bottom: 4px solid var(--accent);
+    flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo-wrap {
+    width: 60px; height: 60px; border-radius: 12px;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px;
+  }
+  .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .2em; color: rgba(244,248,250,.7); }
+  header h2 { font-size: 22px; line-height: 1.1; }
+  .doc-tag { text-align: right; }
+  .doc-tag .eyebrow { letter-spacing: .18em; }
+  .doc-tag strong { font-size: 14px; }
+
+  main { flex: 1; padding: 18px 32px 14px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+
+  .section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .section-title h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  .section-title .rule { flex: 1; height: 2px; background: var(--border); margin-left: 8px; }
+  .ic-primary { color: var(--primary); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
+  .col-2 { grid-column: span 2; }
+  .col-3 { grid-column: span 3; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field .lbl {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+  }
+  .field .inp {
+    display: flex; align-items: center; gap: 4px;
+    border: 1px solid var(--border); background: var(--secondary);
+    border-radius: 6px; padding: 6px 10px; transition: border-color .1s, background .1s;
+  }
+  .field .inp:focus-within { border-color: var(--primary); background: var(--card); }
+  .field input { width: 100%; border: none; background: transparent; outline: none; font-size: 13px; font-weight: 500; color: var(--fg); }
+  .field input::placeholder { color: #aab5bd; }
+  .field .suffix { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+  /* Preços por estado - ajustes melhorados com letras maiores */
+  .state-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; }
+  .state-box {
+    display: grid; grid-template-columns: 70px 1fr;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 6px;
+    background: var(--card);
+  }
+  .state-badge {
+    color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 6px 4px; font-weight: 800; font-size: 14px; line-height: 1.2;
+  }
+  .state-badge.orange { background: var(--accent); }
+  .state-badge.blue { background: var(--primary); }
+  .state-badge small { display: block; font-size: 8px; font-weight: 600; margin-top: 2px; opacity: .9; text-transform: none; letter-spacing: 0; }
+  .state-fuels { display: flex; flex-direction: column; }
+  .state-fuels > div { 
+    display: flex; align-items: center; justify-content: center; gap: 6px; padding: 5px 10px; 
+  }
+  .state-fuels > div + div { border-top: 1px solid var(--border); }
+  .fuel-label { font-size: 12px; font-weight: 700; white-space: nowrap; min-width: 85px; text-align: left; }
+  .neg-label { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .value-box { 
+    flex: 1; min-width: 90px; max-width: 140px; height: 32px; 
+    border: 1px solid var(--border); background: var(--secondary); 
+    border-radius: 4px; display: flex; align-items: center; 
+  }
+  .value-box:focus-within { border-color: var(--primary); background: var(--card); }
+  .value-box input { 
+    width: 100%; height: 100%; border: none; background: transparent; 
+    outline: none; padding: 0 4px; font-size: 18px; font-weight: 700; 
+    color: var(--fg); text-align: center; 
+  }
+  .value-box .prefix { 
+    padding-left: 8px; 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: var(--muted);
+  }
+
+  /* Observação condicional */
+  .obs-container { margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+  .obs-toggle { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 500; }
+  .obs-toggle input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+  .obs-field { display: none; }
+  .obs-field.visible { display: block; }
+  .obs-field .inp { background: var(--card); padding: 4px 10px; }
+  .obs-field .inp input { font-size: 12px; }
+
+  /* Assinatura */
+  .signatures { margin-top: auto; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+  .sign-row { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
+  .sign-single { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 180px; max-width: 280px; }
+  .sign-single .line { height: 32px; width: 100%; border-bottom: 2px solid rgba(30,42,51,.5); }
+  .sign-single .name { margin-top: 6px; font-size: 14px; font-weight: 600; }
+  .sign-single .role { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+
+  .place-date { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  .place-date input { 
+    border: none; border-bottom: 2px dashed var(--border); 
+    background: transparent; font-size: 13px; font-weight: 500; 
+    color: var(--fg); padding: 0 6px; width: 160px; outline: none; 
+    text-align: center;
+  }
+  .place-date input:focus { border-bottom-color: var(--primary); }
+
+  /* Rodapé de contato */
+  .contact-line { height: 1px; background: var(--fg); opacity: .55; margin: 0 32px; flex-shrink: 0; }
+  .contact-stripe { height: 6px; background: var(--accent); clip-path: polygon(0 100%, 100% 0, 100% 100%); flex-shrink: 0; }
+  .contact-info {
+    display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;
+    padding: 8px 32px; background: var(--card); flex-shrink: 0;
+  }
+  .contact-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--fg); }
+  .contact-item svg { color: var(--primary); flex-shrink: 0; }
+  .credit { text-align: right; padding: 0 32px 6px; font-size: 9px; color: var(--muted); flex-shrink: 0; }
+
+  /* Toast de notificação */
+  .toast {
+    position: fixed; bottom: 30px; right: 30px;
+    background: var(--primary); color: var(--primary-fg);
+    padding: 12px 24px; border-radius: 10px;
+    font-weight: 600; font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    transition: opacity .3s, transform .3s;
+    opacity: 0; transform: translateY(20px);
+    pointer-events: none; z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Impressão A4 */
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .sheet { width: 210mm; min-height: 297mm; max-height: 297mm; box-shadow: none; margin: 0; overflow: hidden; }
+    .obs-field { display: block !important; }
+    header { padding: 14px 32px; }
+    main { padding: 16px 32px 12px; gap: 12px; }
+    .state-box { margin-bottom: 5px; }
+    .state-fuels > div { padding: 4px 10px; }
+    .grid { gap: 8px 14px; }
+    .field .inp { padding: 5px 8px; }
+    .contact-info { padding: 6px 32px; gap: 16px; }
+    .toast { display: none !important; }
+    .sign-row { gap: 40px; }
+    .value-box input { font-size: 16px; }
+    .value-box { min-width: 80px; max-width: 120px; height: 28px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Toast de notificação -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Barra de ações -->
+  <div class="actions no-print">
+    <div class="actions-left">
+      <div>
+        <h1 class="display">Autorização de Ajuste de Preço</h1>
+        <p>Preencha os campos e clique em imprimir para salvar em PDF (A4).</p>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="salvarStorage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar
+      </button>
+      <button class="btn btn-danger" onclick="limparStorage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Limpar
+      </button>
+      <button class="btn" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
+
+  <!-- Folha A4 -->
+  <div class="sheet" id="sheet">
+    <!-- Cabeçalho -->
+    <header>
+      <div class="brand">
+        <div class="logo-wrap">
+          <img src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Rede Dom Pedro" />
+        </div>
+        <div>
+        
+          <h2 class="display">Autorização de Ajuste de Preço</h2>
+        </div>
+      </div>
+      <div class="doc-tag">
+        <p class="eyebrow">Documento</p>
+        <strong class="display">Ajuste de Preços  &middot; 2026</strong>
+      </div>
+    </header>
+
+    <main>
+      <!-- Dados da empresa -->
+      <section>
+        <div class="section-title">
+          <svg class="ic-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+          <h3 class="display">Dados da Empresa</h3>
+          <span class="rule"></span>
+        </div>
+        <div class="grid">
+          <label class="field col-2">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/></svg>Empresa</span>
+            <span class="inp"><input id="empresa" placeholder="Razão social" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>Código</span>
+            <span class="inp"><input id="codigo" placeholder="000000" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>Quant. Veículos</span>
+            <span class="inp"><input id="veiculos" placeholder="0" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M8 2v4M16 2v4M3 10h18"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>Cliente desde</span>
+            <span class="inp"><input id="cliente_desde" placeholder="mm/aaaa" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Região de Atuação</span>
+            <span class="inp"><input id="regiao" placeholder="Região" /></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7Z"/></svg>Galonagem mês anterior</span>
+            <span class="inp"><input id="galonagem" placeholder="0" /><span class="suffix">lts</span></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>Potencial de Abastecimento</span>
+            <span class="inp"><input id="potencial" placeholder="0" /><span class="suffix">lts</span></span>
+          </label>
+          <label class="field">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>Prazo</span>
+            <span class="inp"><input id="prazo" placeholder="0 dias" /></span>
+          </label>
+          <label class="field col-2">
+            <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Contato da empresa</span>
+            <span class="inp"><input id="contato" placeholder="(00) 00000-0000" /></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Valores negociados -->
+      <section>
+        <div class="section-title">
+          <svg class="ic-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+          <h3 class="display">Valores Negociados por Praça</h3>
+          <span class="rule"></span>
+        </div>
+        <div class="state-columns" id="priceGrid"></div>
+        <div style="margin-top: 6px;">
+          <p style="font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 2px; text-align: center;">* Considerar os novos preços a partir da próxima data devido às sincronizações no sistema.</p>
+          
+          <!-- Observação condicional com checkbox -->
+          <div class="obs-container">
+            <label class="obs-toggle">
+              <input type="checkbox" id="obsCheck" />
+              <span>Adicionar observação específica</span>
+            </label>
+            <div class="obs-field" id="obsField">
+              <label class="field">
+                <span class="lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></svg>Observação adicional</span>
+                <span class="inp"><input id="obs_texto" placeholder="Digite aqui..." /></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Assinatura -->
+      <section class="signatures">
+        <div class="sign-row">
+          <div class="sign-single">
+            <div class="line"></div>
+            <span class="name">Sandro José Caetano</span>
+            <span class="role">Diretoria</span>
+          </div>
+          <div class="sign-single">
+            <div class="line"></div>
+            <span class="name">_________________________</span>
+            <span class="role">Diretoria</span>
+          </div>
+        </div>
+        <div class="place-date">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ic-primary"><path d="M8 2v4M16 2v4M3 10h18"/><rect width="18" height="18" x="3" y="4" rx="2"/></svg>
+          <span>Estiva,</span>
+          <input id="data_documento" type="text" value="20 de Junho de 2026" placeholder="Dia de Mês/Ano" />
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé de contato -->
+    <div class="contact-line"></div>
+    <div class="contact-stripe"></div>
+    <div class="contact-info">
+      <span class="contact-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        sac@rededompedro.com
+      </span>
+      <span class="contact-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
+        www.rededompedro.com
+      </span>
+      <span class="contact-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 22V12h6v10"/></svg>
+        Rodovia Fernão Dias KM 880, S/N Espraiado - Estiva-MG
+      </span>
+      <span class="contact-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        0800 723 1188
+      </span>
+    </div>
+    <p class="credit no-print">Programação: Waldeci Ramos</p>
+  </div>
+
+  <script>
+    // ==================== STORAGE ====================
+    const STORAGE_KEY = 'autorizacao_ajuste_preco';
+
+    // Mapeamento de campos
+    const campos = {
+      empresa: 'empresa',
+      codigo: 'codigo',
+      veiculos: 'veiculos',
+      cliente_desde: 'cliente_desde',
+      regiao: 'regiao',
+      galonagem: 'galonagem',
+      potencial: 'potencial',
+      prazo: 'prazo',
+      contato: 'contato',
+      obs_texto: 'obs_texto',
+      data_documento: 'data_documento',
+      obsCheck: 'obsCheck'
+    };
+
+    // Salvar todos os dados no storage
+    function salvarStorage() {
+      const dados = {};
+      
+      // Campos de texto
+      for (const [key, id] of Object.entries(campos)) {
+        const el = document.getElementById(id);
+        if (el) {
+          dados[key] = el.value;
+        }
+      }
+
+      // Campos de preço (state values)
+      const priceInputs = document.querySelectorAll('.value-box input');
+      const prices = [];
+      priceInputs.forEach((input, index) => {
+        prices.push(input.value);
+      });
+      dados.precos = prices;
+
+      // Salvar no storage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+        mostrarToast('✅ Dados salvos com sucesso!');
+      } catch (e) {
+        mostrarToast('❌ Erro ao salvar dados');
+        console.error(e);
+      }
+    }
+
+    // Carregar dados do storage
+    function carregarStorage() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) return false;
+
+        const dados = JSON.parse(stored);
+
+        // Campos de texto
+        for (const [key, id] of Object.entries(campos)) {
+          const el = document.getElementById(id);
+          if (el && dados[key] !== undefined) {
+            el.value = dados[key];
+          }
+        }
+
+        // Campos de preço
+        if (dados.precos && Array.isArray(dados.precos)) {
+          const priceInputs = document.querySelectorAll('.value-box input');
+          priceInputs.forEach((input, index) => {
+            if (index < dados.precos.length) {
+              input.value = dados.precos[index];
+            }
+          });
+        }
+
+        // Checkbox de observação
+        const obsCheck = document.getElementById('obsCheck');
+        if (dados.obsCheck === 'on' || dados.obsCheck === true) {
+          obsCheck.checked = true;
+          document.getElementById('obsField').classList.add('visible');
+        }
+
+        mostrarToast('📂 Dados carregados automaticamente');
+        return true;
+      } catch (e) {
+        console.error('Erro ao carregar storage:', e);
+        return false;
+      }
+    }
+
+    // Limpar todos os dados
+    function limparStorage() {
+      if (!confirm('Tem certeza que deseja limpar todos os dados?')) return;
+
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        
+        // Limpar campos de texto
+        for (const [key, id] of Object.entries(campos)) {
+          const el = document.getElementById(id);
+          if (el) {
+            if (el.type === 'checkbox') {
+              el.checked = false;
+            } else {
+              el.value = '';
+            }
+          }
+        }
+
+        // Limpar campos de preço
+        const priceInputs = document.querySelectorAll('.value-box input');
+        priceInputs.forEach(input => input.value = '');
+
+        // Esconder campo de observação
+        document.getElementById('obsField').classList.remove('visible');
+
+        // Restaurar data padrão
+        document.getElementById('data_documento').value = '20 de Junho de 2026';
+
+        mostrarToast('🗑️ Dados limpos com sucesso!');
+      } catch (e) {
+        mostrarToast('❌ Erro ao limpar dados');
+        console.error(e);
+      }
+    }
+
+    // Auto-save ao digitar
+    function autoSave() {
+      salvarStorage();
+    }
+
+    // Toast notification
+    function mostrarToast(mensagem) {
+      const toast = document.getElementById('toast');
+      toast.textContent = mensagem;
+      toast.classList.add('show');
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // ==================== MÁSCARA DE TELEFONE ====================
+    document.getElementById('contato').addEventListener('input', function(e) {
+      let val = e.target.value.replace(/\D/g, '');
+      if (val.length > 11) val = val.slice(0, 11);
+      let formatted = '';
+      if (val.length > 0) {
+        formatted = '(' + val.substring(0, 2);
+        if (val.length > 2) {
+          formatted += ') ' + val.substring(2, 7);
+          if (val.length > 7) {
+            formatted += '-' + val.substring(7, 11);
+          }
+        }
+      }
+      e.target.value = formatted;
+      autoSave();
+    });
+
+    // ==================== CHECKBOX OBSERVAÇÃO ====================
+    document.getElementById('obsCheck').addEventListener('change', function() {
+      const field = document.getElementById('obsField');
+      if (this.checked) {
+        field.classList.add('visible');
+      } else {
+        field.classList.remove('visible');
+        document.getElementById('obs_texto').value = '';
+      }
+      autoSave();
+    });
+
+    // ==================== AUTO-SAVE EM TODOS OS INPUTS ====================
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', autoSave);
+      input.addEventListener('change', autoSave);
+    });
+
+    // ==================== NAVEGAÇÃO COM ENTER (APENAS PULA ENTRE CAMPOS) ====================
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // Pega todos os inputs em ordem de tabulação
+          const inputs = document.querySelectorAll('input');
+          const currentIndex = Array.from(inputs).indexOf(this);
+          const nextIndex = (currentIndex + 1) % inputs.length;
+          inputs[nextIndex].focus();
+          inputs[nextIndex].select();
+        }
+      });
+    });
+
+    // ==================== GERAR ESTADOS ====================
+    const fuels = ['Diesel Comum', 'Diesel S10'];
+    const colorCycle = ['orange', 'blue'];
+    const stateList = [
+      { uf: 'MG' },
+      { uf: 'SP' },
+      { uf: 'BA' },
+      { uf: 'SP', sub: 'Régis Bitt.' },
+      { uf: 'SE' },
+      { uf: 'RJ' },
+      { uf: 'MG NORTE' },
+      { uf: 'MG SUL' },
+      { uf: 'TO' },
+      { uf: 'CE' }
+    ];
+
+    const mid = Math.ceil(stateList.length / 2);
+    const leftCol = stateList.slice(0, mid).map((s, idx) => ({ ...s, color: colorCycle[idx % 2] }));
+    const rightCol = stateList.slice(mid).map((s, idx) => ({ ...s, color: colorCycle[(mid + idx) % 2] }));
+
+    function renderCol(states) {
+      return states.map(s => `
+        <div class="state-box">
+          <div class="state-badge ${s.color}">
+            ${s.uf}${s.sub ? `<small>${s.sub}</small>` : ''}
+          </div>
+          <div class="state-fuels">
+            ${fuels.map(f => `
+              <div>
+                <span class="fuel-label">${f}</span>
+                <span class="neg-label">Valor Negociado:</span>
+                <span class="value-box"><span class="prefix">R$</span><input inputmode="decimal" placeholder="0,00" /></span>
+              </div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    document.getElementById('priceGrid').innerHTML = `
+      <div>${renderCol(leftCol)}</div>
+      <div>${renderCol(rightCol)}</div>
+    `;
+
+    // ==================== CARREGAR DADOS AO INICIAR ====================
+    setTimeout(() => {
+      carregarStorage();
+      
+      document.querySelectorAll('.value-box input').forEach(input => {
+        input.addEventListener('input', autoSave);
+        input.addEventListener('change', autoSave);
+      });
+    }, 100);
+
+    // ==================== SALVAR ANTES DE IMPRIMIR ====================
+    window.addEventListener('beforeprint', function() {
+      salvarStorage();
+    });
+
+    console.log('💾 Dados são salvos automaticamente no localStorage!');
+    console.log('📌 Use os botões "Salvar" e "Limpar" para gerenciar os dados.');
+    console.log('⌨️ Pressione ENTER para navegar entre os campos (incluindo observação)!');
+  </script>
+
+</body>
+</html>
