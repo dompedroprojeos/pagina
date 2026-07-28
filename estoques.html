@@ -181,8 +181,13 @@ th.num, th.pos, th.neg { text-align: right; }
 .alert-box { display: flex; align-items: flex-start; gap: 12px; background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.25); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; }
 .alert-box i { color: var(--accent); font-size: 1.1rem; margin-top: 2px; }
 .alert-box .alert-title { font-weight: 700; font-size: .85rem; color: var(--accent); margin-bottom: 4px; }
-.alert-box .alert-list { font-size: .8rem; color: var(--text2); line-height: 1.7; }
-.alert-box .alert-list b { color: var(--accent); font-family: var(--mono); }
+.alert-box .alert-list { display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; margin-top: 8px; padding-right: 6px; }
+.alert-item { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 7px 12px; background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.05); border-radius: 7px; }
+.alert-item .ai-name { font-size: .78rem; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alert-item .ai-name .ai-code { font-family: var(--mono); color: var(--muted); font-weight: 700; margin-right: 4px; }
+.alert-item .ai-vals { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: .78rem; white-space: nowrap; flex-shrink: 0; }
+.alert-item .ai-pct { font-weight: 700; color: var(--accent); min-width: 62px; text-align: right; }
+.alert-item .ai-diff { color: var(--text2); min-width: 90px; text-align: right; }
 .alert-box.ok { background: rgba(22,169,126,.08); border-color: rgba(22,169,126,.25); border-left-color: var(--green); }
 .alert-box.ok i, .alert-box.ok .alert-title { color: var(--green); }
 
@@ -1212,11 +1217,18 @@ function buildAlertBox(foraDoLimiteList) {
   const items = foraDoLimiteList
     .slice()
     .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
-    .map(e => `${e.name}${e.code ? ` (${e.code})` : ''}: <b>${fmtPct(e.pct)}</b> (${e.diff>=0?'+':''}${fmt(Math.abs(e.diff))} L) ${e.statusIcon || '🔴'}`)
-    .join(' &nbsp;·&nbsp; ');
+    .map(e => `<div class="alert-item">
+        <span class="ai-name">${e.code ? `<span class="ai-code">${e.code}</span>` : ''}${e.name}</span>
+        <span class="ai-vals">
+          <span class="ai-diff">${e.diff>=0?'+':''}${fmt(Math.abs(e.diff))} L</span>
+          <span class="ai-pct">${fmtPct(e.pct)}</span>
+          <span>${e.statusIcon || '🔴'}</span>
+        </span>
+      </div>`)
+    .join('');
   return `<div class="alert-box">
     <i class="fas fa-triangle-exclamation"></i>
-    <div>
+    <div style="flex:1;min-width:0">
       <div class="alert-title">${foraDoLimiteList.length} empresa(s) fora do percentual de ${LIMITE_PCT.toFixed(2).replace('.', ',')}%</div>
       <div class="alert-list">${items}</div>
     </div>
@@ -1577,8 +1589,13 @@ function printModal() {
     .alert-box.ok i{color:var(--green)}
     .alert-box .alert-title{font-weight:700;font-size:10px;color:var(--accent);margin-bottom:3px}
     .alert-box.ok .alert-title{color:var(--green)}
-    .alert-box .alert-list{font-size:9px;color:var(--text2);line-height:1.6}
-    .alert-box .alert-list b{color:var(--accent);font-family:var(--mono)}
+    .alert-box .alert-list{display:flex;flex-direction:column;gap:3px;margin-top:6px;max-height:none;overflow:visible}
+    .alert-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 8px;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.06);border-radius:5px;page-break-inside:avoid}
+    .alert-item .ai-name{font-size:8.5px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .alert-item .ai-name .ai-code{font-family:var(--mono);color:var(--muted);font-weight:700;margin-right:3px}
+    .alert-item .ai-vals{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:8.5px;white-space:nowrap;flex-shrink:0}
+    .alert-item .ai-pct{font-weight:700;color:var(--accent);min-width:48px;text-align:right}
+    .alert-item .ai-diff{color:var(--text2);min-width:70px;text-align:right}
     .report-product{border-radius:10px;border:1px solid var(--border);background:var(--surface2);padding:12px 14px;margin-bottom:8px;page-break-inside:avoid}
     .report-product.pos{border-left:3px solid var(--green)}
     .report-product.neg{border-left:3px solid var(--accent)}
