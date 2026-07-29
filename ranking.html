@@ -25,6 +25,54 @@
   --shadow:    0 2px 12px rgba(0,0,0,0.07);
   --shadow-lg: 0 4px 24px rgba(0,0,0,0.10);
 }
+html[data-theme="dark"] {
+  --bg:        #0f1420;
+  --surface:   #171e2e;
+  --surface2:  #1e2638;
+  --border:    rgba(255,255,255,0.09);
+  --accent:    #e0574a;
+  --green:     #22c99a;
+  --blue:      #4d8dff;
+  --muted:     #8290ad;
+  --text:      #e8ecf5;
+  --text2:     #a3adc4;
+  --shadow:    0 2px 12px rgba(0,0,0,0.35);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.5);
+}
+html[data-theme="dark"] body { background: var(--bg); }
+html[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,.7); }
+html[data-theme="dark"] #loadingScreen { background: var(--bg); }
+html[data-theme="dark"] .upload-box, html[data-theme="dark"] .cv-upload-box { background: rgba(224,87,74,.06); }
+html[data-theme="dark"] .rk-name-wrap { background: rgba(0,0,0,.35); }
+html[data-theme="dark"] img[alt="Dom Pedro"] { filter: brightness(.9); }
+* { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+
+/* ===== RESPONSIVO — MOBILE / TABLET ===== */
+@media (max-width: 900px) {
+  .container { padding: 16px; }
+  .header { padding: 0 14px; height: 58px; }
+  .logo-text-sub { display: none; }
+  .header-meta { gap: 6px; }
+  .header-meta .badge span:not(#themeIcon) { display: none; }
+  .empresa-selector { flex-direction: column; align-items: stretch; padding: 12px; }
+  .empresa-selector select { width: 100%; }
+  .empresa-selector .btn { width: 100%; justify-content: center; }
+  .result-hero { flex-direction: column; align-items: stretch; gap: 14px; }
+  .result-actions { flex-direction: column; }
+  .result-actions .btn { width: 100%; justify-content: center; }
+  .filters { flex-direction: column; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .charts-row, .charts-row-line { grid-template-columns: 1fr !important; }
+  .chart-container { height: 240px !important; }
+  .table-scroll { overflow-x: auto; }
+  table { min-width: 560px; }
+  .cv-summary-grid { grid-template-columns: 1fr; }
+  .modal { width: 96vw !important; max-height: 92vh !important; }
+}
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr !important; }
+  .logo-text-main { font-size: .78rem; }
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
@@ -176,6 +224,16 @@ th.num, th.pos, th.neg { text-align: right; }
 .ranking-table .rank-1 { background: rgba(255,215,0,0.1); font-weight: 700; }
 .ranking-table .rank-2 { background: rgba(192,192,192,0.1); font-weight: 600; }
 .ranking-table .rank-3 { background: rgba(205,127,50,0.1); font-weight: 600; }
+.rep-section-title { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:.78rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px; color:var(--accent); }
+.rep-section-title.pos { color: var(--green); }
+.rep-section-title.neg { color: var(--accent); }
+.tank-grid { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; padding:14px 6px; }
+.tank-item { display:flex; flex-direction:column; align-items:center; gap:6px; width:96px; }
+.tank-item svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,.12)); }
+.tank-item .tank-label { font-size:.66rem; text-align:center; color:var(--text2); font-weight:600; line-height:1.25; min-height:28px; }
+.tank-item .tank-value { font-family:var(--mono); font-size:.74rem; font-weight:700; }
+@keyframes liquidShimmer { 0%,100% { opacity:.9; } 50% { opacity:1; } }
+.tank-liquid { animation: liquidShimmer 3s ease-in-out infinite; }
 
 /* ===== ALERTA FORA DO PERCENTUAL ===== */
 .alert-box { display: flex; align-items: flex-start; gap: 12px; background: rgba(192,57,43,.08); border: 1px solid rgba(192,57,43,.25); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; }
@@ -352,6 +410,9 @@ th.num, th.pos, th.neg { text-align: right; }
     <span id="periodBadge" class="badge badge-muted">—</span>
     <span id="fileBadge" class="badge badge-blue" style="display:none;"><i class="fas fa-file-code"></i>&nbsp;<span id="fileBadgeText">—</span></span>
     <span id="statusBadge" class="badge badge-muted"><i class="fas fa-circle-notch fa-spin"></i>&nbsp;Carregando</span>
+    <button class="badge badge-muted badge-clickable" id="btnThemeToggle" style="border:none;cursor:pointer;font-family:inherit;" title="Alternar modo claro/escuro">
+      <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
   </div>
 </header>
 
@@ -371,6 +432,7 @@ th.num, th.pos, th.neg { text-align: right; }
     <label><i class="fas fa-calendar-days" style="margin-right:6px;color:var(--accent)"></i>Período</label>
     <select id="periodSelect"></select>
     <label><i class="fas fa-building" style="margin-right:6px;color:var(--accent)"></i>Empresa</label>
+    <input type="text" id="empresaSearch" placeholder="🔍 Buscar posto por nome ou código…" style="flex:0 0 220px;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.82rem;font-family:var(--sans);outline:none;color:var(--text)">
     <select id="empresaSelect"></select>
     <button class="btn btn-ranking" id="btnRankingSimple"><i class="fas fa-trophy"></i> Ranking (Perdas/Sobras)</button>
     <button class="btn btn-secondary" id="btnRankingCompras"><i class="fas fa-truck"></i> Saídas por Posto</button>
@@ -378,6 +440,7 @@ th.num, th.pos, th.neg { text-align: right; }
     <button class="btn btn-total" id="btnTotalReport"><i class="fas fa-chart-pie"></i> Consolidado Rede</button>
     <button class="btn btn-champion" id="btnChampions"><i class="fas fa-medal"></i> Campeões do Ranking</button>
     <button class="btn btn-champion" id="btnRankingArla" style="background:#e67e22"><i class="fas fa-vial"></i> Ranking ARLA</button>
+    <button class="btn btn-secondary" id="btnAnnualSynthesis"><i class="fas fa-calendar-days"></i> Sinótico Anual</button>
     <button class="btn btn-secondary" id="btnConverter"><i class="fas fa-file-export"></i> Conversor TXT→JSON</button>
   </div>
 
@@ -419,6 +482,16 @@ th.num, th.pos, th.neg { text-align: right; }
         <span class="chart-title"><i class="fas fa-chart-bar" style="margin-right:7px;color:var(--accent)"></i>Vendas da Bomba × Medição do Tanque — por Produto</span>
       </div>
       <div class="chart-container"><canvas id="chartBar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TANQUES VISUAIS POR PRODUTO -->
+  <div class="charts-row" style="grid-template-columns:1fr;">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title"><i class="fas fa-flask" style="margin-right:7px;color:var(--accent)"></i>Tanques por Produto — Volume Saído (Bomba)</span>
+      </div>
+      <div class="tank-grid" id="tankGrid"></div>
     </div>
   </div>
 
@@ -525,6 +598,27 @@ th.num, th.pos, th.neg { text-align: right; }
 <div class="footer">REDE DOM PEDRO DE POSTOS · SISTEMA DE CONTROLE DE PERDAS · Sistema Desenvolvido por Waldeci Ramos · Sistema de Medidas de Tanques</div>
 
 <script>
+// ============================================================
+// TEMA CLARO / ESCURO
+// ============================================================
+(function initTheme() {
+  const saved = localStorage.getItem('dp_theme');
+  const theme = saved || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.addEventListener('DOMContentLoaded', () => {
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('dp_theme', next);
+      document.getElementById('themeIcon').className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      if (typeof refresh === 'function' && window._dashboardReady) refresh(); // repinta gráficos com cores do tema
+    });
+  });
+})();
+
 // ============================================================
 // LIMITE DE PERCENTUAL (Perda/Sobra) — ALTERAR AQUI SE NECESSÁRIO
 // ============================================================
@@ -960,6 +1054,46 @@ function renderTable(products) {
 // ============================================================
 // GRÁFICOS
 // ============================================================
+function themeColor(varName) { return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+function isDarkTheme() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+function chartGridColor() { return isDarkTheme() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.05)'; }
+function chartMutedColor() { return themeColor('--muted') || '#8a95a8'; }
+function chartText2Color() { return themeColor('--text2') || '#52607a'; }
+
+function cssId(s) { return String(s || '').replace(/[^a-zA-Z0-9]/g, '_'); }
+
+// Tanques visuais por produto: nível do líquido proporcional ao volume saído pela bomba
+function renderTankGrid(products, labels) {
+  const grid = document.getElementById('tankGrid');
+  if (!grid) return;
+  if (!labels.length) { grid.innerHTML = '<p style="color:var(--muted);font-size:.8rem;text-align:center;padding:20px;">Sem dados para o filtro selecionado.</p>'; return; }
+  const values = labels.map(k => products[k].bombasTotal);
+  const maxVal = Math.max(1, ...values);
+  grid.innerHTML = labels.map(k => {
+    const val = products[k].bombasTotal;
+    const pct = Math.max(0.05, val / maxVal);
+    const color = getProductColor(k);
+    const bodyH = 108, bodyTop = 22;
+    const fillH = Math.round(pct * bodyH);
+    const fillY = bodyTop + (bodyH - fillH);
+    const id = cssId(k);
+    return `
+    <div class="tank-item">
+      <svg viewBox="0 0 90 150" width="72" height="120">
+        <defs><clipPath id="clip-${id}"><rect x="9" y="${bodyTop}" width="72" height="${bodyH}" rx="9"/></clipPath></defs>
+        <rect x="30" y="6" width="30" height="14" rx="3" fill="${color}" opacity=".5"/>
+        <g clip-path="url(#clip-${id})" class="tank-liquid">
+          <rect x="9" y="${fillY}" width="72" height="${bodyH + bodyTop - fillY}" fill="${hexToRgba(color, .82)}"/>
+          <ellipse cx="45" cy="${fillY}" rx="36" ry="4.5" fill="${hexToRgba(color, .95)}"/>
+        </g>
+        <rect x="9" y="${bodyTop}" width="72" height="${bodyH}" rx="9" fill="none" stroke="${color}" stroke-width="2.5"/>
+      </svg>
+      <div class="tank-label">${k}</div>
+      <div class="tank-value" style="color:${color}">${fmt(val)} L</div>
+    </div>`;
+  }).join('');
+}
+
 function renderCharts(products, filtered, selectedProd) {
   // Barras
   const allProds = Object.keys(products);
@@ -970,6 +1104,7 @@ function renderCharts(products, filtered, selectedProd) {
   const bombasData = labels.map(k => products[k].bombasTotal);
   const tanqueData = labels.map(k => products[k].finalLiters);
   const prodColors = labels.map(k => getProductColor(k));
+  renderTankGrid(products, labels);
 
   if (charts.bar) charts.bar.destroy();
   charts.bar = new Chart(document.getElementById('chartBar'), {
@@ -983,10 +1118,10 @@ function renderCharts(products, filtered, selectedProd) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#52607a', font: { family: 'DM Sans', size: 11 } } } },
+      plugins: { legend: { labels: { color: chartText2Color(), font: { family: 'DM Sans', size: 11 } } } },
       scales: {
-        x: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } },
-        y: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }
+        x: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } },
+        y: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } }
       }
     }
   });
@@ -1038,10 +1173,10 @@ function renderCharts(products, filtered, selectedProd) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { color: '#52607a', font: { family: 'DM Sans', size: 10 } } } },
+      plugins: { legend: { display: true, labels: { color: chartText2Color(), font: { family: 'DM Sans', size: 10 } } } },
       scales: {
-        x: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 8 }, maxRotation: 45 }, grid: { color: 'rgba(0,0,0,.05)' } },
-        y: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }
+        x: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 8 }, maxRotation: 45 }, grid: { color: chartGridColor() } },
+        y: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } }
       }
     }
   });
@@ -1093,12 +1228,12 @@ function renderCharts(products, filtered, selectedProd) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { color: '#52607a', font: { family: 'DM Sans', size: 10 } } },
-        title: { display: arlaDays.length === 0, text: 'Sem dados de ARLA para o filtro selecionado', color: '#8a95a8', font: { family: 'DM Sans', size: 13 } }
+      plugins: { legend: { display: true, labels: { color: chartText2Color(), font: { family: 'DM Sans', size: 10 } } },
+        title: { display: arlaDays.length === 0, text: 'Sem dados de ARLA para o filtro selecionado', color: chartMutedColor(), font: { family: 'DM Sans', size: 13 } }
       },
       scales: {
-        x: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 8 }, maxRotation: 45 }, grid: { color: 'rgba(0,0,0,.05)' } },
-        y: { ticks: { color: '#8a95a8', font: { family: 'Space Mono', size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }
+        x: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 8 }, maxRotation: 45 }, grid: { color: chartGridColor() } },
+        y: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } }
       }
     }
   });
@@ -1146,39 +1281,67 @@ function showRankingSimple() {
     const t = getCompanyTotals(filtered);
     const combDiff = t.combBombas - t.combTanque;
     const st = computeStatus(combDiff, t.combBombas);
-    ranking.push({ name, diff: combDiff, pct: st.pct, statusLabel: st.label, statusIcon: st.icon, statusClass: combDiff >= 0 ? 'pos' : 'neg', dentro: st.dentro });
+    ranking.push({ name, bombas: t.combBombas, tanque: t.combTanque, diff: combDiff, pct: st.pct, statusLabel: st.label, statusIcon: st.icon, statusClass: combDiff >= 0 ? 'pos' : 'neg', dentro: st.dentro });
   }
   ranking.sort((a, b) => Math.abs(a.pct) - Math.abs(b.pct));
-  const foraDoLimite = ranking.filter(e => !e.dentro);
-  const rows = ranking.map((e, i) => {
-    const rc = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    const stCl = e.statusLabel === 'Percentual Ok' ? 'ok' : 'nok';
-    return `<tr class="${rc}">
-      <td style="text-align:center;width:50px"><strong>${i+1}º</strong></td>
-      <td><strong>${e.name}</strong></td>
-      <td class="${e.statusClass}" style="text-align:right">${e.diff>=0?'+':''}${fmt(Math.abs(e.diff))} L</td>
+  const dentro = ranking.filter(e => e.dentro);
+  const fora = ranking.filter(e => !e.dentro).sort((a,b) => Math.abs(b.pct) - Math.abs(a.pct));
+  const atencao = ranking.filter(e => Math.abs(e.diff) >= 500).sort((a,b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  const rowHtml = (e, i) => {
+    const stCl = e.dentro ? 'ok' : 'nok';
+    return `<tr>
+      <td style="text-align:center;width:44px">${i+1}º</td>
+      <td>${e.name}</td>
+      <td class="num" style="text-align:right">${fmt(e.bombas)} L</td>
+      <td class="num" style="text-align:right">${fmt(e.tanque)} L</td>
+      <td class="${e.statusClass}" style="text-align:right">${e.diff>=0?'+':''}${fmt(e.diff)} L</td>
       <td class="${e.statusClass}" style="text-align:right">${fmtPct(e.pct)}</td>
-      <td class="${stCl}" style="text-align:center"><strong>${e.statusIcon} ${e.statusLabel}</strong></td>
+      <td class="${stCl}" style="text-align:center">${e.statusIcon} ${e.statusLabel}</td>
     </tr>`;
-  }).join('');
-  const alertHtml = buildAlertBox(foraDoLimite);
+  };
+  const tableHead = `<thead><tr>
+      <th style="text-align:center">#</th>
+      <th style="text-align:left">Posto</th>
+      <th style="text-align:right">Saída Bomba (L)</th>
+      <th style="text-align:right">Medição Tanque (L)</th>
+      <th style="text-align:right">Diferença (L)</th>
+      <th style="text-align:right">%</th>
+      <th style="text-align:center">Status</th>
+    </tr></thead>`;
+
+  const atencaoRows = atencao.map((e,i) => `<tr>
+      <td style="text-align:center;width:44px">${i+1}º</td>
+      <td>${e.name}</td>
+      <td class="num" style="text-align:right">${fmt(e.bombas)} L</td>
+      <td class="${e.statusClass}" style="text-align:right">${e.diff>=0?'+':''}${fmt(e.diff)} L</td>
+      <td class="${e.statusClass}" style="text-align:right">${fmtPct(e.pct)}</td>
+      <td style="text-align:center;font-size:.68rem;color:var(--muted)">${e.bombas < 3000 ? '⚠️ Venda baixa' : '—'}</td>
+    </tr>`).join('');
+
   const html = `${buildReportHeader('RANKING DE EMPRESAS — PERDAS/SOBRAS (Bomba × Tanque)')}
-    ${alertHtml}
     <div style="margin-bottom:16px;padding:12px;background:rgba(22,169,126,.1);border-radius:8px;">
       <p style="font-family:var(--mono);font-size:.72rem;color:var(--green);">
         <i class="fas fa-info-circle"></i> Considera apenas Combustíveis (ARLA tem ranking próprio). Ordenado do menor desvio % (melhor) para o maior. Limite: acima de ${LIMITE_PCT.toFixed(2).replace('.', ',')}% de diferença = Fora do Percentual.
       </p>
     </div>
-    <table style="width:100%;border-collapse:collapse;">
-      <thead><tr style="border-bottom:2px solid var(--border);">
-        <th style="padding:10px;text-align:center">#</th>
-        <th style="padding:10px;text-align:left">Posto</th>
-        <th style="padding:10px;text-align:right">Perdas/Sobras (L)</th>
-        <th style="padding:10px;text-align:right">%</th>
-        <th style="padding:10px;text-align:center">Status</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+
+    <div class="rep-section-title neg"><i class="fas fa-triangle-exclamation"></i> Fora do Percentual (${fora.length})</div>
+    ${fora.length ? `<table class="ranking-table"><colgroup><col style="width:44px"></colgroup>${tableHead}<tbody>${fora.map(rowHtml).join('')}</tbody></table>`
+      : '<p style="color:var(--muted);font-size:.8rem;margin-bottom:14px;">Nenhuma empresa fora do percentual — parabéns à rede!</p>'}
+
+    <div class="rep-section-title pos" style="margin-top:22px;"><i class="fas fa-circle-check"></i> Dentro do Percentual (${dentro.length})</div>
+    ${dentro.length ? `<table class="ranking-table">${tableHead}<tbody>${dentro.map(rowHtml).join('')}</tbody></table>`
+      : '<p style="color:var(--muted);font-size:.8rem;">Nenhuma empresa dentro do percentual no período.</p>'}
+
+    ${atencao.length ? `
+    <div class="rep-section-title" style="margin-top:22px;color:#b8860b"><i class="fas fa-magnifying-glass"></i> Atenção — Diferença Absoluta ≥ 500 L (independente do %)</div>
+    <p style="font-size:.72rem;color:var(--muted);margin-bottom:8px;">Postos com grande volume de perda/sobra em litros, mesmo quando o percentual parece pequeno — atenção especial quando a venda (bomba) é baixa.</p>
+    <table class="ranking-table"><thead><tr>
+      <th style="text-align:center">#</th><th style="text-align:left">Posto</th><th style="text-align:right">Saída Bomba (L)</th>
+      <th style="text-align:right">Diferença (L)</th><th style="text-align:right">%</th><th style="text-align:center">Obs.</th>
+    </tr></thead><tbody>${atencaoRows}</tbody></table>` : ''}
+
     ${buildReportFooter()}`;
   document.getElementById('modalTitle').textContent = `Ranking de Empresas — ${fmtDate(from)} → ${fmtDate(to)}`;
   document.getElementById('modalBody').innerHTML = html;
@@ -1267,7 +1430,7 @@ function showChampions() {
       <div class="rk-badge">${i+1}\u00b0</div>
       <div class="rk-name-wrap">
         <div class="rk-name">${e.code ? `<span class="rk-code">${e.code}</span> — ` : ''}${e.name}</div>
-        <div class="rk-meta"><span>${e.diff>=0?'+':''}${fmt(Math.abs(e.diff))} L</span><span>${fmtPct(e.pct)}</span></div>
+        <div class="rk-meta"><span>${e.diff>=0?'+':''}${fmt(e.diff)} L</span><span>${fmtPct(e.pct)}</span></div>
       </div>
     </div>`).join('');
 
@@ -1286,16 +1449,13 @@ function showChampions() {
       </div>`
     : '<p style="text-align:center;color:var(--muted);padding:30px 0;">Nenhuma empresa dentro da margem estabelecida no período selecionado.</p>';
 
-  const alertHtml = buildAlertBox(foraDoLimite);
-
   const html = `${buildReportHeader('CAMPEÕES DO RANKING — DENTRO DA MARGEM ESTABELECIDA')}
     <div style="margin-bottom:18px;padding:12px;background:rgba(124,58,237,.08);border-radius:8px;border-left:4px solid #7c3aed;">
       <p style="font-family:var(--mono);font-size:.72rem;color:#7c3aed;">
-        <i class="fas fa-medal"></i> Apenas postos com status "Percentual Ok" (≤ ${LIMITE_PCT.toFixed(2).replace('.', ',')}% de diferença), ordenados do melhor para o pior resultado.
+        <i class="fas fa-medal"></i> Apenas postos com status "Percentual Ok" (≤ ${LIMITE_PCT.toFixed(2).replace('.', ',')}% de diferença), ordenados do melhor para o pior resultado. Para ver quem ficou fora, use o relatório "Ranking (Perdas/Sobras)".
       </p>
     </div>
     ${body}
-    ${alertHtml}
     ${buildReportFooter()}`;
   document.getElementById('modalTitle').textContent = `Campeões do Ranking — ${fmtDate(from)} → ${fmtDate(to)}`;
   document.getElementById('modalBody').innerHTML = html;
@@ -1316,7 +1476,7 @@ function buildAlertBox(foraDoLimiteList) {
   const items = foraDoLimiteList
     .slice()
     .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
-    .map(e => `${e.name}${e.code ? ` (${e.code})` : ''}: <b>${fmtPct(e.pct)}</b> (${e.diff>=0?'+':''}${fmt(Math.abs(e.diff))} L) ${e.statusIcon || '🔴'}`)
+    .map(e => `${e.name}${e.code ? ` (${e.code})` : ''}: <b>${fmtPct(e.pct)}</b> (${e.diff>=0?'+':''}${fmt(e.diff)} L) ${e.statusIcon || '🔴'}`)
     .join(' &nbsp;·&nbsp; ');
   return `<div class="alert-box">
     <i class="fas fa-triangle-exclamation"></i>
@@ -1325,6 +1485,136 @@ function buildAlertBox(foraDoLimiteList) {
       <div class="alert-list">${items}</div>
     </div>
   </div>`;
+}
+
+// ============================================================
+// SINÓTICO ANUAL — junta todos os meses do ano encontrados na pasta
+// (usa cache em localStorage pra não rebaixar meses já fechados)
+// ============================================================
+async function getOrFetchMonth(fileName) {
+  const cacheKey = 'dp_cache_' + fileName;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) { try { return JSON.parse(cached); } catch (e) {} }
+  try {
+    const data = await fetchJSON(fileName);
+    try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (e) {}
+    return data;
+  } catch (e) { return null; }
+}
+
+async function showAnnualSynthesis() {
+  const currentPeriod = availablePeriods.find(p => p.fileName === currentFileName);
+  const year = currentPeriod ? currentPeriod.year : new Date().getFullYear();
+
+  document.getElementById('modalTitle').textContent = `Sinótico Anual — ${year}`;
+  document.getElementById('modalBody').innerHTML = `<p style="text-align:center;padding:50px 0;color:var(--muted);"><i class="fas fa-circle-notch fa-spin"></i>&nbsp; Buscando meses de ${year} na pasta do dashboard…</p>`;
+  document.getElementById('modalOverlay').classList.add('open');
+  window._currentReportType = 'annual';
+
+  const monthsFound = [];
+  const prodTotals = {};
+  const companyTotals = {};
+  for (let m = 0; m < 12; m++) {
+    const fn = periodFileName(year, m);
+    const data = await getOrFetchMonth(fn);
+    if (!data) continue;
+    const companies = jsonToCompanies(data);
+    if (!Object.keys(companies).length) continue;
+    monthsFound.push(MESES_LABEL[m]);
+    Object.entries(companies).forEach(([name, records]) => {
+      if (!companyTotals[name]) companyTotals[name] = { bombas: 0, tanque: 0 };
+      records.forEach(r => {
+        if (!prodTotals[r.product]) prodTotals[r.product] = { bombas: 0, tanque: 0 };
+        prodTotals[r.product].bombas += r.bombas;
+        prodTotals[r.product].tanque += r.tanque;
+        if (!isArla(r.product)) { companyTotals[name].bombas += r.bombas; companyTotals[name].tanque += r.tanque; }
+      });
+    });
+  }
+
+  const prods = Object.keys(prodTotals).sort();
+  if (!prods.length) {
+    document.getElementById('modalBody').innerHTML = `${buildReportHeader('SINÓTICO ANUAL — ' + year)}
+      <p style="text-align:center;padding:30px 0;color:var(--muted);">Nenhum arquivo mensal de ${year} foi encontrado na pasta do dashboard (procurei janeiro–dezembro de ${year}, no padrão mesAno.json).</p>
+      ${buildReportFooter()}`;
+    return;
+  }
+
+  let totBombas = 0, totTanque = 0;
+  const rows = prods.map(p => {
+    const t = prodTotals[p];
+    const diff = t.bombas - t.tanque;
+    const pct = t.bombas ? (diff / t.bombas * 100) : 0;
+    totBombas += t.bombas; totTanque += t.tanque;
+    const cls = diff >= 0 ? 'pos' : 'neg';
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${getProductColor(p)};margin-right:7px;"></span>${p}</td>
+      <td class="num" style="text-align:right">${fmt(t.bombas)} L</td>
+      <td class="num" style="text-align:right">${fmt(t.tanque)} L</td>
+      <td class="${cls}" style="text-align:right">${diff >= 0 ? '+' : ''}${fmt(diff)} L</td>
+      <td class="${cls}" style="text-align:right">${fmtPct(pct)}</td>
+    </tr>`;
+  }).join('');
+  const totDiff = totBombas - totTanque;
+  const totPct = totBombas ? (totDiff / totBombas * 100) : 0;
+
+  // Top 10 empresas por volume vendido no ano (combustíveis)
+  const topCompanies = Object.entries(companyTotals)
+    .map(([name, t]) => ({ name, ...t, diff: t.bombas - t.tanque }))
+    .sort((a, b) => b.bombas - a.bombas)
+    .slice(0, 10);
+  const companyRows = topCompanies.map((e, i) => `<tr>
+      <td style="text-align:center;width:44px">${i+1}º</td>
+      <td>${e.name}</td>
+      <td class="num" style="text-align:right">${fmt(e.bombas)} L</td>
+      <td class="${e.diff>=0?'pos':'neg'}" style="text-align:right">${e.diff>=0?'+':''}${fmt(e.diff)} L</td>
+    </tr>`).join('');
+
+  const html = `${buildReportHeader('SINÓTICO ANUAL — ' + year)}
+    <div style="margin-bottom:16px;padding:12px;background:rgba(37,99,235,.08);border-radius:8px;">
+      <p style="font-family:var(--mono);font-size:.72rem;color:var(--blue);"><i class="fas fa-calendar-check"></i> Meses encontrados nesta pasta: <strong>${monthsFound.join(', ')}</strong> (${monthsFound.length}/12). Conforme novos meses forem gerados e salvos na pasta, eles entram automaticamente nesse total.</p>
+    </div>
+    <div class="rep-section-title"><i class="fas fa-oil-can"></i> Total do Ano por Produto</div>
+    <table class="ranking-table"><thead><tr>
+      <th style="text-align:left">Produto</th><th style="text-align:right">Saída Bomba (L)</th><th style="text-align:right">Medição Tanque (L)</th>
+      <th style="text-align:right">Diferença (L)</th><th style="text-align:right">%</th>
+    </tr></thead><tbody>${rows}</tbody>
+    <tfoot><tr class="total-row"><td>TOTAL ANO</td>
+      <td class="num" style="text-align:right">${fmt(totBombas)} L</td>
+      <td class="num" style="text-align:right">${fmt(totTanque)} L</td>
+      <td class="${totDiff>=0?'pos':'neg'}" style="text-align:right">${totDiff>=0?'+':''}${fmt(totDiff)} L</td>
+      <td class="${totDiff>=0?'pos':'neg'}" style="text-align:right">${fmtPct(totPct)}</td>
+    </tr></tfoot></table>
+
+    <div class="chart-container" style="height:300px;margin:20px 0;"><canvas id="chartAnnual"></canvas></div>
+
+    <div class="rep-section-title" style="margin-top:18px;"><i class="fas fa-ranking-star"></i> Top 10 Postos — Volume Vendido no Ano (Combustíveis)</div>
+    <table class="ranking-table"><thead><tr>
+      <th style="text-align:center">#</th><th style="text-align:left">Posto</th><th style="text-align:right">Saída Bomba (L)</th><th style="text-align:right">Diferença (L)</th>
+    </tr></thead><tbody>${companyRows}</tbody></table>
+
+    ${buildReportFooter()}`;
+  document.getElementById('modalBody').innerHTML = html;
+
+  const ctx = document.getElementById('chartAnnual');
+  if (ctx) {
+    if (window._annualChart) window._annualChart.destroy();
+    window._annualChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: prods, datasets: [
+        { label: 'Saída Bomba', data: prods.map(p => prodTotals[p].bombas), backgroundColor: prods.map(p => getProductColor(p)), borderRadius: 5 },
+        { label: 'Medição Tanque', data: prods.map(p => prodTotals[p].tanque), backgroundColor: prods.map(p => hexToRgba(getProductColor(p), .45)), borderRadius: 5 },
+      ] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: chartText2Color(), font: { family: 'DM Sans', size: 11 } } } },
+        scales: {
+          x: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } },
+          y: { ticks: { color: chartMutedColor(), font: { family: 'Space Mono', size: 9 } }, grid: { color: chartGridColor() } }
+        }
+      }
+    });
+  }
 }
 
 function showRankingArla() {
@@ -1605,7 +1895,7 @@ function buildGeneralReport(products, filtered) {
       <div class="ms-item"><div class="ms-label">Est. Escritural</div><div class="ms-val" style="color:var(--green)">${fmt(totBombas)} L</div></div>
       <div class="ms-item"><div class="ms-label">Medição do Tanque</div><div class="ms-val" style="color:var(--blue)">${fmt(totTanque)} L</div></div>
       <div class="ms-item"><div class="ms-label">${totDiff>=0?'Sobra':'Perda'} Total</div>
-        <div class="ms-val" style="color:${totDiff>=0?'var(--green)':'var(--accent)'}">${totDiff>=0?'+':''}${fmt(Math.abs(totDiff))} L</div></div>
+        <div class="ms-val" style="color:${totDiff>=0?'var(--green)':'var(--accent)'}">${totDiff>=0?'+':''}${fmt(totDiff)} L</div></div>
     </div>
     <p style="color:var(--text2);font-size:.82rem;margin-bottom:16px">${new Set(filtered.map(r=>r.date)).size} dias · % Perda/Sobra calculado sobre Est. Escritural · Limite ok: ≤ ${LIMITE_PCT.toFixed(2).replace('.', ',')}%</p>
     <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px">`;
@@ -1741,9 +2031,20 @@ function printModal() {
     .rk-row.rk-silver .rk-name-wrap{background:rgba(255,255,255,.14)}
     .rk-row.rk-bronze .rk-badge{background:rgba(247,148,29,.55)}
     .rk-row.rk-bronze .rk-name-wrap{background:rgba(247,148,29,.18)}
+    .rep-section-title{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;color:var(--accent)}
+    .rep-section-title.pos{color:var(--green)}
+    .rep-section-title.neg{color:var(--accent)}
+    @page{size:${pageSize};margin:14mm 16mm 18mm;
+      @bottom-center{ content:"Página " counter(page) " de " counter(pages); font-family:'Space Mono',monospace; font-size:8px; color:#8a95a8; }
+    }
+    .print-wrap{width:100%;border-collapse:collapse}
+    .print-wrap > thead{display:table-header-group}
+    .print-wrap > tfoot{display:table-footer-group}
+    .print-wrap > tbody > tr > td{padding:0}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     </style>
-  </head><body style="padding:14mm 16mm">
+  </head><body style="padding:0">
+    <table class="print-wrap"><thead><tr><td>
     <div class="print-doc-header">
       <div class="pdh-left">
         <div class="pdh-icon"><i class="fas fa-gas-pump"></i></div>
@@ -1757,15 +2058,27 @@ function printModal() {
         Limite de tolerância: ${LIMITE_PCT.toFixed(2).replace('.', ',')}%
       </div>
     </div>
-    ${modalBody}
+    </td></tr></thead>
+    <tfoot><tr><td>
     <div class="print-doc-footer">
       <span>REDE DOM PEDRO DE POSTOS · SISTEMA DE CONTROLE DE PERDAS</span>
-      <span>Sistema Desenvolvido por Waldeci Ramos · Sistema de Medidas de Tanques</span>
+      <span>© ${new Date().getFullYear()} Waldeci Ramos · Sistema de Medidas de Tanques</span>
     </div>
+    </td></tr></tfoot>
+    <tbody><tr><td>
+    ${modalBody}
+    </td></tr></tbody>
+    </table>
   </body></html>`);
   win.document.close();
   win.focus();
-  setTimeout(() => { win.print(); win.close(); }, 700);
+  let printed = false;
+  win.onafterprint = () => { printed = true; win.close(); };
+  setTimeout(() => {
+    win.print();
+    // fallback: se o navegador não disparar onafterprint, fecha após um tempo maior
+    setTimeout(() => { if (!printed) win.close(); }, 60000);
+  }, 600);
 }
 
 // ============================================================
@@ -1790,6 +2103,17 @@ function updateCompanySelector() {
     setupDateFiltersFromCurrent();
     refresh();
   });
+  const searchInp = document.getElementById('empresaSearch');
+  if (searchInp && !searchInp._wired) {
+    searchInp._wired = true;
+    searchInp.addEventListener('input', () => {
+      const term = searchInp.value.trim().toLowerCase();
+      Array.from(select.options).forEach(opt => {
+        if (opt.value === '__ALL__' || opt.disabled) { opt.style.display = ''; return; }
+        opt.style.display = !term || opt.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    });
+  }
 }
 
 function updateProductFilter() {
@@ -1904,15 +2228,14 @@ function initDashboard(companies, fileName) {
   document.getElementById('btnTotalReport').addEventListener('click', () => showTotalReport());
   document.getElementById('btnChampions').addEventListener('click', () => showChampions());
   document.getElementById('btnRankingArla').addEventListener('click', () => showRankingArla());
+  document.getElementById('btnAnnualSynthesis').addEventListener('click', () => showAnnualSynthesis());
   document.getElementById('btnConverter').addEventListener('click', () => {
     document.getElementById('main').style.display = 'none';
     document.getElementById('converterView').style.display = 'block';
   });
   refresh();
+  window._dashboardReady = true;
 }
-
-// ============================================================
-// CONVERSOR TXT -> JSON (embutido no dashboard)
 // ============================================================
 (function setupConverter() {
   const MESES_CV = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
