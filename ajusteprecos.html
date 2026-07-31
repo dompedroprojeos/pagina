@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,11 +6,14 @@
 <title>Autorização de Ajuste de Preço — Dom Pedro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --orange:#E8501A;--orange2:#FF6B35;
   --teal:#0D4F5C;--teal2:#0F6678;--teal3:#1A8A9E;
   --bg:#F2F5F8;--card:#fff;
+  --field-bg:#E4EDF1;--field-border:rgba(13,79,92,.35);
   --border:rgba(13,79,92,.12);--border2:rgba(232,80,26,.2);
   --text:#0C2830;--text2:#1A4A58;--muted:#5A8C9B;
   --success:#16A34A;--danger:#DC2626;
@@ -62,9 +64,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .fg-3{grid-template-columns:1fr 1fr 1fr}
 .fg-4{grid-template-columns:1fr 1fr 1fr 1fr}
 .fl{display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-.fi,.fsel2{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:all .2s}
+.fi,.fsel2{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--field-border);background:var(--field-bg);font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:all .2s;box-shadow:inset 0 1px 2px rgba(13,79,92,.06)}
 .fi:focus,.fsel2:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(232,80,26,.08)}
-.fi::placeholder{color:var(--muted)}
+.fi::placeholder{color:var(--muted);opacity:1}
 textarea.fi{resize:vertical;min-height:58px}
 .region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .rcard{background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;animation:rcardIn .25s cubic-bezier(.22,1,.36,1)}
@@ -88,9 +90,9 @@ textarea.fi{resize:vertical;min-height:58px}
 .rcard.off .rcard-body{pointer-events:none}
 .price-row{display:flex;flex-direction:column;gap:3px}
 .price-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.price-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);outline:none;transition:all .2s}
-.price-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,80,26,.08)}
-.price-input::placeholder{color:#ccc;font-weight:400;font-size:12px}
+.price-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--field-border);background:var(--field-bg);font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);outline:none;transition:all .2s;box-shadow:inset 0 1px 2px rgba(13,79,92,.06)}
+.price-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(232,80,26,.08)}
+.price-input::placeholder{color:#7C9AA5;font-weight:600;font-size:12px}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
 .btn{padding:13px 24px;border-radius:18px;font-family:var(--sans);font-size:14.5px;font-weight:800;letter-spacing:.1px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:9px;border:none}
 .btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;box-shadow:0 6px 20px rgba(232,80,26,.35)}
@@ -796,12 +798,16 @@ textarea.fi{resize:vertical;min-height:58px}
     <div class="mh"><div class="mt">📧 Enviar por E-mail</div><button class="mc" onclick="closeEmailModal()">✕</button></div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="fg fg-2">
-        <div><label class="fl">Remetente (seu e-mail)</label><input class="fi" id="emailRemetente" placeholder="seuemail@rededompedro.com.br"></div>
+        <div><label class="fl">Remetente (seu e-mail)</label><input class="fi" id="emailRemetente" placeholder="seuemail@rededompedro.com.br" value="sandro.caetano@rededompedro.com"></div>
         <div><label class="fl">Destinatário</label><input class="fi" id="emailDestinatario" placeholder="cliente@empresa.com.br"></div>
       </div>
       <div><label class="fl">Assunto</label><input class="fi" id="emailAssunto" readonly style="background:#f0f4f6;color:var(--muted)"></div>
       <div><label class="fl">Corpo do e-mail</label><div class="email-preview" id="emailBody"></div></div>
-      <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 14px">💡 Ao confirmar, abrirá seu cliente de e-mail padrão com tudo preenchido.</div>
+      <div style="font-size:11.5px;color:var(--teal2);background:#FFF4E8;border:1px solid #FFD9A8;border-radius:10px;padding:10px 14px;line-height:1.5">
+        📎 <strong>O PDF foi salvo em Downloads</strong><span id="emailPdfNome"></span> — anexe esse arquivo manualmente no e-mail que vai abrir (nenhum navegador consegue anexar arquivos automaticamente por segurança). Se precisar, baixe de novo:<br>
+        <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="gerarPDFDaAutorizacao(emailDataRef)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar PDF novamente</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 14px">💡 Ao confirmar, abrirá seu cliente de e-mail padrão do Windows com tudo preenchido (destinatário, assunto e corpo). Para isso abrir no Thunderbird em vez do Outlook, defina o Thunderbird como aplicativo padrão de e-mail no Windows (Configurações → Aplicativos → Aplicativos padrão → E-mail).</div>
     </div>
     <div class="mfoot">
       <button class="btn-sec" onclick="closeEmailModal()">Cancelar</button>
@@ -1104,7 +1110,9 @@ function collectObsData(){
   const el=document.getElementById('obs_adicional');
   let textHtml=(el.innerHTML||'').trim();
   if(textHtml==='<br>')textHtml='';
-  return{text:textHtml,objects:obsObjects.map(o=>({...o})),canvasH:obsCanvasH};
+  const wrap=document.getElementById('obsCanvasWrap');
+  const editorW=wrap?Math.round(wrap.getBoundingClientRect().width):0;
+  return{text:textHtml,objects:obsObjects.map(o=>({...o})),canvasH:obsCanvasH,editorW};
 }
 function setObsData(data){
   if(typeof data==='string'){
@@ -1128,16 +1136,27 @@ function obsHasContent(data){
   const noObjects=!data.objects||!data.objects.length;
   return!(textEmpty&&noObjects);
 }
+const PRINT_OBS_WIDTH=600; // largura útil real (em px) do quadro de observações na página A4 impressa
 function buildObsExportHtml(data){
   if(!data)return'';
   if(typeof data==='string')return data;
   if(!obsHasContent(data))return'';
-  const objs=data.objects||[];
+  const editorW=data.editorW||PRINT_OBS_WIDTH;
+  const scale=Math.min(1,PRINT_OBS_WIDTH/editorW); // só reduz, nunca amplia (evita objeto "crescer" em telas menores que salvaram o registro)
+  const objs=(data.objects||[]).map(o=>({
+    ...o,
+    x:Math.round((o.x||0)*scale),
+    y:Math.round((o.y||0)*scale),
+    w:Math.round((o.w||0)*scale),
+    h:Math.round((o.h||0)*scale),
+    fontSize:Math.round((o.fontSize||13)*scale)
+  }));
   const objHtml=objs.map(o=>obsObjHtml(o,false)).join('');
   const objBottom=objs.reduce((m,o)=>Math.max(m,(o.y||0)+(o.h||0)),0);
   const canvasHeight=Math.max(24,objBottom+6);
+  const fontPx=Math.round(14*scale),padV=Math.round(12*scale),padH=Math.round(14*scale);
   return `<div style="position:relative;min-height:${canvasHeight}px">
-    <div style="position:relative;z-index:1;padding:12px 14px;font-size:14px;line-height:1.65;box-sizing:border-box;font-family:'Nunito',sans-serif">${data.text||''}</div>
+    <div style="position:relative;z-index:1;padding:${padV}px ${padH}px;font-size:${fontPx}px;line-height:1.65;box-sizing:border-box;font-family:'Nunito',sans-serif">${data.text||''}</div>
     <div style="position:absolute;left:0;top:0;right:0;z-index:2;height:${canvasHeight}px">${objHtml}</div>
   </div>`;
 }
@@ -1280,6 +1299,58 @@ function saveForm(){
   saveRecords(records);currentId=data.id;allRecords=records;
   document.getElementById('formTitle').textContent='Autorização — '+data.empresa;
   toast('✅ Salvo com sucesso!','success');
+  gerarPDFDaAutorizacao(data).then(nome=>{
+    if(nome)toast('📄 PDF salvo em Downloads: '+nome,'success');
+  });
+}
+
+/* ── Geração automática de PDF (reaproveita o mesmo HTML/CSS da impressão) ── */
+let ultimoPDFGerado=null;
+async function gerarPDFDaAutorizacao(d,silencioso){
+  if(typeof window.html2canvas==='undefined'||typeof window.jspdf==='undefined'){
+    if(!silencioso)toast('Não consegui gerar o PDF automaticamente (falha ao carregar bibliotecas — verifique a internet).','error');
+    return null;
+  }
+  const showObs=(typeof d.obs_padrao_visivel!=='undefined')?d.obs_padrao_visivel:obsVisible;
+  const ra=d.region_active||regionActive;
+  const html=buildPrintHTML(d,showObs,ra,false);
+  const holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-99999px;top:0;width:794px;background:#fff;z-index:-1';
+  holder.innerHTML=`<style>*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;font-size:12px;color:#111;background:#fff}
+.obs-obj{position:absolute;box-sizing:border-box}
+.obs-obj .obj-label{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center}
+${PCSS_COLOR}
+</style>${html}`;
+  document.body.appendChild(holder);
+  try{
+    await new Promise(r=>setTimeout(r,150)); // deixa o layout/fontes assentarem
+    const canvas=await html2canvas(holder,{scale:2,useCORS:true,backgroundColor:'#fff',windowWidth:794});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF('p','mm','a4');
+    const pageW=210,pageH=297;
+    const imgW=pageW;
+    const imgH=canvas.height*imgW/canvas.width;
+    const imgData=canvas.toDataURL('image/jpeg',0.92);
+    let heightLeft=imgH,position=0;
+    pdf.addImage(imgData,'JPEG',0,position,imgW,imgH);
+    heightLeft-=pageH;
+    while(heightLeft>0){
+      position=heightLeft-imgH;
+      pdf.addPage();
+      pdf.addImage(imgData,'JPEG',0,position,imgW,imgH);
+      heightLeft-=pageH;
+    }
+    const nomeArquivo=(d.empresa||'autorizacao').trim().replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.pdf';
+    pdf.save(nomeArquivo);
+    ultimoPDFGerado=nomeArquivo;
+    return nomeArquivo;
+  }catch(e){
+    if(!silencioso)toast('Não consegui gerar o PDF automaticamente: '+e.message,'error');
+    return null;
+  }finally{
+    document.body.removeChild(holder);
+  }
 }
 
 function filterList(){const q=document.getElementById('searchInput').value.toLowerCase();renderList(allRecords.filter(r=>(r.empresa||'').toLowerCase().includes(q)||(r.codigo||'').toLowerCase().includes(q)));}
@@ -1640,7 +1711,7 @@ function buildEmailBody(d){
   const datadoc=[d.estiva_dia,d.estiva_mes,d.estiva_ano].filter(Boolean).join(' de ');
   const regioes=REGIONS.filter(r=>(d.region_active||{})[r.key]!==false).map(r=>r.label).join(', ');
   const prazo=d.prazo?` com prazo de vigência de ${d.prazo}`:'';
-  return `${saudacao()}, ${contato}!\n\nEsperamos que esteja bem. Segue em anexo a Autorização de Ajuste de Preço referente à empresa ${emp}${datadoc?', datada de '+datadoc:''}.\n\n─────────────────────────────────────────\nRef.: Autorização de Ajuste de Preço — ${emp}\n─────────────────────────────────────────\n\nConforme alinhado previamente, estamos formalizando os novos valores negociados de Diesel Comum e Diesel S10 para as seguintes regiões de atuação: ${regioes||'conforme documento em anexo'}.${prazo?'\n\nOs preços entrarão em vigor'+prazo+', sendo considerados a partir da próxima data de sincronização no sistema.':''}\n\nEste documento tem caráter oficial e serve como respaldo formal para o ajuste de preços acordado entre as partes. Caso haja qualquer divergência em relação aos valores combinados, solicitamos que entre em contato imediatamente para que possamos regularizar a situação.\n\nPermancemos à disposição para quaisquer esclarecimentos.\n\nAtenciosamente,\n\nRede Dom Pedro — Gestão Comercial de Combustíveis\n📍 Rodovia Fernão Dias KM 880, S/N — Espraiado, Estiva-MG\n📧 sac@rededompedro.com.br\n🌐 www.rededompedro.com\n☎️  0800 723 1188`;
+  return `${saudacao()}, ${contato}!\n\nEsperamos que esteja bem. Segue em anexo a Autorização de Ajuste de Preço referente à empresa ${emp}${datadoc?', datada de '+datadoc:''}.\n\n─────────────────────────────────────────\nRef.: Autorização de Ajuste de Preço — ${emp}\n─────────────────────────────────────────\n\nConforme alinhado previamente, estamos formalizando os novos valores negociados de Diesel Comum e Diesel S10 para as seguintes regiões de atuação: ${regioes||'conforme documento em anexo'}.${prazo?'\n\nOs preços entrarão em vigor'+prazo+', sendo considerados a partir da próxima data de sincronização no sistema.':''}\n\nPermancemos à disposição para quaisquer esclarecimentos.\n\nAtenciosamente,\n\nRede Dom Pedro — Gestão Comercial de Combustíveis\n📍 Rodovia Fernão Dias KM 880, S/N — Espraiado, Estiva-MG\n📧 sac@rededompedro.com.br\n🌐 www.rededompedro.com\n☎️  0800 723 1188`;
 }
 function openEmailModal(){emailDataRef=collectForm();_fillEM(emailDataRef);}
 function openEmailModalFor(id){const rec=loadRecords().find(r=>r.id===id);if(!rec){toast('Não encontrado.','error');return;}emailDataRef=rec;_fillEM(rec);}
@@ -1649,6 +1720,8 @@ function _fillEM(d){
   document.getElementById('emailAssunto').value=assunto;
   document.getElementById('emailDestinatario').value=d.email_cliente||'';
   document.getElementById('emailBody').textContent=buildEmailBody(d);
+  const nomeEsperado=(d.empresa||'autorizacao').trim().replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.pdf';
+  document.getElementById('emailPdfNome').textContent=' ('+nomeEsperado+')';
   document.getElementById('emailModal').classList.add('open');
 }
 function closeEmailModal(){document.getElementById('emailModal').classList.remove('open');}
@@ -1661,38 +1734,10 @@ function sendEmail() {
   const assunto = encodeURIComponent(document.getElementById('emailAssunto').value);
   const corpo = encodeURIComponent(document.getElementById('emailBody').textContent);
   const mailtoUrl = `mailto:${para}?subject=${assunto}&body=${corpo}`;
-  
-  // Primeiro tenta abrir com Thunderbird
-  const thunderbirdUrl = `thunderbird://${mailtoUrl}`;
-  
-  // Cria um iframe invisível para tentar abrir o Thunderbird
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = thunderbirdUrl;
-  document.body.appendChild(iframe);
-  
-  // Define um timer para verificar se o Thunderbird foi aberto
-  let thunderbirdAberto = false;
-  
-  // Se o Thunderbird não abrir em 500ms, tenta com mailto padrão
-  setTimeout(() => {
-    if (!thunderbirdAberto) {
-      document.body.removeChild(iframe);
-      window.location.href = mailtoUrl;
-    }
-  }, 500);
-  
-  // Tenta detectar se o Thunderbird foi aberto (quando o iframe perde o foco)
-  window.addEventListener('blur', function onBlur() {
-    thunderbirdAberto = true;
-    window.removeEventListener('blur', onBlur);
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 100);
-  });
-  
+  // Abre o cliente de e-mail padrão do Windows. Qual programa abre (Outlook, Thunderbird...)
+  // é definido nas configurações do Windows, não é algo que a página consiga escolher —
+  // veja o aviso no modal com o passo a passo pra trocar o padrão.
+  window.location.href = mailtoUrl;
   closeEmailModal();
 }
 
