@@ -13,7 +13,7 @@
   --orange:#E8501A;--orange2:#FF6B35;
   --teal:#0D4F5C;--teal2:#0F6678;--teal3:#1A8A9E;
   --bg:#F2F5F8;--card:#fff;
-  --field-bg:#E4EDF1;--field-border:rgba(13,79,92,.35);
+  --field-bg:#D2E1E7;--field-border:rgba(13,79,92,.5);
   --border:rgba(13,79,92,.12);--border2:rgba(232,80,26,.2);
   --text:#0C2830;--text2:#1A4A58;--muted:#5A8C9B;
   --success:#16A34A;--danger:#DC2626;
@@ -144,7 +144,7 @@ textarea.fi{resize:vertical;min-height:58px}
 .mfoot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
 .btn-sec{padding:11px 22px;border-radius:16px;border:1.5px solid var(--border);background:#fff;font-family:var(--sans);font-size:14px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}
 .btn-sec:hover{border-color:var(--text);color:var(--text)}
-.email-preview{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:12.5px;color:var(--text2);line-height:1.75;max-height:250px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-family:'Georgia',serif}
+.email-preview{background:var(--field-bg);border:1.5px solid var(--field-border);border-radius:14px;padding:18px 20px;font-size:15.5px;color:var(--text);line-height:1.85;max-height:250px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-family:'Nunito',sans-serif;font-weight:600}
 
 /* =====================================================
    MODAL DE IMPRESSÃO — Redesign com 4 opções em grid
@@ -798,7 +798,7 @@ textarea.fi{resize:vertical;min-height:58px}
     <div class="mh"><div class="mt">📧 Enviar por E-mail</div><button class="mc" onclick="closeEmailModal()">✕</button></div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="fg fg-2">
-        <div><label class="fl">Remetente (seu e-mail)</label><input class="fi" id="emailRemetente" placeholder="seuemail@rededompedro.com.br" value="sandro.caetano@rededompedro.com"></div>
+        <div><label class="fl">Remetente (seu e-mail)</label><input class="fi" id="emailRemetente" placeholder="seuemail@rededompedro.com.br" value="sandro@rededompedro.com"></div>
         <div><label class="fl">Destinatário</label><input class="fi" id="emailDestinatario" placeholder="cliente@empresa.com.br"></div>
       </div>
       <div><label class="fl">Assunto</label><input class="fi" id="emailAssunto" readonly style="background:#f0f4f6;color:var(--muted)"></div>
@@ -1710,15 +1710,14 @@ function buildEmailBody(d){
   const contato=d.contato||'prezado(a)';
   const datadoc=[d.estiva_dia,d.estiva_mes,d.estiva_ano].filter(Boolean).join(' de ');
   const regioes=REGIONS.filter(r=>(d.region_active||{})[r.key]!==false).map(r=>r.label).join(', ');
-  const prazo=d.prazo?` com prazo de vigência de ${d.prazo}`:'';
-  return `${saudacao()}, ${contato}!\n\nEsperamos que esteja bem. Segue em anexo a Autorização de Ajuste de Preço referente à empresa ${emp}${datadoc?', datada de '+datadoc:''}.\n\n─────────────────────────────────────────\nRef.: Autorização de Ajuste de Preço — ${emp}\n─────────────────────────────────────────\n\nConforme alinhado previamente, estamos formalizando os novos valores negociados de Diesel Comum e Diesel S10 para as seguintes regiões de atuação: ${regioes||'conforme documento em anexo'}.${prazo?'\n\nOs preços entrarão em vigor'+prazo+', sendo considerados a partir da próxima data de sincronização no sistema.':''}\n\nPermancemos à disposição para quaisquer esclarecimentos.\n\nAtenciosamente,\n\nRede Dom Pedro — Gestão Comercial de Combustíveis\n📍 Rodovia Fernão Dias KM 880, S/N — Espraiado, Estiva-MG\n📧 sac@rededompedro.com.br\n🌐 www.rededompedro.com\n☎️  0800 723 1188`;
+  return `${saudacao()}, ${contato}!\n\nEsperamos que esteja bem. Segue em anexo a Autorização de Ajuste de Preço referente à empresa ${emp}${datadoc?', datada de '+datadoc:''}.\n\n─────────────────────────────────────────\nRef.: Autorização de Ajuste de Preço — ${emp}\n─────────────────────────────────────────\n\nConforme alinhado previamente, estamos formalizando os novos valores negociados de Diesel Comum e Diesel S10 para as seguintes regiões de atuação: ${regioes||'conforme documento em anexo'}.\n\nPermancemos à disposição para quaisquer esclarecimentos.\n\nAtenciosamente,\n\nRede Dom Pedro — Gestão Comercial de Combustíveis\n📍 Rodovia Fernão Dias KM 880, S/N — Espraiado, Estiva-MG\n📧 sac@rededompedro.com.br\n🌐 www.rededompedro.com\n☎️  0800 723 1188`;
 }
 function openEmailModal(){emailDataRef=collectForm();_fillEM(emailDataRef);}
 function openEmailModalFor(id){const rec=loadRecords().find(r=>r.id===id);if(!rec){toast('Não encontrado.','error');return;}emailDataRef=rec;_fillEM(rec);}
 function _fillEM(d){
   const assunto='Autorização de Ajuste de Preço — '+(d.empresa||'[Empresa]')+([d.estiva_dia,d.estiva_mes,d.estiva_ano].filter(Boolean).length?' — '+[d.estiva_dia,d.estiva_mes,d.estiva_ano].filter(Boolean).join('/'):'');
   document.getElementById('emailAssunto').value=assunto;
-  document.getElementById('emailDestinatario').value=d.email_cliente||'';
+  document.getElementById('emailDestinatario').value='';
   document.getElementById('emailBody').textContent=buildEmailBody(d);
   const nomeEsperado=(d.empresa||'autorizacao').trim().replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.pdf';
   document.getElementById('emailPdfNome').textContent=' ('+nomeEsperado+')';
