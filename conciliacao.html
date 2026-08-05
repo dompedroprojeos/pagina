@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conciliação Fiscal — AutoSystem × Contabilidade</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --paper: #F3ECDD;
+  --paper-line: #E4D9BF;
+  --ink: #2C2417;
+  --ink-soft: #6B5D45;
+  --card: #FBF7EC;
+  --rule: #D9CBA8;
+  --rust: #B5502A;
+  --rust-soft: #F0DACB;
+  --sage: #4F7860;
+  --sage-soft: #DEE9DD;
+  --amber: #9C7A22;
+  --amber-soft: #F1E4B8;
+  --slate: #5B6472;
+  --slate-soft: #E4E7EA;
+  --shadow: 0 1px 2px rgba(44,36,23,.06), 0 8px 24px -12px rgba(44,36,23,.18);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    repeating-linear-gradient(180deg, transparent, transparent 35px, var(--paper-line) 35px, var(--paper-line) 36px),
+    var(--paper);
+  color:var(--ink);
+  font-family: "Iowan Old Style","Palatino Linotype", Georgia, "Times New Roman", serif;
+  min-height:100vh;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 24px 80px;}
+
+/* ---- header ---- */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
+header.top .title-block .eyebrow{font-family:"Courier New",monospace;letter-spacing:.14em;font-size:11px;text-transform:uppercase;color:var(--rust);font-weight:700;}
+header.top h1{margin:4px 0 2px;font-size:32px;font-weight:600;letter-spacing:-.01em;}
+header.top .sub{font-family:"Courier New",monospace;font-size:12.5px;color:var(--ink-soft);}
+.stamp-total{font-family:"Courier New",monospace;text-align:right;font-size:12px;color:var(--ink-soft);}
+.stamp-total b{display:block;font-size:22px;color:var(--ink);font-family:Georgia,serif;}
+
+/* ---- dropzones ---- */
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;}
+.zone{
+  background:var(--card); border:1.5px dashed var(--rule); border-radius:10px;
+  padding:22px; text-align:center; cursor:pointer; transition:.15s; box-shadow:var(--shadow);
+}
+.zone:hover, .zone.drag{border-color:var(--rust); background:var(--rust-soft);}
+.zone.loaded{border-style:solid; border-color:var(--sage); background:var(--sage-soft);}
+.zone .kicker{font-family:"Courier New",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);}
+.zone h3{margin:6px 0 4px;font-size:17px;}
+.zone .hint{font-size:12.5px;color:var(--ink-soft);font-family:"Courier New",monospace;}
+.zone input{display:none;}
+.zone .fileinfo{margin-top:8px;font-family:"Courier New",monospace;font-size:12px;color:var(--sage);font-weight:700;}
+
+/* ---- summary strip ---- */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stamp{
+  background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px 16px;
+  box-shadow:var(--shadow); cursor:pointer; transition:.12s; position:relative; overflow:hidden;
+}
+.stamp:hover{transform:translateY(-1px);}
+.stamp.active{border-color:var(--ink); outline:2px solid var(--ink); outline-offset:-2px;}
+.stamp .lbl{font-family:"Courier New",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);}
+.stamp .num{font-size:26px;font-weight:600;margin:2px 0;}
+.stamp .val{font-family:"Courier New",monospace;font-size:12px;color:var(--ink-soft);}
+.stamp.conciliado .num{color:var(--sage);}
+.stamp.divergente .num{color:var(--amber);}
+.stamp.so_auto .num{color:var(--rust);}
+.stamp.so_contab .num{color:var(--rust);}
+
+/* ---- toolbar ---- */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.search{flex:1;min-width:220px;position:relative;}
+.search input{
+  width:100%;padding:9px 12px 9px 32px;border:1px solid var(--rule);border-radius:8px;
+  background:var(--card);font-family:"Courier New",monospace;font-size:13px;color:var(--ink);
+}
+.search::before{content:"⌕";position:absolute;left:11px;top:8px;color:var(--ink-soft);font-size:14px;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{
+  font-family:"Courier New",monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+  padding:7px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--card);
+  cursor:pointer;color:var(--ink-soft);
+}
+.chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.exports{display:flex;gap:8px;}
+.btn{
+  font-family:"Courier New",monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+  padding:7px 12px;border-radius:8px;border:1px solid var(--ink);background:transparent;color:var(--ink);
+  cursor:pointer;
+}
+.btn:hover{background:var(--ink);color:var(--paper);}
+
+/* ---- table ---- */
+.tablewrap{background:var(--card);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead th{
+  text-align:left;font-family:"Courier New",monospace;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink-soft);padding:10px 14px;border-bottom:2px solid var(--ink);
+  position:sticky;top:0;background:var(--card);
+}
+thead th.num{text-align:right;}
+tbody tr.row{border-bottom:1px solid var(--rule);cursor:default;}
+tbody tr.row:hover{background:#F5EFDF;}
+tbody td{padding:10px 14px;vertical-align:top;}
+td.num{text-align:right;font-family:"Courier New",monospace;white-space:nowrap;}
+td.date{font-family:"Courier New",monospace;color:var(--ink-soft);white-space:nowrap;}
+td.doc{font-family:"Courier New",monospace;white-space:nowrap;}
+td.empresa{max-width:260px;}
+td.empresa .sub{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.badge{
+  display:inline-block;font-family:"Courier New",monospace;font-size:10px;text-transform:uppercase;
+  letter-spacing:.05em;padding:3px 8px;border-radius:20px;font-weight:700;
+}
+.badge.conciliado{background:var(--sage-soft);color:var(--sage);}
+.badge.divergente{background:var(--amber-soft);color:var(--amber);}
+.badge.so_auto{background:var(--rust-soft);color:var(--rust);}
+.badge.so_contab{background:var(--rust-soft);color:var(--rust);}
+.expand-toggle{
+  width:20px;height:20px;border-radius:5px;border:1px solid var(--rule);background:var(--card);
+  cursor:pointer;font-size:11px;color:var(--ink-soft);display:inline-flex;align-items:center;justify-content:center;
+  margin-right:6px;
+}
+.expand-toggle.open{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+tr.subrow td{background:#EFE7D2;padding:6px 14px 6px 46px;font-size:12.5px;border-bottom:1px solid var(--rule);}
+tr.subrow .sub-line{display:flex;gap:14px;font-family:"Courier New",monospace;color:var(--ink-soft);padding:2px 0;}
+tr.subrow .sub-line b{color:var(--ink);font-weight:700;}
+tr.subhead td{background:#E9E0C6;font-family:"Courier New",monospace;font-size:10.5px;text-transform:uppercase;color:var(--ink-soft);padding:5px 14px 5px 46px;letter-spacing:.05em;}
+.diff-pos{color:var(--sage);}
+.diff-neg{color:var(--rust);}
+.empty{padding:60px 20px;text-align:center;color:var(--ink-soft);font-family:"Courier New",monospace;}
+.note{margin-top:18px;font-size:12.5px;color:var(--ink-soft);font-family:"Courier New",monospace;line-height:1.6;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;}
+.note b{color:var(--ink);}
+.footer-credit{margin-top:24px;text-align:center;font-family:"Courier New",monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.03em;}
+body{ -webkit-user-select:none; user-select:none; }
+input, textarea{ -webkit-user-select:text; user-select:text; }
+@media (max-width:820px){
+  .zones{grid-template-columns:1fr;} .summary{grid-template-columns:1fr 1fr;}
+  header.top{flex-direction:column;align-items:flex-start;} .stamp-total{text-align:left;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title-block">
+      <div class="eyebrow">Livro-razão vs. Contas a Pagar</div>
+      <h1>Conciliação Fiscal</h1>
+      <div class="sub" id="subHeader">arraste os dois relatórios pra começar</div>
+    </div>
+    <div class="stamp-total" id="totalHeader" style="display:none">
+      <span>diferença total</span>
+      <b id="totalHeaderVal">R$ 0,00</b>
+    </div>
+  </header>
+
+  <div class="zones" id="zones">
+    <label class="zone" id="zoneAuto">
+      <input type="file" id="fileAuto" accept=".xlsx,.xls,.ods,.csv">
+      <div class="kicker">Fonte 1</div>
+      <h3>AutoSystem</h3>
+      <div class="hint">Relatório de contas a pagar (.ods / .xlsx)</div>
+      <div class="fileinfo" id="infoAuto"></div>
+    </label>
+    <label class="zone" id="zoneRaz">
+      <input type="file" id="fileRaz" accept=".xlsx,.xls,.ods,.csv">
+      <div class="kicker">Fonte 2</div>
+      <h3>Contabilidade</h3>
+      <div class="hint">Razão contábil / Amatral (.ods / .xlsx)</div>
+      <div class="fileinfo" id="infoRaz"></div>
+    </label>
+  </div>
+
+  <div id="dashboard" style="display:none">
+
+    <div class="summary">
+      <div class="stamp conciliado active" data-status="todos">
+        <div class="lbl">Total analisado</div>
+        <div class="num" id="stTodosNum">0</div>
+        <div class="val" id="stTodosVal">R$ 0,00</div>
+      </div>
+      <div class="stamp conciliado" data-status="conciliado">
+        <div class="lbl">Conciliado</div>
+        <div class="num" id="stOkNum">0</div>
+        <div class="val" id="stOkVal">R$ 0,00</div>
+      </div>
+      <div class="stamp divergente" data-status="divergente">
+        <div class="lbl">Divergente</div>
+        <div class="num" id="stDivNum">0</div>
+        <div class="val" id="stDivVal">R$ 0,00</div>
+      </div>
+      <div class="stamp so_auto" data-status="so_falta">
+        <div class="lbl">Falta em algum lado</div>
+        <div class="num" id="stFaltaNum">0</div>
+        <div class="val" id="stFaltaVal">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><input id="searchInput" type="text" placeholder="buscar empresa, documento ou produto/serviço…"></div>
+      <div class="chips">
+        <div class="chip active" data-status="todos">Todos</div>
+        <div class="chip" data-status="conciliado">Conciliado</div>
+        <div class="chip" data-status="divergente">Divergente</div>
+        <div class="chip" data-status="so_auto">Só AutoSystem</div>
+        <div class="chip" data-status="so_contab">Só Contabilidade</div>
+      </div>
+      <div class="exports">
+        <button class="btn" id="exportDiv">Exportar divergências</button>
+        <button class="btn" id="exportFalta">Exportar faltantes</button>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:26px"></th>
+            <th>Data</th>
+            <th>Documento</th>
+            <th>Empresa</th>
+            <th>Produto / Serviço</th>
+            <th class="num">Valor AutoSystem</th>
+            <th class="num">Valor Contabilidade</th>
+            <th class="num">Diferença</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg" style="display:none">nenhum lançamento encontra esse filtro</div>
+    </div>
+
+    <div class="note" id="scopeNote" style="display:none"></div>
+  </div>
+
+  <div class="footer-credit">Sistema desenvolvido por Waldeci Ramos — waldeciramos@2026</div>
+
+</div>
+
+<script>
+/* =========================================================================
+   CP1252 lido incorretamente como CP437 -> texto corrompido (ex.: "MEC┬NICA").
+   Tabela de bytes 0x80-0xFF nas duas codificações para reverter com precisão.
+   ========================================================================= */
+const CP437_TABLE = "\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00a2\u00a3\u00a5\u20a7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1\u00aa\u00ba\u00bf\u2310\u00ac\u00bd\u00bc\u00a1\u00ab\u00bb\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u00df\u0393\u03c0\u03a3\u03c3\u00b5\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u03c6\u03b5\u2229\u2261\u00b1\u2265\u2264\u2320\u2321\u00f7\u2248\u00b0\u2219\u00b7\u221a\u207f\u00b2\u25a0\u00a0";
+const CP1252_TABLE = "\u20ac\ufffd\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\ufffd\u017d\ufffd\ufffd\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\ufffd\u017e\u0178\u00a0\u00a1\u00a2\u00a3\u00a4\u00a5\u00a6\u00a7\u00a8\u00a9\u00aa\u00ab\u00ac\u00ad\u00ae\u00af\u00b0\u00b1\u00b2\u00b3\u00b4\u00b5\u00b6\u00b7\u00b8\u00b9\u00ba\u00bb\u00bc\u00bd\u00be\u00bf\u00c0\u00c1\u00c2\u00c3\u00c4\u00c5\u00c6\u00c7\u00c8\u00c9\u00ca\u00cb\u00cc\u00cd\u00ce\u00cf\u00d0\u00d1\u00d2\u00d3\u00d4\u00d5\u00d6\u00d7\u00d8\u00d9\u00da\u00db\u00dc\u00dd\u00de\u00df\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u00e6\u00e7\u00e8\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f0\u00f1\u00f2\u00f3\u00f4\u00f5\u00f6\u00f7\u00f8\u00f9\u00fa\u00fb\u00fc\u00fd\u00fe\u00ff";
+const CP437_REVERSE = {};
+for (let i=0;i<CP437_TABLE.length;i++) CP437_REVERSE[CP437_TABLE[i]] = i+0x80;
+
+const CORRUPTION_SIGNATURE = /[\u2500-\u25FF]/; // caracteres de "desenho de caixa" nunca aparecem em texto normal —
+                                                  // presença deles é o sinal inequívoco de que a string foi corrompida
+
+function fixEncoding(str){
+  if (!str || !CORRUPTION_SIGNATURE.test(str)) return str; // só mexe se detectar corrupção real
+  let out = '';
+  for (const ch of str){
+    const code = ch.codePointAt(0);
+    if (code < 0x80){ out += ch; continue; }
+    const byte = CP437_REVERSE[ch];
+    out += (byte !== undefined) ? CP1252_TABLE[byte-0x80] : ch;
+  }
+  return out;
+}
+
+/* ---------------- Helpers ---------------- */
+function onlyDigits(s){ return (s||'').toString().replace(/\D/g,''); }
+function norm(s){
+  return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+function titleCase(s){
+  if (!s) return '';
+  return s.toString().toLowerCase().replace(/(^|\s|\-|\/)([a-zà-ú])/g, (m,sep,c)=> sep+c.toUpperCase())
+    .replace(/\bLtda\b/i,'LTDA').replace(/\bMe\b/i,'ME').replace(/\bEpp\b/i,'EPP').replace(/\bS\/a\b/i,'S/A');
+}
+function fmtMoney(v){
+  if (v == null || isNaN(v)) return '—';
+  return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+function fmtDateBR(iso){
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  if (!y||!m||!d) return iso;
+  return `${d}/${m}/${y}`;
+}
+function fmtDateCell(v){
+  if (v == null) return '';
+  if (v instanceof Date) {
+    const y=v.getFullYear(), m=String(v.getMonth()+1).padStart(2,'0'), d=String(v.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  return v.toString().slice(0,10);
+}
+function csvEscape(v){
+  const s = (v==null?'':v.toString());
+  if (/[;"\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function downloadCSV(filename, headers, rows){
+  const lines = [headers.join(';')];
+  rows.forEach(r => lines.push(r.map(csvEscape).join(';')));
+  const csv = '\uFEFF' + lines.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- Parsing: AutoSystem (Contas a Pagar) ---------------- */
+function parseAuto(rows){
+  const out = [];
+  let empresaGlobal = '', conta = '';
+  for (let i=0;i<rows.length;i++){
+    const r = rows[i];
+    const c0 = (r[0]||'').toString().trim();
+    if (c0.startsWith('Empresa:')){ empresaGlobal = fixEncoding(c0.replace('Empresa:','').trim()); continue; }
+    if (c0.startsWith('Conta:')){ conta = fixEncoding(c0.replace('Conta:','').trim()); continue; }
+    if (c0 === 'Fornecedor') continue;
+    if (c0.startsWith('Total conta') || c0.startsWith('Total geral')) continue;
+    if (!c0) continue;
+    const [fornecedor, movimentacao, documento, vencimento, valor] = r;
+    if (documento == null || valor == null || valor === '') continue;
+    const documentoStr = documento.toString().trim();
+    out.push({
+      id: 'A'+i,
+      empresaGlobal,
+      documento: documentoStr,
+      documentoDigits: onlyDigits(documentoStr),
+      data: fmtDateCell(movimentacao),
+      empresa: fixEncoding((fornecedor||'').toString().trim()),
+      produtoServico: conta,
+      valor: Number(valor),
+    });
+  }
+  return out;
+}
+
+/* ---------------- Parsing: Contabilidade / Amatral (Razão) ---------------- */
+function parseRazao(rows){
+  const out = [];
+  const tipoRe = /^([A-ZÀ-Ú.çÇãÃõÕáÁéÉíÍóÓúÚâÂêÊôÔ\s]+?)\s*(\d{2,7})\s+(.*)$/;
+  for (let i=0;i<rows.length;i++){
+    const r = rows[i];
+    const c0raw = r[0];
+    const c0 = (c0raw==null?'':c0raw.toString().trim());
+    const c2 = fixEncoding((r[2]||'').toString().trim());
+    if (c0 === 'Conta:') continue;
+    if (c2 === 'SALDO ANTERIOR') continue;
+    if (c0 === 'Data' && (r[2]||'').toString().trim() === 'Histórico') continue;
+    if (!c0 && !c2) continue;
+    if (c2.startsWith('Total da conta')) continue;
+    const dataStr = fmtDateCell(c0raw);
+    if (!dataStr || dataStr.length < 8 || isNaN(Date.parse(dataStr))) continue;
+    const historico = c2;
+    const debito = r[9], credito = r[10];
+    const valor = (debito!=null && debito!=='') ? Number(debito) : ((credito!=null && credito!=='') ? Number(credito) : null);
+    if (valor == null || isNaN(valor)) continue;
+    let produtoServico='', numero='', empresa=historico;
+    const m = historico.match(tipoRe);
+    if (m){ produtoServico=titleCase(m[1].trim()); numero=m[2]; empresa=m[3].trim(); }
+    out.push({
+      id: 'R'+i,
+      data: dataStr, historico, produtoServico, numero,
+      numeroDigits: onlyDigits(numero),
+      empresa,
+      valor,
+      natureza: (debito!=null && debito!=='') ? 'D' : 'C',
+    });
+  }
+  return out;
+}
+
+/* ---------------- Motor de conciliação ---------------- */
+function valEq(a,b){ return Math.abs(a-b) < 0.02; }
+
+function conciliar(autoRecs, razRecs){
+  // agrupa lançamentos da contabilidade por (nº documento + 2 primeiras palavras da empresa + natureza D/C)
+  // natureza entra na chave porque descontos/estornos (crédito) são um lançamento à parte,
+  // não fazem parte do valor da compra original (débito) — não podem ser somados juntos
+  const groups = new Map();
+  razRecs.forEach((r,i)=>{
+    if (!r.numeroDigits) return;
+    const fKey = norm(r.empresa).split(' ').slice(0,2).join(' ');
+    const key = r.numeroDigits+'|'+fKey+'|'+r.natureza;
+    if (!groups.has(key)) groups.set(key, {numeroDigits:r.numeroDigits, fKey, items:[]});
+    groups.get(key).items.push(i);
+  });
+  groups.forEach(g => { g.sum = g.items.reduce((s,i)=>s+razRecs[i].valor,0); });
+  const groupList = Array.from(groups.values());
+  const byDoc = new Map();
+  groupList.forEach(g=>{
+    if (!byDoc.has(g.numeroDigits)) byDoc.set(g.numeroDigits, []);
+    byDoc.get(g.numeroDigits).push(g);
+  });
+
+  const usedRazIdx = new Set();
+  const linhas = [];
+
+  autoRecs.forEach(a=>{
+    let matchGroup=null;
+    const fA = norm(a.empresa).split(' ').slice(0,2).join(' ');
+    let candidates = groupList.filter(g => a.documentoDigits && a.documentoDigits.endsWith(g.numeroDigits) && g.fKey === fA && !g.items.every(i=>usedRazIdx.has(i)));
+    if (candidates.length){
+      let exact = candidates.find(g=>valEq(g.sum, a.valor));
+      matchGroup = exact || candidates.sort((x,y)=>Math.abs(x.sum-a.valor)-Math.abs(y.sum-a.valor))[0];
+    }
+    if (!matchGroup){
+      let cand2 = groupList.filter(g=> g.fKey === fA && valEq(g.sum, a.valor) && !g.items.every(i=>usedRazIdx.has(i)));
+      if (cand2.length) matchGroup = cand2[0];
+    }
+    if (!matchGroup && a.documentoDigits){
+      // último recurso: documento + valor batem de forma exata e única
+      // (cobre nomes de fornecedor grafados de forma diferente entre os dois sistemas)
+      let docCands = [];
+      byDoc.forEach((gs, numDig)=>{ if (a.documentoDigits.endsWith(numDig)) docCands.push(...gs); });
+      docCands = docCands.filter(g => valEq(g.sum, a.valor) && !g.items.every(i=>usedRazIdx.has(i)));
+      if (docCands.length === 1) matchGroup = docCands[0];
+    }
+    if (matchGroup) matchGroup.items.forEach(i=>usedRazIdx.add(i));
+
+    const razItems = matchGroup ? matchGroup.items.map(i=>razRecs[i]) : [];
+    const valorContab = matchGroup ? matchGroup.sum : null;
+    let status;
+    if (!matchGroup) status = 'so_auto';
+    else if (valEq(valorContab, a.valor)) status = 'conciliado';
+    else status = 'divergente';
+
+    linhas.push({
+      id:a.id, data:a.data, documento:a.documento, empresa:a.empresa,
+      produtoServico:a.produtoServico, valorAuto:a.valor, valorContab, razItems, status,
+    });
+  });
+
+  // lançamentos da contabilidade sem par no AutoSystem: agrupa por documento+empresa e exibe como "só contabilidade"
+  const soContabGroups = groupList.filter(g => !g.items.every(i=>usedRazIdx.has(i)) );
+  // remove itens já usados de grupos parcialmente usados (não deveria ocorrer, mas por segurança)
+  soContabGroups.forEach(g=>{
+    const remaining = g.items.filter(i=>!usedRazIdx.has(i));
+    if (!remaining.length) return;
+    remaining.forEach(i=>usedRazIdx.add(i));
+    const items = remaining.map(i=>razRecs[i]);
+    const sum = items.reduce((s,it)=>s+it.valor,0);
+    const first = items[0];
+    linhas.push({
+      id:'RG'+first.id, data:first.data, documento:first.numero, empresa:first.empresa,
+      produtoServico:first.produtoServico, valorAuto:null, valorContab:sum, razItems:items, status:'so_contab',
+    });
+  });
+
+  linhas.sort((x,y)=> (x.data||'').localeCompare(y.data||''));
+  return linhas;
+}
+
+/* ================= Estado / render ================= */
+const state = {
+  autoRecs:null, razRecs:null, linhas:[],
+  activeStatus:'todos', search:'', expanded:new Set(),
+};
+
+function toBucket(status){
+  if (status==='so_auto' || status==='so_contab') return 'so_falta';
+  return status;
+}
+
+async function readWorkbook(file){
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:null});
+}
+
+function setupZone(zoneId, inputId, infoId, onLoad){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  const info = document.getElementById(infoId);
+  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+  zone.addEventListener('drop', async e=>{
+    e.preventDefault(); zone.classList.remove('drag');
+    if (e.dataTransfer.files.length) await handle(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', async e=>{
+    if (e.target.files.length) await handle(e.target.files[0]);
+  });
+  async function handle(file){
+    info.textContent = 'lendo ' + file.name + '…';
+    try{
+      const rows = await readWorkbook(file);
+      zone.classList.add('loaded');
+      info.textContent = '✓ ' + file.name + ' — ' + rows.length + ' linhas';
+      onLoad(rows);
+    }catch(err){
+      info.textContent = 'erro ao ler arquivo: ' + err.message;
+    }
+  }
+}
+
+setupZone('zoneAuto','fileAuto','infoAuto', rows=>{
+  state.autoRecs = parseAuto(rows);
+  tryConciliar();
+});
+setupZone('zoneRaz','fileRaz','infoRaz', rows=>{
+  state.razRecs = parseRazao(rows);
+  tryConciliar();
+});
+
+function tryConciliar(){
+  if (!state.autoRecs || !state.razRecs) return;
+  state.linhas = conciliar(state.autoRecs, state.razRecs);
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('subHeader').textContent =
+    state.autoRecs.length + ' lançamentos no AutoSystem  ·  ' + state.razRecs.length + ' na contabilidade';
+  document.getElementById('totalHeader').style.display = 'block';
+  render();
+}
+
+function render(){
+  const c = { todos:0, conciliado:0, divergente:0, so_falta:0 };
+  const v = { todos:0, conciliado:0, divergente:0, so_falta:0 };
+  let diffSum = 0;
+  state.linhas.forEach(l=>{
+    const b = toBucket(l.status);
+    c.todos++; v.todos += (l.valorAuto ?? l.valorContab ?? 0);
+    c[b]++; v[b] += (l.valorAuto ?? l.valorContab ?? 0);
+    if (l.status==='divergente') diffSum += Math.abs((l.valorAuto??0) - (l.valorContab??0));
+    if (l.status==='so_auto') diffSum += (l.valorAuto??0);
+    if (l.status==='so_contab') diffSum += (l.valorContab??0);
+  });
+  document.getElementById('stTodosNum').textContent = c.todos;
+  document.getElementById('stTodosVal').textContent = fmtMoney(v.todos);
+  document.getElementById('stOkNum').textContent = c.conciliado;
+  document.getElementById('stOkVal').textContent = fmtMoney(v.conciliado);
+  document.getElementById('stDivNum').textContent = c.divergente;
+  document.getElementById('stDivVal').textContent = fmtMoney(v.divergente);
+  document.getElementById('stFaltaNum').textContent = c.so_falta;
+  document.getElementById('stFaltaVal').textContent = fmtMoney(v.so_falta);
+  document.getElementById('totalHeaderVal').textContent = fmtMoney(diffSum);
+
+  // nota de escopo
+  const soContabCount = state.linhas.filter(l=>l.status==='so_contab').length;
+  const note = document.getElementById('scopeNote');
+  if (soContabCount > 50){
+    note.style.display='block';
+    note.innerHTML = '<b>Nota:</b> ' + soContabCount + ' lançamentos aparecem só na contabilidade. Parte pode ser de contas fora do escopo deste relatório do AutoSystem (ex.: fretes pagos direto, combustível) — confira a coluna "Produto / Serviço" antes de tratar como pendência real.';
+  } else note.style.display='none';
+
+  renderTable();
+}
+
+function matchesFilter(l){
+  if (state.activeStatus === 'so_falta'){
+    if (l.status !== 'so_auto' && l.status !== 'so_contab') return false;
+  } else if (state.activeStatus !== 'todos' && l.status !== state.activeStatus){
+    return false;
+  }
+  if (state.search){
+    const s = state.search;
+    const hay = norm(l.empresa + ' ' + l.documento + ' ' + l.produtoServico);
+    if (!hay.includes(s)) return false;
+  }
+  return true;
+}
+
+function statusMeta(status){
+  switch(status){
+    case 'conciliado': return {label:'Conciliado', cls:'conciliado'};
+    case 'divergente': return {label:'Divergente', cls:'divergente'};
+    case 'so_auto': return {label:'Só AutoSystem', cls:'so_auto'};
+    case 'so_contab': return {label:'Só Contabilidade', cls:'so_contab'};
+  }
+}
+
+function renderTable(){
+  const tbody = document.getElementById('tbody');
+  const rows = state.linhas.filter(matchesFilter);
+  document.getElementById('emptyMsg').style.display = rows.length ? 'none':'block';
+  tbody.innerHTML = '';
+  rows.forEach(l=>{
+    const meta = statusMeta(l.status);
+    const diff = (l.valorAuto!=null && l.valorContab!=null) ? (l.valorAuto - l.valorContab) : null;
+    const hasExpand = l.razItems && l.razItems.length > 1;
+    const tr = document.createElement('tr');
+    tr.className = 'row';
+    tr.innerHTML = `
+      <td>${hasExpand ? `<button class="expand-toggle" data-id="${l.id}">${state.expanded.has(l.id)?'–':'+'}</button>` : ''}</td>
+      <td class="date">${fmtDateBR(l.data)}</td>
+      <td class="doc">${l.documento || '—'}</td>
+      <td class="empresa">${l.empresa || '—'}</td>
+      <td>${l.produtoServico || '—'}</td>
+      <td class="num">${l.valorAuto!=null ? fmtMoney(l.valorAuto) : '—'}</td>
+      <td class="num">${l.valorContab!=null ? fmtMoney(l.valorContab) : '—'}</td>
+      <td class="num ${diff!=null ? (Math.abs(diff)<0.02?'':'diff-neg') : ''}">${diff!=null ? fmtMoney(diff) : '—'}</td>
+      <td><span class="badge ${meta.cls}">${meta.label}</span></td>
+    `;
+    tbody.appendChild(tr);
+    if (hasExpand && state.expanded.has(l.id)){
+      const head = document.createElement('tr');
+      head.className='subhead';
+      head.innerHTML = `<td colspan="9">${l.razItems.length} lançamento(s) na contabilidade compõem este total</td>`;
+      tbody.appendChild(head);
+      l.razItems.forEach(it=>{
+        const sub = document.createElement('tr');
+        sub.className='subrow';
+        sub.innerHTML = `<td colspan="9"><div class="sub-line"><span>${fmtDateBR(it.data)}</span><span><b>${it.empresa}</b></span><span>${it.produtoServico||''}</span><span style="margin-left:auto"><b>${fmtMoney(it.valor)}</b></span></div></td>`;
+        tbody.appendChild(sub);
+      });
+    }
+  });
+  tbody.querySelectorAll('.expand-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      if (state.expanded.has(id)) state.expanded.delete(id); else state.expanded.add(id);
+      renderTable();
+    });
+  });
+}
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    state.activeStatus = chip.dataset.status;
+    document.querySelectorAll('.stamp').forEach(s=>s.classList.remove('active'));
+    const st = document.querySelector('.stamp[data-status="'+chip.dataset.status+'"]');
+    if (st) st.classList.add('active');
+    renderTable();
+  });
+});
+document.querySelectorAll('.stamp').forEach(stamp=>{
+  stamp.addEventListener('click', ()=>{
+    const status = stamp.dataset.status;
+    document.querySelectorAll('.stamp').forEach(s=>s.classList.remove('active'));
+    stamp.classList.add('active');
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    const chip = document.querySelector('.chip[data-status="'+status+'"]');
+    if (chip) chip.classList.add('active');
+    state.activeStatus = status;
+    renderTable();
+  });
+});
+document.getElementById('searchInput').addEventListener('input', e=>{
+  state.search = norm(e.target.value);
+  renderTable();
+});
+
+document.getElementById('exportDiv').addEventListener('click', ()=>{
+  const rows = state.linhas.filter(l=>l.status==='divergente').map(l=>[
+    fmtDateBR(l.data), l.documento, l.empresa, l.produtoServico,
+    l.valorAuto, l.valorContab, (l.valorAuto-l.valorContab).toFixed(2)
+  ]);
+  downloadCSV('divergencias.csv', ['Data','Documento','Empresa','Produto/Servico','Valor AutoSystem','Valor Contabilidade','Diferenca'], rows);
+});
+document.getElementById('exportFalta').addEventListener('click', ()=>{
+  const rows = state.linhas.filter(l=>l.status==='so_auto'||l.status==='so_contab').map(l=>[
+    fmtDateBR(l.data), l.documento, l.empresa, l.produtoServico,
+    l.status==='so_auto'?'Só AutoSystem':'Só Contabilidade',
+    l.valorAuto!=null?l.valorAuto:l.valorContab
+  ]);
+  downloadCSV('faltantes.csv', ['Data','Documento','Empresa','Produto/Servico','Onde falta','Valor'], rows);
+});
+
+/* ================= Proteções básicas de uso =================
+   Sistema desenvolvido por Waldeci Ramos — waldeciramos@2026
+   Aviso: estas travas são um desestímulo de front-end, não segurança real —
+   qualquer pessoa com acesso ao navegador ainda consegue ver o código-fonte. */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  const k = e.key;
+  const blocked =
+    k === 'F12' ||
+    (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(k)) ||
+    (e.ctrlKey && ['U','u','S','s'].includes(k)) ||
+    (e.metaKey && e.altKey && ['I','i','J','j','C','c'].includes(k)); // Mac
+  if (blocked) e.preventDefault();
+});
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('selectstart', e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  e.preventDefault();
+});
+console.log('%cSistema desenvolvido por Waldeci Ramos — waldeciramos@2026', 'color:#B5502A;font-weight:bold;font-size:12px;');
+</script>
+</body>
+</html>
