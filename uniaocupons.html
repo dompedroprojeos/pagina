@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>União de Arquivos · NFC-e</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#0B1B33;
+    --navy-900:#0F2447;
+    --navy-800:#16305A;
+    --bg:#EDF1F8;
+    --surface:#FFFFFF;
+    --amber:#E8A33D;
+    --amber-dark:#C77F19;
+    --teal:#1E8A73;
+    --teal-bg:#E6F5F1;
+    --red:#D2503B;
+    --red-bg:#FBEAE6;
+    --ink:#122040;
+    --muted:#5C6C8A;
+    --line:#DEE5F1;
+    --rail-off:#C6CEDE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(232,163,61,0.10), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  ::selection{background:rgba(232,163,61,0.35);}
+  h1,h2,h3{font-family:'Sora',sans-serif; margin:0;}
+  code, .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ===== TOPBAR ===== */
+  .topbar{
+    background:linear-gradient(180deg,var(--navy-950),var(--navy-900));
+    color:#fff;
+    padding:26px 5vw 30px;
+    position:relative;
+    overflow:hidden;
+  }
+  .topbar::after{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(115deg, transparent 0 62%, rgba(232,163,61,0.10) 62% 63%, transparent 63% 100%),
+      linear-gradient(115deg, transparent 0 70%, rgba(232,163,61,0.06) 70% 71%, transparent 71% 100%);
+    pointer-events:none;
+  }
+  .topbar-inner{position:relative; z-index:1; max-width:1180px; margin:0 auto;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--amber); font-weight:600; margin-bottom:10px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--amber); box-shadow:0 0 0 3px rgba(232,163,61,.25);}
+  .topbar h1{font-size:clamp(26px,3.4vw,38px); font-weight:800; letter-spacing:-0.01em;}
+  .topbar p{margin:8px 0 0; color:#B9C4DD; font-size:14.5px; max-width:640px; line-height:1.55;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:34px 5vw 70px;}
+
+  /* ===== SEQUENCE RAIL (signature element) ===== */
+  .rail-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:22px 24px; margin-bottom:22px; box-shadow:0 1px 2px rgba(15,36,71,.04);
+  }
+  .rail-head{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .rail-head h2{font-size:16px; font-weight:700;}
+  .rail-head .hint{font-size:12.5px; color:var(--muted);}
+  .rail{display:flex; align-items:center; gap:0; overflow-x:auto; padding:6px 2px 10px;}
+  .rail-chip{
+    flex:0 0 auto; min-width:92px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:12px 10px; border-radius:12px; position:relative;
+  }
+  .rail-chip .num{
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:14px;
+    background:#fff; border:2px solid var(--rail-off); color:var(--muted);
+    transition:all .25s ease;
+  }
+  .rail-chip.filled .num{border-color:var(--teal); color:var(--teal); background:var(--teal-bg);}
+  .rail-chip.missing .num{border-color:var(--red); color:var(--red); background:var(--red-bg); border-style:dashed;}
+  .rail-chip .lbl{font-size:11px; color:var(--muted); text-align:center; line-height:1.3;}
+  .rail-chip.filled .lbl{color:var(--ink); font-weight:600;}
+  .rail-line{flex:1 1 32px; height:2px; background:var(--rail-off); min-width:20px; margin-top:-24px;}
+  .rail-line.filled{background:var(--teal);}
+
+  /* ===== UPLOAD ===== */
+  .drop{
+    border:2px dashed #B9C6E0; border-radius:16px; background:#F6F8FD;
+    padding:34px 22px; text-align:center; cursor:pointer; transition:.2s;
+    margin-bottom:22px;
+  }
+  .drop:hover, .drop.drag{border-color:var(--amber); background:#FDF6EA;}
+  .drop .ic{
+    width:46px; height:46px; margin:0 auto 10px; border-radius:12px;
+    background:var(--navy-900); display:flex; align-items:center; justify-content:center;
+  }
+  .drop .ic svg{width:22px; height:22px; stroke:var(--amber);}
+  .drop strong{font-size:15px;}
+  .drop span{display:block; margin-top:4px; font-size:12.5px; color:var(--muted);}
+  #fileInput{display:none;}
+
+  /* ===== FILE LIST ===== */
+  .files-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-bottom:6px;}
+  .file-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+    position:relative;
+  }
+  .file-card .top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .file-card .badge{
+    font-family:'Sora',sans-serif; font-weight:700; font-size:12px;
+    background:var(--navy-900); color:#fff; padding:3px 9px; border-radius:20px;
+  }
+  .file-card .rm{
+    border:none; background:none; color:var(--muted); cursor:pointer; font-size:16px; line-height:1;
+    padding:2px 4px; border-radius:6px;
+  }
+  .file-card .rm:hover{color:var(--red); background:var(--red-bg);}
+  .file-card .fname{font-size:11.5px; color:var(--muted); margin-top:8px; word-break:break-all; font-family:'IBM Plex Mono',monospace;}
+  .file-card .meta{margin-top:8px; font-size:12.5px; color:var(--ink); line-height:1.6;}
+  .file-card .meta b{font-weight:600;}
+  .file-card .qty{margin-top:10px; display:inline-flex; gap:6px; align-items:baseline;}
+  .file-card .qty .n{font-family:'Sora',sans-serif; font-weight:800; font-size:20px;}
+  .file-card .qty .t{font-size:11.5px; color:var(--muted);}
+
+  /* ===== ALERTS ===== */
+  .alert{border-radius:12px; padding:13px 16px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start; margin:16px 0;}
+  .alert svg{width:18px; height:18px; flex:0 0 auto; margin-top:1px;}
+  .alert.ok{background:var(--teal-bg); color:#0F5942; border:1px solid #BFE6DB;}
+  .alert.warn{background:#FDF3E3; color:#7A4E06; border:1px solid #F3DBA4;}
+  .alert.err{background:var(--red-bg); color:#8C2E1E; border:1px solid #F0C4B9;}
+
+  /* ===== BUTTONS ===== */
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:600;
+    font-size:14px; padding:12px 22px; border-radius:10px; display:inline-flex; align-items:center; gap:8px;
+    transition:.15s; letter-spacing:.01em;
+  }
+  .btn-primary{background:var(--amber); color:#2B1B00;}
+  .btn-primary:hover{background:var(--amber-dark); color:#fff;}
+  .btn-primary:disabled{background:#E4E8F1; color:#9AA5BC; cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--navy-900); border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--navy-900);}
+  .btn-dark{background:var(--navy-900); color:#fff;}
+  .btn-dark:hover{background:var(--navy-950);}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;}
+
+  /* ===== SECTION ===== */
+  .section{margin-top:34px;}
+  .section-head{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .section-head .ix{
+    width:26px; height:26px; border-radius:8px; background:var(--navy-900); color:var(--amber);
+    display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:12.5px;
+  }
+  .section-head h2{font-size:17px; font-weight:700;}
+
+  /* ===== REPORT CARDS ===== */
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px;}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px;}
+  .stat .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600;}
+  .stat .val{font-family:'Sora',sans-serif; font-weight:800; font-size:21px; margin-top:6px; color:var(--navy-950);}
+  .stat .sub{font-size:12px; color:var(--muted); margin-top:3px;}
+  .stat.accent{background:var(--navy-900); border-color:var(--navy-900);}
+  .stat.accent .lbl{color:#9FB0D2;}
+  .stat.accent .val{color:var(--amber);}
+  .stat.accent .sub{color:#B9C4DD;}
+
+  .report-card{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px 24px; margin-top:16px;}
+  .report-title{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+  .report-title h3{font-size:16px; font-weight:700;}
+  .report-title .ts{font-size:12px; color:var(--muted);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); font-weight:700; padding:9px 10px; border-bottom:2px solid var(--line);
+    background:#F7F9FD; position:sticky; top:0;
+  }
+  tbody td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tbody tr:hover{background:#F7F9FD;}
+  td.mono, th.mono{font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .pill{display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;}
+  .pill.ok{background:var(--teal-bg); color:#0F5942;}
+  .pill.other{background:#EEF0F6; color:var(--muted);}
+  .origin{font-family:'IBM Plex Mono',monospace; font-size:11px; background:#EEF2FA; color:var(--navy-800); padding:2px 7px; border-radius:6px;}
+
+  .table-scroll{max-height:520px; overflow:auto; border:1px solid var(--line); border-radius:12px;}
+  .table-scroll table{font-size:12.5px;}
+
+  .pager{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; font-size:13px; color:var(--muted);}
+  .pager .btns{display:flex; gap:6px;}
+  .pager button{border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px;}
+  .pager button:disabled{opacity:.4; cursor:not-allowed;}
+
+  footer{
+    text-align:center; padding:26px 5vw 40px; color:var(--muted); font-size:12px;
+    border-top:1px solid var(--line); margin-top:40px;
+  }
+  footer b{color:var(--navy-900);}
+
+  .hidden{display:none !important;}
+
+  @media print{
+    .drop, .rail-card, .actions, footer, .no-print{display:none !important;}
+    body{background:#fff;}
+    .wrap{padding:0;}
+  }
+</style>
+</head>
+<body oncopy="return true" oncut="return true">
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="eyebrow"><span class="dot"></span> Rede Dom Pedro de Postos · Controle Fiscal</div>
+    <h1>União de Arquivos — NFC-e</h1>
+    <p>Consolide vários relatórios de "Relação de NFC-e" em um único arquivo. A união segue a ordem em que os arquivos forem enviados — o rótulo "Arquivo N de M" de cada arquivo é só informativo, para conferência.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SEQUENCE RAIL -->
+  <div class="rail-card">
+    <div class="rail-head">
+      <h2>Ordem de envio</h2>
+      <span class="hint" id="railHint">Envie os arquivos — a união seguirá a ordem em que forem carregados aqui</span>
+    </div>
+    <div class="rail" id="rail"></div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="drop" id="drop">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
+    <strong>Clique para selecionar ou arraste os arquivos CSV aqui</strong>
+    <span>Aceita múltiplos arquivos — "…NFCE_Relacao_Nota…_01_04.csv", "…_02_04.csv" etc.</span>
+    <input type="file" id="fileInput" multiple accept=".csv,text/csv">
+  </div>
+
+  <div id="alerts"></div>
+
+  <!-- FILE LIST -->
+  <div class="files-grid" id="filesGrid"></div>
+
+  <div class="actions" id="mainActions" style="display:none;">
+    <button class="btn btn-primary" id="btnUnir" disabled>Unir arquivos</button>
+    <button class="btn btn-ghost" id="btnLimpar">Limpar tudo</button>
+  </div>
+
+  <!-- REPORT -->
+  <div id="reportSection" class="hidden">
+
+    <div class="section">
+      <div class="section-head"><div class="ix">1</div><h2>Relatório da união</h2></div>
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="report-card">
+        <div class="report-title">
+          <h3>Detalhamento por arquivo</h3>
+          <span class="ts" id="reportTs"></span>
+        </div>
+        <div class="actions no-print" style="margin-top:0; margin-bottom:14px;">
+          <button class="btn btn-ghost" id="btnPrintBreakdown">🖨 Imprimir detalhamento</button>
+        </div>
+        <div class="table-scroll" style="max-height:none;">
+          <table id="breakdownTable">
+            <thead><tr>
+              <th>Ordem</th><th>Nome do arquivo</th><th>Rótulo no arquivo</th><th>Notas</th><th>1ª nota</th><th>Última nota</th><th>Valor total</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div class="ix">2</div><h2>Prévia dos dados unificados</h2></div>
+      <div class="table-scroll">
+        <table id="previewTable">
+          <thead><tr>
+            <th class="mono">Chave de Acesso</th><th>Situação</th><th>Série</th><th>Núm. Doc.</th>
+            <th>Data Emissão</th><th>Valor Total NFC</th><th>Forma Pag.</th><th class="mono">Protocolo</th><th>Origem</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="pagerInfo"></span>
+        <div class="btns">
+          <button id="prevPage">← Anterior</button>
+          <button id="nextPage">Próxima →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn btn-dark" id="btnExport">⬇ Exportar arquivo unificado (.csv)</button>
+      <button class="btn btn-ghost" id="btnPrint">🖨 Imprimir relatório</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>Elaboração: <b>Waldeci Ramos</b> © 2026 — Uso interno, Rede Dom Pedro de Postos LTDA.</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- PROTEÇÃO BÁSICA DE INTERFACE ----------
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j' || k === 'C' || k === 'c')) { e.preventDefault(); return false; }
+    if (e.ctrlKey && (k === 'U' || k === 'u')) { e.preventDefault(); return false; }
+  });
+
+  // ---------- ESTADO ----------
+  var state = { files: [], merged: null, page: 0, pageSize: 60, orderCounter: 0 };
+
+  var els = {
+    fileInput: document.getElementById('fileInput'),
+    drop: document.getElementById('drop'),
+    filesGrid: document.getElementById('filesGrid'),
+    rail: document.getElementById('rail'),
+    railHint: document.getElementById('railHint'),
+    alerts: document.getElementById('alerts'),
+    mainActions: document.getElementById('mainActions'),
+    btnUnir: document.getElementById('btnUnir'),
+    btnLimpar: document.getElementById('btnLimpar'),
+    reportSection: document.getElementById('reportSection'),
+    statGrid: document.getElementById('statGrid'),
+    reportTs: document.getElementById('reportTs'),
+    breakdownBody: document.querySelector('#breakdownTable tbody'),
+    previewBody: document.querySelector('#previewTable tbody'),
+    pagerInfo: document.getElementById('pagerInfo'),
+    prevPage: document.getElementById('prevPage'),
+    nextPage: document.getElementById('nextPage'),
+    btnExport: document.getElementById('btnExport'),
+    btnPrint: document.getElementById('btnPrint'),
+    btnPrintBreakdown: document.getElementById('btnPrintBreakdown')
+  };
+
+  // ---------- HELPERS ----------
+  function cleanField(v){
+    if (v === undefined || v === null) return '';
+    var s = String(v).trim();
+    if (s.length >= 2){
+      var f0 = s.charAt(0), lc = s.charAt(s.length-1);
+      if ((f0 === "'" && lc === "'") || (f0 === '"' && lc === '"')){
+        s = s.slice(1,-1).trim();
+      }
+    }
+    if (s === "'" || s === '"' || s === "''" || s === '""') s = '';
+    return s;
+  }
+
+  function parseBRL(v){
+    if (!v) return 0;
+    var s = String(v).trim();
+    if (!s) return 0;
+    s = s.replace(/\./g,'').replace(',', '.');
+    var n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function formatBRL(n){
+    return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function colonValue(line){
+    var i = line.indexOf(':');
+    if (i === -1) return line.trim();
+    return line.slice(i+1).trim();
+  }
+
+  function parseCsvText(text, filename){
+    var lines = text.split(/\r\n|\n|\r/);
+    var titleLine = lines[0] || '';
+    var razaoLine = lines[1] || '';
+    var cnpjLine = lines[2] || '';
+    var ieLine = lines[3] || '';
+    var periodoLine = lines[4] || '';
+    var situacaoLine = lines[5] || '';
+    var headerLine = lines[7] || '';
+    var dataLines = lines.slice(8).filter(function(l){ return l.trim().length > 0; });
+
+    var seqMatch = titleLine.match(/Arquivo\s+(\d+)\s+de\s+(\d+)/i);
+    var seq = seqMatch ? parseInt(seqMatch[1],10) : null;
+    var total = seqMatch ? parseInt(seqMatch[2],10) : null;
+
+    var header = headerLine.split(';').map(cleanField);
+    var idx = {};
+    header.forEach(function(h,i){ idx[h] = i; });
+
+    var rows = dataLines.map(function(l){ return l.split(';').map(cleanField); });
+
+    return {
+      filename: filename,
+      titleLine: titleLine.trim(),
+      razaoSocial: colonValue(razaoLine),
+      cnpj: colonValue(cnpjLine),
+      ie: colonValue(ieLine),
+      periodo: colonValue(periodoLine),
+      situacao: colonValue(situacaoLine),
+      seq: seq, total: total,
+      header: header, idx: idx, rows: rows
+    };
+  }
+
+  // ---------- RENDER: RAIL ----------
+  function renderRail(){
+    els.rail.innerHTML = '';
+    if (!state.files.length){
+      els.railHint.textContent = 'Envie os arquivos — a união seguirá a ordem em que forem carregados aqui';
+      return;
+    }
+    var ordered = state.files.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    ordered.forEach(function(f, i){
+      var chip = document.createElement('div');
+      chip.className = 'rail-chip filled';
+      var subLbl = f.seq ? ('arq. ' + String(f.seq).padStart(2,'0') + '/' + String(f.total).padStart(2,'0')) : f.filename;
+      chip.innerHTML = '<div class="num">' + String(i+1).padStart(2,'0') + '</div>' +
+        '<div class="lbl" title="' + f.filename + '">' + subLbl + '</div>';
+      els.rail.appendChild(chip);
+      if (i < ordered.length - 1){
+        var line = document.createElement('div');
+        line.className = 'rail-line filled';
+        els.rail.appendChild(line);
+      }
+    });
+    els.railHint.textContent = ordered.length + ' arquivo(s) carregado(s), nesta ordem de envio';
+  }
+
+  // ---------- RENDER: FILE CARDS ----------
+  function renderFiles(){
+    els.filesGrid.innerHTML = '';
+    var ordered = state.files.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    ordered.forEach(function(f, i){
+      var card = document.createElement('div');
+      card.className = 'file-card';
+      card.innerHTML =
+        '<div class="top">' +
+          '<span class="badge">' + String(i+1).padStart(2,'0') + '</span>' +
+          '<button class="rm" data-name="' + f.filename + '" title="Remover">✕</button>' +
+        '</div>' +
+        '<div class="fname">' + f.filename + '</div>' +
+        '<div class="meta"><b>' + (f.razaoSocial || '—') + '</b><br>CNPJ ' + (f.cnpj || '—') + '<br>' + (f.periodo || '') +
+          (f.seq ? '<br><span class="mono" style="font-size:11px; color:var(--muted);">rótulo: Arquivo ' + String(f.seq).padStart(2,'0') + ' de ' + String(f.total).padStart(2,'0') + '</span>' : '') +
+        '</div>' +
+        '<div class="qty"><span class="n">' + f.rows.length + '</span><span class="t">notas</span></div>';
+      els.filesGrid.appendChild(card);
+    });
+    els.filesGrid.querySelectorAll('.rm').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var name = btn.getAttribute('data-name');
+        state.files = state.files.filter(function(f){ return f.filename !== name; });
+        afterFilesChanged();
+      });
+    });
+  }
+
+  // ---------- VALIDAÇÃO ----------
+  function validate(){
+    els.alerts.innerHTML = '';
+    if (!state.files.length) return { ok:false };
+
+    var cnpjs = Array.from(new Set(state.files.map(function(f){ return f.cnpj; }).filter(Boolean)));
+    var names = state.files.map(function(f){ return f.filename; });
+    var dupNames = names.filter(function(n,i){ return names.indexOf(n) !== i; });
+
+    var problems = [];
+    var warnings = [];
+
+    if (cnpjs.length > 1){
+      problems.push('Os arquivos pertencem a empresas diferentes (CNPJ): ' + cnpjs.join(' · '));
+    }
+    if (Array.from(new Set(dupNames)).length){
+      warnings.push('Há arquivos repetidos na lista: ' + Array.from(new Set(dupNames)).join(', ') + '. O mais recente enviado substitui o anterior.');
+    }
+
+    problems.forEach(function(msg){ addAlert('err', msg); });
+    warnings.forEach(function(msg){ addAlert('warn', msg); });
+    if (!problems.length && !warnings.length && state.files.length){
+      addAlert('ok', 'Todos os arquivos pertencem à mesma empresa. A união seguirá a ordem de envio mostrada acima — confira antes de unir.');
+    }
+
+    return { ok: problems.length === 0 && state.files.length > 0, hasWarnings: warnings.length > 0 };
+  }
+
+  function addAlert(kind, msg){
+    var icons = {
+      ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+      warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
+      err: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>'
+    };
+    var div = document.createElement('div');
+    div.className = 'alert ' + kind;
+    div.innerHTML = icons[kind] + '<span>' + msg + '</span>';
+    els.alerts.appendChild(div);
+  }
+
+  // ---------- FLUXO PRINCIPAL ----------
+  function afterFilesChanged(){
+    renderFiles();
+    renderRail();
+    var v = validate();
+    els.mainActions.style.display = state.files.length ? 'flex' : 'none';
+    els.btnUnir.disabled = !v.ok;
+    els.reportSection.classList.add('hidden');
+    state.merged = null;
+  }
+
+  function handleFiles(fileList){
+    var arr = Array.from(fileList).filter(function(f){ return /\.csv$/i.test(f.name); });
+    if (!arr.length) return;
+    var pending = arr.length;
+    arr.forEach(function(file){
+      var order = ++state.orderCounter;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        try{
+          var decoder = new TextDecoder('iso-8859-1');
+          var text = decoder.decode(e.target.result);
+          var parsed = parseCsvText(text, file.name);
+          parsed.order = order;
+          state.files = state.files.filter(function(f){ return f.filename !== file.name; });
+          state.files.push(parsed);
+        } catch(err){
+          addAlert('err', 'Falha ao ler "' + file.name + '": ' + err.message);
+        }
+        pending--;
+        if (pending === 0) afterFilesChanged();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  els.drop.addEventListener('click', function(){ els.fileInput.click(); });
+  els.fileInput.addEventListener('change', function(e){ handleFiles(e.target.files); e.target.value=''; });
+  ['dragover','dragenter'].forEach(function(ev){
+    els.drop.addEventListener(ev, function(e){ e.preventDefault(); els.drop.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    els.drop.addEventListener(ev, function(e){ e.preventDefault(); els.drop.classList.remove('drag'); });
+  });
+  els.drop.addEventListener('drop', function(e){ handleFiles(e.dataTransfer.files); });
+
+  els.btnLimpar.addEventListener('click', function(){
+    state.files = [];
+    state.merged = null;
+    afterFilesChanged();
+  });
+
+  // ---------- UNIÃO ----------
+  els.btnUnir.addEventListener('click', function(){
+    var sorted = state.files.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var base = sorted[0];
+    var header = base.header;
+    var idx = base.idx;
+
+    var mergedRows = [];
+    sorted.forEach(function(f, i){
+      f.rows.forEach(function(r){ mergedRows.push({ row: r, origin: i+1, filename: f.filename }); });
+    });
+
+    var valorIdx = idx['Valor Total NFC'] != null ? idx['Valor Total NFC'] : 27;
+    var situIdx = idx['Situação NFC-e'] != null ? idx['Situação NFC-e'] : 1;
+    var numDocIdx = idx['Num. Doc. Fiscal'] != null ? idx['Num. Doc. Fiscal'] : 3;
+    var dataEmisIdx = idx['Data de Emissão'] != null ? idx['Data de Emissão'] : 4;
+    var chaveIdx = idx['Chave de Acesso'] != null ? idx['Chave de Acesso'] : 0;
+    var formaPagIdx = idx['Forma de Pag.'] != null ? idx['Forma de Pag.'] : 28;
+    var protocoloIdx = idx['Número Protocolo NFe'] != null ? idx['Número Protocolo NFe'] : 34;
+
+    var totalValor = 0;
+    var situCount = {};
+    mergedRows.forEach(function(o){
+      totalValor += parseBRL(o.row[valorIdx]);
+      var s = o.row[situIdx] || '—';
+      situCount[s] = (situCount[s]||0) + 1;
+    });
+
+    var breakdown = sorted.map(function(f, i){
+      var valorSum = f.rows.reduce(function(acc,r){ return acc + parseBRL(r[valorIdx]); }, 0);
+      var first = f.rows[0] ? f.rows[0][numDocIdx] : '—';
+      var last = f.rows.length ? f.rows[f.rows.length-1][numDocIdx] : '—';
+      var rotulo = f.seq ? ('Arquivo ' + String(f.seq).padStart(2,'0') + ' de ' + String(f.total).padStart(2,'0')) : '—';
+      return { ordem:i+1, rotulo:rotulo, filename:f.filename, qtd:f.rows.length, first:first, last:last, valorSum:valorSum };
+    });
+
+    state.merged = {
+      empresa: base.razaoSocial,
+      cnpj: base.cnpj,
+      ie: base.ie,
+      periodo: base.periodo,
+      header: header,
+      idx: idx,
+      rows: mergedRows,
+      totalValor: totalValor,
+      situCount: situCount,
+      breakdown: breakdown,
+      totalArquivos: sorted.length,
+      timestamp: new Date(),
+      chaveIdx: chaveIdx, situIdx: situIdx, numDocIdx: numDocIdx, dataEmisIdx: dataEmisIdx,
+      valorIdx: valorIdx, formaPagIdx: formaPagIdx, protocoloIdx: protocoloIdx
+    };
+
+    renderReport();
+    els.reportSection.classList.remove('hidden');
+    els.reportSection.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+
+  // ---------- RELATÓRIO ----------
+  function renderReport(){
+    var m = state.merged;
+    els.reportTs.textContent = 'Gerado em ' + m.timestamp.toLocaleString('pt-BR');
+
+    var okCount = m.situCount['AUTORIZADA'] || 0;
+    var otherCount = m.rows.length - okCount;
+
+    var stats = [
+      { lbl:'Empresa', val: m.empresa || '—', sub: 'CNPJ ' + (m.cnpj || '—'), accent:true },
+      { lbl:'Período consolidado', val: m.periodo || '—', sub: 'Inscrição Estadual ' + (m.ie || '—') },
+      { lbl:'Arquivos unidos', val: String(m.totalArquivos), sub: 'Na ordem de envio · ' + m.breakdown.map(function(b){return String(b.ordem).padStart(2,'0');}).join(', ') },
+      { lbl:'Total de notas', val: m.rows.length.toLocaleString('pt-BR'), sub: okCount.toLocaleString('pt-BR') + ' autorizadas' + (otherCount ? ' · ' + otherCount + ' outras' : '') },
+      { lbl:'Valor total somado', val: formatBRL(m.totalValor), sub: 'Coluna "Valor Total NFC"' }
+    ];
+    els.statGrid.innerHTML = stats.map(function(s){
+      return '<div class="stat' + (s.accent ? ' accent' : '') + '"><div class="lbl">' + s.lbl + '</div><div class="val">' + s.val + '</div><div class="sub">' + s.sub + '</div></div>';
+    }).join('');
+
+    els.breakdownBody.innerHTML = m.breakdown.map(function(b){
+      return '<tr>' +
+        '<td><span class="origin">' + String(b.ordem).padStart(2,'0') + '</span></td>' +
+        '<td class="mono" style="font-size:11px;">' + b.filename + '</td>' +
+        '<td>' + b.rotulo + '</td>' +
+        '<td>' + b.qtd.toLocaleString('pt-BR') + '</td>' +
+        '<td>' + b.first + '</td>' +
+        '<td>' + b.last + '</td>' +
+        '<td>' + formatBRL(b.valorSum) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    state.page = 0;
+    renderPreviewPage();
+  }
+
+  function renderPreviewPage(){
+    var m = state.merged;
+    var start = state.page * state.pageSize;
+    var slice = m.rows.slice(start, start + state.pageSize);
+    els.previewBody.innerHTML = slice.map(function(o){
+      var r = o.row;
+      var situ = r[m.situIdx] || '—';
+      var pillClass = situ === 'AUTORIZADA' ? 'ok' : 'other';
+      return '<tr>' +
+        '<td class="mono">' + (r[m.chaveIdx] || '—') + '</td>' +
+        '<td><span class="pill ' + pillClass + '">' + situ + '</span></td>' +
+        '<td>' + (r[2] || '—') + '</td>' +
+        '<td>' + (r[m.numDocIdx] || '—') + '</td>' +
+        '<td>' + (r[m.dataEmisIdx] || '—') + '</td>' +
+        '<td>' + formatBRL(parseBRL(r[m.valorIdx])) + '</td>' +
+        '<td>' + (r[m.formaPagIdx] || '—') + '</td>' +
+        '<td class="mono">' + (r[m.protocoloIdx] || '—') + '</td>' +
+        '<td><span class="origin">arq. ' + String(o.origin).padStart(2,'0') + '</span></td>' +
+      '</tr>';
+    }).join('');
+
+    var totalPages = Math.max(1, Math.ceil(m.rows.length / state.pageSize));
+    els.pagerInfo.textContent = 'Mostrando ' + (start+1) + '–' + Math.min(start+state.pageSize, m.rows.length) + ' de ' + m.rows.length + ' notas';
+    els.prevPage.disabled = state.page === 0;
+    els.nextPage.disabled = state.page >= totalPages - 1;
+  }
+
+  els.prevPage.addEventListener('click', function(){ if (state.page>0){ state.page--; renderPreviewPage(); } });
+  els.nextPage.addEventListener('click', function(){
+    var totalPages = Math.max(1, Math.ceil(state.merged.rows.length / state.pageSize));
+    if (state.page < totalPages-1){ state.page++; renderPreviewPage(); }
+  });
+
+  // ---------- EXPORTAÇÃO ----------
+  els.btnExport.addEventListener('click', function(){
+    var m = state.merged;
+    if (!m) return;
+    var lines = [];
+    lines.push('Consulta Relação de NFC-e - Arquivo Único (' + m.totalArquivos + ' arquivo(s) unidos, na ordem de envio) - Unificado');
+    lines.push('Razão Social: ' + m.empresa);
+    lines.push('CNPJ: ' + m.cnpj);
+    lines.push('Inscrição Estadual: ' + m.ie);
+    lines.push('Período: ' + m.periodo);
+    lines.push('Situação da NFC-e: ' + Object.keys(m.situCount).join(', '));
+    lines.push('');
+    lines.push(m.header.join(';'));
+    m.rows.forEach(function(o){ lines.push(o.row.join(';')); });
+
+    var csvText = lines.join('\r\n');
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csvText], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var cnpjDigits = (m.cnpj || '').replace(/\D/g,'');
+    var stamp = m.timestamp.toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'NFCE_Relacao_Nota_UNIFICADO_' + cnpjDigits + '_' + stamp + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  els.btnPrint.addEventListener('click', function(){ window.print(); });
+
+  els.btnPrintBreakdown.addEventListener('click', function(){
+    var m = state.merged;
+    if (!m) return;
+    var rowsHtml = m.breakdown.map(function(b){
+      return '<tr>' +
+        '<td>' + String(b.ordem).padStart(2,'0') + '</td>' +
+        '<td style="font-family:monospace;font-size:11px;">' + b.filename + '</td>' +
+        '<td>' + b.rotulo + '</td>' +
+        '<td>' + b.qtd.toLocaleString('pt-BR') + '</td>' +
+        '<td>' + b.first + '</td>' +
+        '<td>' + b.last + '</td>' +
+        '<td>' + formatBRL(b.valorSum) + '</td>' +
+      '</tr>';
+    }).join('');
+    var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">' +
+      '<title>Detalhamento por arquivo — ' + (m.empresa || '') + '</title>' +
+      '<style>' +
+      'body{font-family:Arial,Helvetica,sans-serif; color:#122040; padding:24px;}' +
+      'h1{font-size:16px; margin:0 0 2px;} .sub{font-size:12px; color:#5C6C8A; margin-bottom:14px;}' +
+      'table{width:100%; border-collapse:collapse; font-size:12px;}' +
+      'th,td{border:1px solid #DEE5F1; padding:6px 8px; text-align:left;}' +
+      'th{background:#F7F9FD; text-transform:uppercase; font-size:10px; letter-spacing:.05em; color:#5C6C8A;}' +
+      '</style></head><body>' +
+      '<h1>Detalhamento por arquivo — Consulta Relação de NFC-e</h1>' +
+      '<div class="sub">' + (m.empresa || '—') + ' · CNPJ ' + (m.cnpj || '—') + ' · ' + (m.periodo || '—') +
+        ' · ' + m.totalArquivos + ' arquivo(s), na ordem de envio · gerado em ' + new Date().toLocaleString('pt-BR') + '</div>' +
+      '<table><thead><tr><th>Ordem</th><th>Nome do arquivo</th><th>Rótulo no arquivo</th><th>Notas</th><th>1ª nota</th><th>Última nota</th><th>Valor total</th></tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody></table>' +
+      '<script>window.onload=function(){window.print();};<\/script>' +
+      '</body></html>';
+    var w = window.open('', '_blank', 'width=1000,height=700');
+    if (!w){ addAlert('warn', 'O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  });
+
+  afterFilesChanged();
+})();
+</script>
+</body>
+</html>
