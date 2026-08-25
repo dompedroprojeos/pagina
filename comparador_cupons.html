@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Cupons | AutoSystem x Consolidada NFC-e</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f0fdf4; padding: 20px; color: #1a3a2a; }
+        .container { max-width: 1650px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #0d5c3b, #1b8c4a); color: white; border-radius: 20px; padding: 20px 28px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 8px 20px; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; transition: 0.2s; }
+        .btn-primary { background: #fbbf24; color: #0d5c3b; }
+        .btn-primary:hover { background: #f59e0b; transform: scale(1.02); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform:none; }
+        .btn-outline { background: transparent; border: 1px solid white; color: white; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #e5e7eb; color: #1a3a2a; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .upload-area { border: 2px dashed #1b8c4a; border-radius: 20px; padding: 25px; text-align: center; background: #f0fdf4; cursor: pointer; transition: 0.3s; }
+        .upload-area:hover { background: #e6f5ed; border-color: #0d5c3b; }
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .upload-box { padding: 20px; border-radius: 16px; border: 2px dashed #d1d5db; background: #fafafa; transition: 0.3s; }
+        .upload-box.active { border-color: #1b8c4a; background: #f0fdf4; }
+        .upload-box h4 { margin-bottom: 8px; }
+        .upload-box .file-info { font-size: 13px; color: #6b7280; margin-top: 8px; }
+        .upload-box .file-info strong { color: #0d5c3b; }
+        .report-container { background: white; border-radius: 16px; overflow-x: auto; }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 15px; }
+        .stat-card { background: #ecfdf5; border-radius: 12px; padding: 10px 20px; border-left: 4px solid #1b8c4a; }
+        .stat-card.error { border-left-color: #dc2626; background: #fef2f2; }
+        .stat-card.warning { border-left-color: #f59e0b; background: #fffbeb; }
+        .stat-card.info { border-left-color: #2563eb; background: #eff6ff; }
+        h3 { font-size: 1.2rem; font-weight: 600; margin: 15px 0 12px; border-left: 5px solid #1b8c4a; padding-left: 14px; }
+        .periodo-banner { background: linear-gradient(135deg, #0d5c3b, #1b8c4a); color: white; border-radius: 14px; padding: 14px 22px; margin: 16px 0; font-size: 15px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .periodo-banner strong { font-size: 18px; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+        .report-table th { background: #0d5c3b; color: white; padding: 10px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
+        .report-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; word-wrap: break-word; }
+        .report-table tr:hover { background: #f0fdf4; }
+        .report-table tr.error { background: #fef2f2; }
+        .report-table tr.error:hover { background: #fde8e8; }
+        .report-table tr.warning { background: #fffbeb; }
+        .report-table tr.warning:hover { background: #fef3c7; }
+        .report-table tr.success { background: #f0fdf4; }
+        .report-table tr.info { background: #eff6ff; }
+
+        .col-status { width: 70px; min-width: 70px; max-width: 70px; }
+        .col-num { width: 90px; min-width: 90px; max-width: 90px; }
+        .col-sit { width: 110px; min-width: 110px; max-width: 110px; }
+        .col-valor { width: 120px; min-width: 120px; max-width: 120px; }
+        .col-detalhes { width: 320px; min-width: 320px; max-width: 320px; }
+        .col-chave { width: 300px; min-width: 300px; max-width: 300px; }
+
+        .badge { border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-error { background: #fecaca; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .scroll-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .summary-cards { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; }
+        .summary-item { background: white; border-radius: 12px; padding: 10px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 130px; }
+        .summary-label { font-size: 11px; color: #5b6e5b; text-transform: uppercase; }
+        .summary-value { font-size: 18px; font-weight: 700; color: #0d5c3b; }
+        .summary-value.error { color: #dc2626; }
+        .summary-value.warning { color: #f59e0b; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+        .filtro-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+        .filtro-select { padding: 7px 14px; border-radius: 40px; border: 1px solid #d1d5db; font-size: 13px; background: white; min-width: 160px; }
+        .error-detail { font-size: 11px; color: #991b1b; }
+        .warning-detail { font-size: 11px; color: #92400e; }
+        .chave-full { font-family: 'Courier New', monospace; font-size: 10px; word-break: break-all; }
+        .valor-igual { color: #065f46; font-weight: 600; }
+        .valor-diferente { color: #dc2626; font-weight: 600; }
+        input[type="file"] { display: none; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.active { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1b8c4a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .section-toggle { cursor: pointer; user-select: none; }
+        .section-toggle i.fa-chevron-down { transition: 0.2s; }
+        .section-toggle.collapsed i.fa-chevron-down { transform: rotate(-90deg); }
+        .collapsible-body.collapsed { display: none; }
+        .footer-note { text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; padding: 10px; }
+
+        @media (max-width: 768px) {
+            .upload-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+            .report-table { font-size: 10px; }
+            .col-detalhes { width: 180px; min-width: 180px; max-width: 180px; }
+            .col-valor { width: 80px; min-width: 80px; max-width: 80px; }
+            .report-table th, .report-table td { padding: 4px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-receipt"></i> Comparador de Cupons</h1>
+            <p>AutoSystem (ODS/XLSX/CSV) x Consolidada NFC-e | Rede Dom Pedro de Postos</p>
+        </div>
+        <div>
+            <button id="exportCsvBtn" class="btn btn-outline"><i class="fas fa-file-csv"></i> Exportar Relatório</button>
+            <button id="darkBtn" class="btn btn-outline"><i class="fas fa-moon"></i> Modo Escuro</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-upload"></i> Importar Arquivos</h3>
+        <div class="upload-grid">
+            <div class="upload-box" id="autoBox">
+                <h4><i class="fas fa-file-invoice-dollar" style="color:#1b8c4a;"></i> Cupons do AutoSystem</h4>
+                <p style="font-size:13px;color:#6b7280;">Arquivo .ods, .xlsx ou .csv exportado do AutoSystem PRO</p>
+                <div class="upload-area" id="autoUploadArea" style="padding:15px;border-style:dashed;border-color:#d1d5db;">
+                    <i class="fas fa-cloud-upload-alt" style="color:#1b8c4a;"></i>
+                    <p style="font-size:13px;">Clique para selecionar o arquivo</p>
+                    <input type="file" id="autoFile" accept=".ods,.xlsx,.xls,.csv">
+                    <div id="autoStatus" class="file-info">Nenhum arquivo selecionado</div>
+                </div>
+                <div style="font-size:11px;color:#6b7280;margin-top:6px;">
+                    <strong>Colunas usadas:</strong> Data (período), Número, Situação, Valor
+                </div>
+            </div>
+            <div class="upload-box" id="consBox">
+                <h4><i class="fas fa-table" style="color:#1b8c4a;"></i> Consolidada de NFC-e</h4>
+                <p style="font-size:13px;color:#6b7280;">CSV "Consulta Relação de NFC-e" (pode ser grande — só é filtrado o período do AutoSystem)</p>
+                <div class="upload-area" id="consUploadArea" style="padding:15px;border-style:dashed;border-color:#d1d5db;">
+                    <i class="fas fa-cloud-upload-alt" style="color:#1b8c4a;"></i>
+                    <p style="font-size:13px;">Clique para selecionar o CSV</p>
+                    <input type="file" id="consFile" accept=".csv">
+                    <div id="consStatus" class="file-info">Nenhum arquivo selecionado</div>
+                </div>
+                <div style="font-size:11px;color:#6b7280;margin-top:6px;">
+                    <strong>Colunas usadas:</strong> Chave de Acesso, Situação NFC-e, Num. Doc. Fiscal, Data de Emissão, Valor Pago
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="processBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> Comparar Cupons</button>
+            <button id="clearBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Limpar</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top:10px;" id="loadingMsg">Processando arquivos...</p>
+        </div>
+
+        <div class="stats" id="statsArea"></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-chart-simple"></i> Relatório de Comparação</h3>
+        <div id="reportContainer" class="report-container">
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione os dois arquivos e clique em <strong>Comparar Cupons</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-note">Elaboração: Waldeci Ramos © 2026</div>
+</div>
+
+<script>
+    // ======================= PROTEÇÃO CONTRA BOTÃO DIREITO E F12 =======================
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    document.addEventListener('keydown', function(e) {
+        // Bloqueia F12
+        if (e.key === 'F12' || e.keyCode === 123) {
+            e.preventDefault();
+            return false;
+        }
+        // Bloqueia Ctrl+Shift+I (Inspecionar)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+            return false;
+        }
+        // Bloqueia Ctrl+U (Ver código-fonte)
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+            return false;
+        }
+        // Bloqueia Ctrl+Shift+J (Console)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    });
+
+    // ======================= FUNÇÕES AUXILIARES =======================
+    function parseCSVLine(line, separator) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === separator && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result;
+    }
+
+    function decodeFileBytes(bytes) {
+        let text;
+        if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+            text = new TextDecoder('utf-8').decode(bytes.slice(3));
+        } else {
+            try {
+                text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            } catch (e) {
+                text = new TextDecoder('iso-8859-1').decode(bytes);
+            }
+        }
+        return fixMojibake(text);
+    }
+
+    function fixMojibake(str) {
+        const sample = str.slice(0, 5000);
+        if (!/Ã[\u0080-\u00BF]/.test(sample)) return str;
+        const bytes = new Uint8Array(str.length);
+        for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xFF;
+        try {
+            return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        } catch (e) {
+            return str;
+        }
+    }
+
+    function stripWrappingQuotes(v) {
+        if (v === null || v === undefined) return '';
+        let s = String(v).trim();
+        if (s.length >= 2 && ((s[0] === "'" && s[s.length - 1] === "'") || (s[0] === '"' && s[s.length - 1] === '"'))) {
+            s = s.slice(1, -1).trim();
+        }
+        return s;
+    }
+
+    function detectSeparator(firstLine) {
+        if (firstLine.includes('\t')) return '\t';
+        if (firstLine.includes(';')) return ';';
+        return ',';
+    }
+
+    function parseValorConsolidada(valueStr) {
+        if (!valueStr || valueStr === '-') return 0;
+        let cleaned = String(valueStr).trim().replace(/[R$\s]/g, '');
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+        cleaned = cleaned.replace(/[^0-9.\-]/g, '');
+        const result = parseFloat(cleaned);
+        return isNaN(result) ? 0 : result;
+    }
+
+    function parseValorAuto(v) {
+        if (typeof v === 'number') return v;
+        if (v === null || v === undefined) return 0;
+        let s = String(v).trim();
+        if (!s || s === '-') return 0;
+        s = s.replace(/[R$\s]/g, '');
+        if (s.includes(',') && s.includes('.')) {
+            if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+            } else {
+                s = s.replace(/,/g, '');
+            }
+        } else if (s.includes(',')) {
+            s = s.replace(',', '.');
+        }
+        const result = parseFloat(s);
+        return isNaN(result) ? 0 : result;
+    }
+
+    function formatValueDisplay(value) {
+        if (value === null || value === undefined || isNaN(value)) return '-';
+        return value.toFixed(2).replace('.', ',');
+    }
+
+    const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    function parseAutoPeriodo(v) {
+        let d = null;
+        if (v instanceof Date && !isNaN(v.getTime())) {
+            d = new Date(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate());
+        } else if (typeof v === 'number') {
+            try {
+                const parsed = XLSX.SSF.parse_date_code(v);
+                if (parsed) d = new Date(parsed.y, parsed.m - 1, parsed.d);
+            } catch (e) {}
+        } else if (typeof v === 'string') {
+            let s = v.trim();
+            let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) {
+                d = new Date(+m[1], +m[2] - 1, +m[3]);
+            } else {
+                m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+                if (m) d = new Date(+m[3], +m[2] - 1, +m[1]);
+            }
+        }
+        if (!d || isNaN(d.getTime())) return null;
+        const y = d.getFullYear();
+        const mo = d.getMonth() + 1;
+        const mm = String(mo).padStart(2, '0');
+        return {
+            ym: `${y}-${mm}`,
+            ymCurto: `${mm}/${String(y).slice(-2)}`,
+            display: `${MESES_PT[mo - 1]}/${y}`,
+            date: d
+        };
+    }
+
+    // ======================= LEITURA DO AUTOSYSTEM =======================
+    async function lerAutoSystem(file) {
+        const buf = await file.arrayBuffer();
+        let rows;
+
+        const nomeMin = file.name.toLowerCase();
+        if (nomeMin.endsWith('.csv')) {
+            const bytes = new Uint8Array(buf);
+            const text = decodeFileBytes(bytes);
+            const separator = detectSeparator(text.split('\n')[0] || '');
+            rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => parseCSVLine(l, separator));
+        } else {
+            const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' });
+        }
+
+        let headerIdx = -1;
+        let colMap = {};
+        for (let i = 0; i < Math.min(15, rows.length); i++) {
+            const row = rows[i];
+            if (!row) continue;
+            const norm = row.map(c => String(c || '').toLowerCase().trim());
+            const idxData = norm.findIndex(c => c === 'data');
+            const idxNum = norm.findIndex(c => c === 'número' || c === 'numero');
+            const idxValor = norm.findIndex(c => c === 'valor');
+            if (idxData !== -1 && idxNum !== -1 && idxValor !== -1) {
+                headerIdx = i;
+                colMap = {
+                    data: idxData,
+                    numero: idxNum,
+                    valor: idxValor,
+                    situacao: norm.findIndex(c => c === 'situação' || c === 'situacao'),
+                    serie: norm.findIndex(c => c === 'série' || c === 'serie'),
+                    tipo: norm.findIndex(c => c === 'tipo')
+                };
+                break;
+            }
+        }
+
+        if (headerIdx === -1) {
+            throw new Error('Não foi possível localizar as colunas "Data", "Número" e "Valor" no arquivo do AutoSystem.');
+        }
+
+        const data = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row) continue;
+            const numeroRaw = row[colMap.numero];
+            if (numeroRaw === undefined || numeroRaw === null || String(numeroRaw).trim() === '') continue;
+
+            const periodo = parseAutoPeriodo(row[colMap.data]);
+            const situacao = colMap.situacao !== -1 ? String(row[colMap.situacao] || '').trim() : '';
+
+            data.push({
+                numero: String(numeroRaw).trim(),
+                numeroInt: parseInt(String(numeroRaw).replace(/\D/g, ''), 10),
+                valor: parseValorAuto(row[colMap.valor]),
+                situacao,
+                periodo
+            });
+        }
+
+        return data;
+    }
+
+    // ======================= LEITURA DA CONSOLIDADA =======================
+    async function lerConsolidada(file, periodosAlvo) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const text = decodeFileBytes(bytes);
+        const lines = text.split(/\r?\n/);
+
+        let headerIdx = -1;
+        let separator = ';';
+        for (let i = 0; i < Math.min(30, lines.length); i++) {
+            const lower = lines[i].toLowerCase();
+            if (lower.includes('chave') && (lower.includes('acesso'))) {
+                headerIdx = i;
+                separator = detectSeparator(lines[i]);
+                break;
+            }
+        }
+        if (headerIdx === -1) {
+            throw new Error('Não foi possível localizar o cabeçalho ("Chave de Acesso") no arquivo da Consolidada.');
+        }
+
+        const headerFields = parseCSVLine(lines[headerIdx], separator).map(h => stripWrappingQuotes(h).toLowerCase().trim());
+        const idxChave = headerFields.findIndex(h => h.includes('chave') && h.includes('acesso'));
+        const idxSituacao = headerFields.findIndex(h => h.includes('situa'));
+        const idxNNF = headerFields.findIndex(h => h.includes('num') && h.includes('doc') && h.includes('fiscal'));
+        const idxDhEmi = headerFields.findIndex(h => h.includes('data') && h.includes('emiss'));
+        const idxVPag = headerFields.findIndex(h => h.includes('valor') && h.includes('pago'));
+
+        console.log('📋 Cabeçalhos da Consolidada:', headerFields);
+        console.log('🔍 Mapeamento:', { idxChave, idxSituacao, idxNNF, idxDhEmi, idxVPag });
+
+        const faltando = [];
+        if (idxChave === -1) faltando.push('Chave de Acesso');
+        if (idxSituacao === -1) faltando.push('Situação NFC-e');
+        if (idxNNF === -1) faltando.push('Num. Doc. Fiscal');
+        if (idxDhEmi === -1) faltando.push('Data de Emissão');
+        if (idxVPag === -1) faltando.push('Valor Pago');
+        if (faltando.length > 0) {
+            throw new Error(`Não foi possível mapear as colunas: ${faltando.join(', ')}. Cabeçalhos encontrados no arquivo: ${headerFields.join(' | ')}`);
+        }
+
+        const tokens = periodosAlvo.map(p => `;${p};`);
+
+        const registros = [];
+        let totalNoPeriodo = 0;
+        for (let i = headerIdx + 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line || !line.trim()) continue;
+            if (!tokens.some(t => line.includes(t))) continue;
+
+            const parts = line.split(separator);
+            const nNF = stripWrappingQuotes(parts[idxNNF]);
+            if (!nNF) continue;
+
+            const rec = {
+                chave: stripWrappingQuotes(parts[idxChave]),
+                situacao: stripWrappingQuotes(parts[idxSituacao]).toUpperCase().trim(),
+                nNF: nNF,
+                nNFInt: parseInt(nNF.replace(/\D/g, ''), 10),
+                periodo: stripWrappingQuotes(parts[idxDhEmi]),
+                valor: parseValorConsolidada(stripWrappingQuotes(parts[idxVPag]))
+            };
+            registros.push(rec);
+            totalNoPeriodo++;
+        }
+
+        return { registros, totalLinhas: lines.length - headerIdx - 1, totalNoPeriodo };
+    }
+
+    // ======================= COMPARAÇÃO =======================
+    function compararCupons(autoData, consolidadaRegistros) {
+        const mapaConsolidada = new Map();
+        for (const rec of consolidadaRegistros) {
+            if (!mapaConsolidada.has(rec.nNFInt)) {
+                mapaConsolidada.set(rec.nNFInt, {
+                    valor: rec.valor,
+                    valores: [rec.valor],
+                    situacoes: [rec.situacao],
+                    chaves: [rec.chave],
+                    count: 1
+                });
+            } else {
+                const agg = mapaConsolidada.get(rec.nNFInt);
+                agg.valor += rec.valor;
+                agg.valores.push(rec.valor);
+                agg.count += 1;
+                if (rec.situacao && !agg.situacoes.includes(rec.situacao)) agg.situacoes.push(rec.situacao);
+                if (rec.chave && !agg.chaves.includes(rec.chave)) agg.chaves.push(rec.chave);
+            }
+        }
+
+        const usados = new Set();
+        const situacaoMap = { 'APROVADA': 'AUTORIZADA', 'CANCELADA': 'CANCELADA' };
+
+        const resultados = [];
+        const rejeitados = [];
+
+        for (const cupom of autoData) {
+            const sitUpper = (cupom.situacao || '').toUpperCase().trim();
+
+            if (sitUpper === 'REJEITADA') {
+                rejeitados.push(cupom);
+                continue;
+            }
+
+            const rec = mapaConsolidada.get(cupom.numeroInt);
+
+            const result = {
+                numero: cupom.numero,
+                periodoDisplay: cupom.periodo ? cupom.periodo.display : '-',
+                situacaoAuto: cupom.situacao || '-',
+                valorAuto: cupom.valor,
+                situacaoCons: rec ? rec.situacoes.join(' / ') : '-',
+                valorCons: rec ? rec.valor : null,
+                erros: [],
+                infos: [],
+                status: 'ok'
+            };
+
+            if (!rec) {
+                result.erros.push('Cupom não encontrado na Consolidada (SEFAZ) para este período');
+                result.status = 'error';
+            } else {
+                usados.add(cupom.numeroInt);
+                const esperado = situacaoMap[sitUpper] || sitUpper;
+                if (!rec.situacoes.includes(esperado)) {
+                    result.erros.push(`Situação divergente: AutoSystem="${cupom.situacao}" ≠ Consolidada="${rec.situacoes.join(' / ')}"`);
+                }
+                const diff = Math.abs(cupom.valor - rec.valor);
+                if (diff > 0.01) {
+                    result.erros.push(`Valor divergente: AutoSystem="R$ ${formatValueDisplay(cupom.valor)}" ≠ Consolidada="R$ ${formatValueDisplay(rec.valor)}"`);
+                }
+                if (rec.count > 1) {
+                    const soma = rec.valores.map(v => 'R$ ' + formatValueDisplay(v)).join(' + ');
+                    result.infos.push(`Consolidada possui ${rec.count} registros com este número (repetido) — valores somados: ${soma} = R$ ${formatValueDisplay(rec.valor)}`);
+                }
+                if (result.erros.length > 0) result.status = 'error';
+            }
+
+            resultados.push(result);
+        }
+
+        const extras = [];
+        for (const rec of consolidadaRegistros) {
+            if (!usados.has(rec.nNFInt)) {
+                extras.push(rec);
+            }
+        }
+
+        return { resultados, rejeitados, extras };
+    }
+
+    // ======================= CONTROLE DA UI =======================
+    const autoFileInput = document.getElementById('autoFile');
+    const consFileInput = document.getElementById('consFile');
+    const autoStatus = document.getElementById('autoStatus');
+    const consStatus = document.getElementById('consStatus');
+    const processBtn = document.getElementById('processBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const reportContainer = document.getElementById('reportContainer');
+    const statsArea = document.getElementById('statsArea');
+    const exportBtn = document.getElementById('exportCsvBtn');
+    const loading = document.getElementById('loading');
+    const loadingMsg = document.getElementById('loadingMsg');
+
+    let darkMode = false;
+    let ultimoRelatorio = null;
+
+    document.getElementById('autoUploadArea').addEventListener('click', () => autoFileInput.click());
+    document.getElementById('consUploadArea').addEventListener('click', () => consFileInput.click());
+
+    autoFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            autoStatus.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+            document.getElementById('autoBox').classList.add('active');
+        } else {
+            autoStatus.textContent = 'Nenhum arquivo selecionado';
+            document.getElementById('autoBox').classList.remove('active');
+        }
+    });
+
+    consFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            consStatus.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            document.getElementById('consBox').classList.add('active');
+        } else {
+            consStatus.textContent = 'Nenhum arquivo selecionado';
+            document.getElementById('consBox').classList.remove('active');
+        }
+    });
+
+    processBtn.addEventListener('click', async () => {
+        if (autoFileInput.files.length === 0) {
+            alert('⚠️ Selecione o arquivo de Cupons do AutoSystem primeiro.');
+            return;
+        }
+        if (consFileInput.files.length === 0) {
+            alert('⚠️ Selecione o arquivo Consolidada de NFC-e.');
+            return;
+        }
+
+        try {
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+            loading.classList.add('active');
+
+            loadingMsg.textContent = 'Lendo cupons do AutoSystem...';
+            await new Promise(r => setTimeout(r, 30));
+            const autoData = await lerAutoSystem(autoFileInput.files[0]);
+
+            if (autoData.length === 0) {
+                throw new Error('Nenhum cupom foi lido do arquivo do AutoSystem.');
+            }
+
+            const periodosAlvo = [...new Set(autoData.filter(c => c.periodo).map(c => c.periodo.ymCurto))];
+            if (periodosAlvo.length === 0) {
+                throw new Error('Não foi possível identificar o período (coluna Data) dos cupons do AutoSystem.');
+            }
+
+            loadingMsg.textContent = `Buscando período ${periodosAlvo.join(', ')} na Consolidada...`;
+            await new Promise(r => setTimeout(r, 30));
+            const { registros: consolidadaRegistros, totalLinhas, totalNoPeriodo } = await lerConsolidada(consFileInput.files[0], periodosAlvo);
+
+            loadingMsg.textContent = 'Comparando cupons...';
+            await new Promise(r => setTimeout(r, 30));
+            const { resultados, rejeitados, extras } = compararCupons(autoData, consolidadaRegistros);
+
+            ultimoRelatorio = {
+                periodosAlvo,
+                periodoDisplay: autoData.find(c => c.periodo) ? autoData.find(c => c.periodo).periodo.display : periodosAlvo.join(', '),
+                totalAuto: autoData.length,
+                totalLinhasConsolidada: totalLinhas,
+                totalNoPeriodo,
+                resultados,
+                rejeitados,
+                extras
+            };
+
+            atualizarRelatorio(ultimoRelatorio);
+        } catch (error) {
+            alert('❌ Erro ao processar: ' + error.message);
+            console.error(error);
+        } finally {
+            processBtn.disabled = false;
+            processBtn.innerHTML = '<i class="fas fa-cogs"></i> Comparar Cupons';
+            loading.classList.remove('active');
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        autoFileInput.value = '';
+        consFileInput.value = '';
+        autoStatus.textContent = 'Nenhum arquivo selecionado';
+        consStatus.textContent = 'Nenhum arquivo selecionado';
+        document.getElementById('autoBox').classList.remove('active');
+        document.getElementById('consBox').classList.remove('active');
+        statsArea.innerHTML = '';
+        ultimoRelatorio = null;
+        reportContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione os dois arquivos e clique em <strong>Comparar Cupons</strong></p>
+            </div>
+        `;
+    });
+
+    function atualizarRelatorio(rel) {
+        const { resultados, rejeitados, extras, periodoDisplay, totalAuto, totalLinhasConsolidada, totalNoPeriodo } = rel;
+
+        // Coleta valores únicos para os filtros de situação
+        const situacoesAuto = [...new Set(resultados.map(r => r.situacaoAuto).filter(s => s && s !== '-'))];
+        const situacoesCons = [...new Set(resultados.map(r => r.situacaoCons).filter(s => s && s !== '-'))];
+
+        const erros = resultados.filter(r => r.status === 'error').length;
+        const ok = resultados.filter(r => r.status === 'ok').length;
+
+        statsArea.innerHTML = `
+            <div class="stat-card"><i class="fas fa-receipt"></i> <strong>${totalAuto}</strong> cupons no AutoSystem</div>
+            <div class="stat-card"><i class="fas fa-database"></i> <strong>${totalLinhasConsolidada}</strong> registros na Consolidada (total)</div>
+            <div class="stat-card info"><i class="fas fa-filter"></i> <strong>${totalNoPeriodo}</strong> registros no período buscado</div>
+            <div class="stat-card"><i class="fas fa-check-circle" style="color:#065f46;"></i> <strong>${ok}</strong> conferem</div>
+            <div class="stat-card error"><i class="fas fa-times-circle" style="color:#dc2626;"></i> <strong>${erros}</strong> com divergência</div>
+            <div class="stat-card warning"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> <strong>${extras.length}</strong> extras na Consolidada</div>
+        `;
+
+        let html = `
+            <div class="periodo-banner">
+                <i class="fas fa-calendar-check fa-lg"></i>
+                <span>Período verificado (a partir do AutoSystem): <strong>${periodoDisplay}</strong> — comparado contra ${totalNoPeriodo} registro(s) da Consolidada nesse mesmo período.</span>
+            </div>
+        `;
+
+        html += `
+            <div class="summary-cards">
+                <div class="summary-item"><div class="summary-label">📊 Cupons Comparados</div><div class="summary-value">${resultados.length}</div></div>
+                <div class="summary-item"><div class="summary-label">✅ Conferem</div><div class="summary-value" style="color:#065f46;">${ok}</div></div>
+                <div class="summary-item"><div class="summary-label">❌ Divergências</div><div class="summary-value error">${erros}</div></div>
+                <div class="summary-item"><div class="summary-label">⚠️ Extras na Consolidada</div><div class="summary-value warning">${extras.length}</div></div>
+                <div class="summary-item"><div class="summary-label">🚫 Rejeitados (AutoSystem)</div><div class="summary-value">${rejeitados.length}</div></div>
+            </div>
+        `;
+
+        // Tabela principal: cupons do AutoSystem x Consolidada
+        html += `<h3 style="margin-top:0;"><i class="fas fa-list-check"></i> Comparação de Cupons (AutoSystem → Consolidada)</h3>`;
+
+        html += `
+            <div class="filtro-group" id="filtroStatus" style="align-items:center;">
+                <button class="btn btn-secondary filtro-btn active" data-filtro="todos">Todos (${resultados.length})</button>
+                <button class="btn btn-secondary filtro-btn" data-filtro="ok">✅ Conferem (${ok})</button>
+                <button class="btn btn-secondary filtro-btn" data-filtro="error">❌ Divergências (${erros})</button>
+                <input type="text" id="filtroNumero" placeholder="Filtrar por Nº do cupom..." style="padding:7px 14px;border-radius:40px;border:1px solid #d1d5db;font-size:13px;min-width:200px;">
+                <select id="filtroSituacaoAuto" class="filtro-select">
+                    <option value="todos">Todas Situações AutoSystem</option>
+                    ${situacoesAuto.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+                <select id="filtroSituacaoCons" class="filtro-select">
+                    <option value="todos">Todas Situações Consolidada</option>
+                    ${situacoesCons.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+                <span id="filtroContador" style="font-size:12px;color:#6b7280;margin-left:auto;"></span>
+            </div>
+            <div class="scroll-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th class="col-status">Status</th>
+                            <th class="col-num">Nº Cupom</th>
+                            <th class="col-sit">AutoSystem Situação</th>
+                            <th class="col-sit">Consolidada Situação</th>
+                            <th class="col-valor">Valor AutoSystem</th>
+                            <th class="col-valor">Valor Consolidada</th>
+                            <th class="col-detalhes">Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyResultados">
+        `;
+
+        for (const row of resultados) {
+            const statusClass = row.status === 'error' ? 'error' : 'success';
+            const badgeClass = row.status === 'error' ? 'badge-error' : 'badge-success';
+            const badgeText = row.status === 'error' ? '❌ Erro' : '✅ Ok';
+            const valorIgual = row.valorCons !== null && Math.abs(row.valorAuto - row.valorCons) < 0.01;
+            const valorClass = row.valorCons === null ? '' : (valorIgual ? 'valor-igual' : 'valor-diferente');
+            let detalhes = '';
+            if (row.erros.length > 0) {
+                detalhes += row.erros.map(e => `<div class="error-detail">• ${e}</div>`).join('');
+            } else {
+                detalhes += '<span style="color:#065f46;">✓ Nenhuma divergência</span>';
+            }
+            if (row.infos && row.infos.length > 0) {
+                detalhes += row.infos.map(i => `<div class="warning-detail">ℹ️ ${i}</div>`).join('');
+            }
+
+            html += `
+                <tr class="${statusClass}" data-status="${row.status}" data-numero="${row.numero}" data-situacao-auto="${row.situacaoAuto}" data-situacao-cons="${row.situacaoCons}">
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td>${row.numero}</td>
+                    <td>${row.situacaoAuto}</td>
+                    <td>${row.situacaoCons}</td>
+                    <td class="${valorClass}">R$ ${formatValueDisplay(row.valorAuto)}</td>
+                    <td class="${valorClass}">${row.valorCons === null ? '-' : 'R$ ' + formatValueDisplay(row.valorCons)}</td>
+                    <td>${detalhes}</td>
+                </tr>
+            `;
+        }
+
+        html += `</tbody></table></div>`;
+
+        // Seção: extras na consolidada
+        html += `
+            <h3 class="section-toggle" data-target="secExtras"><i class="fas fa-chevron-down"></i> <i class="fas fa-plus-circle"></i> Cupons na Consolidada sem correspondência no AutoSystem (${extras.length})</h3>
+            <div class="collapsible-body" id="secExtras">
+        `;
+        if (extras.length === 0) {
+            html += `<p style="padding:10px 0;color:#6b7280;">Nenhum registro extra encontrado — todos os cupons da Consolidada no período têm correspondência no AutoSystem.</p>`;
+        } else {
+            html += `
+                <div class="scroll-wrapper">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-status">Status</th>
+                                <th class="col-num">Nº Cupom</th>
+                                <th class="col-sit">Situação</th>
+                                <th class="col-valor">Valor Pago</th>
+                                <th class="col-chave">Chave de Acesso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            for (const rec of extras) {
+                html += `
+                    <tr class="warning">
+                        <td><span class="badge badge-warning">⚠️ Extra</span></td>
+                        <td>${rec.nNF}</td>
+                        <td>${rec.situacao}</td>
+                        <td>R$ ${formatValueDisplay(rec.valor)}</td>
+                        <td class="chave-full">${rec.chave}</td>
+                    </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+        }
+        html += `</div>`;
+
+        // Seção: rejeitados no autosystem (informativo)
+        html += `
+            <h3 class="section-toggle collapsed" data-target="secRejeitados"><i class="fas fa-chevron-down"></i> <i class="fas fa-ban"></i> Cupons Rejeitados no AutoSystem — informativo, não enviados à SEFAZ (${rejeitados.length})</h3>
+            <div class="collapsible-body collapsed" id="secRejeitados">
+        `;
+        if (rejeitados.length === 0) {
+            html += `<p style="padding:10px 0;color:#6b7280;">Nenhum cupom rejeitado no período.</p>`;
+        } else {
+            html += `
+                <div class="scroll-wrapper">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-status">Status</th>
+                                <th class="col-num">Nº Cupom</th>
+                                <th class="col-sit">Situação</th>
+                                <th class="col-valor">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            for (const cupom of rejeitados) {
+                html += `
+                    <tr class="info">
+                        <td><span class="badge badge-info">ℹ️ Rejeitada</span></td>
+                        <td>${cupom.numero}</td>
+                        <td>${cupom.situacao}</td>
+                        <td>R$ ${formatValueDisplay(cupom.valor)}</td>
+                    </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+        }
+        html += `</div>`;
+
+        reportContainer.innerHTML = html;
+
+        document.querySelectorAll('.section-toggle').forEach(el => {
+            el.addEventListener('click', () => {
+                el.classList.toggle('collapsed');
+                document.getElementById(el.dataset.target).classList.toggle('collapsed');
+            });
+        });
+
+        // ======================= FILTROS DA TABELA PRINCIPAL =======================
+        const filtroBtns = document.querySelectorAll('#filtroStatus .filtro-btn');
+        const filtroNumero = document.getElementById('filtroNumero');
+        const filtroSituacaoAuto = document.getElementById('filtroSituacaoAuto');
+        const filtroSituacaoCons = document.getElementById('filtroSituacaoCons');
+        const filtroContador = document.getElementById('filtroContador');
+        const tbodyResultados = document.getElementById('tbodyResultados');
+        let filtroAtual = 'todos';
+
+        function aplicarFiltros() {
+            const termo = filtroNumero.value.trim().toLowerCase();
+            const sitAuto = filtroSituacaoAuto.value;
+            const sitCons = filtroSituacaoCons.value;
+            let visiveis = 0;
+            tbodyResultados.querySelectorAll('tr').forEach(tr => {
+                const statusOk = filtroAtual === 'todos' || tr.dataset.status === filtroAtual;
+                const numeroOk = !termo || (tr.dataset.numero || '').toLowerCase().includes(termo);
+                const sitAutoOk = sitAuto === 'todos' || tr.dataset.situacaoAuto === sitAuto;
+                const sitConsOk = sitCons === 'todos' || tr.dataset.situacaoCons === sitCons;
+                const mostrar = statusOk && numeroOk && sitAutoOk && sitConsOk;
+                tr.style.display = mostrar ? '' : 'none';
+                if (mostrar) visiveis++;
+            });
+            filtroContador.textContent = `Exibindo ${visiveis} de ${resultados.length}`;
+        }
+
+        filtroBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filtroBtns.forEach(b => { b.classList.remove('active'); b.style.background = '#e5e7eb'; b.style.color = '#1a3a2a'; });
+                btn.classList.add('active');
+                btn.style.background = '#0d5c3b';
+                btn.style.color = 'white';
+                filtroAtual = btn.dataset.filtro;
+                aplicarFiltros();
+            });
+        });
+        filtroNumero.addEventListener('input', aplicarFiltros);
+        filtroSituacaoAuto.addEventListener('change', aplicarFiltros);
+        filtroSituacaoCons.addEventListener('change', aplicarFiltros);
+
+        // Marca o botão "Todos" como ativo visualmente ao renderizar
+        const btnTodos = document.querySelector('#filtroStatus .filtro-btn[data-filtro="todos"]');
+        if (btnTodos) { btnTodos.style.background = '#0d5c3b'; btnTodos.style.color = 'white'; }
+        aplicarFiltros();
+    }
+
+    // ======================= EXPORTAR CSV =======================
+    exportBtn.addEventListener('click', () => {
+        if (!ultimoRelatorio) {
+            alert('⚠️ Nenhum dado para exportar. Execute a comparação primeiro.');
+            return;
+        }
+
+        const { resultados, rejeitados, extras, periodoDisplay } = ultimoRelatorio;
+        let csvContent = `Relatório de Comparação de Cupons - Período: ${periodoDisplay}\n\n`;
+        csvContent += 'Grupo;Status;Nº Cupom;Situação AutoSystem;Situação Consolidada;Valor AutoSystem;Valor Consolidada;Chave de Acesso;Detalhes\n';
+
+        for (const row of resultados) {
+            const statusText = row.status === 'error' ? 'ERRO' : 'OK';
+            const detalhesPartes = [...row.erros, ...(row.infos || [])];
+            const detalhes = detalhesPartes.length > 0 ? detalhesPartes.join(' | ') : 'Sem divergências';
+            csvContent += [
+                'Comparação', statusText, row.numero, row.situacaoAuto, row.situacaoCons,
+                formatValueDisplay(row.valorAuto), row.valorCons === null ? '-' : formatValueDisplay(row.valorCons),
+                row.chave || '', detalhes
+            ].join(';') + '\n';
+        }
+
+        for (const rec of extras) {
+            csvContent += [
+                'Extra na Consolidada', 'EXTRA', rec.nNF, '-', rec.situacao,
+                '-', formatValueDisplay(rec.valor), rec.chave, 'Não encontrado no AutoSystem'
+            ].join(';') + '\n';
+        }
+
+        for (const cupom of rejeitados) {
+            csvContent += [
+                'Rejeitado AutoSystem', 'INFO', cupom.numero, cupom.situacao, '-',
+                formatValueDisplay(cupom.valor), '-', '-', 'Não enviado à SEFAZ'
+            ].join(';') + '\n';
+        }
+
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'relatorio_comparacao_cupons.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    });
+
+    // ======================= MODO ESCURO =======================
+    document.getElementById('darkBtn').addEventListener('click', () => {
+        darkMode = !darkMode;
+        const dark = darkMode;
+        document.body.style.background = dark ? '#1a1a2e' : '#f0fdf4';
+        document.body.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        document.querySelectorAll('.card').forEach(el => {
+            el.style.background = dark ? '#2d2d44' : 'white';
+            el.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        });
+        document.querySelectorAll('.upload-box').forEach(el => {
+            el.style.background = dark ? '#3d3d5c' : '#fafafa';
+            el.style.borderColor = dark ? '#5a5a7a' : '#d1d5db';
+            el.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        });
+        document.querySelectorAll('.upload-area').forEach(el => {
+            el.style.background = dark ? '#3d3d5c' : '#f0fdf4';
+            el.style.borderColor = dark ? '#5a5a7a' : '#1b8c4a';
+            el.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        });
+        document.querySelectorAll('.stat-card').forEach(el => {
+            el.style.background = dark ? '#3d3d5c' : '#ecfdf5';
+            el.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        });
+        document.querySelectorAll('.summary-item').forEach(el => {
+            el.style.background = dark ? '#3d3d5c' : 'white';
+            el.style.color = dark ? '#e0e0e0' : '#1a3a2a';
+        });
+        document.querySelectorAll('.summary-cards').forEach(el => {
+            el.style.background = dark ? 'linear-gradient(135deg, #2d2d44, #3d3d5c)' : 'linear-gradient(135deg, #ecfdf5, #d1fae5)';
+        });
+        document.querySelectorAll('.report-table td').forEach(el => {
+            el.style.borderColor = dark ? '#4a4a6a' : '#e5e7eb';
+        });
+        document.querySelectorAll('.report-table tr.success').forEach(el => { el.style.background = dark ? '#2d3d3d' : '#f0fdf4'; });
+        document.querySelectorAll('.report-table tr.error').forEach(el => { el.style.background = dark ? '#3d2d2d' : '#fef2f2'; });
+        document.querySelectorAll('.report-table tr.warning').forEach(el => { el.style.background = dark ? '#3d3d2d' : '#fffbeb'; });
+        document.querySelectorAll('.report-table tr.info').forEach(el => { el.style.background = dark ? '#2d3140' : '#eff6ff'; });
+        document.querySelectorAll('.scroll-wrapper').forEach(el => { el.style.borderColor = dark ? '#4a4a6a' : '#e5e7eb'; });
+        document.querySelectorAll('.report-table th').forEach(el => { el.style.background = dark ? '#1a1a3e' : '#0d5c3b'; });
+        document.getElementById('darkBtn').innerHTML = dark ? '<i class="fas fa-sun"></i> Modo Claro' : '<i class="fas fa-moon"></i> Modo Escuro';
+    });
+
+    // ======================= DRAG AND DROP =======================
+    ['autoUploadArea', 'consUploadArea'].forEach(id => {
+        const area = document.getElementById(id);
+        area.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            area.style.borderColor = '#0d5c3b';
+            area.style.background = '#e6f5ed';
+        });
+        area.addEventListener('dragleave', () => {
+            area.style.borderColor = '#1b8c4a';
+            area.style.background = '#f0fdf4';
+        });
+        area.addEventListener('drop', (e) => {
+            e.preventDefault();
+            area.style.borderColor = '#1b8c4a';
+            area.style.background = '#f0fdf4';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                if (id === 'autoUploadArea') {
+                    autoFileInput.files = files;
+                    autoFileInput.dispatchEvent(new Event('change'));
+                } else {
+                    consFileInput.files = files;
+                    consFileInput.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
