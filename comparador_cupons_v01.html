@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Cupons | AutoSystem x Consolidada NFC-e</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f0fdf4; padding: 20px; color: #1a3a2a; transition: background 0.4s, color 0.4s; }
+        .container { max-width: 1650px; margin: 0 auto; }
+        
+        /* ===== HEADER ===== */
+        .header { 
+            background: linear-gradient(135deg, #0d5c3b, #1b8c4a); 
+            color: white; 
+            border-radius: 20px; 
+            padding: 20px 28px; 
+            margin-bottom: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            flex-wrap: wrap; 
+            align-items: center;
+            transition: background 0.4s;
+            box-shadow: 0 8px 30px rgba(13, 92, 59, 0.25);
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .header-left .logo { 
+            width: 72px; 
+            height: 72px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #fbbf24;
+            border: 3px solid rgba(255,255,255,0.25);
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header-left .logo:hover {
+            transform: scale(1.05) rotate(-3deg);
+            border-color: #fbbf24;
+        }
+        .header-left h1 { font-size: 1.6rem; font-weight: 700; }
+        .header-left p { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
+        .header-right { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        /* ===== BOTÕES ===== */
+        .btn { padding: 8px 20px; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; transition: all 0.25s ease; }
+        .btn-primary { background: #fbbf24; color: #0d5c3b; }
+        .btn-primary:hover { background: #f59e0b; transform: scale(1.03); box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.5); color: white; }
+        .btn-outline:hover { background: rgba(255,255,255,0.15); border-color: white; transform: scale(1.02); }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; transform: scale(1.03); }
+        .btn-secondary { background: #e5e7eb; color: #1a3a2a; }
+        .btn-secondary:hover { background: #d1d5db; transform: scale(1.02); }
+        .btn-success { background: #065f46; color: white; }
+        .btn-success:hover { background: #047857; transform: scale(1.02); }
+        
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: background 0.4s, box-shadow 0.4s, color 0.4s; }
+        
+        .upload-area { border: 2px dashed #1b8c4a; border-radius: 20px; padding: 25px; text-align: center; background: #f0fdf4; cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { background: #e6f5ed; border-color: #0d5c3b; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(13, 92, 59, 0.1); }
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .upload-box { padding: 20px; border-radius: 16px; border: 2px dashed #d1d5db; background: #fafafa; transition: all 0.3s; }
+        .upload-box.active { border-color: #1b8c4a; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(27, 140, 74, 0.15); }
+        .upload-box h4 { margin-bottom: 8px; }
+        .upload-box .file-info { font-size: 13px; color: #6b7280; margin-top: 8px; }
+        .upload-box .file-info strong { color: #0d5c3b; }
+        .report-container { background: white; border-radius: 16px; overflow-x: auto; transition: background 0.4s; }
+        
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 15px; }
+        .stat-card { background: #ecfdf5; border-radius: 12px; padding: 10px 20px; border-left: 4px solid #1b8c4a; transition: all 0.3s; }
+        .stat-card.error { border-left-color: #dc2626; background: #fef2f2; }
+        .stat-card.warning { border-left-color: #f59e0b; background: #fffbeb; }
+        .stat-card.info { border-left-color: #2563eb; background: #eff6ff; }
+        .stat-card.success { border-left-color: #065f46; background: #ecfdf5; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        
+        h3 { font-size: 1.2rem; font-weight: 600; margin: 15px 0 12px; border-left: 5px solid #1b8c4a; padding-left: 14px; }
+        .periodo-banner { background: linear-gradient(135deg, #0d5c3b, #1b8c4a); color: white; border-radius: 14px; padding: 14px 22px; margin: 16px 0; font-size: 15px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; transition: background 0.4s; }
+        .periodo-banner strong { font-size: 18px; }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+        .report-table th { background: #0d5c3b; color: white; padding: 10px 8px; position: sticky; top: 0; font-weight: 600; white-space: nowrap; transition: background 0.4s; }
+        .report-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; word-wrap: break-word; transition: border-color 0.4s; }
+        .report-table tr:hover { background: #f0fdf4; }
+        .report-table tr.error { background: #fef2f2; }
+        .report-table tr.error:hover { background: #fde8e8; }
+        .report-table tr.warning { background: #fffbeb; }
+        .report-table tr.warning:hover { background: #fef3c7; }
+        .report-table tr.success { background: #f0fdf4; }
+        .report-table tr.info { background: #eff6ff; }
+        
+        .col-status { width: 70px; min-width: 70px; max-width: 70px; }
+        .col-num { width: 90px; min-width: 90px; max-width: 90px; }
+        .col-sit { width: 110px; min-width: 110px; max-width: 110px; }
+        .col-valor { width: 120px; min-width: 120px; max-width: 120px; }
+        .col-detalhes { width: 320px; min-width: 320px; max-width: 320px; }
+        .col-chave { width: 300px; min-width: 300px; max-width: 300px; }
+        
+        .badge { border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-error { background: #fecaca; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        
+        .scroll-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #e5e7eb; transition: border-color 0.4s; }
+        .summary-cards { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 16px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; transition: background 0.4s; }
+        .summary-item { background: white; border-radius: 12px; padding: 10px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 130px; transition: background 0.4s; }
+        .summary-label { font-size: 11px; color: #5b6e5b; text-transform: uppercase; }
+        .summary-value { font-size: 18px; font-weight: 700; color: #0d5c3b; }
+        .summary-value.error { color: #dc2626; }
+        .summary-value.warning { color: #f59e0b; }
+        .summary-value.success { color: #065f46; }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+        .filtro-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+        .filtro-select { padding: 7px 14px; border-radius: 40px; border: 1px solid #d1d5db; font-size: 13px; background: white; min-width: 160px; transition: border-color 0.3s, background 0.3s; }
+        .filtro-select:focus { outline: none; border-color: #1b8c4a; box-shadow: 0 0 0 3px rgba(27, 140, 74, 0.15); }
+        
+        .error-detail { font-size: 11px; color: #991b1b; }
+        .warning-detail { font-size: 11px; color: #92400e; }
+        .chave-full { font-family: 'Courier New', monospace; font-size: 10px; word-break: break-all; }
+        .valor-igual { color: #065f46; font-weight: 600; }
+        .valor-diferente { color: #dc2626; font-weight: 600; }
+        input[type="file"] { display: none; }
+        
+        .footer-note { text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; padding: 10px; }
+        .comparacao-cruzada { background: #f8fafc; border-radius: 12px; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; transition: background 0.4s, border-color 0.4s; }
+        .comparacao-cruzada .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .comparacao-cruzada .coluna { background: white; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb; transition: background 0.4s, border-color 0.4s; }
+        .comparacao-cruzada .coluna h4 { margin-bottom: 10px; font-size: 14px; }
+        .comparacao-cruzada .badge-count { font-size: 13px; padding: 2px 12px; border-radius: 20px; background: #e5e7eb; color: #1a3a2a; }
+        .comparacao-cruzada .lista-numeros { display: flex; flex-wrap: wrap; gap: 4px; max-height: 200px; overflow-y: auto; }
+        .comparacao-cruzada .numero-tag { background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-family: monospace; border: 1px solid #e2e8f0; }
+        .comparacao-cruzada .numero-tag.faltando { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+        .comparacao-cruzada .numero-tag.extra { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+        
+        .section-toggle { cursor: pointer; user-select: none; }
+        .section-toggle i.fa-chevron-down { transition: 0.2s; }
+        .section-toggle.collapsed i.fa-chevron-down { transform: rotate(-90deg); }
+        .collapsible-body.collapsed { display: none; }
+        
+        @media (max-width: 768px) {
+            .upload-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+            .header-left { flex-direction: column; }
+            .header-left .logo { width: 60px; height: 60px; }
+            .report-table { font-size: 10px; }
+            .col-detalhes { width: 180px; min-width: 180px; max-width: 180px; }
+            .col-valor { width: 80px; min-width: 80px; max-width: 80px; }
+            .report-table th, .report-table td { padding: 4px; }
+            .comparacao-cruzada .grid-2col { grid-template-columns: 1fr; }
+        }
+
+        /* ===== LOADING PROFISSIONAL ===== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active { display: flex; }
+        
+        .loading-box {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 50px 35px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #0d5c3b, #1b8c4a, #0d5c3b);
+            background-size: 200% 100%;
+            animation: progressBar 1.8s ease-in-out infinite;
+        }
+        @keyframes progressBar {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .loading-box .icon {
+            font-size: 48px;
+            color: #0d5c3b;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: pulseIcon 1.6s ease-in-out infinite;
+        }
+        @keyframes pulseIcon {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        .loading-box h3 {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            border-left: none;
+            padding-left: 0;
+            color: #0d5c3b;
+            font-weight: 600;
+        }
+        .loading-box .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        
+        /* Barra de progresso linear */
+        .loading-progress {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .loading-progress .bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0d5c3b, #1b8c4a);
+            border-radius: 12px;
+            transition: width 0.15s ease;
+        }
+        
+        .loading-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 18px;
+            font-size: 11px;
+            color: #9ca3af;
+            gap: 4px;
+        }
+        .loading-steps span {
+            flex: 1;
+            text-align: center;
+            padding: 4px 0;
+            border-radius: 12px;
+            transition: all 0.3s;
+            background: #f3f4f6;
+            color: #9ca3af;
+        }
+        .loading-steps span.active {
+            background: #0d5c3b;
+            color: white;
+            font-weight: 500;
+        }
+        .loading-steps span.done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* ===== MODO ESCURO PREMIUM ===== */
+        body.dark-mode {
+            background: #0f0f1a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .header {
+            background: linear-gradient(135deg, #0a2a1e, #0f3d2a);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        body.dark-mode .card {
+            background: #1a1a2e;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .upload-box {
+            background: #22223a;
+            border-color: #3a3a5a;
+        }
+        body.dark-mode .upload-box.active {
+            border-color: #2d8a5a;
+            background: #1a2a2a;
+            box-shadow: 0 0 0 3px rgba(45, 138, 90, 0.2);
+        }
+        body.dark-mode .upload-area {
+            background: #1a2a2a;
+            border-color: #2d8a5a;
+        }
+        body.dark-mode .upload-area:hover {
+            background: #1f3535;
+        }
+        body.dark-mode .stat-card {
+            background: #22223a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .stat-card.error { background: #2a1a1a; }
+        body.dark-mode .stat-card.warning { background: #2a2a1a; }
+        body.dark-mode .stat-card.info { background: #1a1a3a; }
+        body.dark-mode .stat-card.success { background: #1a2a2a; }
+        
+        body.dark-mode .summary-cards {
+            background: linear-gradient(135deg, #1a2a2a, #0f1f1f);
+        }
+        body.dark-mode .summary-item {
+            background: #22223a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .summary-label { color: #8a8aaa; }
+        body.dark-mode .summary-value { color: #6dbf8a; }
+        body.dark-mode .summary-value.error { color: #f87171; }
+        body.dark-mode .summary-value.warning { color: #fbbf24; }
+        
+        body.dark-mode .report-table th {
+            background: #0a2a1e;
+        }
+        body.dark-mode .report-table td {
+            border-color: #2a2a4a;
+        }
+        body.dark-mode .report-table tr.success { background: #1a2a22; }
+        body.dark-mode .report-table tr.error { background: #2a1a1a; }
+        body.dark-mode .report-table tr.warning { background: #2a2a1a; }
+        body.dark-mode .report-table tr.info { background: #1a1a3a; }
+        body.dark-mode .report-table tr:hover { background: #2a2a3a; }
+        body.dark-mode .report-table tr.error:hover { background: #3a1a1a; }
+        body.dark-mode .report-table tr.warning:hover { background: #3a3a1a; }
+        
+        body.dark-mode .scroll-wrapper {
+            border-color: #2a2a4a;
+        }
+        body.dark-mode .comparacao-cruzada {
+            background: #14142a;
+            border-color: #2a2a4a;
+        }
+        body.dark-mode .comparacao-cruzada .coluna {
+            background: #1a1a2e;
+            border-color: #2a2a4a;
+        }
+        body.dark-mode .comparacao-cruzada .badge-count {
+            background: #2a2a4a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .comparacao-cruzada .numero-tag {
+            background: #2a2a3a;
+            border-color: #3a3a5a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .comparacao-cruzada .numero-tag.faltando {
+            background: #2a1a1a;
+            border-color: #5a2a2a;
+            color: #fca5a5;
+        }
+        body.dark-mode .comparacao-cruzada .numero-tag.extra {
+            background: #2a2a1a;
+            border-color: #5a5a2a;
+            color: #fcd34d;
+        }
+        body.dark-mode .periodo-banner {
+            background: linear-gradient(135deg, #0a2a1e, #0f3d2a);
+        }
+        body.dark-mode .badge-success { background: #1a3a2a; color: #6dbf8a; }
+        body.dark-mode .badge-error { background: #3a1a1a; color: #f87171; }
+        body.dark-mode .badge-warning { background: #3a3a1a; color: #fbbf24; }
+        body.dark-mode .badge-info { background: #1a1a3a; color: #6d8adf; }
+        body.dark-mode .filtro-select {
+            background: #22223a;
+            border-color: #3a3a5a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .filtro-select:focus {
+            border-color: #2d8a5a;
+            box-shadow: 0 0 0 3px rgba(45, 138, 90, 0.2);
+        }
+        body.dark-mode .btn-secondary {
+            background: #2a2a4a;
+            color: #e8e8f0;
+        }
+        body.dark-mode .btn-secondary:hover {
+            background: #3a3a5a;
+        }
+        body.dark-mode .valor-igual { color: #6dbf8a; }
+        body.dark-mode .valor-diferente { color: #f87171; }
+        
+        body.dark-mode .loading-box {
+            background: #1a1a2e;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+        body.dark-mode .loading-box h3 { color: #6dbf8a; }
+        body.dark-mode .loading-box .subtitle { color: #8a8aaa; }
+        body.dark-mode .loading-box::after {
+            background: linear-gradient(90deg, #2d8a5a, #6dbf8a, #2d8a5a);
+        }
+        body.dark-mode .loading-box .icon { color: #6dbf8a; }
+        body.dark-mode .loading-progress { background: #2a2a4a; }
+        body.dark-mode .loading-progress .bar { background: linear-gradient(90deg, #2d8a5a, #6dbf8a); }
+        body.dark-mode .loading-steps span { background: #2a2a3a; color: #6b6b8a; }
+        body.dark-mode .loading-steps span.active { background: #2d8a5a; color: white; }
+        body.dark-mode .loading-steps span.done { background: #1a3a2a; color: #6dbf8a; }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOADING PROFISSIONAL ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+        <div class="icon"><i class="fas fa-cogs"></i></div>
+        <h3 id="loadingTitle">Processando</h3>
+        <p class="subtitle" id="loadingMsg">Preparando os dados para comparação</p>
+        <div class="loading-progress">
+            <div class="bar" id="progressBar"></div>
+        </div>
+        <div class="loading-steps" id="loadingSteps">
+            <span id="step1">📂 Ler AutoSystem</span>
+            <span id="step2">🔍 Filtrar Consolidada</span>
+            <span id="step3">⚖️ Comparar Cupons</span>
+            <span id="step4">📊 Gerar Relatório</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">🐧</div>
+            <div>
+                <h1><i class="fas fa-receipt"></i> Comparador de Cupons</h1>
+                <p>AutoSystem (ODS/XLSX/CSV) x Consolidada NFC-e | Rede Dom Pedro de Postos</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <button id="exportCsvBtn" class="btn btn-outline"><i class="fas fa-file-csv"></i> Exportar</button>
+            <button id="darkBtn" class="btn btn-outline"><i class="fas fa-moon"></i> Escuro</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-upload"></i> Importar Arquivos</h3>
+        <div class="upload-grid">
+            <div class="upload-box" id="autoBox">
+                <h4><i class="fas fa-file-invoice-dollar" style="color:#1b8c4a;"></i> Cupons do AutoSystem</h4>
+                <p style="font-size:13px;color:#6b7280;">Arquivo .ods, .xlsx ou .csv exportado do AutoSystem PRO</p>
+                <div class="upload-area" id="autoUploadArea" style="padding:15px;border-style:dashed;border-color:#d1d5db;">
+                    <i class="fas fa-cloud-upload-alt" style="color:#1b8c4a;"></i>
+                    <p style="font-size:13px;">Clique para selecionar o arquivo</p>
+                    <input type="file" id="autoFile" accept=".ods,.xlsx,.xls,.csv">
+                    <div id="autoStatus" class="file-info">Nenhum arquivo selecionado</div>
+                </div>
+                <div style="font-size:11px;color:#6b7280;margin-top:6px;">
+                    <strong>Colunas usadas:</strong> Data (período), Número, Situação, Valor
+                </div>
+            </div>
+            <div class="upload-box" id="consBox">
+                <h4><i class="fas fa-table" style="color:#1b8c4a;"></i> Consolidada de NFC-e</h4>
+                <p style="font-size:13px;color:#6b7280;">CSV "Consulta Relação de NFC-e" (pode ser grande — só é filtrado o período do AutoSystem)</p>
+                <div class="upload-area" id="consUploadArea" style="padding:15px;border-style:dashed;border-color:#d1d5db;">
+                    <i class="fas fa-cloud-upload-alt" style="color:#1b8c4a;"></i>
+                    <p style="font-size:13px;">Clique para selecionar o CSV</p>
+                    <input type="file" id="consFile" accept=".csv">
+                    <div id="consStatus" class="file-info">Nenhum arquivo selecionado</div>
+                </div>
+                <div style="font-size:11px;color:#6b7280;margin-top:6px;">
+                    <strong>Colunas usadas:</strong> Chave de Acesso, Situação NFC-e, Num. Doc. Fiscal, Data de Emissão, Valor Pago
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="processBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> Comparar Cupons</button>
+            <button id="clearBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Limpar</button>
+        </div>
+
+        <div class="stats" id="statsArea"></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-chart-simple"></i> Relatório de Comparação</h3>
+        <div id="reportContainer" class="report-container">
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione os dois arquivos e clique em <strong>Comparar Cupons</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-note">Elaboração: Waldeci Ramos © 2026</div>
+</div>
+
+<script>
+    // ======================= PROTEÇÃO CONTRA BOTÃO DIREITO E F12 =======================
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) { e.preventDefault(); return false; }
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) { e.preventDefault(); return false; }
+        return true;
+    });
+
+    // ======================= FUNÇÕES AUXILIARES =======================
+    function parseCSVLine(line, separator) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') { inQuotes = !inQuotes; }
+            else if (char === separator && !inQuotes) { result.push(current.trim()); current = ''; }
+            else { current += char; }
+        }
+        result.push(current.trim());
+        return result;
+    }
+
+    function decodeFileBytes(bytes) {
+        let text;
+        if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+            text = new TextDecoder('utf-8').decode(bytes.slice(3));
+        } else {
+            try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+            catch (e) { text = new TextDecoder('iso-8859-1').decode(bytes); }
+        }
+        return fixMojibake(text);
+    }
+
+    function fixMojibake(str) {
+        const sample = str.slice(0, 5000);
+        if (!/Ã[\u0080-\u00BF]/.test(sample)) return str;
+        const bytes = new Uint8Array(str.length);
+        for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xFF;
+        try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+        catch (e) { return str; }
+    }
+
+    function stripWrappingQuotes(v) {
+        if (v === null || v === undefined) return '';
+        let s = String(v).trim();
+        if (s.length >= 2 && ((s[0] === "'" && s[s.length - 1] === "'") || (s[0] === '"' && s[s.length - 1] === '"'))) {
+            s = s.slice(1, -1).trim();
+        }
+        return s;
+    }
+
+    function detectSeparator(firstLine) {
+        if (firstLine.includes('\t')) return '\t';
+        if (firstLine.includes(';')) return ';';
+        return ',';
+    }
+
+    function parseValorConsolidada(valueStr) {
+        if (!valueStr || valueStr === '-') return 0;
+        let cleaned = String(valueStr).trim().replace(/[R$\s]/g, '');
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+        cleaned = cleaned.replace(/[^0-9.\-]/g, '');
+        const result = parseFloat(cleaned);
+        return isNaN(result) ? 0 : result;
+    }
+
+    function parseValorAuto(v) {
+        if (typeof v === 'number') return v;
+        if (v === null || v === undefined) return 0;
+        let s = String(v).trim();
+        if (!s || s === '-') return 0;
+        s = s.replace(/[R$\s]/g, '');
+        if (s.includes(',') && s.includes('.')) {
+            if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+            } else { s = s.replace(/,/g, ''); }
+        } else if (s.includes(',')) { s = s.replace(',', '.'); }
+        const result = parseFloat(s);
+        return isNaN(result) ? 0 : result;
+    }
+
+    function formatValueDisplay(value) {
+        if (value === null || value === undefined || isNaN(value)) return '-';
+        return value.toFixed(2).replace('.', ',');
+    }
+
+    const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    function parseAutoPeriodo(v) {
+        let d = null;
+        if (v instanceof Date && !isNaN(v.getTime())) {
+            d = new Date(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate());
+        } else if (typeof v === 'number') {
+            try {
+                const parsed = XLSX.SSF.parse_date_code(v);
+                if (parsed) d = new Date(parsed.y, parsed.m - 1, parsed.d);
+            } catch (e) {}
+        } else if (typeof v === 'string') {
+            let s = v.trim();
+            let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) { d = new Date(+m[1], +m[2] - 1, +m[3]); }
+            else {
+                m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+                if (m) d = new Date(+m[3], +m[2] - 1, +m[1]);
+            }
+        }
+        if (!d || isNaN(d.getTime())) return null;
+        const y = d.getFullYear();
+        const mo = d.getMonth() + 1;
+        const mm = String(mo).padStart(2, '0');
+        return { ym: `${y}-${mm}`, ymCurto: `${mm}/${String(y).slice(-2)}`, display: `${MESES_PT[mo - 1]}/${y}`, date: d };
+    }
+
+    // ======================= LEITURA DO AUTOSYSTEM =======================
+    async function lerAutoSystem(file) {
+        const buf = await file.arrayBuffer();
+        let rows;
+        const nomeMin = file.name.toLowerCase();
+        if (nomeMin.endsWith('.csv')) {
+            const bytes = new Uint8Array(buf);
+            const text = decodeFileBytes(bytes);
+            const separator = detectSeparator(text.split('\n')[0] || '');
+            rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => parseCSVLine(l, separator));
+        } else {
+            const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' });
+        }
+
+        let headerIdx = -1;
+        let colMap = {};
+        for (let i = 0; i < Math.min(15, rows.length); i++) {
+            const row = rows[i];
+            if (!row) continue;
+            const norm = row.map(c => String(c || '').toLowerCase().trim());
+            const idxData = norm.findIndex(c => c === 'data');
+            const idxNum = norm.findIndex(c => c === 'número' || c === 'numero');
+            const idxValor = norm.findIndex(c => c === 'valor');
+            if (idxData !== -1 && idxNum !== -1 && idxValor !== -1) {
+                headerIdx = i;
+                colMap = {
+                    data: idxData,
+                    numero: idxNum,
+                    valor: idxValor,
+                    situacao: norm.findIndex(c => c === 'situação' || c === 'situacao'),
+                    serie: norm.findIndex(c => c === 'série' || c === 'serie'),
+                    tipo: norm.findIndex(c => c === 'tipo')
+                };
+                break;
+            }
+        }
+
+        if (headerIdx === -1) {
+            throw new Error('Não foi possível localizar as colunas "Data", "Número" e "Valor" no arquivo do AutoSystem.');
+        }
+
+        const data = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row) continue;
+            const numeroRaw = row[colMap.numero];
+            if (numeroRaw === undefined || numeroRaw === null || String(numeroRaw).trim() === '') continue;
+
+            const periodo = parseAutoPeriodo(row[colMap.data]);
+            const situacao = colMap.situacao !== -1 ? String(row[colMap.situacao] || '').trim() : '';
+
+            data.push({
+                numero: String(numeroRaw).trim(),
+                numeroInt: parseInt(String(numeroRaw).replace(/\D/g, ''), 10),
+                valor: parseValorAuto(row[colMap.valor]),
+                situacao,
+                periodo
+            });
+        }
+
+        return data;
+    }
+
+    // ======================= LEITURA DA CONSOLIDADA =======================
+    async function lerConsolidada(file, periodosAlvo) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const text = decodeFileBytes(bytes);
+        const lines = text.split(/\r?\n/);
+
+        let headerIdx = -1;
+        let separator = ';';
+        for (let i = 0; i < Math.min(30, lines.length); i++) {
+            const lower = lines[i].toLowerCase();
+            if (lower.includes('chave') && (lower.includes('acesso'))) {
+                headerIdx = i;
+                separator = detectSeparator(lines[i]);
+                break;
+            }
+        }
+        if (headerIdx === -1) {
+            throw new Error('Não foi possível localizar o cabeçalho ("Chave de Acesso") no arquivo da Consolidada.');
+        }
+
+        const headerFields = parseCSVLine(lines[headerIdx], separator).map(h => stripWrappingQuotes(h).toLowerCase().trim());
+        const idxChave = headerFields.findIndex(h => h.includes('chave') && h.includes('acesso'));
+        const idxSituacao = headerFields.findIndex(h => h.includes('situa'));
+        const idxNNF = headerFields.findIndex(h => h.includes('num') && h.includes('doc') && h.includes('fiscal'));
+        const idxDhEmi = headerFields.findIndex(h => h.includes('data') && h.includes('emiss'));
+        const idxVPag = headerFields.findIndex(h => h.includes('valor') && h.includes('pago'));
+
+        console.log('📋 Cabeçalhos da Consolidada:', headerFields);
+        console.log('🔍 Mapeamento:', { idxChave, idxSituacao, idxNNF, idxDhEmi, idxVPag });
+
+        const faltando = [];
+        if (idxChave === -1) faltando.push('Chave de Acesso');
+        if (idxSituacao === -1) faltando.push('Situação NFC-e');
+        if (idxNNF === -1) faltando.push('Num. Doc. Fiscal');
+        if (idxDhEmi === -1) faltando.push('Data de Emissão');
+        if (idxVPag === -1) faltando.push('Valor Pago');
+        if (faltando.length > 0) {
+            throw new Error(`Não foi possível mapear as colunas: ${faltando.join(', ')}. Cabeçalhos encontrados no arquivo: ${headerFields.join(' | ')}`);
+        }
+
+        const tokens = periodosAlvo.map(p => `;${p};`);
+
+        const registros = [];
+        let totalNoPeriodo = 0;
+        for (let i = headerIdx + 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line || !line.trim()) continue;
+            if (!tokens.some(t => line.includes(t))) continue;
+
+            const parts = line.split(separator);
+            const nNF = stripWrappingQuotes(parts[idxNNF]);
+            if (!nNF) continue;
+
+            const rec = {
+                chave: stripWrappingQuotes(parts[idxChave]),
+                situacao: stripWrappingQuotes(parts[idxSituacao]).toUpperCase().trim(),
+                nNF: nNF,
+                nNFInt: parseInt(nNF.replace(/\D/g, ''), 10),
+                periodo: stripWrappingQuotes(parts[idxDhEmi]),
+                valor: parseValorConsolidada(stripWrappingQuotes(parts[idxVPag]))
+            };
+            registros.push(rec);
+            totalNoPeriodo++;
+        }
+
+        return { registros, totalLinhas: lines.length - headerIdx - 1, totalNoPeriodo };
+    }
+
+    // ======================= COMPARAÇÃO =======================
+    function compararCupons(autoData, consolidadaRegistros) {
+        const situacoesValidas = ['APROVADA', 'AUTORIZADA'];
+        
+        const autoAprovados = autoData.filter(c => 
+            situacoesValidas.includes((c.situacao || '').toUpperCase().trim())
+        );
+        
+        const consAprovados = consolidadaRegistros.filter(r => 
+            situacoesValidas.includes((r.situacao || '').toUpperCase().trim())
+        );
+
+        const autoNumerosUnicos = new Set(autoAprovados.map(c => c.numeroInt));
+        const consNumerosUnicos = new Set(consAprovados.map(r => r.nNFInt));
+
+        console.log(`✅ AutoSystem Aprovados (total): ${autoAprovados.length}`);
+        console.log(`✅ AutoSystem Números Únicos: ${autoNumerosUnicos.size}`);
+        console.log(`✅ Consolidada Aprovados (total): ${consAprovados.length}`);
+        console.log(`✅ Consolidada Números Únicos: ${consNumerosUnicos.size}`);
+
+        const mapaConsolidada = new Map();
+        for (const rec of consAprovados) {
+            if (!mapaConsolidada.has(rec.nNFInt)) {
+                mapaConsolidada.set(rec.nNFInt, {
+                    valor: rec.valor,
+                    valores: [rec.valor],
+                    situacoes: [rec.situacao],
+                    chaves: [rec.chave],
+                    count: 1
+                });
+            } else {
+                const agg = mapaConsolidada.get(rec.nNFInt);
+                agg.valor += rec.valor;
+                agg.valores.push(rec.valor);
+                agg.count += 1;
+                if (rec.situacao && !agg.situacoes.includes(rec.situacao)) agg.situacoes.push(rec.situacao);
+                if (rec.chave && !agg.chaves.includes(rec.chave)) agg.chaves.push(rec.chave);
+            }
+        }
+
+        const usados = new Set();
+        const resultados = [];
+        const naoEncontrados = [];
+        const rejeitados = [];
+
+        for (const cupom of autoAprovados) {
+            if (usados.has(cupom.numeroInt)) continue;
+            
+            const rec = mapaConsolidada.get(cupom.numeroInt);
+
+            const result = {
+                numero: cupom.numero,
+                periodoDisplay: cupom.periodo ? cupom.periodo.display : '-',
+                situacaoAuto: cupom.situacao || '-',
+                valorAuto: cupom.valor,
+                situacaoCons: rec ? rec.situacoes.join(' / ') : '-',
+                valorCons: rec ? rec.valor : null,
+                erros: [],
+                infos: [],
+                status: 'ok'
+            };
+
+            if (!rec) {
+                result.erros.push('Cupom aprovado não encontrado na Consolidada (SEFAZ) para este período');
+                result.status = 'error';
+                naoEncontrados.push(cupom.numeroInt);
+            } else {
+                usados.add(cupom.numeroInt);
+                const diff = Math.abs(cupom.valor - rec.valor);
+                if (diff > 0.01) {
+                    result.erros.push(`Valor divergente: AutoSystem="R$ ${formatValueDisplay(cupom.valor)}" ≠ Consolidada="R$ ${formatValueDisplay(rec.valor)}"`);
+                }
+                if (rec.count > 1) {
+                    const soma = rec.valores.map(v => 'R$ ' + formatValueDisplay(v)).join(' + ');
+                    result.infos.push(`Consolidada possui ${rec.count} registros com este número (repetido) — valores somados: ${soma} = R$ ${formatValueDisplay(rec.valor)}`);
+                }
+                if (result.erros.length > 0) result.status = 'error';
+            }
+
+            resultados.push(result);
+        }
+
+        const extras = [];
+        const numerosExtra = [];
+        for (const [nNFInt, agg] of mapaConsolidada) {
+            if (!usados.has(nNFInt)) {
+                const rec = consAprovados.find(r => r.nNFInt === nNFInt);
+                if (rec) {
+                    extras.push({
+                        ...rec,
+                        valor: agg.valor,
+                        situacao: agg.situacoes.join(' / ')
+                    });
+                    numerosExtra.push(nNFInt);
+                }
+            }
+        }
+
+        for (const cupom of autoData) {
+            const sitUpper = (cupom.situacao || '').toUpperCase().trim();
+            if (sitUpper === 'REJEITADA' || sitUpper === 'CANCELADA') {
+                rejeitados.push(cupom);
+            }
+        }
+
+        return { 
+            resultados, 
+            rejeitados, 
+            extras,
+            naoEncontrados,
+            numerosExtra,
+            totalAutoAprovados: autoNumerosUnicos.size,
+            totalConsAprovados: consNumerosUnicos.size
+        };
+    }
+
+    // ======================= CONTROLE DA UI =======================
+    const autoFileInput = document.getElementById('autoFile');
+    const consFileInput = document.getElementById('consFile');
+    const autoStatus = document.getElementById('autoStatus');
+    const consStatus = document.getElementById('consStatus');
+    const processBtn = document.getElementById('processBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const reportContainer = document.getElementById('reportContainer');
+    const statsArea = document.getElementById('statsArea');
+    const exportBtn = document.getElementById('exportCsvBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingMsg = document.getElementById('loadingMsg');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const progressBar = document.getElementById('progressBar');
+    const stepEls = {
+        1: document.getElementById('step1'),
+        2: document.getElementById('step2'),
+        3: document.getElementById('step3'),
+        4: document.getElementById('step4')
+    };
+
+    let darkMode = false;
+    let ultimoRelatorio = null;
+
+    function setLoadingStep(step, msg) {
+        loadingMsg.textContent = msg;
+        const steps = [1, 2, 3, 4];
+        for (const s of steps) {
+            const el = stepEls[s];
+            el.classList.remove('active', 'done');
+            if (s < step) el.classList.add('done');
+            else if (s === step) el.classList.add('active');
+        }
+        // Atualiza barra de progresso
+        const pct = ((step - 1) / 4) * 100 + 10;
+        progressBar.style.width = Math.min(pct, 100) + '%';
+    }
+
+    function setLoadingProgress(pct, msg) {
+        if (msg) loadingMsg.textContent = msg;
+        progressBar.style.width = Math.min(pct, 100) + '%';
+    }
+
+    document.getElementById('autoUploadArea').addEventListener('click', () => autoFileInput.click());
+    document.getElementById('consUploadArea').addEventListener('click', () => consFileInput.click());
+
+    autoFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            autoStatus.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+            document.getElementById('autoBox').classList.add('active');
+        } else {
+            autoStatus.textContent = 'Nenhum arquivo selecionado';
+            document.getElementById('autoBox').classList.remove('active');
+        }
+    });
+
+    consFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            consStatus.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            document.getElementById('consBox').classList.add('active');
+        } else {
+            consStatus.textContent = 'Nenhum arquivo selecionado';
+            document.getElementById('consBox').classList.remove('active');
+        }
+    });
+
+    processBtn.addEventListener('click', async () => {
+        if (autoFileInput.files.length === 0) {
+            alert('⚠️ Selecione o arquivo de Cupons do AutoSystem primeiro.');
+            return;
+        }
+        if (consFileInput.files.length === 0) {
+            alert('⚠️ Selecione o arquivo Consolidada de NFC-e.');
+            return;
+        }
+
+        try {
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+            loadingOverlay.classList.add('active');
+            progressBar.style.width = '0%';
+            for (const s of [1, 2, 3, 4]) {
+                stepEls[s].classList.remove('active', 'done');
+            }
+
+            setLoadingStep(1, '📂 Lendo cupons do AutoSystem...');
+            await new Promise(r => setTimeout(r, 80));
+            const autoData = await lerAutoSystem(autoFileInput.files[0]);
+
+            if (autoData.length === 0) {
+                throw new Error('Nenhum cupom foi lido do arquivo do AutoSystem.');
+            }
+
+            const periodosAlvo = [...new Set(autoData.filter(c => c.periodo).map(c => c.periodo.ymCurto))];
+            if (periodosAlvo.length === 0) {
+                throw new Error('Não foi possível identificar o período (coluna Data) dos cupons do AutoSystem.');
+            }
+
+            setLoadingStep(2, `🔍 Buscando período ${periodosAlvo.join(', ')} na Consolidada...`);
+            await new Promise(r => setTimeout(r, 80));
+            const { registros: consolidadaRegistros, totalLinhas, totalNoPeriodo } = await lerConsolidada(consFileInput.files[0], periodosAlvo);
+
+            setLoadingStep(3, '⚖️ Comparando apenas cupons APROVADOS...');
+            await new Promise(r => setTimeout(r, 80));
+            const { resultados, rejeitados, extras, naoEncontrados, numerosExtra, totalAutoAprovados, totalConsAprovados } = compararCupons(autoData, consolidadaRegistros);
+
+            setLoadingStep(4, '📊 Gerando relatório...');
+            await new Promise(r => setTimeout(r, 80));
+
+            ultimoRelatorio = {
+                periodosAlvo,
+                periodoDisplay: autoData.find(c => c.periodo) ? autoData.find(c => c.periodo).periodo.display : periodosAlvo.join(', '),
+                totalAuto: autoData.length,
+                totalAutoAprovados,
+                totalConsAprovados,
+                totalLinhasConsolidada: totalLinhas,
+                totalNoPeriodo,
+                resultados,
+                rejeitados,
+                extras,
+                naoEncontrados,
+                numerosExtra
+            };
+
+            progressBar.style.width = '100%';
+            await new Promise(r => setTimeout(r, 150));
+            loadingOverlay.classList.remove('active');
+            atualizarRelatorio(ultimoRelatorio);
+        } catch (error) {
+            loadingOverlay.classList.remove('active');
+            alert('❌ Erro ao processar: ' + error.message);
+            console.error(error);
+        } finally {
+            processBtn.disabled = false;
+            processBtn.innerHTML = '<i class="fas fa-cogs"></i> Comparar Cupons';
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        autoFileInput.value = '';
+        consFileInput.value = '';
+        autoStatus.textContent = 'Nenhum arquivo selecionado';
+        consStatus.textContent = 'Nenhum arquivo selecionado';
+        document.getElementById('autoBox').classList.remove('active');
+        document.getElementById('consBox').classList.remove('active');
+        statsArea.innerHTML = '';
+        ultimoRelatorio = null;
+        reportContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px; color: #6b7280;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Selecione os dois arquivos e clique em <strong>Comparar Cupons</strong></p>
+            </div>
+        `;
+    });
+
+    function atualizarRelatorio(rel) {
+        const { 
+            resultados, 
+            rejeitados, 
+            extras, 
+            periodoDisplay, 
+            totalAuto, 
+            totalAutoAprovados,
+            totalConsAprovados,
+            totalLinhasConsolidada, 
+            totalNoPeriodo,
+            naoEncontrados,
+            numerosExtra
+        } = rel;
+
+        const situacoesAuto = [...new Set(resultados.map(r => r.situacaoAuto).filter(s => s && s !== '-'))];
+        const situacoesCons = [...new Set(resultados.map(r => r.situacaoCons).filter(s => s && s !== '-'))];
+
+        const erros = resultados.filter(r => r.status === 'error').length;
+        const ok = resultados.filter(r => r.status === 'ok').length;
+
+        statsArea.innerHTML = `
+            <div class="stat-card"><i class="fas fa-receipt"></i> <strong>${totalAuto}</strong> cupons no AutoSystem (total)</div>
+            <div class="stat-card success"><i class="fas fa-check-circle" style="color:#065f46;"></i> <strong>${totalAutoAprovados}</strong> APROVADOS no AutoSystem</div>
+            <div class="stat-card success"><i class="fas fa-check-circle" style="color:#065f46;"></i> <strong>${totalConsAprovados}</strong> APROVADOS na Consolidada</div>
+            <div class="stat-card info"><i class="fas fa-filter"></i> <strong>${totalNoPeriodo}</strong> registros no período na Consolidada</div>
+            <div class="stat-card"><i class="fas fa-check-circle" style="color:#065f46;"></i> <strong>${ok}</strong> conferem (aprovados)</div>
+            <div class="stat-card error"><i class="fas fa-times-circle" style="color:#dc2626;"></i> <strong>${erros}</strong> com divergência</div>
+            <div class="stat-card warning"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> <strong>${extras.length}</strong> extras na Consolidada</div>
+        `;
+
+        let html = `
+            <div class="periodo-banner">
+                <i class="fas fa-calendar-check fa-lg"></i>
+                <span>Período verificado: <strong>${periodoDisplay}</strong> — Comparando APENAS cupons APROVADOS/AUTORIZADOS</span>
+                <span style="margin-left:auto;font-size:13px;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;">
+                    <i class="fas fa-info-circle"></i> Rejeitados e Cancelados ignorados
+                </span>
+            </div>
+        `;
+
+        html += `
+            <div class="comparacao-cruzada">
+                <h4 style="margin-bottom:12px;font-size:15px;">
+                    <i class="fas fa-exchange-alt" style="color:#0d5c3b;"></i> 
+                    Comparação Cruzada - APENAS CUPONS APROVADOS/AUTORIZADOS
+                    <span style="font-size:12px;color:#6b7280;font-weight:normal;margin-left:10px;">
+                        <i class="fas fa-check-circle" style="color:#065f46;"></i> 
+                        ${totalAutoAprovados} aprovados no AutoSystem | ${totalConsAprovados} aprovados na Consolidada
+                    </span>
+                </h4>
+                <div class="grid-2col">
+                    <div class="coluna">
+                        <h4 style="color:#dc2626;">
+                            <i class="fas fa-times-circle"></i> 
+                            Aprovados no AutoSystem mas NÃO na Consolidada 
+                            <span class="badge-count">${naoEncontrados.length}</span>
+                        </h4>
+                        <div class="lista-numeros">
+                            ${naoEncontrados.length === 0 ? 
+                                '<span style="color:#065f46;font-size:13px;">✅ Todos os cupons aprovados do AutoSystem foram encontrados na Consolidada</span>' :
+                                naoEncontrados.sort((a,b) => a-b).map(n => 
+                                    `<span class="numero-tag faltando">${n}</span>`
+                                ).join('')
+                            }
+                        </div>
+                    </div>
+                    <div class="coluna">
+                        <h4 style="color:#f59e0b;">
+                            <i class="fas fa-plus-circle"></i> 
+                            Aprovados na Consolidada mas NÃO no AutoSystem 
+                            <span class="badge-count">${extras.length}</span>
+                        </h4>
+                        <div class="lista-numeros">
+                            ${extras.length === 0 ? 
+                                '<span style="color:#065f46;font-size:13px;">✅ Todos os cupons aprovados da Consolidada foram encontrados no AutoSystem</span>' :
+                                numerosExtra.sort((a,b) => a-b).map(n => 
+                                    `<span class="numero-tag extra">${n}</span>`
+                                ).join('')
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        html += `
+            <div class="summary-cards">
+                <div class="summary-item"><div class="summary-label">📊 Cupons Aprovados</div><div class="summary-value">${resultados.length}</div></div>
+                <div class="summary-item"><div class="summary-label">✅ Conferem</div><div class="summary-value success">${ok}</div></div>
+                <div class="summary-item"><div class="summary-label">❌ Divergências</div><div class="summary-value error">${erros}</div></div>
+                <div class="summary-item"><div class="summary-label">⚠️ Extras na Consolidada</div><div class="summary-value warning">${extras.length}</div></div>
+                <div class="summary-item"><div class="summary-label">🚫 Rejeitados/Cancelados</div><div class="summary-value">${rejeitados.length}</div></div>
+            </div>
+        `;
+
+        html += `<h3 style="margin-top:0;"><i class="fas fa-list-check"></i> Comparação de Cupons APROVADOS (AutoSystem → Consolidada)</h3>`;
+
+        html += `
+            <div class="filtro-group" id="filtroStatus" style="align-items:center;">
+                <button class="btn btn-secondary filtro-btn active" data-filtro="todos">Todos (${resultados.length})</button>
+                <button class="btn btn-secondary filtro-btn" data-filtro="ok">✅ Conferem (${ok})</button>
+                <button class="btn btn-secondary filtro-btn" data-filtro="error">❌ Divergências (${erros})</button>
+                <input type="text" id="filtroNumero" placeholder="Filtrar por Nº do cupom..." style="padding:7px 14px;border-radius:40px;border:1px solid #d1d5db;font-size:13px;min-width:200px;">
+                <select id="filtroSituacaoAuto" class="filtro-select">
+                    <option value="todos">Todas Situações AutoSystem</option>
+                    ${situacoesAuto.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+                <select id="filtroSituacaoCons" class="filtro-select">
+                    <option value="todos">Todas Situações Consolidada</option>
+                    ${situacoesCons.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+                <span id="filtroContador" style="font-size:12px;color:#6b7280;margin-left:auto;"></span>
+            </div>
+            <div class="scroll-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th class="col-status">Status</th>
+                            <th class="col-num">Nº Cupom</th>
+                            <th class="col-sit">AutoSystem Situação</th>
+                            <th class="col-sit">Consolidada Situação</th>
+                            <th class="col-valor">Valor AutoSystem</th>
+                            <th class="col-valor">Valor Consolidada</th>
+                            <th class="col-detalhes">Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyResultados">
+        `;
+
+        for (const row of resultados) {
+            const statusClass = row.status === 'error' ? 'error' : 'success';
+            const badgeClass = row.status === 'error' ? 'badge-error' : 'badge-success';
+            const badgeText = row.status === 'error' ? '❌ Erro' : '✅ Ok';
+            const valorIgual = row.valorCons !== null && Math.abs(row.valorAuto - row.valorCons) < 0.01;
+            const valorClass = row.valorCons === null ? '' : (valorIgual ? 'valor-igual' : 'valor-diferente');
+            let detalhes = '';
+            if (row.erros.length > 0) {
+                detalhes += row.erros.map(e => `<div class="error-detail">• ${e}</div>`).join('');
+            } else {
+                detalhes += '<span style="color:#065f46;">✓ Nenhuma divergência</span>';
+            }
+            if (row.infos && row.infos.length > 0) {
+                detalhes += row.infos.map(i => `<div class="warning-detail">ℹ️ ${i}</div>`).join('');
+            }
+
+            html += `
+                <tr class="${statusClass}" data-status="${row.status}" data-numero="${row.numero}" data-situacao-auto="${row.situacaoAuto}" data-situacao-cons="${row.situacaoCons}">
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td>${row.numero}</td>
+                    <td>${row.situacaoAuto}</td>
+                    <td>${row.situacaoCons}</td>
+                    <td class="${valorClass}">R$ ${formatValueDisplay(row.valorAuto)}</td>
+                    <td class="${valorClass}">${row.valorCons === null ? '-' : 'R$ ' + formatValueDisplay(row.valorCons)}</td>
+                    <td>${detalhes}</td>
+                </tr>
+            `;
+        }
+
+        html += `</tbody></table></div>`;
+
+        html += `
+            <h3 class="section-toggle" data-target="secExtras"><i class="fas fa-chevron-down"></i> <i class="fas fa-plus-circle"></i> Cupons APROVADOS na Consolidada sem correspondência no AutoSystem (${extras.length})</h3>
+            <div class="collapsible-body" id="secExtras">
+        `;
+        if (extras.length === 0) {
+            html += `<p style="padding:10px 0;color:#6b7280;">Nenhum registro extra aprovado encontrado — todos os cupons aprovados da Consolidada no período têm correspondência no AutoSystem.</p>`;
+        } else {
+            html += `
+                <div class="scroll-wrapper">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-status">Status</th>
+                                <th class="col-num">Nº Cupom</th>
+                                <th class="col-sit">Situação</th>
+                                <th class="col-valor">Valor Pago</th>
+                                <th class="col-chave">Chave de Acesso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            for (const rec of extras) {
+                html += `
+                    <tr class="warning">
+                        <td><span class="badge badge-warning">⚠️ Extra Aprovado</span></td>
+                        <td>${rec.nNF}</td>
+                        <td>${rec.situacao}</td>
+                        <td>R$ ${formatValueDisplay(rec.valor)}</td>
+                        <td class="chave-full">${rec.chave}</td>
+                    </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+        }
+        html += `</div>`;
+
+        html += `
+            <h3 class="section-toggle collapsed" data-target="secRejeitados"><i class="fas fa-chevron-down"></i> <i class="fas fa-ban"></i> Cupons Rejeitados/Cancelados no AutoSystem — NÃO comparados (${rejeitados.length})</h3>
+            <div class="collapsible-body collapsed" id="secRejeitados">
+        `;
+        if (rejeitados.length === 0) {
+            html += `<p style="padding:10px 0;color:#6b7280;">Nenhum cupom rejeitado ou cancelado no período.</p>`;
+        } else {
+            html += `
+                <div class="scroll-wrapper">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-status">Status</th>
+                                <th class="col-num">Nº Cupom</th>
+                                <th class="col-sit">Situação</th>
+                                <th class="col-valor">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            for (const cupom of rejeitados) {
+                const sitUpper = (cupom.situacao || '').toUpperCase().trim();
+                const isCancelado = sitUpper === 'CANCELADA';
+                const badgeLabel = isCancelado ? 'ℹ️ Cancelada' : 'ℹ️ Rejeitada';
+                html += `
+                    <tr class="info">
+                        <td><span class="badge badge-info">${badgeLabel}</span></td>
+                        <td>${cupom.numero}</td>
+                        <td>${cupom.situacao}</td>
+                        <td>R$ ${formatValueDisplay(cupom.valor)}</td>
+                    </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+        }
+        html += `</div>`;
+
+        reportContainer.innerHTML = html;
+
+        document.querySelectorAll('.section-toggle').forEach(el => {
+            el.addEventListener('click', () => {
+                el.classList.toggle('collapsed');
+                document.getElementById(el.dataset.target).classList.toggle('collapsed');
+            });
+        });
+
+        const filtroBtns = document.querySelectorAll('#filtroStatus .filtro-btn');
+        const filtroNumero = document.getElementById('filtroNumero');
+        const filtroSituacaoAuto = document.getElementById('filtroSituacaoAuto');
+        const filtroSituacaoCons = document.getElementById('filtroSituacaoCons');
+        const filtroContador = document.getElementById('filtroContador');
+        const tbodyResultados = document.getElementById('tbodyResultados');
+        let filtroAtual = 'todos';
+
+        function aplicarFiltros() {
+            const termo = filtroNumero.value.trim().toLowerCase();
+            const sitAuto = filtroSituacaoAuto.value;
+            const sitCons = filtroSituacaoCons.value;
+            let visiveis = 0;
+            tbodyResultados.querySelectorAll('tr').forEach(tr => {
+                const statusOk = filtroAtual === 'todos' || tr.dataset.status === filtroAtual;
+                const numeroOk = !termo || (tr.dataset.numero || '').toLowerCase().includes(termo);
+                const sitAutoOk = sitAuto === 'todos' || tr.dataset.situacaoAuto === sitAuto;
+                const sitConsOk = sitCons === 'todos' || tr.dataset.situacaoCons === sitCons;
+                const mostrar = statusOk && numeroOk && sitAutoOk && sitConsOk;
+                tr.style.display = mostrar ? '' : 'none';
+                if (mostrar) visiveis++;
+            });
+            filtroContador.textContent = `Exibindo ${visiveis} de ${resultados.length}`;
+        }
+
+        filtroBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filtroBtns.forEach(b => { b.classList.remove('active'); b.style.background = '#e5e7eb'; b.style.color = '#1a3a2a'; });
+                btn.classList.add('active');
+                btn.style.background = '#0d5c3b';
+                btn.style.color = 'white';
+                filtroAtual = btn.dataset.filtro;
+                aplicarFiltros();
+            });
+        });
+        filtroNumero.addEventListener('input', aplicarFiltros);
+        filtroSituacaoAuto.addEventListener('change', aplicarFiltros);
+        filtroSituacaoCons.addEventListener('change', aplicarFiltros);
+
+        const btnTodos = document.querySelector('#filtroStatus .filtro-btn[data-filtro="todos"]');
+        if (btnTodos) { btnTodos.style.background = '#0d5c3b'; btnTodos.style.color = 'white'; }
+        aplicarFiltros();
+    }
+
+    exportBtn.addEventListener('click', () => {
+        if (!ultimoRelatorio) {
+            alert('⚠️ Nenhum dado para exportar. Execute a comparação primeiro.');
+            return;
+        }
+
+        const { resultados, rejeitados, extras, periodoDisplay } = ultimoRelatorio;
+        let csvContent = `Relatório de Comparação de Cupons APROVADOS - Período: ${periodoDisplay}\n\n`;
+        csvContent += 'Grupo;Status;Nº Cupom;Situação AutoSystem;Situação Consolidada;Valor AutoSystem;Valor Consolidada;Chave de Acesso;Detalhes\n';
+
+        for (const row of resultados) {
+            const statusText = row.status === 'error' ? 'ERRO' : 'OK';
+            const detalhesPartes = [...row.erros, ...(row.infos || [])];
+            const detalhes = detalhesPartes.length > 0 ? detalhesPartes.join(' | ') : 'Sem divergências';
+            csvContent += [
+                'Comparação', statusText, row.numero, row.situacaoAuto, row.situacaoCons,
+                formatValueDisplay(row.valorAuto), row.valorCons === null ? '-' : formatValueDisplay(row.valorCons),
+                row.chave || '', detalhes
+            ].join(';') + '\n';
+        }
+
+        for (const rec of extras) {
+            csvContent += [
+                'Extra na Consolidada (Aprovado)', 'EXTRA', rec.nNF, '-', rec.situacao,
+                '-', formatValueDisplay(rec.valor), rec.chave, 'Aprovado na SEFAZ mas não encontrado no AutoSystem'
+            ].join(';') + '\n';
+        }
+
+        for (const cupom of rejeitados) {
+            csvContent += [
+                'Rejeitado/Cancelado AutoSystem', 'INFO', cupom.numero, cupom.situacao, '-',
+                formatValueDisplay(cupom.valor), '-', '-', 'Não comparado (rejeitado/cancelado)'
+            ].join(';') + '\n';
+        }
+
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'relatorio_comparacao_cupons_aprovados.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    });
+
+    document.getElementById('darkBtn').addEventListener('click', () => {
+        darkMode = !darkMode;
+        document.body.classList.toggle('dark-mode', darkMode);
+        document.getElementById('darkBtn').innerHTML = darkMode ? 
+            '<i class="fas fa-sun"></i> Claro' : 
+            '<i class="fas fa-moon"></i> Escuro';
+    });
+
+    ['autoUploadArea', 'consUploadArea'].forEach(id => {
+        const area = document.getElementById(id);
+        area.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            area.style.borderColor = '#0d5c3b';
+            area.style.background = '#e6f5ed';
+        });
+        area.addEventListener('dragleave', () => {
+            area.style.borderColor = '#1b8c4a';
+            area.style.background = '#f0fdf4';
+        });
+        area.addEventListener('drop', (e) => {
+            e.preventDefault();
+            area.style.borderColor = '#1b8c4a';
+            area.style.background = '#f0fdf4';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                if (id === 'autoUploadArea') {
+                    autoFileInput.files = files;
+                    autoFileInput.dispatchEvent(new Event('change'));
+                } else {
+                    consFileInput.files = files;
+                    consFileInput.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
