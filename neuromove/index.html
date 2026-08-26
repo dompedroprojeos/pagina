@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NeuroMove Rehab — Reabilitação Neuromotora</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">NeuroMove Rehab · v2.0</span>
+      <h1 id="pageTitle">Reabilitação Neuromotora</h1>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn-icon" id="btnFullscreen" title="Tela cheia">⛶</button>
+      <button class="btn-icon" id="btnSettings" title="Configurações de acessibilidade">⚙</button>
+    </div>
+  </header>
+
+  <!-- ===================== LOGIN ===================== -->
+  <section class="screen active" id="screen-login">
+    <div class="panel" style="margin-top:20vh;">
+      <h2>Acesso da clínica</h2>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#3a4d49;font-weight:600;margin-bottom:10px;">
+        Usuário
+        <input type="text" id="loginUser" placeholder="usuário" style="padding:11px 12px;border-radius:8px;border:1px solid #c4d3cd;font-size:14px;">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#3a4d49;font-weight:600;margin-bottom:6px;">
+        Senha
+        <input type="password" id="loginPass" placeholder="senha" style="padding:11px 12px;border-radius:8px;border:1px solid #c4d3cd;font-size:14px;">
+      </label>
+      <p id="loginError" style="color:#C1502E;font-size:12px;min-height:16px;margin:4px 0 8px 0;"></p>
+      <button class="btn-primary btn-block" id="btnLogin">Entrar</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOME ===================== -->
+  <section class="screen" id="screen-home">
+    <div class="panel">
+      <h2>Pacientes cadastrados</h2>
+      <div id="patientList"></div>
+    </div>
+    <button class="btn-primary btn-block" id="btnNewPatient">+ Novo cadastro de paciente</button>
+  </section>
+
+  <!-- ===================== CADASTRO ===================== -->
+  <section class="screen" id="screen-cadastro">
+    <h2>Cadastro do paciente</h2>
+    <div class="panel form-grid">
+      <label>Nome completo
+        <input type="text" id="fNome" placeholder="Nome do paciente">
+      </label>
+      <div class="row">
+        <label>Data de nascimento
+          <input type="date" id="fNascimento">
+        </label>
+        <label>Sexo
+          <select id="fSexo">
+            <option value="">—</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </label>
+      </div>
+      <label>Diagnóstico / condição
+        <input type="text" id="fDiagnostico" placeholder="Ex.: AVE isquêmico, sequela de hemiparesia...">
+      </label>
+
+      <h3>Terapeuta responsável</h3>
+      <div class="row">
+        <label>Nome
+          <input type="text" id="fTerapNome" placeholder="Nome do terapeuta">
+        </label>
+        <label>Registro profissional
+          <input type="text" id="fTerapRegistro" placeholder="CREFITO / CRM etc.">
+        </label>
+      </div>
+      <label>Especialidade
+        <input type="text" id="fTerapEsp" placeholder="Ex.: Neurofuncional">
+      </label>
+
+      <h3>Configurações do treino</h3>
+      <div class="row">
+        <label>Mão dominante
+          <select id="fMaoDom">
+            <option value="Destra">Destra</option>
+            <option value="Canhota">Canhota</option>
+            <option value="Ambidestra">Ambidestra</option>
+          </select>
+        </label>
+        <label>Dificuldade inicial (1–5)
+          <input type="number" id="fDificuldade" min="1" max="5" value="1">
+        </label>
+      </div>
+      <label>Sensibilidade de detecção (0.5–1.5)
+        <input type="range" id="fSensibilidade" min="0.5" max="1.5" step="0.05" value="1.0">
+        <span class="range-val" id="fSensibilidadeVal">1.00</span>
+      </label>
+    </div>
+    <div class="row">
+      <button class="btn-secondary btn-block" id="btnCancelCadastro">Cancelar</button>
+      <button class="btn-primary btn-block" id="btnSaveCadastro">Salvar e calibrar</button>
+    </div>
+  </section>
+
+  <!-- ===================== CALIBRAÇÃO ===================== -->
+  <section class="screen" id="screen-calib">
+    <h2>Calibração</h2>
+    <div class="stage" id="calibStage">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="calibOverlay"></canvas>
+      <div class="hud" id="calibHud">
+        <span class="chip" id="handChip">mão: aguardando…</span>
+      </div>
+    </div>
+    <div class="panel" id="calibStepPanel">
+      <h3 id="calibStepTitle">Passo 1 — Detecção</h3>
+      <p id="calibStepText">Posicione a mão dentro do quadro, com boa iluminação. Aguardando o MediaPipe carregar…</p>
+    </div>
+    <div class="row">
+      <button class="btn-secondary" id="btnCalibBack">Voltar</button>
+      <button class="btn-primary" id="btnCalibNext" disabled>Continuar</button>
+    </div>
+  </section>
+
+  <!-- ===================== MENU DE EXERCÍCIOS ===================== -->
+  <section class="screen" id="screen-menu">
+    <h2 id="menuPatientName">Paciente</h2>
+    <p class="sub" id="menuPatientMeta">—</p>
+    <div class="panel reps-panel">
+      <label class="reps-label">Repetições por exercício nesta sessão
+        <input type="number" id="sessionReps" min="3" max="30" value="10">
+      </label>
+      <p class="sub" id="sessionRepsHint" style="margin:6px 0 0 0;">Vale para todos os exercícios desta sessão.</p>
+    </div>
+    <div class="exercise-grid" id="exerciseGrid"></div>
+    <div class="row" style="margin-top:6px;">
+      <button class="btn-secondary btn-block" id="btnGoHistory">Ver histórico e relatórios</button>
+      <button class="btn-secondary btn-block" id="btnRecalibrate">Recalibrar</button>
+    </div>
+  </section>
+
+  <!-- ===================== JOGO ===================== -->
+  <section class="screen" id="screen-game">
+    <div class="stage" id="gameStage">
+      <video id="videoGame" autoplay playsinline muted></video>
+      <canvas id="gameOverlay"></canvas>
+      <div class="hud">
+        <span class="chip mono" id="gameTimer">00:00.0</span>
+        <span class="chip mono" id="gameScore">0 pts</span>
+        <span class="chip mono" id="gameRound">Série 1</span>
+        <span class="chip state" id="handStateChip">✋ aberta</span>
+      </div>
+      <div class="prompt" id="gamePrompt"></div>
+      <div class="feedback-toast" id="feedbackToast"></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="statHits">0</div><div class="lbl">acertos</div></div>
+      <div class="stat"><div class="num" id="statErr">0</div><div class="lbl">erros</div></div>
+      <div class="stat"><div class="num" id="statReact">—</div><div class="lbl">reação (ms)</div></div>
+      <div class="stat"><div class="num" id="statRep">0/10</div><div class="lbl">repetições</div></div>
+    </div>
+    <button class="btn-danger btn-block" id="btnEndSession">Encerrar exercício</button>
+  </section>
+
+  <!-- ===================== RELATÓRIO ===================== -->
+  <section class="screen" id="screen-report">
+    <div id="reportBody" class="report"></div>
+    <div class="row no-print">
+      <button class="btn-secondary btn-block" id="btnPrintReport">Imprimir / salvar PDF</button>
+      <button class="btn-secondary btn-block" id="btnExportSessionJson">Exportar JSON da sessão</button>
+    </div>
+    <button class="btn-primary btn-block no-print" id="btnBackFromReport">Voltar ao menu</button>
+  </section>
+
+  <!-- ===================== HISTÓRICO ===================== -->
+  <section class="screen" id="screen-history">
+    <h2>Histórico — <span id="histPatientName"></span></h2>
+    <div id="historyList"></div>
+    <div class="row">
+      <button class="btn-secondary btn-block" id="btnExportPatientJson">Exportar cadastro completo (JSON)</button>
+      <button class="btn-secondary btn-block" id="btnHistoryBack">Voltar</button>
+    </div>
+  </section>
+
+  <footer class="nav" id="globalNav" style="display:none;">
+    <button class="btn-ghost btn-block" id="btnGoHome">← Trocar paciente</button>
+  </footer>
+</div>
+
+<!-- Painel de acessibilidade -->
+<div class="settings-panel" id="settingsPanel">
+  <h3>Acessibilidade</h3>
+  <label class="switch-row"><span>Alto contraste</span><input type="checkbox" id="toggleContrast"></label>
+  <label class="switch-row"><span>Fonte grande</span><input type="checkbox" id="toggleFontSize"></label>
+  <label class="switch-row"><span>Sons de feedback</span><input type="checkbox" id="toggleSound" checked></label>
+  <button class="btn-secondary btn-block" id="btnFullscreenSettings" style="margin-bottom:10px;">⛶ Tela cheia</button>
+  <p class="sub" style="font-size:11px;line-height:1.4;">Dica: pra evitar que notificações (WhatsApp etc.) apareçam por cima durante a sessão, ative o modo "Não perturbe"/avião no celular ou use o modo de app fixado (Guided Access no iPhone / App Pinning no Android) além da tela cheia.</p>
+  <button class="btn-secondary btn-block" id="btnLogout" style="margin-bottom:10px;">Sair</button>
+  <button class="btn-secondary btn-block" id="btnCloseSettings">Fechar</button>
+</div>
+<div class="backdrop" id="settingsBackdrop"></div>
+
+<!-- MediaPipe Hands (via jsDelivr — requer hospedagem própria/GitHub Pages, não roda no sandbox de preview do Claude.ai) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/tracking.js"></script>
+<script src="js/exercises.js"></script>
+<script src="js/report.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
