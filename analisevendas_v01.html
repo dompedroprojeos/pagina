@@ -1470,21 +1470,18 @@ function montarPayloadMes() {
 function converterParaJson() {
     const montado = montarPayloadMes();
     if (!montado) { alert('Importe um relatório TXT (ou um JSON de mês) antes de converter.'); return; }
-    const fechar = confirm(
-        'Fechar este mês agora?\n\n' +
-        'SIM = ninguém além do admin poderá mais editar o Volume Esperado desse mês depois de importado.\n' +
-        'CANCELAR = mês continua "aberto" — qualquer um pode editar o Volume Esperado normalmente, mesmo vendo esse arquivo depois.'
-    );
-    montado.payload.fechado = fechar;
-    volumeJSON.fechado = fechar;
+    // o mês SEMPRE sobe aberto — o fechamento só acontece depois, pelo botão
+    // "Fechar mês", depois que o usuário já lançou os valores de Volume Esperado.
+    montado.payload.fechado = false;
 
     baixarArquivoJson(montado.nomeArquivo, montado.payload);
 
     setTimeout(() => {
         document.getElementById('instrucoesJsonTexto').innerHTML =
-            `Baixei <b>${montado.nomeArquivo}</b> ${fechar ? '(mês <b>fechado</b> 🔒)' : '(mês <b>aberto</b>, ainda editável)'}.<br><br>` +
+            `Baixei <b>${montado.nomeArquivo}</b> (mês <b>aberto</b>, pronto pra lançar o Volume Esperado).<br><br>` +
             `Suba esse arquivo pra mesma pasta do seu repositório no GitHub onde está o <code>index.html</code> ` +
-            `— ou use o botão <b>"Publicar no GitHub"</b> ao lado pra fazer isso direto daqui, sem baixar/subir manualmente.`;
+            `— ou use o botão <b>"Publicar no GitHub"</b> ao lado pra fazer isso direto daqui, sem baixar/subir manualmente.<br><br>` +
+            `O fechamento desse mês só deve ser feito depois, pelo botão <b>"Fechar mês"</b> no próprio painel, quando todos já tiverem lançado os valores.`;
         document.getElementById('modalInstrucoesJson').classList.add('show');
     }, 400);
 }
@@ -1570,16 +1567,12 @@ async function publicarNoGithub(nomeArquivo, objeto) {
 function publicarConversaoNoGithub() {
     const montado = montarPayloadMes();
     if (!montado) { alert('Importe um relatório TXT (ou um JSON de mês) antes de publicar.'); return; }
-    const fechar = confirm(
-        'Fechar este mês agora?\n\n' +
-        'SIM = ninguém além do admin poderá mais editar o Volume Esperado desse mês depois de importado.\n' +
-        'CANCELAR = mês continua "aberto" — qualquer um pode editar o Volume Esperado normalmente, mesmo vendo esse arquivo depois.'
-    );
-    montado.payload.fechado = fechar;
-    volumeJSON.fechado = fechar;
+    // mesma regra do "Converter p/ JSON": sobe sempre aberto; fechamento é feito
+    // depois, pelo botão "Fechar mês", já com os valores lançados.
+    montado.payload.fechado = false;
 
     publicarNoGithub(montado.nomeArquivo, montado.payload).then(ok => {
-        if (ok) alert(`"${montado.nomeArquivo}" publicado no GitHub com sucesso! ${fechar ? '(mês fechado 🔒)' : '(mês aberto)'}`);
+        if (ok) alert(`"${montado.nomeArquivo}" publicado no GitHub com sucesso! (mês aberto, pronto pra lançar o Volume Esperado)`);
     });
 }
 
