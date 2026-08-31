@@ -1050,18 +1050,45 @@ function atualizarAvisoStatusMes() {
     }
     if (acoesEl) acoesEl.innerHTML = botoes;
 }
+function avancarMesAno(mesNum, ano) {
+    if (mesNum >= 12) return { mes: 1, ano: ano + 1 };
+    return { mes: mesNum + 1, ano };
+}
 function toggleFechadoMesAtual() {
     if (!volumeJSON || !mesCarregadoAtualNum || !anoCarregadoAtual) return;
-    volumeJSON.fechado = !volumeJSON.fechado;
-    salvarStatusFechado(mesCarregadoAtualNum, anoCarregadoAtual, volumeJSON.fechado);
+    const vaiFechar = !volumeJSON.fechado;
+    const mesFechadoNum = mesCarregadoAtualNum, anoFechado = anoCarregadoAtual, nomeFechado = mesCarregadoAtual;
+    volumeJSON.fechado = vaiFechar;
+    salvarStatusFechado(mesFechadoNum, anoFechado, vaiFechar);
     try { localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(volumeJSON)); } catch (e) {}
     atualizarAvisoStatusMes();
     renderizar();
     renderizarAnalises();
-    setTimeout(() => alert(volumeJSON.fechado
-        ? `${mesCarregadoAtual} marcado como fechado — o usuário não vai mais conseguir editar o Volume Esperado (neste navegador). Isso fica salvo mesmo se recarregar a página.`
-        : `${mesCarregadoAtual} liberado — o usuário já pode lançar o Volume Esperado normalmente. Isso fica salvo mesmo se recarregar a página.`
-    ), 50);
+
+    let nomeBackupFeito = '';
+    if (vaiFechar) {
+        // guarda um backup identificado com o mês/ano que está sendo fechado, com os lançamentos de todo mundo
+        const nomeMes = MESES_PT[mesFechadoNum - 1] || 'MES';
+        nomeBackupFeito = salvarBackupComNome(`${nomeMes}-${anoFechado}`, volumeJSON, 'fechamento');
+        renderizarBackups();
+        // já deixa o seletor pronto no próximo mês, pra agilizar quando o novo arquivo chegar
+        const prox = avancarMesAno(mesFechadoNum, anoFechado);
+        const selMes = document.getElementById('selecionarMes');
+        const selAno = document.getElementById('selecionarAno');
+        if (selMes) selMes.value = String(prox.mes);
+        if (selAno) selAno.value = String(prox.ano);
+    }
+
+    setTimeout(() => {
+        if (vaiFechar) {
+            const prox = avancarMesAno(mesFechadoNum, anoFechado);
+            const nomeProxMes = MESES_PT[prox.mes - 1] || 'MES';
+            const nomeProx = nomeProxMes.charAt(0) + nomeProxMes.slice(1).toLowerCase() + '/' + prox.ano;
+            alert(`${nomeFechado} marcado como fechado — só o admin pode mais editar. Backup "${nomeBackupFeito}" salvo com os lançamentos.\n\nJá deixei ${nomeProx} selecionado ali em cima — é só carregar o arquivo dele quando estiver pronto.`);
+        } else {
+            alert(`${nomeFechado} liberado — o usuário já pode lançar o Volume Esperado normalmente. Isso fica salvo mesmo se recarregar a página.`);
+        }
+    }, 50);
 }
 
 function carregarVolumeJSON() {
@@ -1084,13 +1111,12 @@ function aplicarVolumeJSON() {
             p.temOrigemTxt = true;
         }
     });
-    // se o JSON tiver esperados embutidos, aplicar
+    // se o JSON tiver esperados embutidos, usa como base (só quando ainda não há nada salvo neste navegador pra esse mês)
     if (volumeJSON && volumeJSON.esperados) {
         volumeJSON.esperados.forEach(e => {
             const p = dadosPostos.find(x => x.numero === e.numero);
             if (p) p.volumeEsperado = e.volumeEsperado || 0;
         });
-        salvarDados();
     }
 }
 
@@ -1254,15 +1280,17 @@ function restaurarBackup(nome) {
     const b = backups.find(x => x.nome === nome);
     if (!b) return;
     volumeJSON = b.json;
+    aplicarVolumeJSON();
+    // os esperados do backup (lançados de verdade) prevalecem sobre o que estiver embutido no JSON
     if (b.esperados) {
         b.esperados.forEach(e => {
             const p = dadosPostos.find(x => x.numero === e.numero);
             if (p) p.volumeEsperado = e.volumeEsperado || 0;
         });
     }
-    aplicarVolumeJSON();
     localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(volumeJSON));
     salvarDados();
+    if (mesCarregadoAtualNum && anoCarregadoAtual) salvarStatusFechado(mesCarregadoAtualNum, anoCarregadoAtual, !!volumeJSON.fechado);
     atualizarBannerPeriodo();
     renderizar();
     renderizarAnalises();
