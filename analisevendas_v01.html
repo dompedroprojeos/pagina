@@ -487,6 +487,7 @@ tr.linha-perfil-urb { box-shadow: inset 3px 0 0 #3B82F6; }
     </div>
     <div class="aviso-somente-leitura no-print" id="avisoSomenteLeitura" style="display:none;">
         <i class="fas fa-lock"></i> <span id="avisoSomenteLeituraTexto"></span>
+        <span id="avisoStatusAcoes"></span>
         <button class="btn-voltar-atual" onclick="voltarDadosAtuais()"><i class="fas fa-rotate-left"></i> Voltar pros dados atuais</button>
     </div>
 
@@ -1009,6 +1010,60 @@ function aplicarEsperadosSalvosDoMes(mesNum, ano) {
     return true;
 }
 
+// status aberto/fechado por mês/ano, controlado pelo admin dentro do próprio app
+// (sobrepõe o "fechado" que veio dentro do arquivo .json, e sobrevive a um F5 nesse navegador)
+function chaveStatusMes(mesNum, ano) {
+    return `${STORAGE_KEY}_fechado_${mesNum}_${ano}`;
+}
+function getStatusFechadoSalvo(mesNum, ano) {
+    try {
+        const raw = localStorage.getItem(chaveStatusMes(mesNum, ano));
+        return raw === null ? null : raw === '1';
+    } catch (e) { return null; }
+}
+function salvarStatusFechado(mesNum, ano, fechado) {
+    try { localStorage.setItem(chaveStatusMes(mesNum, ano), fechado ? '1' : '0'); } catch (e) {}
+}
+function atualizarAvisoStatusMes() {
+    const aviso = document.getElementById('avisoSomenteLeitura');
+    const textoEl = document.getElementById('avisoSomenteLeituraTexto');
+    const acoesEl = document.getElementById('avisoStatusAcoes');
+    if (!aviso || !textoEl || !volumeJSON) return;
+    const nome = mesCarregadoAtual || 'Este mês';
+    aviso.style.display = 'flex';
+    aviso.className = 'aviso-somente-leitura';
+    let botoes = '';
+    if (volumeJSON.fechado && !isAdmin()) {
+        modoSomenteLeitura = true;
+        aviso.classList.add('aviso-fechado-admin');
+        textoEl.textContent = `${nome} está fechado 🔒 (somente leitura). Só o admin pode editar.`;
+    } else if (volumeJSON.fechado && isAdmin()) {
+        modoSomenteLeitura = false;
+        aviso.classList.add('aviso-fechado-admin');
+        textoEl.textContent = `${nome} está fechado 🔒, mas como admin você pode editar.`;
+        botoes = `<button class="btn-voltar-atual" onclick="toggleFechadoMesAtual()"><i class="fas fa-lock-open"></i> Abrir mês pra edição</button>`;
+    } else {
+        modoSomenteLeitura = false;
+        aviso.classList.add('aviso-aberto');
+        textoEl.textContent = `Visualizando ${nome} — mês aberto, dá pra editar o Volume Esperado normalmente.`;
+        if (isAdmin()) botoes = `<button class="btn-voltar-atual" onclick="toggleFechadoMesAtual()"><i class="fas fa-lock"></i> Fechar mês</button>`;
+    }
+    if (acoesEl) acoesEl.innerHTML = botoes;
+}
+function toggleFechadoMesAtual() {
+    if (!volumeJSON || !mesCarregadoAtualNum || !anoCarregadoAtual) return;
+    volumeJSON.fechado = !volumeJSON.fechado;
+    salvarStatusFechado(mesCarregadoAtualNum, anoCarregadoAtual, volumeJSON.fechado);
+    try { localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(volumeJSON)); } catch (e) {}
+    atualizarAvisoStatusMes();
+    renderizar();
+    renderizarAnalises();
+    setTimeout(() => alert(volumeJSON.fechado
+        ? `${mesCarregadoAtual} marcado como fechado — o usuário não vai mais conseguir editar o Volume Esperado (neste navegador). Isso fica salvo mesmo se recarregar a página.`
+        : `${mesCarregadoAtual} liberado — o usuário já pode lançar o Volume Esperado normalmente. Isso fica salvo mesmo se recarregar a página.`
+    ), 50);
+}
+
 function carregarVolumeJSON() {
     try {
         const raw = localStorage.getItem(VOLUME_JSON_KEY);
@@ -1270,26 +1325,14 @@ function carregarMes(mesNum, ano) {
             aplicarVolumeJSON();
             // se já existirem valores de Vol. Esperado lançados para esse mês/ano, prevalecem sobre o JSON
             aplicarEsperadosSalvosDoMes(mesNum, ano);
+            // se o admin já mexeu no status (abriu/fechou) desse mês neste navegador, isso prevalece
+            // sobre o "fechado" que veio dentro do arquivo — assim não volta a aparecer fechado à toa
+            const statusSalvo = getStatusFechadoSalvo(mesNum, ano);
+            if (statusSalvo !== null) volumeJSON.fechado = statusSalvo;
             mesCarregadoAtual = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + '/' + ano;
             const statusEl = document.getElementById('statusCarregamentoMes');
             if (statusEl) statusEl.textContent = `${mesCarregadoAtual} carregado ✓`;
-            const aviso = document.getElementById('avisoSomenteLeitura');
-            const textoEl = document.getElementById('avisoSomenteLeituraTexto');
-            aviso.style.display = 'flex';
-            aviso.className = 'aviso-somente-leitura';
-            if (dados.fechado && !isAdmin()) {
-                modoSomenteLeitura = true;
-                aviso.classList.add('aviso-fechado-admin');
-                textoEl.textContent = `${mesCarregadoAtual} está fechado 🔒 (somente leitura). Só o admin pode editar.`;
-            } else if (dados.fechado && isAdmin()) {
-                modoSomenteLeitura = false;
-                aviso.classList.add('aviso-fechado-admin');
-                textoEl.innerHTML = `${mesCarregadoAtual} está fechado 🔒, mas como admin você pode editar. Depois de mudar, use "Converter p/ JSON" ou "Publicar no GitHub" de novo pra salvar as alterações.`;
-            } else {
-                modoSomenteLeitura = false;
-                aviso.classList.add('aviso-aberto');
-                textoEl.textContent = `Visualizando ${mesCarregadoAtual} — mês aberto, dá pra editar o Volume Esperado normalmente.`;
-            }
+            atualizarAvisoStatusMes();
             atualizarBannerPeriodo();
             renderizar();
             renderizarAnalises();
