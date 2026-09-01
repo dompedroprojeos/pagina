@@ -1024,6 +1024,13 @@ function getStatusFechadoSalvo(mesNum, ano) {
 function salvarStatusFechado(mesNum, ano, fechado) {
     try { localStorage.setItem(chaveStatusMes(mesNum, ano), fechado ? '1' : '0'); } catch (e) {}
 }
+// Decide se o mês está fechado IGNORANDO o campo "fechado" que vier de dentro do arquivo .json.
+// A única fonte de verdade é o status salvo neste navegador (setado pelo botão "Fechar mês" do admin).
+// Sem esse status salvo, o mês SEMPRE começa aberto e editável — mesmo que o .json tenha "fechado": true.
+function resolverFechadoMes(mesNum, ano) {
+    const statusSalvo = getStatusFechadoSalvo(mesNum, ano);
+    return statusSalvo !== null ? statusSalvo : false;
+}
 function atualizarAvisoStatusMes() {
     const aviso = document.getElementById('avisoSomenteLeitura');
     const textoEl = document.getElementById('avisoSomenteLeituraTexto');
@@ -1193,9 +1200,12 @@ function parseRelatorioTxt(texto) {
 // ==================== BACKUPS ====================
 function nomeBackup(json) {
     if (!json || !json.periodoFim) return `IMPORTACAO-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}`;
-    const [dia, mes] = json.periodoFim.split('/');
+    const partes = json.periodoFim.split('/');
+    const mes = partes[1], ano = partes[2];
     const nomeMes = MESES_PT[parseInt(mes,10)-1] || 'PERIODO';
-    return `${nomeMes}-${json.periodoFim}`;
+    // padrão único MES-ANO (sem o dia, sem barras) — o mesmo usado pelo backup automático
+    // e pelo fechamento de mês, pra sempre atualizar o mesmo backup em vez de criar um novo a cada importação
+    return `${nomeMes}-${ano}`;
 }
 function sugerirNomeBackup() {
     if (volumeJSON && volumeJSON.periodoFim) return nomeBackup(volumeJSON);
@@ -1207,7 +1217,8 @@ function salvarBackup(json) {
     salvarBackupComNome(nomeBackup(json), json, 'txt');
 }
 function salvarBackupComNome(nomeBruto, json, origem) {
-    const nome = (nomeBruto || sugerirNomeBackup()).trim().toUpperCase().replace(/\s+/g,'-') || sugerirNomeBackup();
+    // troca espaços E barras por traço, pra nunca gerar um nome de arquivo/backup quebrado
+    const nome = (nomeBruto || sugerirNomeBackup()).trim().toUpperCase().replace(/[\s/\\]+/g,'-') || sugerirNomeBackup();
     let backups = [];
     try { backups = JSON.parse(localStorage.getItem(BACKUPS_KEY) || '[]'); } catch(e) {}
     backups = backups.filter(b => b.nome !== nome);
@@ -1266,15 +1277,24 @@ function renderizarBackups() {
     try { backups = JSON.parse(localStorage.getItem(BACKUPS_KEY) || '[]'); } catch(e) {}
     const lista = document.getElementById('listaBackups');
     if (!backups.length) { lista.innerHTML = '<p style="font-size:.82rem;color:var(--gray-400);">Nenhum backup salvo ainda. Salve um manualmente acima ou importe um TXT.</p>'; return; }
-    lista.innerHTML = backups.map(b => `
+    const ORIGEM_INFO = {
+        manual:     { icone: 'fa-pen',            texto: 'manual' },
+        txt:        { icone: 'fa-file-import',    texto: 'importação TXT' },
+        auto:       { icone: 'fa-rotate',         texto: 'automático' },
+        fechamento: { icone: 'fa-lock',           texto: 'fechamento de mês' }
+    };
+    lista.innerHTML = backups.map(b => {
+        const info = ORIGEM_INFO[b.origem] || ORIGEM_INFO.manual;
+        return `
         <div class="backup-item">
             <div>
-                <div class="nome"><i class="fas ${b.origem === 'manual' ? 'fa-pen' : 'fa-file-import'}"></i> ${escapeHtml(b.nome)}</div>
-                <div class="data">salvo em ${new Date(b.salvoEm).toLocaleString('pt-BR')} · ${b.origem === 'manual' ? 'manual' : 'importação TXT'}</div>
+                <div class="nome"><i class="fas ${info.icone}"></i> ${escapeHtml(b.nome)}</div>
+                <div class="data">salvo em ${new Date(b.salvoEm).toLocaleString('pt-BR')} · ${info.texto}</div>
             </div>
             <button onclick="restaurarBackup('${b.nome.replace(/'/g,"\\'")}')"><i class="fas fa-clock-rotate-left"></i> Restaurar</button>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 function restaurarBackup(nome) {
     let backups = [];
@@ -1319,15 +1339,25 @@ document.getElementById('inputTxt').addEventListener('change', function (e) {
             return;
         }
         volumeJSON = json;
-        try { localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(json)); } catch(err) {}
+        // amarra o TXT importado ao mesmo mês/ano do arquivo carregado via seletor,
+        // pra "Fechar mês" e o status salvo funcionarem igual, não importa por onde os dados entraram
+        const anoTxt = parseInt((json.periodoFim || '').split('/')[2], 10);
+        if (json.mesReferencia && anoTxt) {
+            mesCarregadoAtualNum = json.mesReferencia;
+            anoCarregadoAtual = anoTxt;
+            const nomeMesTxt = MESES_PT[json.mesReferencia - 1] || 'MES';
+            mesCarregadoAtual = nomeMesTxt.charAt(0) + nomeMesTxt.slice(1).toLowerCase() + '/' + anoTxt;
+            // mesma regra de sempre: ignora "fechado" de dentro do arquivo, só fecha pelo botão do admin
+            volumeJSON.fechado = resolverFechadoMes(mesCarregadoAtualNum, anoCarregadoAtual);
+        }
+        try { localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(volumeJSON)); } catch(err) {}
         aplicarVolumeJSON();
-        salvarBackup(json);
+        if (mesCarregadoAtualNum && anoCarregadoAtual) aplicarEsperadosSalvosDoMes(mesCarregadoAtualNum, anoCarregadoAtual);
+        salvarBackup(volumeJSON);
         salvarDados();
-        modoSomenteLeitura = false;
-        const aviso = document.getElementById('avisoSomenteLeitura');
-        if (aviso) aviso.style.display = 'none';
         const avisoPeriodo = document.getElementById('avisoPeriodoAgregado');
         if (avisoPeriodo) avisoPeriodo.style.display = 'none';
+        atualizarAvisoStatusMes();
         atualizarBannerPeriodo();
         renderizar();
         renderizarAnalises();
@@ -1349,21 +1379,23 @@ function carregarMes(mesNum, ano) {
         })
         .then(dados => {
             volumeJSON = dados;
-            localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(dados));
             mesCarregadoAtualNum = mesNum;
             anoCarregadoAtual = ano;
+            // Ignora o "fechado" que vier dentro do arquivo .json — só fica fechado se o admin
+            // tiver fechado explicitamente pelo botão "Fechar mês" (fica salvo neste navegador).
+            volumeJSON.fechado = resolverFechadoMes(mesNum, ano);
+            localStorage.setItem(VOLUME_JSON_KEY, JSON.stringify(volumeJSON));
             aplicarVolumeJSON();
             // se já existirem valores de Vol. Esperado lançados para esse mês/ano, prevalecem sobre o JSON
             aplicarEsperadosSalvosDoMes(mesNum, ano);
-            // se o admin já mexeu no status (abriu/fechou) desse mês neste navegador, isso prevalece
-            // sobre o "fechado" que veio dentro do arquivo — assim não volta a aparecer fechado à toa
-            const statusSalvo = getStatusFechadoSalvo(mesNum, ano);
-            if (statusSalvo !== null) volumeJSON.fechado = statusSalvo;
             mesCarregadoAtual = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + '/' + ano;
             const statusEl = document.getElementById('statusCarregamentoMes');
             if (statusEl) statusEl.textContent = `${mesCarregadoAtual} carregado ✓`;
             atualizarAvisoStatusMes();
             atualizarBannerPeriodo();
+            // grava sempre no storage (e atualiza o backup automático) assim que o mês é carregado,
+            // sem precisar esperar o usuário editar algo primeiro
+            salvarDados();
             renderizar();
             renderizarAnalises();
         })
@@ -2142,6 +2174,9 @@ function inicializarDados() {
         aviso.style.display = 'flex';
         aviso.className = 'aviso-somente-leitura';
         const nome = `${MESES_PT[(volumeJSON.mesReferencia||1)-1]}/${volumeJSON.ano || volumeJSON.periodoFim.split('/')[2]}`;
+        // mesma regra de carregarMes(): ignora o "fechado" do .json, usa só o status salvo no navegador
+        const anoRef = volumeJSON.ano || parseInt(volumeJSON.periodoFim.split('/')[2], 10);
+        volumeJSON.fechado = resolverFechadoMes(volumeJSON.mesReferencia, anoRef);
         if (volumeJSON.fechado && !isAdmin()) {
             modoSomenteLeitura = true;
             aviso.classList.add('aviso-fechado-admin');
