@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisador NF-e Pro · Waldeci Ramos</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+[data-theme="light"] {
+  --bg: #f0f4fb; --bg2: #e8eef8; --surface: #ffffff; --surface2: #f4f7fd;
+  --surface3: #eaf0fc; --border: rgba(37,99,235,0.12); --border-h: rgba(37,99,235,0.35);
+  --accent: #2563eb; --accent2: #7c3aed; --accent3: #059669; --accent4: #d97706;
+  --danger: #dc2626; --success: #059669; --orange: #ea580c;
+  --text: #1e293b; --text-m: #64748b; --text-d: #94a3b8;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07); --shadow-h: 0 8px 32px rgba(0,0,0,0.12);
+  --chip-cfop-bg: rgba(37,99,235,0.08); --chip-cfop-c: #1d4ed8; --chip-cfop-b: rgba(37,99,235,0.18);
+  --chip-cst-bg: rgba(217,119,6,0.08); --chip-cst-c: #b45309; --chip-cst-b: rgba(217,119,6,0.18);
+  --chip-lanc-bg: rgba(5,150,105,0.08); --chip-lanc-c: #065f46; --chip-lanc-b: rgba(5,150,105,0.18);
+  --chip-obs-bg: rgba(124,58,237,0.07); --chip-obs-c: #5b21b6; --chip-obs-b: rgba(124,58,237,0.13);
+  --chip-pis-bg: rgba(5,150,105,0.06); --chip-pis-c: #065f46; --chip-pis-b: rgba(5,150,105,0.13);
+}
+[data-theme="dark"] {
+  --bg: #060d1a; --bg2: #0b1525; --surface: #0e1c30; --surface2: #132238;
+  --surface3: #1a2e48; --border: rgba(56,139,253,0.12); --border-h: rgba(56,139,253,0.35);
+  --accent: #3b8df5; --accent2: #8b5cf6; --accent3: #06d6a0; --accent4: #f59e0b;
+  --danger: #ef4444; --success: #10b981; --orange: #f97316;
+  --text: #e2e8f0; --text-m: #7a93b0; --text-d: #2d4a6a;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5); --shadow-h: 0 8px 40px rgba(0,0,0,0.7);
+  --chip-cfop-bg: rgba(59,141,245,0.12); --chip-cfop-c: #5da8ff; --chip-cfop-b: rgba(59,141,245,0.2);
+  --chip-cst-bg: rgba(245,158,11,0.1); --chip-cst-c: #fbbf24; --chip-cst-b: rgba(245,158,11,0.2);
+  --chip-lanc-bg: rgba(16,185,129,0.1); --chip-lanc-c: #34d399; --chip-lanc-b: rgba(16,185,129,0.2);
+  --chip-obs-bg: rgba(139,92,246,0.1); --chip-obs-c: #a78bfa; --chip-obs-b: rgba(139,92,246,0.15);
+  --chip-pis-bg: rgba(6,214,160,0.08); --chip-pis-c: #2dd4bf; --chip-pis-b: rgba(6,214,160,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; transition: background 0.35s, color 0.35s;
+  overflow-x: hidden;
+  -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.wrap { position:relative; z-index:1; max-width:1440px; margin:0 auto; padding:1.5rem 1.25rem 3rem; }
+
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 1.5rem; background:var(--surface);
+  border:1px solid var(--border); border-radius:18px;
+  margin-bottom:1.25rem; box-shadow:var(--shadow);
+  position:relative; overflow:hidden; transition: background 0.35s, border-color 0.35s;
+}
+.header::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent2) 70%, transparent 100%);
+  animation:headerScan 4s linear infinite;
+}
+@keyframes headerScan { 0%{opacity:0.4;transform:scaleX(0.5)} 50%{opacity:1;transform:scaleX(1)} 100%{opacity:0.4;transform:scaleX(0.5)} }
+.logo-group { display:flex; align-items:center; gap:13px; }
+.logo-icon {
+  width:46px; height:46px; background:linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; color:#fff; box-shadow:0 0 18px rgba(59,141,245,0.35);
+  flex-shrink:0;
+}
+.logo-text h1 {
+  font-size:1.25rem; font-weight:800; letter-spacing:-0.5px;
+  background:linear-gradient(135deg, var(--text), var(--accent));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.logo-text small { font-size:0.7rem; color:var(--text-m); font-family:'JetBrains Mono',monospace; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.theme-btn {
+  width:42px; height:42px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; cursor:pointer; color:var(--text-m);
+  font-size:1rem; display:flex; align-items:center; justify-content:center;
+  transition:all 0.25s;
+}
+.theme-btn:hover { background:var(--surface3); color:var(--accent); border-color:var(--border-h); }
+.live-badge {
+  display:flex; align-items:center; gap:7px; padding:0.4rem 1rem;
+  background:rgba(37,99,235,0.06); border:1px solid rgba(37,99,235,0.15);
+  border-radius:100px; font-size:0.72rem; color:var(--accent);
+  font-family:'JetBrains Mono',monospace;
+}
+.live-dot { width:6px; height:6px; background:var(--accent3); border-radius:50%; animation:blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:1.5rem; margin-bottom:1.25rem;
+  box-shadow:var(--shadow); transition:background 0.35s, border-color 0.35s;
+}
+.sec-label {
+  display:flex; align-items:center; gap:9px; font-size:0.65rem;
+  font-family:'JetBrains Mono',monospace; color:var(--text-m);
+  text-transform:uppercase; letter-spacing:2px; margin-bottom:1.25rem;
+}
+.sec-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+.sec-label i { color:var(--accent); }
+
+.paste-area { margin-bottom:1.25rem; }
+.nf-ta {
+  width:100%; height:220px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:12px;
+  padding:1rem; color:var(--text); font-family:'JetBrains Mono',monospace;
+  font-size:0.8rem; resize:vertical; transition:border-color 0.25s, box-shadow 0.25s;
+  line-height:1.5;
+}
+.nf-ta:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,141,245,0.1); }
+
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:0.72rem 1.4rem; border-radius:10px; border:none;
+  font-family:'Outfit',sans-serif; font-weight:600; font-size:0.88rem;
+  cursor:pointer; transition:all 0.25s; white-space:nowrap;
+}
+.btn-primary { background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff; box-shadow:0 4px 14px rgba(59,141,245,0.3); }
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(59,141,245,0.4); }
+.btn-success { background:linear-gradient(135deg, var(--success), var(--accent3)); color:#fff; box-shadow:0 4px 14px rgba(5,150,105,0.3); }
+.btn-success:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(5,150,105,0.4); }
+.btn-ghost { background:var(--surface2); border:1px solid var(--border); color:var(--text-m); }
+.btn-ghost:hover { background:var(--surface3); color:var(--text); border-color:var(--border-h); }
+.btn-danger-ghost { background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15); color:var(--danger); }
+.btn-danger-ghost:hover { background:rgba(239,68,68,0.12); }
+
+.chip {
+  display:inline-flex; align-items:center; padding:2px 9px;
+  border-radius:100px; font-family:'JetBrains Mono',monospace;
+  font-size:0.7rem; font-weight:600;
+}
+.chip-cfop { background:var(--chip-cfop-bg); color:var(--chip-cfop-c); border:1px solid var(--chip-cfop-b); }
+.chip-cst { background:var(--chip-cst-bg); color:var(--chip-cst-c); border:1px solid var(--chip-cst-b); }
+.chip-lanc { background:var(--chip-lanc-bg); color:var(--chip-lanc-c); border:1px solid var(--chip-lanc-b); }
+.chip-obs { background:var(--chip-obs-bg); color:var(--chip-obs-c); border:1px solid var(--chip-obs-b); white-space:normal; font-size:0.65rem; }
+.chip-pis { background:var(--chip-pis-bg); color:var(--chip-pis-c); border:1px solid var(--chip-pis-b); }
+
+.nf-result { margin-top:1.25rem; }
+.info-cards {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px; margin-bottom:1.25rem;
+}
+.ic {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:0.9rem; transition:background 0.35s;
+}
+.ic-lbl { font-size:0.6rem; color:var(--text-m); text-transform:uppercase; letter-spacing:1.5px; font-family:'JetBrains Mono',monospace; margin-bottom:4px; }
+.ic-val { font-size:0.92rem; font-weight:600; color:var(--text); }
+
+.decision-card {
+  background:var(--surface2); border:2px solid var(--accent);
+  border-radius:16px; padding:1.5rem; margin-bottom:1.25rem;
+  position:relative; overflow:hidden;
+}
+.decision-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+}
+.decision-card .dc-title {
+  font-size:1.1rem; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:10px; margin-bottom:0.75rem;
+}
+.decision-card .dc-title i { color:var(--accent2); font-size:1.3rem; }
+.decision-card .dc-result {
+  font-size:1.6rem; font-weight:800; padding:0.3rem 1rem;
+  border-radius:10px; display:inline-block; margin-bottom:0.75rem;
+}
+.dc-result.revenda { background:rgba(6,214,160,0.15); color:var(--accent3); }
+.dc-result.consumo { background:rgba(245,158,11,0.15); color:var(--accent4); }
+.dc-result.ativo { background:rgba(139,92,246,0.15); color:var(--accent2); }
+.dc-result.combustivel { background:rgba(249,115,22,0.15); color:var(--orange); }
+
+.dc-details {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px 20px; margin:0.75rem 0; padding:0.75rem;
+  background:var(--surface); border-radius:10px;
+  border:1px solid var(--border);
+}
+.dc-details .dd-item {
+  display:flex; justify-content:space-between;
+  padding:4px 0; border-bottom:1px solid var(--border);
+  font-size:0.85rem;
+}
+.dc-details .dd-item:last-child { border-bottom:none; }
+.dc-details .dd-item .dd-label { color:var(--text-m); font-weight:500; }
+.dc-details .dd-item .dd-value { font-weight:600; font-family:'JetBrains Mono',monospace; }
+
+.dc-explication {
+  background:var(--surface); border-left:4px solid var(--accent2);
+  border-radius:8px; padding:1rem; margin-top:0.75rem;
+  font-size:0.9rem; line-height:1.6;
+}
+.dc-explication strong { color:var(--accent2); }
+.dc-explication .highlight {
+  background:rgba(139,92,246,0.1); padding:0.1rem 0.4rem;
+  border-radius:4px; font-weight:600; color:var(--accent2);
+}
+
+.contas-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:10px; margin-bottom:1.25rem;
+}
+.conta-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-left:3px solid var(--accent); border-radius:12px;
+  padding:0.9rem;
+}
+.conta-card .cc-lbl { font-size:0.62rem; color:var(--text-m); text-transform:uppercase; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+.conta-card .cc-val { font-size:1.25rem; font-weight:700; color:var(--success); font-family:'JetBrains Mono',monospace; margin-top:3px; }
+.conta-card .cc-qty { font-size:0.75rem; color:var(--text-m); margin-top:2px; }
+
+.total-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:1rem 1.5rem;
+}
+.total-bar .tb-label { font-weight:600; color:var(--text-m); display:flex; align-items:center; gap:8px; }
+.total-bar .tb-val { font-size:1.5rem; font-weight:700; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+
+.status {
+  padding:0.9rem 1.25rem; border-radius:10px;
+  font-size:0.85rem; display:flex; align-items:center; gap:9px; margin-top:0.75rem;
+}
+.s-info { background:rgba(59,141,245,0.08); border:1px solid rgba(59,141,245,0.15); color:var(--accent); }
+.s-err { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.15); color:var(--danger); }
+.s-warn { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.15); color:var(--accent4); }
+.s-success { background:rgba(5,150,105,0.08); border:1px solid rgba(5,150,105,0.15); color:var(--success); }
+
+.spin { animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.no-print { display:inline-flex; }
+@media print {
+  .no-print { display:none !important; }
+  .header { box-shadow:none !important; border:1px solid #ccc !important; }
+  .card { box-shadow:none !important; border:1px solid #ccc !important; page-break-inside:avoid; }
+  .decision-card { border:2px solid #4a1d96 !important; }
+  .decision-card::before { display:none; }
+  body { background:white !important; }
+  body::before { display:none; }
+  .dc-details { border:1px solid #ccc !important; }
+  .dc-explication { border-left:4px solid #4a1d96 !important; }
+}
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="logo-group">
+    <div class="logo-icon"><i class="fas fa-file-invoice"></i></div>
+    <div class="logo-text">
+      <h1>Analisador NF-e Pro</h1>
+      <small>by Waldeci Ramos · Análise Robusta com Decisão Automática</small>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>SISTEMA ATIVO</div>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">
+      <i class="fas fa-sun" id="themeIcon"></i>
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="sec-label"><i class="fas fa-paste"></i> COLAR NOTA FISCAL</div>
+  <div class="paste-area">
+    <textarea id="nfTa" class="nf-ta" placeholder="Cole o conteúdo completo da NF-e aqui..."></textarea>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="analisarNF()">
+      <i class="fas fa-chart-bar"></i> Analisar Nota Fiscal
+    </button>
+    <button class="btn btn-ghost" onclick="carregarExemplo()">
+      <i class="fas fa-file-lines"></i> Carregar Exemplo
+    </button>
+    <button class="btn btn-success" onclick="imprimirResultado()" id="btnImprimir" style="display:none;">
+      <i class="fas fa-print"></i> Imprimir Resultado
+    </button>
+    <button class="btn btn-danger-ghost" onclick="limparNF()">
+      <i class="fas fa-trash"></i> Limpar
+    </button>
+  </div>
+  <div id="nfResult" class="nf-result"></div>
+</div>
+
+<div class="card" id="tabelaCFOP">
+  <div class="sec-label"><i class="fas fa-table"></i> TABELA CFOP COMPLETA</div>
+  <div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+      <thead style="position:sticky;top:0;z-index:10;">
+        <tr style="background:var(--accent2);color:#fff;">
+          <th style="padding:8px 10px;text-align:left;">CFOP</th>
+          <th style="padding:8px 10px;text-align:left;">Descrição</th>
+          <th style="padding:8px 10px;text-align:left;">Grupo</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCFOPBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// PROTEÇÕES
+// ═══════════════════════════════════════════════
+document.addEventListener('contextmenu', e => { e.preventDefault(); return false; });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) { e.preventDefault(); return false; }
+  if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) { e.preventDefault(); return false; }
+  return true;
+});
+document.querySelector('.nf-ta').addEventListener('mousedown', e => e.stopPropagation());
+document.addEventListener('dragstart', e => e.preventDefault());
+document.addEventListener('selectstart', function(e) {
+  if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') e.preventDefault();
+});
+
+// ═══════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════
+const themeBtn = document.getElementById('themeBtn');
+const themeIcon = document.getElementById('themeIcon');
+let isDark = false;
+themeBtn.addEventListener('click', () => {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+});
+
+// ═══════════════════════════════════════════════
+// TABELA CFOP COMPLETA
+// ═══════════════════════════════════════════════
+const CFOP_TABELA = [
+  {cfop:'1.101', desc:'Compra para industrialização', grupo:'Entrada'},
+  {cfop:'1.102', desc:'Compra para comercialização (revenda)', grupo:'Entrada'},
+  {cfop:'1.103', desc:'Compra para prestação de serviços', grupo:'Entrada'},
+  {cfop:'1.104', desc:'Compra para produção rural', grupo:'Entrada'},
+  {cfop:'1.111', desc:'Compra para industrialização por encomenda', grupo:'Entrada'},
+  {cfop:'1.112', desc:'Compra para comercialização por encomenda', grupo:'Entrada'},
+  {cfop:'1.113', desc:'Compra para prestação de serviços por encomenda', grupo:'Entrada'},
+  {cfop:'1.114', desc:'Compra para produção rural por encomenda', grupo:'Entrada'},
+  {cfop:'1.115', desc:'Compra para industrialização em consignação', grupo:'Entrada'},
+  {cfop:'1.116', desc:'Compra para comercialização em consignação', grupo:'Entrada'},
+  {cfop:'1.117', desc:'Compra para prestação de serviços em consignação', grupo:'Entrada'},
+  {cfop:'1.118', desc:'Compra para produção rural em consignação', grupo:'Entrada'},
+  {cfop:'1.120', desc:'Compra para utilização na prestação de serviço', grupo:'Entrada'},
+  {cfop:'1.151', desc:'Compra de bem para o ativo imobilizado', grupo:'Entrada'},
+  {cfop:'1.155', desc:'Compra de bem para o ativo imobilizado (uso/consumo)', grupo:'Entrada'},
+  {cfop:'1.156', desc:'Compra de material para uso ou consumo', grupo:'Entrada'},
+  {cfop:'1.157', desc:'Compra de material para uso ou consumo (MEI)', grupo:'Entrada'},
+  {cfop:'1.201', desc:'Devolução de venda de produção', grupo:'Entrada'},
+  {cfop:'1.202', desc:'Devolução de venda de mercadoria adquirida', grupo:'Entrada'},
+  {cfop:'1.203', desc:'Devolução de venda de mercadoria para revenda', grupo:'Entrada'},
+  {cfop:'1.204', desc:'Devolução de venda de mercadoria para industrialização', grupo:'Entrada'},
+  {cfop:'1.205', desc:'Devolução de venda de mercadoria para prestação de serviços', grupo:'Entrada'},
+  {cfop:'1.251', desc:'Anulação de valor de aquisição', grupo:'Entrada'},
+  {cfop:'1.301', desc:'Compra de energia elétrica', grupo:'Entrada'},
+  {cfop:'1.302', desc:'Compra de combustível', grupo:'Entrada'},
+  {cfop:'1.303', desc:'Compra de lubrificante', grupo:'Entrada'},
+  {cfop:'1.304', desc:'Compra de gás', grupo:'Entrada'},
+  {cfop:'1.401', desc:'Compra para comercialização com ST', grupo:'Entrada'},
+  {cfop:'1.403', desc:'Compra para comercialização com ST', grupo:'Entrada'},
+  {cfop:'1.404', desc:'Compra para industrialização com ST', grupo:'Entrada'},
+  {cfop:'1.406', desc:'Compra de bem para ativo imobilizado (uso/consumo)', grupo:'Entrada'},
+  {cfop:'1.407', desc:'Compra de bem para ativo imobilizado com ST', grupo:'Entrada'},
+  {cfop:'1.555', desc:'Transferência de crédito de ICMS', grupo:'Entrada'},
+  {cfop:'1.556', desc:'Transferência de crédito de ICMS (uso/consumo)', grupo:'Entrada'},
+  {cfop:'2.101', desc:'Compra para industrialização (interestadual)', grupo:'Entrada Interestadual'},
+  {cfop:'2.102', desc:'Compra para comercialização (revenda) interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.103', desc:'Compra para prestação de serviços interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.111', desc:'Compra para industrialização por encomenda interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.112', desc:'Compra para comercialização por encomenda interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.113', desc:'Compra para prestação de serviços por encomenda interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.120', desc:'Compra para utilização na prestação de serviço interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.151', desc:'Compra de bem para o ativo imobilizado interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.155', desc:'Compra de bem para ativo imobilizado (uso/consumo) interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.156', desc:'Compra de material para uso ou consumo interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.157', desc:'Compra de material para uso ou consumo (MEI) interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.201', desc:'Devolução de venda de produção interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.202', desc:'Devolução de venda de mercadoria adquirida interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.203', desc:'Devolução de venda de mercadoria para revenda interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.301', desc:'Compra de energia elétrica interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.302', desc:'Compra de combustível interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.303', desc:'Compra de lubrificante interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.304', desc:'Compra de gás interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.401', desc:'Compra para comercialização com ST interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.403', desc:'Compra para comercialização com ST interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.404', desc:'Compra para industrialização com ST interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.406', desc:'Compra de bem para ativo imobilizado (uso/consumo) interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.407', desc:'Compra de bem para ativo imobilizado com ST interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.555', desc:'Transferência de crédito de ICMS interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'2.556', desc:'Transferência de crédito de ICMS (uso/consumo) interestadual', grupo:'Entrada Interestadual'},
+  {cfop:'3.101', desc:'Importação para industrialização', grupo:'Importação'},
+  {cfop:'3.102', desc:'Importação para comercialização (revenda)', grupo:'Importação'},
+  {cfop:'3.103', desc:'Importação para prestação de serviços', grupo:'Importação'},
+  {cfop:'3.111', desc:'Importação para industrialização por encomenda', grupo:'Importação'},
+  {cfop:'3.112', desc:'Importação para comercialização por encomenda', grupo:'Importação'},
+  {cfop:'3.113', desc:'Importação para prestação de serviços por encomenda', grupo:'Importação'},
+  {cfop:'3.120', desc:'Importação para utilização na prestação de serviço', grupo:'Importação'},
+  {cfop:'3.151', desc:'Importação de bem para o ativo imobilizado', grupo:'Importação'},
+  {cfop:'3.155', desc:'Importação de bem para ativo imobilizado (uso/consumo)', grupo:'Importação'},
+  {cfop:'3.156', desc:'Importação de material para uso ou consumo', grupo:'Importação'},
+  {cfop:'3.201', desc:'Devolução de exportação de produção', grupo:'Importação'},
+  {cfop:'3.202', desc:'Devolução de exportação de mercadoria adquirida', grupo:'Importação'},
+  {cfop:'3.301', desc:'Importação de energia elétrica', grupo:'Importação'},
+  {cfop:'3.302', desc:'Importação de combustível', grupo:'Importação'},
+  {cfop:'3.303', desc:'Importação de lubrificante', grupo:'Importação'},
+  {cfop:'3.304', desc:'Importação de gás', grupo:'Importação'},
+  {cfop:'3.401', desc:'Importação para comercialização com ST', grupo:'Importação'},
+  {cfop:'3.403', desc:'Importação para comercialização com ST', grupo:'Importação'},
+  {cfop:'3.404', desc:'Importação para industrialização com ST', grupo:'Importação'},
+  {cfop:'5.101', desc:'Venda de produção do estabelecimento', grupo:'Saída'},
+  {cfop:'5.102', desc:'Venda de mercadoria adquirida (revenda)', grupo:'Saída'},
+  {cfop:'5.103', desc:'Venda de mercadoria para prestação de serviços', grupo:'Saída'},
+  {cfop:'5.104', desc:'Venda de produção rural', grupo:'Saída'},
+  {cfop:'5.111', desc:'Venda de produção do estabelecimento por encomenda', grupo:'Saída'},
+  {cfop:'5.112', desc:'Venda de mercadoria adquirida por encomenda', grupo:'Saída'},
+  {cfop:'5.113', desc:'Venda de mercadoria para prestação de serviços por encomenda', grupo:'Saída'},
+  {cfop:'5.114', desc:'Venda de produção rural por encomenda', grupo:'Saída'},
+  {cfop:'5.115', desc:'Venda de produção do estabelecimento em consignação', grupo:'Saída'},
+  {cfop:'5.116', desc:'Venda de mercadoria adquirida em consignação', grupo:'Saída'},
+  {cfop:'5.117', desc:'Venda de mercadoria para prestação de serviços em consignação', grupo:'Saída'},
+  {cfop:'5.118', desc:'Venda de produção rural em consignação', grupo:'Saída'},
+  {cfop:'5.120', desc:'Venda de bem utilizado na prestação de serviço', grupo:'Saída'},
+  {cfop:'5.151', desc:'Venda de bem do ativo imobilizado', grupo:'Saída'},
+  {cfop:'5.155', desc:'Venda de bem do ativo imobilizado (uso/consumo)', grupo:'Saída'},
+  {cfop:'5.156', desc:'Venda de material para uso ou consumo', grupo:'Saída'},
+  {cfop:'5.201', desc:'Devolução de compra de produção', grupo:'Saída'},
+  {cfop:'5.202', desc:'Devolução de compra de mercadoria adquirida', grupo:'Saída'},
+  {cfop:'5.203', desc:'Devolução de compra de mercadoria para revenda', grupo:'Saída'},
+  {cfop:'5.204', desc:'Devolução de compra de mercadoria para industrialização', grupo:'Saída'},
+  {cfop:'5.251', desc:'Anulação de valor de venda', grupo:'Saída'},
+  {cfop:'5.301', desc:'Venda de energia elétrica', grupo:'Saída'},
+  {cfop:'5.302', desc:'Venda de combustível', grupo:'Saída'},
+  {cfop:'5.303', desc:'Venda de lubrificante', grupo:'Saída'},
+  {cfop:'5.304', desc:'Venda de gás', grupo:'Saída'},
+  {cfop:'5.401', desc:'Venda para comercialização com ST', grupo:'Saída'},
+  {cfop:'5.403', desc:'Venda para comercialização com ST', grupo:'Saída'},
+  {cfop:'5.404', desc:'Venda para industrialização com ST', grupo:'Saída'},
+  {cfop:'5.406', desc:'Venda de bem para ativo imobilizado (uso/consumo)', grupo:'Saída'},
+  {cfop:'5.407', desc:'Venda de bem para ativo imobilizado com ST', grupo:'Saída'},
+  {cfop:'5.555', desc:'Transferência de crédito de ICMS', grupo:'Saída'},
+  {cfop:'5.556', desc:'Transferência de crédito de ICMS (uso/consumo)', grupo:'Saída'},
+  {cfop:'6.101', desc:'Venda de produção do estabelecimento (interestadual)', grupo:'Saída Interestadual'},
+  {cfop:'6.102', desc:'Venda de mercadoria adquirida (revenda) interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.103', desc:'Venda de mercadoria para prestação de serviços interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.111', desc:'Venda de produção por encomenda interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.112', desc:'Venda de mercadoria adquirida por encomenda interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.113', desc:'Venda de mercadoria para prestação de serviços por encomenda interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.120', desc:'Venda de bem utilizado na prestação de serviço interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.151', desc:'Venda de bem do ativo imobilizado interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.155', desc:'Venda de bem do ativo imobilizado (uso/consumo) interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.156', desc:'Venda de material para uso ou consumo interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.157', desc:'Venda de material para uso ou consumo (MEI) interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.201', desc:'Devolução de compra de produção interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.202', desc:'Devolução de compra de mercadoria adquirida interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.203', desc:'Devolução de compra de mercadoria para revenda interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.301', desc:'Venda de energia elétrica interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.302', desc:'Venda de combustível interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.303', desc:'Venda de lubrificante interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.304', desc:'Venda de gás interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.401', desc:'Venda para comercialização com ST interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.403', desc:'Venda para comercialização com ST interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.404', desc:'Venda para industrialização com ST interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.406', desc:'Venda de bem para ativo imobilizado (uso/consumo) interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.407', desc:'Venda de bem para ativo imobilizado com ST interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.555', desc:'Transferência de crédito de ICMS interestadual', grupo:'Saída Interestadual'},
+  {cfop:'6.556', desc:'Transferência de crédito de ICMS (uso/consumo) interestadual', grupo:'Saída Interestadual'},
+  {cfop:'7.101', desc:'Exportação de produção do estabelecimento', grupo:'Exportação'},
+  {cfop:'7.102', desc:'Exportação de mercadoria adquirida (revenda)', grupo:'Exportação'},
+  {cfop:'7.103', desc:'Exportação de mercadoria para prestação de serviços', grupo:'Exportação'},
+  {cfop:'7.111', desc:'Exportação de produção por encomenda', grupo:'Exportação'},
+  {cfop:'7.112', desc:'Exportação de mercadoria adquirida por encomenda', grupo:'Exportação'},
+  {cfop:'7.113', desc:'Exportação de mercadoria para prestação de serviços por encomenda', grupo:'Exportação'},
+  {cfop:'7.120', desc:'Exportação de bem utilizado na prestação de serviço', grupo:'Exportação'},
+  {cfop:'7.151', desc:'Exportação de bem do ativo imobilizado', grupo:'Exportação'},
+  {cfop:'7.155', desc:'Exportação de bem do ativo imobilizado (uso/consumo)', grupo:'Exportação'},
+  {cfop:'7.156', desc:'Exportação de material para uso ou consumo', grupo:'Exportação'},
+  {cfop:'7.201', desc:'Devolução de importação de produção', grupo:'Exportação'},
+  {cfop:'7.202', desc:'Devolução de importação de mercadoria adquirida', grupo:'Exportação'},
+  {cfop:'7.301', desc:'Exportação de energia elétrica', grupo:'Exportação'},
+  {cfop:'7.302', desc:'Exportação de combustível', grupo:'Exportação'},
+  {cfop:'7.303', desc:'Exportação de lubrificante', grupo:'Exportação'},
+  {cfop:'7.304', desc:'Exportação de gás', grupo:'Exportação'},
+  {cfop:'7.401', desc:'Exportação para comercialização com ST', grupo:'Exportação'},
+  {cfop:'7.403', desc:'Exportação para comercialização com ST', grupo:'Exportação'},
+];
+
+// ═══════════════════════════════════════════════
+// BANCO DE REGRAS - CORRIGIDO COM 5.405 -> 1.556
+// ═══════════════════════════════════════════════
+const DB = [
+  // REVENDA
+  {cfop:'5101',cat:'REVENDA', cstOrig:['000'], cfopLanc:'1.102', cstLanc:'000', pis:'Não mudar', obs:'REVENDA - Conta 1.102'},
+  {cfop:'5102',cat:'REVENDA', cstOrig:['000'], cfopLanc:'1.102', cstLanc:'000', pis:'Não mudar', obs:'REVENDA - Conta 1.102'},
+  {cfop:'6101',cat:'REVENDA', cstOrig:['000','020'], cfopLanc:'2.102', cstLanc:'000', pis:'Não mudar', obs:'REVENDA - Conta 2.102'},
+  {cfop:'6102',cat:'REVENDA', cstOrig:['000','020'], cfopLanc:'2.102', cstLanc:'000', pis:'Não mudar', obs:'REVENDA - Conta 2.102'},
+  {cfop:'5405',cat:'REVENDA', cstOrig:['060','160','360','560'], cfopLanc:'1.403', cstLanc:'060', pis:'Não mudar', obs:'REVENDA (ST) - Conta 1.403'},
+  {cfop:'6405',cat:'REVENDA', cstOrig:['060','160','360','560'], cfopLanc:'2.403', cstLanc:'060', pis:'Não mudar', obs:'REVENDA (ST) - Conta 2.403'},
+
+  // USO/CONSUMO - CORRIGIDO: ADICIONADO 5405 E 6405
+  {cfop:'5101',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'1.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'5102',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'1.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'5108',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'1.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'5405',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090','060','160','360','560'], cfopLanc:'1.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 1.556'},
+  {cfop:'6101',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'2.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 2.556'},
+  {cfop:'6102',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'2.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 2.556'},
+  {cfop:'6108',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090'], cfopLanc:'2.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 2.556'},
+  {cfop:'6405',cat:'USO/CONSUMO', cstOrig:['000','020','040','041','090','060','160','360','560'], cfopLanc:'2.556', cstLanc:'090', pis:'70/70', obs:'USO E CONSUMO - Conta 2.556'},
+
+  // ATIVO IMOBILIZADO - COM CRÉDITO
+  {cfop:'5101',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'1.551', cstLanc:'000', pis:'70/70', obs:'ATIVO - Conta 1.551 (COM crédito se CST 00)'},
+  {cfop:'5102',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'1.551', cstLanc:'000', pis:'70/70', obs:'ATIVO - Conta 1.551 (COM crédito se CST 00)'},
+  {cfop:'6101',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'2.551', cstLanc:'000', pis:'70/70', obs:'ATIVO - Conta 2.551 (COM crédito)'},
+  {cfop:'6102',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'2.551', cstLanc:'000', pis:'70/70', obs:'ATIVO - Conta 2.551 (COM crédito)'},
+
+  // ATIVO IMOBILIZADO - SEM CRÉDITO
+  {cfop:'5101',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'1.406', cstLanc:'090', pis:'70/70', obs:'ATIVO - Conta 1.406 (SEM crédito)'},
+  {cfop:'5102',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'1.406', cstLanc:'090', pis:'70/70', obs:'ATIVO - Conta 1.406 (SEM crédito)'},
+  {cfop:'6101',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'2.406', cstLanc:'090', pis:'70/70', obs:'ATIVO - Conta 2.406 (SEM crédito)'},
+  {cfop:'6102',cat:'ATIVO', cstOrig:['000','020','040','041','090','060','160'], cfopLanc:'2.406', cstLanc:'090', pis:'70/70', obs:'ATIVO - Conta 2.406 (SEM crédito)'},
+
+  // ATIVO COM ST
+  {cfop:'5403',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'1.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 1.407 (COM ST)'},
+  {cfop:'5404',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'1.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 1.407 (COM ST)'},
+  {cfop:'5405',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'1.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 1.407 (COM ST)'},
+  {cfop:'6403',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'2.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 2.407 (COM ST)'},
+  {cfop:'6404',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'2.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 2.407 (COM ST)'},
+  {cfop:'6405',cat:'ATIVO', cstOrig:['010','060','110','160','510','560'], cfopLanc:'2.407', cstLanc:'060', pis:'70/70', obs:'ATIVO - Conta 2.407 (COM ST)'},
+
+  // COMBUSTÍVEIS
+  {cfop:'5655',cat:'COMBUSTÍVEL', cstOrig:['010','030','060','110','130','160','510','530','560'], cfopLanc:'1.652', cstLanc:'010', pis:'Não mudar', obs:'COMBUSTÍVEL - Conta 1.652'},
+  {cfop:'5656',cat:'COMBUSTÍVEL', cstOrig:['061','060'], cfopLanc:'1.653', cstLanc:'061', pis:'Não mudar', obs:'CONSUMO COMBUSTÍVEL - Conta 1.653'},
+  {cfop:'6655',cat:'COMBUSTÍVEL', cstOrig:['010','030','060','110','130','160','510','530','560'], cfopLanc:'2.652', cstLanc:'010', pis:'Não mudar', obs:'COMBUSTÍVEL - Conta 2.652'},
+  {cfop:'6656',cat:'COMBUSTÍVEL', cstOrig:['061','060'], cfopLanc:'2.653', cstLanc:'061', pis:'Não mudar', obs:'CONSUMO COMBUSTÍVEL - Conta 2.653'},
+];
+
+const DBMAP = {};
+DB.forEach(r => { if (!DBMAP[r.cfop]) DBMAP[r.cfop] = []; DBMAP[r.cfop].push(r); });
+
+// ═══════════════════════════════════════════════
+// FUNÇÕES AUXILIARES
+// ═══════════════════════════════════════════════
+function fmt(v) { return (v||0).toFixed(2).replace('.',','); }
+function fmtCFOP(c) { c=(c||'').replace(/\D/g,''); return c.length===4 ? c[0]+'.'+c.slice(1) : c; }
+
+function getCFOPInfo(cfop) {
+  const cfopFmt = fmtCFOP(cfop);
+  const info = CFOP_TABELA.find(item => item.cfop === cfopFmt);
+  return info || { desc: 'CFOP não encontrado', grupo: 'Desconhecido' };
+}
+
+function isCombustivel(desc) {
+  const termos = ['DIESEL', 'GASOLINA', 'ETANOL', 'ALCOOL', 'ÓLEO', 'OLEO', 'ARLA', 'LUBRIFICANTE', 'GAS', 'GLP', 'QUEROSENE'];
+  return termos.some(t => desc.toUpperCase().includes(t));
+}
+
+function isAtivo(desc, valor) {
+  const termos = ['MÁQUINA', 'MAQUINA', 'COMPUTADOR', 'VEÍCULO', 'VEICULO', 'MÓVEL', 'MOVEL', 'EQUIPAMENTO', 
+                   'FERRAMENTA', 'BOMBA', 'AR CONDICIONADO', 'GERADOR', 'NOBREAK', 'IMPRESSORA', 'MONITOR'];
+  return termos.some(t => desc.toUpperCase().includes(t)) || (valor > 1000);
+}
+
+function isRevenda(desc, ncm) {
+  const termos = ['REFRIGERANTE', 'ÁGUA', 'AGUA', 'SUCO', 'BEBIDA', 'ENERGÉTICO', 'ENERGETICO', 
+                   'SALGADO', 'BISCOITO', 'BOLACHA', 'DETERGENTE', 'SABÃO', 'SABAO', 'PAPEL', 'PILHA',
+                   'BOMBOM', 'CHOCOLATE', 'DOCE', 'BALA', 'CHICLETE'];
+  const ncmsRevenda = ['2202', '2201', '2106', '1905', '3401', '3402', '4818', '8506'];
+  const ncmStr = ncm || '';
+  if (termos.some(t => desc.toUpperCase().includes(t))) return true;
+  if (ncmsRevenda.some(n => ncmStr.startsWith(n))) return true;
+  return false;
+}
+
+function decidirCategoria(desc, valor, ncm) {
+  if (isCombustivel(desc)) {
+    return { cat: 'COMBUSTÍVEL', explicacao: 'Produto identificado como combustível, óleo ou lubrificante. Deve ser lançado na conta específica de combustível.' };
+  }
+  if (isAtivo(desc, valor)) {
+    return { cat: 'ATIVO', explicacao: 'Produto identificado como bem durável (máquina, equipamento, veículo, etc.) que será incorporado ao patrimônio da empresa. Deve ser lançado como Ativo Imobilizado.' };
+  }
+  if (isRevenda(desc, ncm)) {
+    return { cat: 'REVENDA', explicacao: 'Produto identificado como mercadoria para revenda (bebidas, alimentos, produtos de conveniência). Deve ser lançado como Revenda.' };
+  }
+  return { cat: 'USO/CONSUMO', explicacao: 'Produto identificado como material de uso/consumo da empresa (material de construção, manutenção, escritório, etc.). Não gera direito a crédito de ICMS.' };
+}
+
+function getRegra(cfop, cst, cat) {
+  const regras = DBMAP[cfop] || [];
+  let regra = regras.find(r => r.cat === cat && r.cstOrig.includes(cst));
+  if (regra) return regra;
+  regra = regras.find(r => r.cat === cat);
+  if (regra) return regra;
+  return regras[0] || null;
+}
+
+// ═══════════════════════════════════════════════
+// EXTRAIR DADOS
+// ═══════════════════════════════════════════════
+function extrairDadosNF(txt) {
+  const d = { numero:'N/I', emitente:'N/I', cnpjEmit:'N/I', dest:'N/I', cnpjDest:'N/I', natureza:'N/I', dtEmissao:'N/I', totalNota:'N/I' };
+  const ls = txt.split(/\n/);
+  ls.forEach(l => {
+    const mn = l.match(/N[ºo°]\.?\s*0*([\d.]+)/i);
+    if (mn && d.numero==='N/I') d.numero = mn[1];
+    const cnpjs = l.match(/\d{2}\.?\d{3}\.?\d{3}\/\d{4}-\d{2}/g)||[];
+    if (cnpjs.length) {
+      if ((l.toLowerCase().includes('cnpj') || l.toLowerCase().includes('emitente') || l.includes('86.589.447')) && d.cnpjEmit==='N/I') d.cnpjEmit = cnpjs[0];
+      if ((l.toLowerCase().includes('destinat') || l.toLowerCase().includes('20.415') || l.toLowerCase().includes('rede dom')) && d.cnpjDest==='N/I') d.cnpjDest = cnpjs[0];
+    }
+    if (l.match(/NATUREZA\s*DA\s*OPERA/i)) { const p = l.split(/[:]/); if (p[1]) d.natureza = p[1].trim(); }
+    const mdt = l.match(/(\d{2}\/\d{2}\/\d{4})/);
+    if (mdt && l.match(/EMISS[ÃA]O/i) && d.dtEmissao==='N/I') d.dtEmissao = mdt[1];
+    const mtn = l.match(/VALOR\s*TOTAL\s*DA\s*NOTA[:\s]*([\d.,]+)/i);
+    if (mtn) d.totalNota = 'R$ ' + mtn[1];
+    if (l.includes('86.589.447') && d.emitente==='N/I') d.emitente = 'MINASREAL MATERIAL DE CONSTRUCAO LTDA';
+    if (l.includes('20.415.295') && d.dest==='N/I') d.dest = 'REDE DOM PEDRO DE POSTOS LTDA';
+  });
+  return d;
+}
+
+function extrairProdutos(txt) {
+  const lines = txt.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const produtos = [];
+  let startIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/DADOS\s+DOS\s+PRODUTOS/i.test(lines[i])) {
+      startIdx = i + 1;
+      break;
+    }
+  }
+  if (startIdx === -1) return produtos;
+  let currentIdx = startIdx;
+  while (currentIdx < lines.length && 
+         (/C[OÓ]D\.?\s*PROD|DESCRI[ÇC]|NCM|CST|CFOP|UND|QUANT|V\. UNIT|V\. TOTAL|ALIQ|ICMS/i.test(lines[currentIdx]) || 
+          lines[currentIdx].match(/^[-\s]+$/) || 
+          lines[currentIdx] === '')) {
+    currentIdx++;
+  }
+  for (let i = currentIdx; i < lines.length; i++) {
+    const line = lines[i];
+    if (/DADOS ADICIONAIS|INFORMAÇ[ÕO]ES COMPLEMENTARES|RESERVADO|TRANSPORTADOS|CÁLCULO DO IMPOSTO/i.test(line)) {
+      break;
+    }
+    let cfopMatch = line.match(/\b([56]\.\d{3})\b/);
+    if (!cfopMatch) {
+      cfopMatch = line.match(/\b([56]\d{3})\b/);
+      if (cfopMatch) {
+        const cfop = cfopMatch[1];
+        const formatted = cfop[0] + '.' + cfop.slice(1);
+        cfopMatch = [cfopMatch[0], formatted];
+      }
+    }
+    if (!cfopMatch) continue;
+    const cfopStr = cfopMatch[1].replace('.', '');
+    let cst = '000';
+    const beforeCFOP = line.substring(0, line.indexOf(cfopMatch[0]));
+    const cstMatches = beforeCFOP.match(/\b(\d{3})\b/g);
+    if (cstMatches && cstMatches.length > 0) {
+      cst = cstMatches[cstMatches.length - 1];
+    }
+    const ncmMatch = line.match(/\b(\d{8})\b/);
+    const ncm = ncmMatch ? ncmMatch[1] : '';
+    let desc = line;
+    desc = desc.replace(/^\d+\s+/, '');
+    if (ncmMatch) desc = desc.replace(ncmMatch[1], '');
+    desc = desc.replace(cfopMatch[0], '');
+    desc = desc.replace(/\b\d{3}\b/g, '');
+    desc = desc.replace(/0\s+/, '');
+    desc = desc.replace(/\s+/g, ' ').trim();
+    desc = desc.substring(0, 50) || ('Produto ' + (produtos.length + 1));
+    const afterCFOP = line.substring(line.indexOf(cfopMatch[0]) + cfopMatch[0].length);
+    const allNumbers = [];
+    const numPattern = /(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2}))/g;
+    let numMatch;
+    while ((numMatch = numPattern.exec(line)) !== null) {
+      const numStr = numMatch[1].replace(/\./g, '').replace(',', '.');
+      const num = parseFloat(numStr);
+      if (!isNaN(num) && num > 0) allNumbers.push(num);
+    }
+    if (allNumbers.length === 0) continue;
+    let qtd = 1, vUnit = 0, vTotal = 0;
+    if (allNumbers.length >= 3) {
+      const possibleQtd = allNumbers[allNumbers.length - 3];
+      const possibleUnit = allNumbers[allNumbers.length - 2];
+      const possibleTotal = allNumbers[allNumbers.length - 1];
+      if (possibleQtd > 0 && possibleUnit > 0 && possibleTotal > 0) {
+        const calculatedTotal = possibleQtd * possibleUnit;
+        const diff = Math.abs(calculatedTotal - possibleTotal);
+        if (diff < 0.01 || (possibleTotal > 0 && diff / possibleTotal < 0.05)) {
+          qtd = possibleQtd;
+          vUnit = possibleUnit;
+          vTotal = possibleTotal;
+        } else {
+          qtd = allNumbers[allNumbers.length - 3] || 1;
+          vUnit = allNumbers[allNumbers.length - 2] || 0;
+          vTotal = allNumbers[allNumbers.length - 1] || 0;
+        }
+      } else {
+        qtd = allNumbers[0] || 1;
+        vUnit = allNumbers[1] || 0;
+        vTotal = allNumbers[2] || 0;
+      }
+    } else if (allNumbers.length === 2) {
+      vUnit = allNumbers[0];
+      vTotal = allNumbers[1];
+      qtd = vUnit > 0 ? Math.round(vTotal / vUnit) || 1 : 1;
+    } else if (allNumbers.length === 1) {
+      vTotal = allNumbers[0];
+    }
+    if (vTotal === 0 && vUnit > 0) vTotal = vUnit * qtd;
+    if (vTotal > 0 || vUnit > 0) {
+      produtos.push({ cfop: cfopStr, cst, desc, ncm, qtd, vUnit, vTotal });
+    }
+  }
+  return produtos;
+}
+
+// ═══════════════════════════════════════════════
+// ANALISAR NOTA
+// ═══════════════════════════════════════════════
+function analisarNF() {
+  const txt = document.getElementById('nfTa').value.trim();
+  if (!txt) { alert('Cole uma nota fiscal primeiro!'); return; }
+
+  const res = document.getElementById('nfResult');
+  res.innerHTML = `<div class="status s-info"><i class="fas fa-spinner spin"></i> Analisando nota fiscal...</div>`;
+  document.getElementById('btnImprimir').style.display = 'none';
+
+  setTimeout(() => {
+    try {
+      const dados = extrairDadosNF(txt);
+      const prods = extrairProdutos(txt);
+
+      if (!prods.length) {
+        res.innerHTML = `<div class="status s-err"><i class="fas fa-exclamation-triangle"></i> Nenhum produto encontrado. Verifique a seção "DADOS DOS PRODUTOS / SERVIÇOS".</div>`;
+        return;
+      }
+
+      let html = '';
+
+      // Info cards
+      html += `<div class="info-cards">`;
+      const ics = [
+        ['Número NF', dados.numero],
+        ['CNPJ Emitente', dados.cnpjEmit],
+        ['Emitente', dados.emitente],
+        ['CNPJ Destinatário', dados.cnpjDest],
+        ['Destinatário', dados.dest],
+        ['Data Emissão', dados.dtEmissao],
+        ['Natureza', dados.natureza],
+        ['Total da Nota', dados.totalNota],
+      ];
+      ics.forEach(([l,v]) => {
+        html += `<div class="ic"><div class="ic-lbl">${l}</div><div class="ic-val">${v || 'N/I'}</div></div>`;
+      });
+      html += `</div>`;
+
+      // Processar produtos
+      const analisados = prods.map(p => {
+        const decisao = decidirCategoria(p.desc, p.vTotal, p.ncm);
+        const regra = getRegra(p.cfop, p.cst, decisao.cat);
+        const cfopInfo = getCFOPInfo(p.cfop);
+        
+        let conta = '1.556', cstL = '090', obsL = 'Regra padrão', pisL = '70/70';
+        if (regra) {
+          conta = regra.cfopLanc;
+          cstL = regra.cstLanc;
+          obsL = regra.obs;
+          pisL = regra.pis || '70/70';
+        }
+        
+        return { ...p, ...decisao, conta, cstL, obsL, pisL, regra, cfopInfo };
+      });
+
+      const totalProds = analisados.reduce((a,p)=>a+p.vTotal,0);
+      
+      const contas = {};
+      analisados.forEach(p => {
+        const key = p.cat;
+        if (!contas[key]) contas[key] = {total:0, qtd:0, conta: p.conta};
+        contas[key].total += p.vTotal;
+        contas[key].qtd++;
+      });
+
+      // Cards de decisão por produto
+      analisados.forEach((p, idx) => {
+        const catClass = {
+          'REVENDA': 'revenda',
+          'USO/CONSUMO': 'consumo',
+          'ATIVO': 'ativo',
+          'COMBUSTÍVEL': 'combustivel'
+        };
+        
+        const iconMap = {
+          'REVENDA': 'fa-boxes',
+          'USO/CONSUMO': 'fa-tools',
+          'ATIVO': 'fa-cube',
+          'COMBUSTÍVEL': 'fa-gas-pump'
+        };
+
+        html += `<div class="decision-card">`;
+        html += `<div class="dc-title"><i class="fas ${iconMap[p.cat] || 'fa-tag'}"></i> Produto ${idx+1}: ${p.desc}</div>`;
+        html += `<div class="dc-result ${catClass[p.cat] || 'consumo'}">${p.cat}</div>`;
+        
+        html += `<div class="dc-details">
+          <div class="dd-item"><span class="dd-label">CFOP Origem</span><span class="dd-value"><span class="chip chip-cfop">${fmtCFOP(p.cfop)}</span> — ${p.cfopInfo.desc}</span></div>
+          <div class="dd-item"><span class="dd-label">CST Origem</span><span class="dd-value"><span class="chip chip-cst">${p.cst}</span></span></div>
+          <div class="dd-item"><span class="dd-label">NCM</span><span class="dd-value">${p.ncm || 'N/I'}</span></div>
+          <div class="dd-item"><span class="dd-label">Valor Total</span><span class="dd-value">R$ ${fmt(p.vTotal)}</span></div>
+          <div class="dd-item"><span class="dd-label">CFOP Lançamento</span><span class="dd-value"><span class="chip chip-lanc">${p.conta}</span></span></div>
+          <div class="dd-item"><span class="dd-label">CST Lançamento</span><span class="dd-value"><span class="chip chip-cst">${p.cstL}</span></span></div>
+          <div class="dd-item"><span class="dd-label">PIS/COFINS</span><span class="dd-value"><span class="chip chip-pis">${p.pisL}</span></span></div>
+        </div>`;
+        
+        html += `<div class="dc-explication">
+          <strong><i class="fas fa-lightbulb" style="color:var(--accent2);"></i> Decisão: ${p.cat}</strong><br>
+          ${p.explicacao}
+          <br><br>
+          <strong>📌 Lançamento sugerido:</strong> 
+          <span class="highlight">Conta ${p.conta}</span> com CST ${p.cstL}
+          <br>
+          <span style="font-size:0.85rem; color:var(--text-m);">${p.obsL}</span>
+        </div>`;
+        html += `</div>`;
+      });
+
+      // Resumo por conta
+      html += `<div style="margin:1.25rem 0;">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; color:var(--text);">
+          <i class="fas fa-chart-pie" style="color:var(--accent2);"></i> Resumo por Categoria
+        </h3>
+        <div class="contas-grid">
+    `;
+      
+      Object.keys(contas).forEach(cat => {
+        const c = contas[cat];
+        const colorMap = {
+          'REVENDA': 'var(--accent3)',
+          'USO/CONSUMO': 'var(--accent4)',
+          'ATIVO': 'var(--accent2)',
+          'COMBUSTÍVEL': 'var(--orange)'
+        };
+        html += `<div class="conta-card" style="border-left-color: ${colorMap[cat] || 'var(--accent)'};">
+          <div class="cc-lbl">${cat}</div>
+          <div class="cc-val" style="color: ${colorMap[cat] || 'var(--text)'};">R$ ${fmt(c.total)}</div>
+          <div class="cc-qty">${c.qtd} item(s) → Conta ${c.conta}</div>
+        </div>`;
+      });
+      html += `</div></div>`;
+
+      // Total
+      html += `<div class="total-bar">
+        <span class="tb-label"><i class="fas fa-calculator" style="color:var(--accent)"></i> Total dos Produtos Analisados</span>
+        <span class="tb-val">R$ ${fmt(totalProds)}</span>
+      </div>`;
+
+      res.innerHTML = html;
+      document.getElementById('btnImprimir').style.display = 'inline-flex';
+      res.scrollIntoView({ behavior:'smooth', block:'start' });
+      
+    } catch(e) {
+      console.error('Erro na análise:', e);
+      res.innerHTML = `<div class="status s-err"><i class="fas fa-times-circle"></i> Erro na análise: ${e.message}</div>`;
+    }
+  }, 350);
+}
+
+// ═══════════════════════════════════════════════
+// IMPRIMIR
+// ═══════════════════════════════════════════════
+function imprimirResultado() {
+  window.print();
+}
+
+// ═══════════════════════════════════════════════
+// LIMPAR
+// ═══════════════════════════════════════════════
+function limparNF() {
+  document.getElementById('nfTa').value = '';
+  document.getElementById('nfResult').innerHTML = '';
+  document.getElementById('btnImprimir').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// CARREGAR EXEMPLO
+// ═══════════════════════════════════════════════
+function carregarExemplo() {
+  document.getElementById('nfTa').value = `RECEBEMOS DE MINASREAL MATERIAL DE CONSTRUCAO LTDA OS PRODUTOS CONSTANTES DA NOTA
+FISCAL INDICADA AO LADO.
+NF-e
+Nº 000.002.335
+SÉRIE 1
+MINASREAL MATERIAL DE CONSTRUCAO LTDA
+CNPJ: 86.589.447/0001-63
+DESTINATÁRIO / REMETENTE
+NOME/RAZÃO SOCIAL: REDE DOM PEDRO DE POSTOS LTDA
+CNPJ/CPF: 20.415.295/0019-01
+DATA DE EMISSÃO: 04/12/2024
+VALOR TOTAL DA NOTA: 2.452,30
+DADOS DOS PRODUTOS / SERVIÇOS
+2144 BRITA 0 25171000 5.102 M3 3,5 219,9 769,65 0,00 0,00 0,00 0,00 0,00
+3054 TE ESG. 100 MM KRONA 39174090 5.405 UN 3 14,9 44,7 0,00 0,00 0,00 0,00 0,00
+635 CIMENTO CPII 32 25232910 5.405 SC 14 30 420 0,00 0,00 0,00 0,00 0,00
+5012 TUBO ESGOTO KRONA 100MM (METRO) 39172300 5.405 MT 24 16,5 396 0,00 0,00 0,00 0,00 0,00
+10782 CURVA 90 ESG LONGA 100 MM KRONA 39174090 5.405 UN 1 55,9 55,9 0,00 0,00 0,00 0,00 0,00
+1455 FERRO 8.0 OU 5/16 C/12 MT 72142000 5.405 UN 1 55,9 55,9 0,00 0,00 0,00 0,00 0,00
+1081 AREIA LAVADA 25059000 5.102 M3 8 89,9 719,2 0,00 0,00 0,00 0,00 0,00
+DADOS ADICIONAIS
+INFORMAÇÕES COMPLEMENTARES: DOCUMENTO EMITIDO POR ME OU EPP OPTANTE PELO SIMPLES NACIONAL`;
+  document.getElementById('nfResult').innerHTML = '';
+  document.getElementById('btnImprimir').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// CARREGAR TABELA CFOP
+// ═══════════════════════════════════════════════
+function carregarTabelaCFOP() {
+  const tbody = document.getElementById('tabelaCFOPBody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  CFOP_TABELA.forEach(item => {
+    const grupoColors = {
+      'Entrada': 'rgba(37,99,235,0.1)',
+      'Entrada Interestadual': 'rgba(37,99,235,0.08)',
+      'Importação': 'rgba(124,58,237,0.1)',
+      'Saída': 'rgba(5,150,105,0.1)',
+      'Saída Interestadual': 'rgba(5,150,105,0.08)',
+      'Exportação': 'rgba(217,119,6,0.1)'
+    };
+    const tr = document.createElement('tr');
+    tr.style.backgroundColor = grupoColors[item.grupo] || 'transparent';
+    tr.innerHTML = `
+      <td style="padding:6px 10px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--accent);">${item.cfop}</td>
+      <td style="padding:6px 10px;">${item.desc}</td>
+      <td style="padding:6px 10px;font-size:0.7rem;color:var(--text-m);">${item.grupo}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Inicializar tabela
+carregarTabelaCFOP();
+
+console.log('✅ Analisador NF-e Pro carregado com sucesso!');
+console.log('📋 Cole a nota e clique em "Analisar Nota Fiscal"');
+</script>
+</body>
+</html>
