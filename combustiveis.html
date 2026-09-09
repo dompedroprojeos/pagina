@@ -959,129 +959,23 @@ function converterParaJson() {
     const [, mesNumStr, anoStr] = volumeJSON.periodoFim.split('/');
     const mesNum = parseInt(mesNumStr, 10);
     const ano = parseInt(anoStr, 10);
-    const dataInicio = volumeJSON.periodoInicio.split('/').reverse().join('-');
-    const dataFim = volumeJSON.periodoFim.split('/').reverse().join('-');
-    const nomeMes = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][mesNum-1] || 'periodo';
+    const nomeMes = NOMES_MESES[mesNum-1] || 'periodo';
 
+    // Formato INTERNO — o mesmo que o botão "JSON" do painel e o carregamento
+    // automático (fetch por mês) esperam. É o mesmo formato que o converter.js
+    // gera rodando por fora — aqui é a versão "tudo dentro do navegador".
     const payload = {
-        periodo: { de: dataInicio, ate: dataFim },
-        geradoEm: new Date().toISOString(),
-        empresas: {},
-        faltaMedicao: {}
+        periodoInicio: volumeJSON.periodoInicio,
+        periodoFim: volumeJSON.periodoFim,
+        diaMes: volumeJSON.diaMes,
+        mesReferencia: volumeJSON.mesReferencia,
+        empresas: volumeJSON.empresas,
+        empresasTanque: volumeJSON.empresasTanque,
+        empresasDetalhadas: volumeJSON.empresasDetalhadas,
+        empresasFaltaMedicao: volumeJSON.empresasFaltaMedicao,
+        empresasFaltaMedicaoNomes: volumeJSON.empresasFaltaMedicaoNomes,
+        geradoEm: new Date().toISOString()
     };
-
-    // Monta falta de medição usando o nome da empresa (mesma chave usada em empresasDetalhadas)
-    if (volumeJSON.empresasFaltaMedicao) {
-        for (const codigo in volumeJSON.empresasFaltaMedicao) {
-            const nomeEmp = (volumeJSON.empresasFaltaMedicaoNomes && volumeJSON.empresasFaltaMedicaoNomes[codigo]) || `EMPRESA ${codigo}`;
-            const chave = `${codigo} - ${nomeEmp}`;
-            payload.faltaMedicao[chave] = volumeJSON.empresasFaltaMedicao[codigo];
-        }
-    }
-
-    // Usa dados detalhados
-    if (volumeJSON.empresasDetalhadas && Object.keys(volumeJSON.empresasDetalhadas).length > 0) {
-        payload.empresas = volumeJSON.empresasDetalhadas;
-    } else {
-        // Fallback
-        const nomesEmpresas = {
-            '2':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 1)',
-            '4':'SP - POSTO DOM PEDRO DE LEME LTDA (DP LEME)',
-            '5':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP PINDA N',
-            '6':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP 2)',
-            '7':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO',
-            '8':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP ATIBAIA',
-            '9':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP ITAPE',
-            '10':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAETAN',
-            '11':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP BETIM',
-            '13':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP TURIM)',
-            '14':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP SANTA',
-            '15':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP SALI',
-            '17':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP APAREC',
-            '18':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP MURIAE',
-            '19':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP PARAOP',
-            '20':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAG',
-            '21':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAG',
-            '22':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP CAMB',
-            '24':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA',
-            '25':'SP - AUTO POSTO JOIA DA DUTRA LTDA (DP PINDA',
-            '26':'SP R - REDE DOM PEDRO DE POSTOS LTDA (DP MIRA',
-            '27':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP JK)',
-            '28':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP ALIA',
-            '29':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP OLIVEI',
-            '30':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMBUI',
-            '31':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP JAGUAQ',
-            '32':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO',
-            '33':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP NOVA S',
-            '34':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP IGARAT',
-            '35':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CARMOP',
-            '41':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP DIVI',
-            '42':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMBUI',
-            '43':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONTAG',
-            '44':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP CACH',
-            '45':'TO - REDE DOM PEDRO DE POSTOS LTDA (DP PARAIS',
-            '48':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO',
-            '49':'MG - POSTO DOM PEDRO SAO GONCALO DO SAPUCAI U',
-            '50':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP ITAGUA',
-            '51':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP SENADO',
-            '53':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP SAO GO',
-            '54':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP LORENA',
-            '55':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP DIVI',
-            '56':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP INCONF',
-            '57':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP JUIZ D',
-            '59':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO',
-            '60':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMAND',
-            '61':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP OURO F',
-            '63':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CAMAND',
-            '64':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA',
-            '65':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP GUARA',
-            '66':'SP - POSTO DOM PEDRO BRAGANÇA URBANO LTDA (BR',
-            '67':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP JACARE',
-            '68':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP ATIBAI',
-            '69':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO',
-            '70':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP EXTREM',
-            '75':'SP - POSTO DOM PEDRO ITATIBA 1 LTDA (DP ITATI',
-            '77':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP POUSO',
-            '78':'SP - POSTO DOM PEDRO SALES DE OLIVEIRA LTDA (',
-            '79':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP VITORI',
-            '80':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP JUIZ F',
-            '81':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP MONT',
-            '82':'SP - POSTO DOM PEDRO VARGEM LTDA (DP VARGEM U',
-            '83':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP SAO JO',
-            '87':'MG N - REDE DOM PEDRO DE POSTOS LTDA (DP FREI',
-            '88':'SP - REDE DOM PEDRO DE POSTOS LTDA (DP BRAGAN',
-            '89':'RJ - REDE DOM PEDRO DE POSTOS LTDA (DP BARRA',
-            '90':'RJ - REDE DOM PEDRO DE POSTOS LTDA (DP BARRA',
-            '91':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP CONSEL',
-            '92':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP PLANAL',
-            '93':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO',
-            '94':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP SANTO',
-            '95':'SE - REDE DOM PEDRO DE POSTOS LTDA (DP SÃO CR',
-            '96':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP BARREI',
-            '97':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP ITABER',
-            '98':'BA - REDE DOM PEDRO DE POSTOS LTDA (DP VALENC',
-            '99':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO',
-            '100':'MG S - REDE DOM PEDRO DE POSTOS LTDA (DP SAO',
-            '102':'CE - REDE DOM PEDRO DE POSTOS LTDA (DP RUSSA',
-            '103':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP INHAP',
-            '104':'MG - REDE DOM PEDRO DE POSTOS LTDA (DP LUZ)',
-            '105':'SP R - REDE DOM PEDRO DE POSTOS LTDA (DP MIR',
-            '107':'BA - REDE DOM PEDRO DE POSTOS (DP IBO)'
-        };
-        for (const codigo in volumeJSON.empresas) {
-            const nome = nomesEmpresas[codigo] || `EMPRESA ${codigo}`;
-            const bomba = volumeJSON.empresas[codigo] || 0;
-            const tanque = (volumeJSON.empresasTanque && volumeJSON.empresasTanque[codigo]) || 0;
-            const entrada = Math.round((bomba + tanque) / 2);
-            payload.empresas[`${codigo} - ${nome}`] = [{
-                produto: "TOTAL GERAL",
-                data: dataFim,
-                entrada: entrada,
-                bombas: Math.round(bomba * 1000) / 1000,
-                tanque: Math.round(tanque)
-            }];
-        }
-    }
 
     const nomeArquivo = `estoque-${nomeMes}-${ano}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1094,7 +988,7 @@ function converterParaJson() {
     setTimeout(() => URL.revokeObjectURL(link.href), 2000);
 
     document.getElementById('jsonPreview').textContent = JSON.stringify(payload, null, 2);
-    document.getElementById('instrucoesJsonTexto').innerHTML = `✅ Baixei <b>${nomeArquivo}</b> com ${Object.keys(payload.empresas).length} empresas.`;
+    document.getElementById('instrucoesJsonTexto').innerHTML = `✅ Baixei <b>${nomeArquivo}</b> com ${Object.keys(payload.empresas||{}).length} empresas. Suba esse arquivo pra pasta do estoques.html (GitHub Pages ou servidor) — ele será encontrado automaticamente pelo seletor de Mês/Ano.`;
     document.getElementById('modalInstrucoesJson').classList.add('show');
 }
 
