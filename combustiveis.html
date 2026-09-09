@@ -414,22 +414,8 @@ input[type=file] { display:none; }
     <div class="footer">
         <div class="footer-info"><i class="fas fa-chart-simple"></i> Rede Dom Pedro · Waldeci Ramos</div>
         <div class="footer-admin">
-            <span class="admin-only" id="adminStatus"><i class="fas fa-user-shield"></i> Admin · <a href="#" onclick="sairAdmin();return false;" style="color:var(--orange-500);">sair</a></span>
-            <button class="admin-gear" onclick="abrirLoginAdmin()"><i class="fas fa-gear"></i></button>
+            <span id="adminStatus"><i class="fas fa-user-shield"></i> Admin</span>
         </div>
-    </div>
-</div>
-
-<!-- MODAL ADMIN -->
-<div class="modal-overlay" id="modalAdminLogin">
-    <div class="modal-box">
-        <h3><i class="fas fa-user-shield"></i> Área Administrativa</h3>
-        <p class="admin-login-hint">Acesso restrito — importação de TXT e conversão para JSON.</p>
-        <div class="admin-login-field"><label>Usuário</label><input type="text" id="adminUsuario" value="waldeci"></div>
-        <div class="admin-login-field"><label>Senha</label><input type="password" id="adminSenha" value="789123" onkeydown="if(event.key==='Enter')tentarLoginAdmin();"></div>
-        <div class="admin-login-erro" id="adminLoginErro"><i class="fas fa-triangle-exclamation"></i> Usuário ou senha inválidos.</div>
-        <button class="btn-salvar-manual" style="width:100%;justify-content:center;" onclick="tentarLoginAdmin()"><i class="fas fa-right-to-bracket"></i> Entrar</button>
-        <button class="btn-fechar-modal" onclick="fecharLoginAdmin()">Cancelar</button>
     </div>
 </div>
 
@@ -589,7 +575,10 @@ function getDiaAtual() { return (volumeJSON&&volumeJSON.diaMes)?volumeJSON.diaMe
 function getDiasMesAtual() { if(volumeJSON&&volumeJSON.mesReferencia!==undefined) return DIAS_POR_MES[volumeJSON.mesReferencia-1]||30; const now=new Date(); return DIAS_POR_MES[now.getMonth()]||30; }
 function escapeHtml(t){ if(!t)return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 function isDentroLimite(pct){ return (pct!==null&&pct!==undefined&&!isNaN(pct))?Math.abs(pct)<=LIMITE_DIFERENCA:false; }
-function isAdmin() { try { return localStorage.getItem(ADMIN_KEY)==='1'; } catch(e){return false;} }
+// Só existe uma senha no sistema — quem está logado no painel É o admin.
+// Não depende mais de um segundo "toggle" separado (engrenagem), que ficava
+// fora de sincronia quando o login era retomado automaticamente pela sessão.
+function isAdmin() { try { return sessionStorage.getItem('estoqueAutenticado') === 'sim'; } catch(e){return false;} }
 function aplicarVisibilidadeAdmin() { const ativo=isAdmin(); document.querySelectorAll('.admin-only').forEach(el=>{ el.style.display=ativo?'': 'none'; }); }
 
 // ==================== PARSER TXT ====================
@@ -1378,32 +1367,6 @@ function exportarCSV() {
     link.click();
 }
 
-// ==================== ADMIN ====================
-function abrirLoginAdmin() {
-    document.getElementById('adminLoginErro').classList.remove('show');
-    document.getElementById('modalAdminLogin').classList.add('show');
-}
-function fecharLoginAdmin() { document.getElementById('modalAdminLogin').classList.remove('show'); }
-function tentarLoginAdmin() {
-    const u = document.getElementById('adminUsuario').value.trim().toLowerCase();
-    const s = document.getElementById('adminSenha').value;
-    if (u === ADMIN_USUARIO && s === ADMIN_SENHA) {
-        localStorage.setItem(ADMIN_KEY, '1');
-        fecharLoginAdmin();
-        aplicarVisibilidadeAdmin();
-        document.getElementById('adminStatus').innerHTML = '<i class="fas fa-user-shield"></i> Admin · <a href="#" onclick="sairAdmin();return false;" style="color:var(--orange-500);">sair</a>';
-        alert('✅ Modo administrador ativado!');
-    } else {
-        document.getElementById('adminLoginErro').classList.add('show');
-    }
-}
-function sairAdmin() {
-    localStorage.removeItem(ADMIN_KEY);
-    aplicarVisibilidadeAdmin();
-    document.getElementById('adminStatus').innerHTML = '';
-    alert('👋 Modo administrador desativado.');
-}
-
 // ==================== LOGIN ====================
 function liberarAcesso() {
     document.getElementById('loginOverlay').style.display = 'none';
@@ -1424,6 +1387,9 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     const senha = document.getElementById('loginSenha').value;
     if (usuario.toLowerCase() === USUARIO_FIXO && senha === SENHA_FIXA) {
         sessionStorage.setItem('estoqueAutenticado', 'sim');
+        // Login principal e login admin usam a mesma senha — ativa os dois juntos,
+        // sem precisar logar de novo na engrenagem do rodapé.
+        if (usuario.toLowerCase() === ADMIN_USUARIO) localStorage.setItem(ADMIN_KEY, '1');
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('loginSuccess').classList.add('show');
         setTimeout(liberarAcesso, 800);
