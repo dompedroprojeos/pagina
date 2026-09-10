@@ -155,9 +155,9 @@ body{
 }
 .body-meta-date{
   font-family:'Cormorant Garamond',serif;
-  font-size:16px;color:#3A4E60;
-  text-align:right;font-weight:600;
-  letter-spacing:.3px;
+  font-size:24px;color:var(--azul-rei);
+  text-align:right;font-weight:700;
+  letter-spacing:.4px;
 }
 /* Span editável da cidade */
 .cidade-edit{
@@ -166,12 +166,15 @@ body{
   outline:none;
   cursor:text;
   font-family:'Cormorant Garamond',serif;
-  font-size:16px;
-  color:#3A4E60;
-  font-weight:600;
-  padding:0 3px;
+  font-size:26px;
+  font-style:italic;
+  color:var(--laranja-escuro);
+  font-weight:800;
+  padding:0 4px;
   border-radius:3px;
   min-width:60px;
+  letter-spacing:.5px;
+  text-shadow:0 1px 0 rgba(0,0,0,.03);
   transition:background .2s, border-color .2s;
 }
 .cidade-edit:focus{
@@ -181,9 +184,10 @@ body{
 }
 .data-texto{
   font-family:'Cormorant Garamond',serif;
-  font-size:16px;
+  font-size:22px;
   color:#3A4E60;
   font-weight:600;
+  letter-spacing:.3px;
 }
 
 /* Destinatário */
@@ -280,6 +284,38 @@ body{
   border-top:1px solid var(--borda-clara);
   flex-shrink:0;background:#fff;
 }
+.sig-line-wrap{
+  position:relative;
+  width:260px;
+  margin-bottom:8px;
+}
+.sig-line{
+  width:260px;
+  border-top:1.5px solid var(--azul-rei);
+}
+.sig-icon{
+  position:absolute;
+  left:6px;top:-30px;
+  font-size:24px;
+  cursor:pointer;
+  user-select:none;
+  transition:transform .2s;
+  line-height:1;
+}
+.sig-icon:hover{transform:scale(1.18) rotate(-6deg);}
+.sig-icon:active{transform:scale(.95);}
+.sig-nome{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:16px;color:var(--azul-rei);font-weight:600;
+  outline:none;min-width:80px;
+}
+.sig-nome:focus{outline:2px dashed rgba(242,122,45,.3);outline-offset:3px;border-radius:4px;}
+.sig-cpf{
+  font-size:11.5px;color:#5A6E7F;font-weight:600;margin-top:2px;
+  outline:none;min-width:60px;
+}
+.sig-cpf:focus{outline:2px dashed rgba(242,122,45,.3);outline-offset:3px;border-radius:4px;}
+.sig-empresa-wrap{margin-top:14px;}
 .sig-script{
   font-family:'Cormorant Garamond',serif;font-style:italic;
   font-size:27px;color:var(--azul-rei);line-height:1.2;margin-bottom:6px;font-weight:600;
@@ -383,6 +419,7 @@ body{
   #tabelaTitulos thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   td[contenteditable]{outline:none!important;}
   .cidade-edit{border-bottom:none!important;}
+  .sig-nome,.sig-cpf{outline:none!important;}
 }
 </style>
 </head>
@@ -538,9 +575,17 @@ body{
 
   <!-- ASSINATURA -->
   <div class="letter-sig">
-    <div class="sig-script" id="sigScript">Rede Dom Pedro</div>
-    <div class="sig-role" id="sigRole">CNPJ: 20.415.295/0001-74</div>
-    <div class="sig-dept" id="sigDept">Rod. Fernão Dias, Km 880 – Estiva, MG</div>
+    <div class="sig-line-wrap no-print-keep-icon">
+      <span class="sig-icon" id="sigIcon" onclick="cycleSigIcon()" title="Clique para trocar o ícone de assinatura">✍️</span>
+      <div class="sig-line"></div>
+    </div>
+    <div class="sig-nome" id="sigNome" contenteditable="true" spellcheck="false">Sr. Laerte Alves de Oliveira</div>
+    <div class="sig-cpf" id="sigCpf" contenteditable="true" spellcheck="false">CPF: 000.000.000-00</div>
+    <div class="sig-empresa-wrap">
+      <div class="sig-script" id="sigScript">Rede Dom Pedro</div>
+      <div class="sig-role" id="sigRole">CNPJ: 20.415.295/0001-74</div>
+      <div class="sig-dept" id="sigDept">Rod. Fernão Dias, Km 880 – Estiva, MG</div>
+    </div>
   </div>
 
   <!-- FOOTER -->
@@ -647,7 +692,7 @@ function selecionarEmpresa(idx) {
   const cidadeTit = e.cidade.charAt(0) + e.cidade.slice(1).toLowerCase();
   $('cidadeEdit').textContent = `${cidadeTit} ${e.uf}`;
 
-  // Assinatura
+  // Assinatura (empresa)
   $('sigScript').textContent = e.razaoSocial;
   $('sigRole').textContent = 'CNPJ: ' + e.cnpj;
   $('sigDept').textContent = endCurto;
