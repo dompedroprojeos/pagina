@@ -52,6 +52,23 @@ body{
 .btn-tabelionato{background:rgba(242,122,45,.15)!important;border-color:var(--laranja)!important;color:#F9B67A!important}
 .btn-empresa{background:rgba(10,37,64,.4)!important;border-color:rgba(10,150,220,.5)!important;color:#7ECFFF!important}
 
+/* ── CHECKBOX CHEQUE (toolbar) ── */
+.chk-cheque{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.07);color:#EFF3F8;
+  border:1px solid rgba(242,122,45,.25);border-radius:10px;
+  padding:6px 14px;cursor:pointer;font-size:12.5px;
+  font-family:'Nunito',sans-serif;font-weight:700;transition:all .2s;
+  user-select:none;
+}
+.chk-cheque:hover{background:rgba(242,122,45,.18);border-color:var(--laranja);transform:translateY(-1px);}
+.chk-cheque input{accent-color:var(--laranja);width:15px;height:15px;cursor:pointer;}
+.chk-cheque.active{
+  background:linear-gradient(135deg,var(--laranja),var(--laranja-escuro));
+  color:#0A1C2A;border-color:var(--laranja);
+  box-shadow:0 3px 12px rgba(242,122,45,.5);
+}
+
 /* ── SELETOR DE EMPRESA (toolbar) ── */
 #empresaSelect{
   background:rgba(10,37,64,.6)!important;
@@ -404,6 +421,12 @@ body{
     <option value="1">DOM PEDRO ITATIAIUÇU</option>
   </select>
   <div class="sep"></div>
+  <!-- TOGGLE CHEQUE -->
+  <label class="chk-cheque no-print" id="chkChequeLabel" title="Marque para gerar o pedido referente a um cheque quitado">
+    <input type="checkbox" id="chkCheque" onchange="toggleCheque(this.checked)">
+    <span>💳 Cheque</span>
+  </label>
+  <div class="sep"></div>
   <button class="btn-tabelionato" onclick="openTabelModal()">🏛 Tabelionatos</button>
   <div class="sep"></div>
   <button onclick="addRow()">➕ Linha</button>
@@ -459,7 +482,7 @@ body{
     </div>
 
     <!-- Referência -->
-    <div class="ref-block"><span>Ref:</span> RETIRADA DE TÍTULO SEM PROTESTO</div>
+    <div class="ref-block"><span>Ref:</span> <span id="refTexto">RETIRADA DE TÍTULO SEM PROTESTO</span></div>
 
     <!-- Texto inicial -->
     <div class="body-text" id="bodyText" contenteditable="true" spellcheck="false">
@@ -468,7 +491,7 @@ body{
     </div>
 
     <!-- Tabela de títulos -->
-    <div class="tabela-titulo">Títulos para Retirada</div>
+    <div class="tabela-titulo" id="tituloSecaoTabela">Títulos para Retirada</div>
 
     <div class="btn-row no-print">
       <button class="btn-add-row" onclick="addRow()">➕ Adicionar linha</button>
@@ -635,6 +658,36 @@ function selecionarEmpresa(idx) {
   $('ftCnpj').textContent = 'CNPJ: ' + e.cnpj;
 
   showToast('✓ Posto "' + e.nome + '" aplicado ao documento');
+}
+
+/* ── ALTERNÂNCIA TÍTULO ↔ CHEQUE ── */
+const HEADERS_TITULO = ['Protocolo', 'Data Proto.', 'Data Vcto.', 'Valor (R$)', 'Valor Cobrado (R$)', 'Nome do Devedor'];
+const HEADERS_CHEQUE = ['Número Cheque', 'Data Cheque', 'Data Vcto. Cheque', 'Valor (R$)', 'Valor Cobrado (R$)', 'Nome do Devedor'];
+
+const TEXTO_TITULO = `<p><strong>Prezados Senhores:</strong></p>
+<p>Pelo presente, na qualidade de apresentante do(s) título(s) abaixo relacionado(s), venho formalizar o pedido de desistência do(s) protesto(s), de conformidade com o item 57 e 57.1 das Normas da Corregedoria Geral da Justiça.</p>`;
+
+const TEXTO_CHEQUE = `<p><strong>Prezados Senhores:</strong></p>
+<p>Pelo presente, na qualidade de apresentante do cheque abaixo especificado, venho comunicar que o mesmo encontra-se devidamente quitado, solicitando a desistência do protesto e as demais providências cabíveis para a respectiva baixa.</p>`;
+
+const REF_TITULO = 'RETIRADA DE TÍTULO SEM PROTESTO';
+const REF_CHEQUE = 'RETIRADA DE CHEQUE – QUITADO';
+
+const SECAO_TITULO = 'Títulos para Retirada';
+const SECAO_CHEQUE = 'Cheque para Retirada';
+
+function toggleCheque(marcado) {
+  const headers = marcado ? HEADERS_CHEQUE : HEADERS_TITULO;
+  document.querySelectorAll('#tabelaTitulos thead th').forEach((th, i) => {
+    th.textContent = headers[i];
+  });
+
+  $('bodyText').innerHTML = marcado ? TEXTO_CHEQUE : TEXTO_TITULO;
+  $('refTexto').textContent = marcado ? REF_CHEQUE : REF_TITULO;
+  $('tituloSecaoTabela').textContent = marcado ? SECAO_CHEQUE : SECAO_TITULO;
+  $('chkChequeLabel').classList.toggle('active', marcado);
+
+  showToast(marcado ? '💳 Modelo alterado para Cheque quitado' : '📄 Modelo padrão de título restaurado');
 }
 
 /* ── Data automática ── */
