@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rede Dom Pedro · Comparador AutoSystem × RAZÃO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
+        body { background:#f3f6fc; color:#1e293b; line-height:1.5; }
+        .container { max-width:1440px; margin:0 auto; padding:24px 32px; }
+
+        h1, h2, h3, .brand h1, .resumo-header h2, .input-card h3 { font-family:'Manrope',-apple-system,sans-serif; }
+
+        header {
+            background:linear-gradient(145deg,#7c2d12 0%,#f97316 100%);
+            color:#fff; padding:24px 32px; border-radius:28px; margin-bottom:28px;
+            box-shadow:0 20px 35px -8px rgba(0,35,80,.3); position:relative; overflow:hidden;
+        }
+        header::after {
+            content:""; position:absolute; top:-30%; right:-10%; width:280px; height:280px;
+            background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 70%);
+            border-radius:50%;
+        }
+        .header-content { display:flex; justify-content:space-between; align-items:center; position:relative; z-index:2; flex-wrap:wrap; gap:16px; }
+        .logo-area { display:flex; align-items:center; gap:18px; }
+        .logo-icon { font-size:38px; color:#ffd966; filter:drop-shadow(0 4px 6px #00000030); align-items:center; justify-content:center; }
+        .logo-mascote { height:56px; width:56px; object-fit:contain; border-radius:16px; background:rgba(255,255,255,.15); padding:4px; filter:drop-shadow(0 4px 6px #00000030); }
+        .brand h1 { font-size:26px; font-weight:800; letter-spacing:-.3px; line-height:1.2; }
+        .brand span { font-size:14px; opacity:.85; display:block; margin-top:4px; font-family:'Inter',sans-serif; }
+
+        .totais-header { display:flex; gap:16px; flex-wrap:wrap; }
+        .total-pill {
+            background:rgba(255,255,255,.12); backdrop-filter:blur(8px);
+            padding:10px 20px; border-radius:60px; border:1px solid rgba(255,255,255,.2);
+            display:flex; flex-direction:column; align-items:center; min-width:160px;
+        }
+        .total-pill .lbl { font-size:10px; opacity:.85; text-transform:uppercase; letter-spacing:.4px; font-weight:600; }
+        .total-pill .vl { font-family:'SF Mono',Consolas,monospace; font-weight:700; font-size:16px; margin-top:2px; }
+        .total-pill.ok   { background:rgba(34,197,94,.22); border-color:rgba(134,239,172,.5); }
+        .total-pill.dif  { background:rgba(239,68,68,.22); border-color:rgba(254,202,202,.5); }
+        .total-pill.info { background:rgba(59,130,246,.22); border-color:rgba(147,197,253,.5); }
+        .total-pill.comp { background:rgba(139,92,246,.22); border-color:rgba(196,181,253,.5); }
+
+        .btn-toggle-import {
+            background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); color:#fff;
+            padding:12px 22px; border-radius:40px; font-weight:600; font-size:13px; cursor:pointer;
+            display:flex; align-items:center; gap:8px; transition:.2s; backdrop-filter:blur(6px);
+        }
+        .btn-toggle-import:hover { background:rgba(255,255,255,.28); }
+        .btn-toggle-import.active { background:#fff; color:#c2410c; }
+
+        /* Dashboard de indicadores */
+        .dashboard-stats {
+            display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:24px;
+        }
+        @media (max-width:1200px) { .dashboard-stats { grid-template-columns:repeat(3,1fr); } }
+        @media (max-width:640px)  { .dashboard-stats { grid-template-columns:1fr 1fr; } }
+        .stat-card {
+            background:#fff; border-radius:20px; padding:18px 18px; display:flex; align-items:center; gap:14px;
+            box-shadow:0 8px 22px -12px rgba(0,0,0,.18); border:1px solid #edf2f7;
+        }
+        .stat-icon {
+            width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+            background:rgba(249,115,22,.12); color:#f97316; font-size:17px; flex-shrink:0;
+        }
+        .stat-card.info .stat-icon { background:rgba(59,130,246,.14); color:#0369a1; }
+        .stat-card.comp .stat-icon { background:rgba(139,92,246,.14); color:#5b21b6; }
+        .stat-card.alerta .stat-icon { background:rgba(239,68,68,.14); color:#dc2626; }
+        .stat-card.alerta { border-color:#fecaca; }
+        .stat-card.ok .stat-icon { background:rgba(34,197,94,.14); color:#16a34a; }
+        .stat-card.dif .stat-icon { background:rgba(239,68,68,.14); color:#dc2626; }
+        .stat-info { display:flex; flex-direction:column; min-width:0; }
+        .stat-info .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .stat-info .vl { font-family:'SF Mono',Consolas,monospace; font-weight:700; font-size:16px; color:#0f172a; margin-top:2px; }
+
+        /* Alerta de devoluções sem contrapartida */
+        .alerta-card {
+            background:#fff7ed; border:1.5px solid #fed7aa; border-radius:22px; padding:18px 24px;
+            margin-bottom:22px; box-shadow:0 10px 26px -16px rgba(194,65,12,.35);
+        }
+        .alerta-card-header { display:flex; align-items:center; gap:10px; font-weight:700; color:#9a3412; font-size:14px; margin-bottom:12px; }
+        .alerta-card-header i { font-size:17px; }
+        .alerta-lista { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow:auto; }
+        .alerta-item {
+            display:grid; grid-template-columns:90px 1fr 120px; gap:12px; align-items:center;
+            background:#fff; border:1px solid #fed7aa; border-radius:12px; padding:8px 14px; font-size:12px;
+        }
+        .alerta-item .data { font-family:'SF Mono',Consolas,monospace; color:#9a3412; font-size:11px; }
+        .alerta-item .desc { color:#7c2d12; }
+        .alerta-item .desc b { color:#9a3412; }
+        .alerta-item .val { font-family:'SF Mono',Consolas,monospace; font-weight:700; text-align:right; color:#c2410c; }
+
+        /* Painel de correspondências de contas */
+        .corresp-card {
+            background:#fff; border-radius:22px; border:1px solid #edf2f7; box-shadow:0 10px 30px -14px rgba(0,0,0,.15);
+            margin-bottom:22px; overflow:hidden;
+        }
+        .corresp-header {
+            padding:16px 24px; background:#fff7ed; border-bottom:1px solid #fed7aa;
+            display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+        }
+        .corresp-header h2 { font-size:15px; color:#9a3412; display:flex; align-items:center; gap:10px; }
+        .corresp-body { padding:14px 24px; max-height:420px; overflow:auto; }
+        .corresp-row {
+            display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:center;
+            padding:10px 0; border-bottom:1px dashed #eef2f7; font-size:13px;
+        }
+        .corresp-row:last-child { border-bottom:none; }
+        .corresp-row .plan-nome { font-weight:600; color:#0f172a; }
+        .corresp-row .plan-codigo { font-family:'SF Mono',Consolas,monospace; font-size:11px; color:#64748b; }
+        .corresp-row select {
+            width:100%; padding:8px 10px; border-radius:10px; border:1.5px solid #e2e8f0; font-size:12px; background:#f8fafd;
+        }
+        .corresp-row .score-tag { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:700; margin-left:6px; }
+        .score-tag.auto { background:#e0e7ff; color:#3730a3; }
+        .score-tag.manual { background:#fef3c7; color:#92400e; }
+        .btn-restaurar { background:none; border:none; color:#94a3b8; font-size:11px; cursor:pointer; text-decoration:underline; }
+        .btn-restaurar:hover { color:#c2410c; }
+
+        /* Chips de filtro rápido */
+        .chips-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .chip {
+            border:1.5px solid #e2e8f0; background:#f8fafd; color:#475569; padding:7px 16px; border-radius:40px;
+            font-size:12px; font-weight:600; cursor:pointer; transition:.15s; white-space:nowrap;
+        }
+        .chip:hover { border-color:#fdba74; color:#c2410c; }
+        .chip.active { background:#f97316; border-color:#f97316; color:#fff; }
+
+        /* Botões flutuantes de navegação */
+        .nav-float { position:fixed; right:26px; bottom:26px; display:flex; flex-direction:column; gap:10px; z-index:900; }
+        .nav-float button {
+            width:46px; height:46px; border-radius:50%; border:none; background:#f97316; color:#fff; font-size:16px;
+            cursor:pointer; box-shadow:0 8px 20px -6px rgba(194,65,12,.55); transition:.15s;
+        }
+        .nav-float button:hover { background:#c2410c; transform:translateY(-2px); }
+
+        .input-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+        @media (max-width:960px) { .input-grid { grid-template-columns:1fr; } }
+
+        .input-card {
+            background:#fff; border-radius:24px; padding:22px 24px;
+            box-shadow:0 10px 30px -10px rgba(0,20,50,.15);
+            border:1px solid #e9edf4; display:flex; flex-direction:column;
+        }
+        .input-card h3 { font-size:15px; font-weight:700; color:#7c2d12; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+        .input-card h3 i { color:#f97316; }
+        .input-card .hint { font-size:12px; color:#64748b; margin-bottom:12px; }
+        .import-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+        .btn-import-file {
+            display:inline-flex; align-items:center; gap:8px; background:#fff7ed; color:#c2410c;
+            border:1.5px dashed #fdba74; padding:9px 16px; border-radius:14px; font-size:12px; font-weight:700;
+            cursor:pointer; transition:.15s;
+        }
+        .btn-import-file:hover { background:#ffedd5; border-color:#f97316; }
+        .arquivo-carregado { font-size:11px; color:#16a34a; font-weight:600; }
+        .input-card textarea {
+            width:100%; min-height:230px; padding:14px 16px; background:#f8fafd;
+            border:1.5px solid #e2e8f0; border-radius:16px; font-size:12px;
+            font-family:'SF Mono',Consolas,'Courier New',monospace;
+            resize:vertical; white-space:pre; overflow:auto; color:#0b1e33;
+        }
+        .input-card textarea:focus { border-color:#f97316; background:#fff; outline:none; box-shadow:0 0 0 4px rgba(249,115,22,.15); }
+        .input-card .meta {
+            margin-top:10px; display:flex; justify-content:space-between; align-items:center;
+            font-size:12px; color:#64748b;
+        }
+        .input-card .meta .count { font-weight:600; color:#f97316; }
+        .btn-clear-mini {
+            background:none; border:none; color:#64748b; cursor:pointer; font-size:12px;
+            display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:20px;
+        }
+        .btn-clear-mini:hover { background:#f1f5f9; color:#7c2d12; }
+
+        .filters-panel {
+            background:#fff; padding:20px 24px; border-radius:24px;
+            box-shadow:0 10px 30px -10px rgba(0,20,50,.15); margin-bottom:20px;
+            display:flex; flex-wrap:wrap; align-items:flex-end; gap:20px;
+            border:1px solid #e9edf4;
+        }
+        .filter-group { flex:1 1 220px; }
+        .filter-group label { display:flex; align-items:center; gap:6px; font-weight:600; font-size:14px; color:#2c3e50; margin-bottom:8px; }
+        .filter-group label i { color:#f97316; }
+        .filter-input {
+            width:100%; padding:13px 16px; background:#f8fafd; border:1.5px solid #e2e8f0;
+            border-radius:14px; font-size:14px; transition:.2s;
+        }
+        .filter-input:focus { border-color:#f97316; background:#fff; outline:none; box-shadow:0 0 0 4px rgba(249,115,22,.15); }
+
+        .btn-primary {
+            background:#f97316; border:none; padding:14px 28px; border-radius:40px;
+            font-weight:600; color:#fff; cursor:pointer; transition:.2s;
+            display:flex; align-items:center; gap:8px; font-size:14px;
+            box-shadow:0 8px 16px -6px #f9731660;
+        }
+        .btn-primary:hover:not(:disabled) { background:#c2410c; transform:translateY(-2px); }
+        .btn-primary:disabled { background:#94a3b8; cursor:not-allowed; box-shadow:none; transform:none; }
+        .btn-clear {
+            background:#fff; border:1.5px solid #dde3ea; padding:14px 28px; border-radius:40px;
+            font-weight:600; color:#475569; cursor:pointer; transition:.2s;
+            display:flex; align-items:center; gap:8px; font-size:14px;
+        }
+        .btn-clear:hover { background:#f1f5f9; border-color:#94a3b8; }
+
+        .result-meta {
+            background:#fff; padding:10px 22px; border-radius:40px; font-weight:500;
+            box-shadow:0 4px 10px -6px rgba(0,0,0,.1); border:1px solid #e2e8f0;
+            margin-bottom:20px; display:inline-block;
+        }
+
+        /* Resumo geral */
+        .resumo-card {
+            background:#fff; border-radius:24px; box-shadow:0 10px 30px -12px rgba(0,0,0,.15);
+            border:1px solid #edf2f7; margin-bottom:24px; overflow:hidden;
+        }
+        .resumo-header {
+            padding:20px 26px; background:linear-gradient(135deg,#7c2d12,#f97316); color:#fff;
+            display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+        }
+        .resumo-header h2 { font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; }
+        .resumo-header .badge-geral {
+            font-size:12px; font-weight:700; padding:6px 16px; border-radius:40px;
+            text-transform:uppercase; letter-spacing:.4px;
+        }
+        .resumo-body { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+        @media (max-width:1000px) { .resumo-body { grid-template-columns:1fr 1fr; } }
+        @media (max-width:640px)  { .resumo-body { grid-template-columns:1fr; } }
+
+        .resumo-col { padding:20px 26px; }
+        .resumo-col + .resumo-col { border-left:1px solid #edf2f7; }
+        .resumo-col .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#64748b; font-weight:700; }
+        .resumo-col .vl { font-family:'SF Mono',Consolas,monospace; font-weight:700; font-size:20px; color:#7c2d12; margin-top:6px; }
+        .resumo-col .sub { font-family:'SF Mono',Consolas,monospace; font-size:11px; color:#94a3b8; margin-top:4px; }
+        .resumo-col.dif .vl { color:#dc2626; }
+        .resumo-col.ok  .vl { color:#16a34a; }
+        .resumo-col.info .vl { color:#0369a1; }
+
+        /* Card de grupo */
+        .grupo-card {
+            background:#fff; border-radius:24px; box-shadow:0 10px 30px -12px rgba(0,0,0,.15);
+            border:1px solid #edf2f7; margin-bottom:16px; overflow:hidden;
+        }
+        .grupo-card.destaque       { border:2px solid #0d9488; box-shadow:0 12px 30px -10px rgba(13,148,136,.45); }
+        .grupo-card.card-devolucao { border:2px solid #0ea5e9; box-shadow:0 12px 30px -10px rgba(14,165,233,.35); }
+        .grupo-card.card-so-rel    { border:2px solid #fbbf24; }
+        .grupo-card.card-so-plan   { border:2px solid #6366f1; }
+
+        .grupo-header {
+            padding:16px 22px; background:#f8fafd; border-bottom:1px solid #e2e8f0;
+            display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+        }
+        .grupo-titulo { font-size:14px; font-weight:700; color:#7c2d12; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .grupo-titulo i { color:#f97316; }
+
+        .grupo-totais { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+        .badges-wrap { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .total-box { display:flex; flex-direction:column; }
+        .total-box .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:#64748b; font-weight:700; }
+        .total-box .vl { font-family:'SF Mono',Consolas,monospace; font-weight:700; font-size:14px; color:#7c2d12; }
+
+        .grupo-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+        @media (max-width:860px) { .grupo-body { grid-template-columns:1fr; } }
+
+        .coluna { padding:16px 22px; }
+        .coluna + .coluna { border-left:1px solid #edf2f7; }
+        .coluna-titulo {
+            font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+            color:#475569; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+        }
+        .coluna-titulo i { color:#f97316; }
+
+        .linha-lanc {
+            display:grid; grid-template-columns: 90px 1fr 120px;
+            gap:10px; padding:6px 0; border-bottom:1px dashed #eef2f7; font-size:12px;
+            align-items:center;
+        }
+        .linha-lanc:last-child { border-bottom:none; }
+        .linha-lanc .data { font-family:'SF Mono',Consolas,monospace; color:#475569; font-size:11px; }
+        .linha-lanc .hist { color:#334155; word-break:break-word; }
+        .linha-lanc .val  { font-family:'SF Mono',Consolas,monospace; font-weight:600; text-align:right; }
+        .linha-lanc.credito { background:#f0f9ff; }
+        .linha-lanc.credito .val { color:#0369a1; }
+        .linha-lanc.devolucao { background:#e0f2fe; }
+        .linha-lanc.devolucao .val { color:#0369a1; font-weight:700; }
+        .linha-lanc.compensada { background:#f5f3ff; opacity:.65; }
+        .linha-lanc.compensada .hist, .linha-lanc.compensada .val, .linha-lanc.compensada .data { text-decoration:line-through; }
+        .linha-lanc .tag-dev {
+            display:inline-block; font-size:10px; padding:2px 8px; border-radius:20px;
+            font-weight:700; margin-left:6px;
+            background:#bae6fd; color:#075985; border:1px solid #7dd3fc;
+        }
+        .linha-lanc .tag-dev-alert {
+            display:inline-block; font-size:10px; padding:2px 8px; border-radius:20px;
+            font-weight:700; margin-left:6px;
+            background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;
+        }
+        .linha-lanc .tag-comp {
+            display:inline-block; font-size:10px; padding:2px 8px; border-radius:20px;
+            font-weight:700; margin-left:6px; text-decoration:none;
+            background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe;
+        }
+
+        .status-badge {
+            font-size:11px; font-weight:700; padding:5px 12px; border-radius:40px;
+            text-transform:uppercase; letter-spacing:.4px; white-space:nowrap;
+        }
+        .ok { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+        .divergente { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+        .so-relatorio { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        .so-planilha { background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; }
+        .devolucao { background:#e0f2fe; color:#075985; border:1px solid #7dd3fc; }
+        .compensado-badge { background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; text-transform:none; letter-spacing:0; }
+
+        .detalhe-dif {
+            padding:12px 22px; background:#fef8f8; border-top:1px solid #fde2e2;
+            font-size:12px; color:#991b1b; display:flex; align-items:center; gap:10px;
+        }
+        .detalhe-dif i { font-size:15px; }
+        .detalhe-info {
+            padding:12px 22px; background:#f0f9ff; border-top:1px solid #bae6fd;
+            font-size:12px; color:#075985; display:flex; align-items:center; gap:10px;
+        }
+        .detalhe-info i { font-size:15px; }
+        .detalhe-comp {
+            padding:10px 22px; background:#f5f3ff; border-top:1px solid #ddd6fe;
+            font-size:12px; color:#5b21b6; display:flex; align-items:center; gap:10px;
+        }
+
+        .empty-state {
+            background:#fff; border-radius:24px; padding:60px; text-align:center;
+            color:#94a3b8; box-shadow:0 10px 30px -12px rgba(0,0,0,.15); border:1px solid #edf2f7;
+        }
+
+        .footer { text-align:center; padding:30px 0 10px; color:#5f6c80; font-size:14px; }
+
+        .debug-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); z-index:2000; justify-content:center; align-items:center; }
+        .debug-modal.show { display:flex; }
+        .debug-card { background:#fff; width:90%; max-width:900px; max-height:80vh; border-radius:22px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,20,50,.4); }
+        .debug-header { background:linear-gradient(135deg,#7c2d12,#f97316); color:#fff; padding:16px 22px; display:flex; justify-content:space-between; align-items:center; }
+        .debug-header h3 { font-size:16px; font-weight:600; }
+        .debug-header button { background:rgba(255,255,255,.2); border:none; color:#fff; width:34px; height:34px; border-radius:40px; cursor:pointer; font-size:18px; }
+        .debug-body { padding:18px 22px; overflow:auto; font-family:'SF Mono',Consolas,monospace; font-size:12px; white-space:pre-wrap; color:#0b1e33; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="header-content">
+            <div class="logo-area">
+                <img src="pedrinho.png" alt="Pedrinho" class="logo-mascote"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo-icon" style="display:none;"><i class="fas fa-scale-balanced"></i></div>
+                <div class="brand">
+                    <h1>COMPARADOR AutoSystem × RAZÃO</h1>
+                    <span>Rede Dom Pedro · conferência de débitos, créditos e devoluções</span>
+                </div>
+            </div>
+            <button class="btn-toggle-import" id="btnToggleImport"><i class="fas fa-file-import"></i> Importar dados</button>
+        </div>
+    </header>
+
+    <div class="dashboard-stats" id="dashboardStats">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Total AutoSystem (líquido)</span>
+                <span class="vl" id="totalRel">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-file-excel"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Débitos Planilha</span>
+                <span class="vl" id="totalPlan">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="stat-card info" id="pillDev">
+            <div class="stat-icon"><i class="fas fa-rotate-left"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Devoluções (crédito)</span>
+                <span class="vl" id="totalDev">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="stat-card comp" id="pillComp">
+            <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Compensado (NF devolvida)</span>
+                <span class="vl" id="totalComp">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="stat-card alerta" id="pillSemContrapartida">
+            <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Devolução sem contrapartida</span>
+                <span class="vl" id="totalSemContrapartida">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="stat-card" id="pillDif">
+            <div class="stat-icon"><i class="fas fa-scale-unbalanced"></i></div>
+            <div class="stat-info">
+                <span class="lbl">Diferença</span>
+                <span class="vl" id="totalDif">R$ 0,00</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertaSemContrapartida"></div>
+
+    <div id="importSection">
+        <div class="input-grid">
+            <div class="input-card">
+                <h3><i class="fas fa-file-lines"></i> 1. Relatório AutoSystem</h3>
+                <p class="hint">Importe o arquivo .txt exportado do AutoSystem ou cole o conteúdo abaixo.</p>
+                <div class="import-toolbar">
+                    <label class="btn-import-file">
+                        <i class="fas fa-upload"></i> Importar arquivo .txt
+                        <input type="file" id="fileRel" accept=".txt,text/plain" hidden>
+                    </label>
+                    <span class="arquivo-carregado" id="arquivoRelNome"></span>
+                </div>
+                <textarea id="inputRel" placeholder="Cole aqui o conteúdo do relatório AutoSystem..."></textarea>
+                <div class="meta">
+                    <span class="count" id="countRel">0 caracteres</span>
+                    <button class="btn-clear-mini" onclick="document.getElementById('inputRel').value='';document.getElementById('arquivoRelNome').textContent='';atualizarContadores();"><i class="fas fa-times"></i> limpar</button>
+                </div>
+            </div>
+
+            <div class="input-card">
+                <h3><i class="fas fa-file-excel"></i> 2. Planilha RAZÃO ANALÍTICO</h3>
+                <p class="hint">Importe a planilha (.xls, .xlsx ou .ods — do Excel ou do LibreOffice) ou cole o conteúdo abaixo.</p>
+                <div class="import-toolbar">
+                    <label class="btn-import-file">
+                        <i class="fas fa-upload"></i> Importar planilha
+                        <input type="file" id="filePlan" accept=".xls,.xlsx,.ods" hidden>
+                    </label>
+                    <span class="arquivo-carregado" id="arquivoPlanNome"></span>
+                </div>
+                <textarea id="inputPlan" placeholder="Cole aqui o conteúdo do RAZÃO ANALÍTICO..."></textarea>
+                <div class="meta">
+                    <span class="count" id="countPlan">0 caracteres</span>
+                    <button class="btn-clear-mini" onclick="document.getElementById('inputPlan').value='';document.getElementById('arquivoPlanNome').textContent='';atualizarContadores();"><i class="fas fa-times"></i> limpar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="correspondenciaPanel"></div>
+
+    <div class="filters-panel">
+        <div class="filter-group" style="flex:2 1 320px;">
+            <label><i class="fas fa-search"></i> Filtrar por conta, NF, data ou valor</label>
+            <input type="text" id="filtroTexto" class="filter-input" placeholder="Ex.: FGTS, 51125, NF 47292, 08/06/2026, 1.144,09..." value="">
+            <div class="chips-row" id="chipsFiltro">
+                <button class="chip active" data-status="todos">Todos</button>
+                <button class="chip" data-status="divergente">⚠ Divergentes</button>
+                <button class="chip" data-status="ok">✅ OK</button>
+                <button class="chip" data-status="sem-contrapartida">🔺 Sem contrapartida</button>
+                <button class="chip" data-status="compensado">↩ Compensadas</button>
+                <button class="chip" data-status="so-relatorio">Só AutoSystem</button>
+                <button class="chip" data-status="so-planilha">Só Planilha</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-filter"></i> Mostrar apenas</label>
+            <select id="filtroStatus" class="filter-input">
+                <option value="todos">Todos</option>
+                <option value="divergente">Somente divergências</option>
+                <option value="ok">Somente OK</option>
+                <option value="devolucao">Devolução sem contrapartida (conta inteira)</option>
+                <option value="sem-contrapartida">Qualquer devolução sem contrapartida</option>
+                <option value="compensado">Somente compensadas (NF devolvida ↔ AutoSystem)</option>
+                <option value="so-relatorio">Só no AutoSystem</option>
+                <option value="so-planilha">Só na planilha</option>
+            </select>
+        </div>
+        <div class="filter-group" style="flex:0 1 200px;">
+            <label><i class="fas fa-arrow-down-wide-short"></i> Ordenar por</label>
+            <select id="ordenarPor" class="filter-input">
+                <option value="padrao">Padrão (prioridade)</option>
+                <option value="dif-desc">Maior diferença</option>
+                <option value="valor-desc">Maior valor AutoSystem</option>
+                <option value="nome">Nome da conta (A-Z)</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <button class="btn-primary" id="btnComparar"><i class="fas fa-play"></i> Comparar</button>
+            <button class="btn-clear" id="btnCorresp"><i class="fas fa-link"></i> Correspondências</button>
+            <button class="btn-clear" id="btnLimpar"><i class="fas fa-undo-alt"></i> Limpar</button>
+            <button class="btn-clear" id="btnDebug" title="Ver dados lidos"><i class="fas fa-bug"></i></button>
+        </div>
+    </div>
+
+    <div class="result-meta" id="resultMeta">Cole os dois textos e clique em Comparar</div>
+
+    <div id="gruposContainer">
+        <div class="empty-state">
+            <i class="fas fa-paste fa-2x"></i><br>Cole o relatório AutoSystem e a planilha RAZÃO para começar
+        </div>
+    </div>
+
+    <div class="footer">Rede Dom Pedro © 2026 · comparador contábil</div>
+</div>
+
+<div class="nav-float">
+    <button id="btnScrollTop" title="Voltar ao início"><i class="fas fa-arrow-up"></i></button>
+    <button id="btnScrollBottom" title="Ir ao final"><i class="fas fa-arrow-down"></i></button>
+</div>
+
+<div class="debug-modal" id="debugModal">
+    <div class="debug-card">
+        <div class="debug-header">
+            <h3><i class="fas fa-bug"></i> Dados lidos</h3>
+            <button id="closeDebug">&times;</button>
+        </div>
+        <div class="debug-body" id="debugBody"></div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const state = {
+    relContas: [], planContas: [], grupos: [],
+    totalRel: 0, totalRelBruto: 0, totalCompensado: 0,
+    totalPlan: 0, totalDev: 0, totalDif: 0, totalSemContrapartida: 0,
+    overrides: {},   // codigoPlanilha -> [codigosAutoSystem] (correspondência manual)
+    showCorresp: false
+};
+
+/* ============================================================
+   REGEX — Devolução / Documento
+   ============================================================ */
+const RE_DEVOLUCAO = /DEVOLU[ÇC][ÃA]O|ESTORNO/i;
+const RE_LRA = /VLR\.INTEG\.CF\.LRA/i;
+// Extrai o número da NF ORIGINAL citada dentro de um histórico de devolução,
+// ex.: "VLR.INTEG.CF.LRA NF nº: 118 DEVOLUÇÃO NF 47292" -> 47292
+// (a planilha costuma citar dois números: o lançamento de estorno em si
+// e, depois da palavra DEVOLUÇÃO, a nota original que voltou — é esse
+// segundo número que precisa ser cruzado com o AutoSystem)
+const RE_NF_DEVOLVIDA = /DEVOLU[ÇC][ÃA]O\s*(?:DA\s*)?NF\.?\s*[ºo°]?\.?:?\s*(\d{2,10})/i;
+
+// Extrai números de documento/nota fiscal citados livremente em um texto
+// (histórico da planilha ou observação do AutoSystem), usados como sinal
+// extra de correspondência quando a coluna "Documento" não é confiável.
+function extractDocs(text) {
+    if (!text) return [];
+    const achados = new Set();
+    const reComPrefixo = /(?:N\.?F\.?E?|NOTA(?:\s+FISCAL)?|DOC(?:UMENTO)?|DUPL(?:ICATA)?|PED(?:IDO)?|FAT(?:URA)?)\.?\s*N?[ºo°]?\.?:?\s*-?\s*(\d{2,10})/gi;
+    let m;
+    while ((m = reComPrefixo.exec(text)) !== null) achados.add(m[1].replace(/^0+(?=\d)/, ''));
+    return [...achados];
+}
+
+/* ============================================================
+   PARSER 1 — relatório AutoSystem
+   ============================================================ */
+function parseRelatorio(txt) {
+    const linhas = txt.split(/\r?\n/);
+    const contas = [];
+    let contaAtual = null;
+
+    for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+
+        const mConta = l.match(/\|\s*Conta:\s*([0-9A-Za-z\.\-]+)\s*-\s*(.+?)\s*\|/);
+        if (mConta) {
+            contaAtual = {
+                codigo: mConta[1].trim(),
+                nome: mConta[2].trim(),
+                valor: 0,
+                lancamentos: []
+            };
+            contas.push(contaAtual);
+            continue;
+        }
+
+        if (contaAtual) {
+            const partes = l.split('|').map(s => s.trim());
+            if (partes.length >= 8) {
+                const mov = partes[2];
+                const documento = partes[3] || '';
+                const valorStr = partes[5];
+                const obs = partes[7] || '';
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(mov) && /^[\d\.]+,\d{2}$/.test(valorStr)) {
+                    // A coluna "Documento" do AutoSystem é o número de NF mais
+                    // confiável; a observação entra como reforço/fallback.
+                    const docs = new Set(extractDocs(obs));
+                    if (/^\d{2,10}$/.test(documento)) docs.add(documento.replace(/^0+(?=\d)/, ''));
+                    contaAtual.lancamentos.push({
+                        data: mov,
+                        documento: documento,
+                        valor: parseValorBR(valorStr),
+                        obs,
+                        docs: [...docs],
+                        compensado: false
+                    });
+                }
+            }
+        }
+
+        if (contaAtual && /\|\s*Total conta\s*\|/.test(l)) {
+            const mVal = l.match(/\|\s*([\d\.]+,\d{2})\s*\|/);
+            if (mVal) contaAtual.valor = parseValorBR(mVal[1]);
+        }
+    }
+    return contas;
+}
+
+/* ============================================================
+   PARSER 2 — planilha RAZÃO ANALÍTICO
+   ============================================================ */
+function parsePlanilha(txt) {
+    const linhas = txt.split(/\r?\n/);
+    const contas = [];
+    let contaAtual = null;
+
+    for (let i = 0; i < linhas.length; i++) {
+        const linha = linhas[i];
+        if (!linha.trim()) continue;
+
+        // ---------- Cabeçalho ----------
+        const mHead = linha.match(/^\s*Conta:\s+(\d+)\s+(\d+)\s+(.+?)\s*$/);
+        if (mHead) {
+            contaAtual = {
+                codigo: mHead[1].trim(),
+                codigoReduzido: mHead[2].trim(),
+                nome: mHead[3].trim(),
+                lancamentos: [],
+                totalDebito: 0,
+                totalCredito: 0,
+                saldoFinal: null
+            };
+            contas.push(contaAtual);
+            continue;
+        }
+
+        if (!contaAtual) continue;
+
+        // ---------- SALDO ANTERIOR / FINAL ----------
+        if (/SALDO\s+ANTERIOR/i.test(linha)) continue;
+
+        if (/SALDO\s+FINAL/i.test(linha)) {
+            const vals = [...linha.matchAll(/([\d\.]+,\d{2})/g)].map(m => parseValorBR(m[1]));
+            if (vals.length >= 1) contaAtual.totalDebito = vals[0];
+            if (vals.length >= 3) contaAtual.totalCredito = vals[1];
+            if (vals.length >= 2) contaAtual.saldoFinal = vals[vals.length - 1];
+            continue;
+        }
+
+        // ---------- Linha de lançamento ----------
+        const mData = linha.match(/^\s*(\d{2}\/\d{2}\/\d{4})\s+/);
+        if (!mData) continue;
+
+        const data = mData[1];
+        const resto = linha.slice(mData[0].length);
+
+        const matchesVal = [...resto.matchAll(/([\d\.]+,\d{2})/g)].map(m => ({
+            pos: m.index,
+            valor: parseValorBR(m[1])
+        }));
+        if (!matchesVal.length) continue;
+
+        const historicoBruto = matchesVal.length
+            ? resto.slice(0, matchesVal[0].pos).trim()
+            : resto.trim();
+        const historico = historicoBruto.replace(/^\S+\s+/, '').trim();
+
+        const tipoCell = (linha.match(/\s([DC])\s*$/) || [])[1] || '';
+
+        let valorLanc;
+        if (matchesVal.length >= 2) valorLanc = matchesVal[matchesVal.length - 2].valor;
+        else                        valorLanc = matchesVal[0].valor;
+
+        // Detecta devolução via histórico (agora também cobre ESTORNO)
+        const isDevolucao = RE_DEVOLUCAO.test(historico) || RE_LRA.test(historico);
+
+        // Define crédito: 'C' final OU devolução OU valor muito menor que saldo
+        let ehCredito = false;
+        if (isDevolucao) ehCredito = true;
+        else if (tipoCell === 'C') ehCredito = true;
+        else if (tipoCell === 'D') ehCredito = false;
+        else if (matchesVal.length >= 2) {
+            const ultimo = matchesVal[matchesVal.length - 1].valor;
+            if (ultimo > valorLanc * 100 && valorLanc > 0) ehCredito = true;
+        }
+
+        // NF original citada (quando é devolução) + demais números de documento no histórico
+        const nfDevolvidaMatch = historico.match(RE_NF_DEVOLVIDA);
+        const nfDevolvida = nfDevolvidaMatch ? nfDevolvidaMatch[1].replace(/^0+(?=\d)/, '') : null;
+        const docs = extractDocs(historico);
+
+        contaAtual.lancamentos.push({
+            data,
+            historico,
+            valor: valorLanc,
+            ehCredito,
+            isDevolucao,
+            docs,
+            nfDevolvida,
+            compensado: false
+        });
+    }
+
+    contas.forEach(c => {
+        if (!c.totalDebito) {
+            c.totalDebito = c.lancamentos
+                .filter(l => !l.ehCredito)
+                .reduce((acc, l) => acc + l.valor, 0);
+        }
+        if (!c.totalCredito) {
+            c.totalCredito = c.lancamentos
+                .filter(l => l.ehCredito)
+                .reduce((acc, l) => acc + l.valor, 0);
+        }
+        // Total de devoluções (crédito com motivo devolução)
+        c.totalDevolucao = c.lancamentos
+            .filter(l => l.isDevolucao)
+            .reduce((acc, l) => acc + l.valor, 0);
+    });
+
+    return contas;
+}
+
+function parseValorBR(s) {
+    if (!s) return 0;
+    s = String(s).trim().replace(/[DC]$/,'').replace(/R\$\s?/,'').replace(/\s/g,'');
+    if (s.includes(',') && s.includes('.')) s = s.replace(/\./g,'').replace(',','.');
+    else if (s.includes(',')) s = s.replace(',','.');
+    return parseFloat(s) || 0;
+}
+function formatBRL(v) {
+    return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+/* ============================================================
+   SIMILARIDADE
+   ============================================================ */
+function normalizar(s) {
+    return String(s).toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9\s]/g,' ')
+        .replace(/\s+/g,' ').trim();
+}
+const STOPWORDS = new Set(['de','da','do','das','dos','e','em','com','para','por','a','o','as','os','s','conta']);
+function tokens(s) {
+    return normalizar(s).split(' ').filter(t => t && !STOPWORDS.has(t));
+}
+function similaridade(a, b) {
+    const ta = new Set(tokens(a));
+    const tb = new Set(tokens(b));
+    if (!ta.size || !tb.size) return 0;
+    let inter = 0;
+    ta.forEach(t => { if (tb.has(t)) inter++; });
+    return inter / Math.max(ta.size, tb.size);
+}
+
+/* ============================================================
+   COMPENSAÇÃO NF devolvida × AutoSystem
+   Cruza cada devolução da planilha (que cita a NF original) com os
+   lançamentos do AutoSystem daquele mesmo grupo/conta: se a NF bate
+   (e o valor é compatível), a nota é tratada como "entrou e voltou" —
+   sai do total pendente do AutoSystem em vez de continuar contando
+   como conta a pagar, o que evita uma divergência falsa.
+   ============================================================ */
+function compensarGrupo(g) {
+    g.compensacoes = [];
+    if (!g.planConta || !g.relMatches.length) return;
+
+    const devolucoes = g.planConta.lancamentos.filter(l => l.isDevolucao);
+    const candidatos = [];
+    g.relMatches.forEach(r => r.lancamentos.forEach(l => candidatos.push(l)));
+
+    devolucoes.forEach(dev => {
+        const chavesDev = dev.nfDevolvida ? [dev.nfDevolvida, ...dev.docs] : dev.docs;
+        if (!chavesDev.length) return;
+
+        let melhor = null, melhorDif = Infinity;
+        candidatos.forEach(c => {
+            if (c.compensado) return;
+            if (!c.docs || !c.docs.length) return;
+            const bate = c.docs.some(d => chavesDev.includes(d));
+            if (!bate) return;
+            const dif = Math.abs(c.valor - dev.valor);
+            const tolerancia = Math.max(0.5, dev.valor * 0.03);
+            if (dif <= tolerancia && dif < melhorDif) { melhor = c; melhorDif = dif; }
+        });
+
+        if (melhor) {
+            melhor.compensado = true;
+            melhor.compensadoDoc = dev.nfDevolvida || melhor.docs.find(d => chavesDev.includes(d));
+            dev.compensado = true;
+            g.compensacoes.push({ doc: melhor.compensadoDoc, valorAuto: melhor.valor, valorDev: dev.valor, data: dev.data });
+        }
+    });
+}
+
+/* ============================================================
+   AGRUPAMENTO
+   Cada grupo tem:
+     - totalRelBruto = soma bruta AutoSystem (todos os lançamentos)
+     - totalRelCompensado = parte do AutoSystem já compensada por NF devolvida
+     - totalRel   = totalRelBruto - totalRelCompensado (usado na comparação)
+     - totalPlan  = débito total da planilha
+     - totalDev   = devoluções (crédito) da planilha
+     - totalLiq   = totalPlan - totalDev
+     - dif        = totalRel - totalLiq
+   ============================================================ */
+function agruparContas(relatorio, planilha, overrides) {
+    overrides = overrides || {};
+
+    // Reagrupar pode rodar mais de uma vez (ex.: após ajuste manual de
+    // correspondência) — zera as marcações de compensação de todos os
+    // lançamentos antes de recalcular, senão elas "grudam" do cálculo anterior.
+    relatorio.forEach(r => r.lancamentos.forEach(l => { l.compensado = false; l.compensadoDoc = null; }));
+    planilha.forEach(p => p.lancamentos.forEach(l => { l.compensado = false; }));
+
+    const relByCodigo = new Map(relatorio.map(r => [r.codigo, r]));
+    const grupos = [];
+
+    planilha.forEach(planConta => {
+        let relMatches, auto, scores = {};
+        if (Object.prototype.hasOwnProperty.call(overrides, planConta.codigo)) {
+            relMatches = overrides[planConta.codigo].map(cod => relByCodigo.get(cod)).filter(Boolean);
+            auto = false;
+        } else {
+            relMatches = [];
+            relatorio.forEach(relConta => {
+                const score = similaridade(relConta.nome, planConta.nome);
+                if (score >= 0.34) { relMatches.push(relConta); scores[relConta.codigo] = score; }
+            });
+            auto = true;
+        }
+        grupos.push({ planConta, relMatches, auto, scores });
+    });
+
+    const relUsadas = new Set();
+    grupos.forEach(g => g.relMatches.forEach(r => relUsadas.add(r.codigo)));
+    relatorio.filter(r => !relUsadas.has(r.codigo))
+             .forEach(r => grupos.push({ planConta: null, relMatches: [r], auto: true, scores: {} }));
+
+    grupos.forEach(g => {
+        compensarGrupo(g);
+
+        const totalRelBruto = g.relMatches.reduce((acc, r) => {
+            const soma = r.lancamentos.reduce((a, l) => a + l.valor, 0);
+            return acc + (r.lancamentos.length ? soma : r.valor);
+        }, 0);
+        const totalRelCompensado = g.relMatches.reduce((acc, r) =>
+            acc + r.lancamentos.filter(l => l.compensado).reduce((a, l) => a + l.valor, 0), 0);
+        const totalRel = totalRelBruto - totalRelCompensado;
+
+        const totalPlan = g.planConta
+            ? (g.planConta.totalDebito || g.planConta.lancamentos
+                .filter(l => !l.ehCredito)
+                .reduce((acc, l) => acc + l.valor, 0))
+            : 0;
+
+        const totalDev = g.planConta ? (g.planConta.totalDevolucao || 0) : 0;
+        const totalLiq = +(totalPlan - totalDev).toFixed(2);
+
+        g.totalRelBruto = +totalRelBruto.toFixed(2);
+        g.totalRelCompensado = +totalRelCompensado.toFixed(2);
+        g.totalRel = +totalRel.toFixed(2);
+        g.totalPlan = +totalPlan.toFixed(2);
+        g.totalDev = +totalDev.toFixed(2);
+        g.totalLiq = totalLiq;
+        g.dif = +(g.totalRel - totalLiq).toFixed(2);
+
+        // ---------- Status ----------
+        // Se for só planilha mas tiver devolução → card de devolução
+        if (!g.relMatches.length && g.planConta && totalDev > 0) {
+            g.status = 'devolucao';
+        } else if (!g.planConta) {
+            g.status = 'so-relatorio';
+        } else if (!g.relMatches.length) {
+            g.status = 'so-planilha';
+        } else if (Math.abs(g.dif) < 0.01) {
+            g.status = 'ok';
+        } else {
+            g.status = 'divergente';
+        }
+    });
+
+    return grupos;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+// Uma conta "tem devolução sem contrapartida" quando existe pelo menos um
+// lançamento de devolução na planilha que não foi casado com nenhum
+// lançamento do AutoSystem (mesmo que a conta, no geral, tenha outros
+// lançamentos batendo normalmente).
+function grupoTemSemContrapartida(g) {
+    return !!(g.planConta && g.planConta.lancamentos.some(l => l.isDevolucao && !l.compensado));
+}
+
+function render() {
+    const filtroTexto = normalizar(document.getElementById('filtroTexto').value);
+    const filtroStatus = document.getElementById('filtroStatus').value;
+    const ordenarPor = document.getElementById('ordenarPor').value;
+    const container = document.getElementById('gruposContainer');
+
+    // Pills do dashboard
+    document.getElementById('totalRel').textContent  = 'R$ ' + formatBRL(state.totalRel);
+    document.getElementById('totalPlan').textContent = 'R$ ' + formatBRL(state.totalPlan);
+    document.getElementById('totalDev').textContent  = 'R$ ' + formatBRL(state.totalDev);
+    document.getElementById('totalComp').textContent = 'R$ ' + formatBRL(state.totalCompensado);
+    document.getElementById('totalSemContrapartida').textContent = 'R$ ' + formatBRL(state.totalSemContrapartida);
+    document.getElementById('totalDif').textContent  = 'R$ ' + formatBRL(Math.abs(state.totalDif));
+
+    const pillDif = document.getElementById('pillDif');
+    pillDif.classList.remove('ok','dif');
+    if (Math.abs(state.totalDif) < 0.01) pillDif.classList.add('ok');
+    else pillDif.classList.add('dif');
+
+    renderAlertaSemContrapartida();
+    renderCorrespondencias();
+
+    const resumo = renderResumo();
+
+    let lista = state.grupos.filter(g => {
+        if (filtroStatus !== 'todos') {
+            if (filtroStatus === 'compensado') {
+                if (!(g.totalRelCompensado > 0)) return false;
+            } else if (filtroStatus === 'sem-contrapartida') {
+                if (!grupoTemSemContrapartida(g)) return false;
+            } else if (g.status !== filtroStatus) return false;
+        }
+        if (filtroTexto) {
+            // A busca agora cobre também datas, valores e números de
+            // documento/NF de cada lançamento — não só o nome da conta.
+            const alvo = normalizar(
+                g.relMatches.map(r => r.codigo + ' ' + r.nome + ' ' +
+                    r.lancamentos.map(l => l.data + ' ' + l.documento + ' ' + (l.docs||[]).join(' ') + ' ' + formatBRL(l.valor) + ' ' + l.obs).join(' ')
+                ).join(' ') + ' ' +
+                (g.planConta ? g.planConta.codigo + ' ' + g.planConta.codigoReduzido + ' ' + g.planConta.nome + ' ' +
+                    g.planConta.lancamentos.map(l => l.data + ' ' + (l.docs||[]).join(' ') + ' ' + formatBRL(l.valor) + ' ' + l.historico).join(' ') : '')
+            );
+            if (!alvo.includes(filtroTexto)) return false;
+        }
+        return true;
+    });
+
+    if (ordenarPor === 'dif-desc') {
+        lista.sort((a, b) => Math.abs(b.dif) - Math.abs(a.dif));
+    } else if (ordenarPor === 'valor-desc') {
+        lista.sort((a, b) => b.totalRel - a.totalRel);
+    } else if (ordenarPor === 'nome') {
+        const nomeDe = g => (g.planConta ? g.planConta.nome : (g.relMatches[0] ? g.relMatches[0].nome : ''));
+        lista.sort((a, b) => nomeDe(a).localeCompare(nomeDe(b)));
+    } else {
+        // Prioridade padrão: 51125 primeiro, depois divergentes, sem contrapartida, devoluções
+        lista.sort((a, b) => {
+            const ordem = g => {
+                if (g.planConta && g.planConta.codigo === '51125') return 0;
+                if (g.status === 'divergente') return 1;
+                if (grupoTemSemContrapartida(g)) return 2;
+                if (g.status === 'devolucao')  return 3;
+                if (g.status === 'so-relatorio') return 4;
+                if (g.status === 'so-planilha')  return 5;
+                return 6;
+            };
+            const oa = ordem(a), ob = ordem(b);
+            if (oa !== ob) return oa - ob;
+            const aC = a.planConta ? a.planConta.codigo : 'zzz';
+            const bC = b.planConta ? b.planConta.codigo : 'zzz';
+            return aC.localeCompare(bC);
+        });
+    }
+
+    if (!lista.length) {
+        container.innerHTML = resumo + `<div class="empty-state">
+            <i class="fas fa-ban fa-2x"></i><br>Nenhum grupo para os filtros aplicados
+        </div>`;
+    } else {
+        container.innerHTML = resumo + lista.map(g => renderGrupo(g)).join('');
+    }
+
+    const totalDiv = state.grupos.filter(g => g.status === 'divergente').length;
+    const totalDevG = state.grupos.filter(g => grupoTemSemContrapartida(g)).length;
+    const totalSoRel = state.grupos.filter(g => g.status === 'so-relatorio').length;
+    const totalComp = state.grupos.filter(g => g.totalRelCompensado > 0).length;
+    document.getElementById('resultMeta').textContent =
+        `${lista.length} de ${state.grupos.length} grupo(s) · ${totalDiv} divergência(s) · ${totalDevG} conta(s) com devolução sem contrapartida · ${totalComp} conta(s) com NF compensada · ${totalSoRel} conta(s) só no AutoSystem`;
+}
+
+// Painel de alerta consolidado: lista TODAS as devoluções da planilha que
+// não encontraram par no AutoSystem, de qualquer conta, para dar máxima
+// visibilidade — independente do status geral da conta.
+function renderAlertaSemContrapartida() {
+    const el = document.getElementById('alertaSemContrapartida');
+    const itens = [];
+    state.planContas.forEach(p => {
+        p.lancamentos.forEach(l => {
+            if (l.isDevolucao && !l.compensado) {
+                itens.push({ conta: p, lanc: l });
+            }
+        });
+    });
+    itens.sort((a, b) => b.lanc.valor - a.lanc.valor);
+
+    if (!itens.length) { el.innerHTML = ''; return; }
+
+    el.innerHTML = `<div class="alerta-card">
+        <div class="alerta-card-header"><i class="fas fa-triangle-exclamation"></i>
+            ${itens.length} devolução(ões) sem contrapartida encontrada no AutoSystem — R$ ${formatBRL(state.totalSemContrapartida)}
+        </div>
+        <div class="alerta-lista">
+            ${itens.map(it => `<div class="alerta-item">
+                <span class="data">${it.lanc.data}</span>
+                <span class="desc"><b>${it.conta.codigo} - ${it.conta.nome}</b> — ${it.lanc.historico}${it.lanc.nfDevolvida ? ' (NF ' + it.lanc.nfDevolvida + ')' : ''}</span>
+                <span class="val">R$ ${formatBRL(it.lanc.valor)}</span>
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+// Painel de correspondências: permite conferir e corrigir manualmente
+// qual(is) conta(s) do AutoSystem foram casadas com cada conta da planilha.
+function renderCorrespondencias() {
+    const el = document.getElementById('correspondenciaPanel');
+    if (!state.showCorresp || !state.planContas.length) { el.innerHTML = ''; return; }
+
+    const opcoes = state.relContas.map(r => `<option value="${r.codigo}">${r.codigo} - ${r.nome}</option>`).join('');
+
+    const linhas = state.grupos.filter(g => g.planConta).map(g => {
+        const codigo = g.planConta.codigo;
+        const selecionados = new Set(g.relMatches.map(r => r.codigo));
+        const optsHtml = state.relContas.map(r =>
+            `<option value="${r.codigo}" ${selecionados.has(r.codigo) ? 'selected' : ''}>${r.codigo} - ${r.nome}${g.scores && g.scores[r.codigo] ? ' (' + Math.round(g.scores[r.codigo]*100) + '%)' : ''}</option>`
+        ).join('');
+        const tag = g.auto
+            ? `<span class="score-tag auto">automática</span>`
+            : `<span class="score-tag manual">manual</span> <button class="btn-restaurar" data-restaurar="${codigo}">restaurar automática</button>`;
+        return `<div class="corresp-row">
+            <div>
+                <div class="plan-nome">${g.planConta.nome} ${tag}</div>
+                <div class="plan-codigo">${g.planConta.codigo} / ${g.planConta.codigoReduzido}</div>
+            </div>
+            <div>
+                <select multiple size="3" data-plancodigo="${codigo}" class="select-corresp">${optsHtml}</select>
+            </div>
+            <div style="font-size:11px;color:#94a3b8;max-width:140px;">Ctrl/Cmd+clique para marcar mais de uma conta do AutoSystem</div>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = `<div class="corresp-card">
+        <div class="corresp-header">
+            <h2><i class="fas fa-link"></i> Correspondências de contas (AutoSystem × Planilha)</h2>
+            <span style="font-size:12px;color:#9a3412;">Ajuste manualmente se a conta casada estiver errada</span>
+        </div>
+        <div class="corresp-body">${linhas}</div>
+    </div>`;
+
+    el.querySelectorAll('.select-corresp').forEach(sel => {
+        sel.addEventListener('change', () => {
+            const codigoPlan = sel.getAttribute('data-plancodigo');
+            const escolhidos = [...sel.selectedOptions].map(o => o.value);
+            state.overrides[codigoPlan] = escolhidos;
+            recalcularTudo();
+        });
+    });
+    el.querySelectorAll('[data-restaurar]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            delete state.overrides[btn.getAttribute('data-restaurar')];
+            recalcularTudo();
+        });
+    });
+}
+
+function renderResumo() {
+    const ok = Math.abs(state.totalDif) < 0.01;
+    return `<div class="resumo-card">
+        <div class="resumo-header">
+            <h2><i class="fas fa-chart-bar"></i> Resumo geral</h2>
+            <span class="badge-geral" style="background:${ok ? '#dcfce7' : '#fee2e2'};color:${ok ? '#166534' : '#991b1b'};">
+                ${ok ? '✅ Conferido' : '⚠ Divergência geral'}
+            </span>
+        </div>
+        <div class="resumo-body">
+            <div class="resumo-col">
+                <div class="lbl">Total AutoSystem (líquido)</div>
+                <div class="vl">R$ ${formatBRL(state.totalRel)}</div>
+                ${state.totalCompensado ? `<div class="sub">bruto R$ ${formatBRL(state.totalRelBruto)} − compensado R$ ${formatBRL(state.totalCompensado)}</div>` : ''}
+            </div>
+            <div class="resumo-col info">
+                <div class="lbl">Devoluções planilha (crédito)</div>
+                <div class="vl">R$ ${formatBRL(state.totalDev)}</div>
+            </div>
+            <div class="resumo-col">
+                <div class="lbl">Débitos planilha (líquido)</div>
+                <div class="vl">R$ ${formatBRL(state.totalPlan - state.totalDev)}</div>
+            </div>
+            <div class="resumo-col ${ok ? 'ok' : 'dif'}">
+                <div class="lbl">Diferença</div>
+                <div class="vl">${ok ? '—' : 'R$ ' + formatBRL(Math.abs(state.totalDif))}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderGrupo(g) {
+    const destaque = (g.planConta && g.planConta.codigo === '51125') ? ' destaque' : '';
+    const classeExtra = {
+        'devolucao':   ' card-devolucao',
+        'so-relatorio':' card-so-rel',
+        'so-planilha': ' card-so-plan'
+    }[g.status] || '';
+
+    const badge = {
+        ok:            '<span class="status-badge ok">OK</span>',
+        divergente:    '<span class="status-badge divergente">Divergente</span>',
+        'so-relatorio':'<span class="status-badge so-relatorio">Só no AutoSystem</span>',
+        'so-planilha': '<span class="status-badge so-planilha">Só na planilha</span>',
+        'devolucao':   '<span class="status-badge devolucao">Devolução sem contrapartida</span>'
+    }[g.status];
+
+    const badgeComp = g.totalRelCompensado > 0
+        ? `<span class="status-badge compensado-badge"><i class="fas fa-rotate-left"></i> NF devolvida compensada: R$ ${formatBRL(g.totalRelCompensado)}</span>`
+        : '';
+
+    const relTitulo  = g.relMatches.map(r => `${r.codigo} - ${r.nome}`).join('  +  ');
+    const planTitulo = g.planConta ? `${g.planConta.codigo} / ${g.planConta.codigoReduzido} - ${g.planConta.nome}` : '—';
+
+    let titulo;
+    if (g.status === 'devolucao') {
+        titulo = `${planTitulo} <span style="color:#94a3b8;font-weight:400;">↔</span> <span style="color:#075985;">(sem contrapartida no AutoSystem)</span>`;
+    } else if (relTitulo && g.planConta) {
+        titulo = `${relTitulo} <span style="color:#94a3b8;font-weight:400;">↔</span> ${planTitulo}`;
+    } else {
+        titulo = g.planConta ? planTitulo : relTitulo;
+    }
+
+    // ---- AutoSystem ----
+    const relLinhas = g.relMatches.length
+        ? g.relMatches.flatMap(r => r.lancamentos.map(l => {
+            const classes = ['linha-lanc'];
+            if (l.compensado) classes.push('compensada');
+            const tagComp = l.compensado ? `<span class="tag-comp">↩ compensada · NF ${l.compensadoDoc} devolvida</span>` : '';
+            const docLbl = l.documento ? `Doc. ${l.documento} — ` : '';
+            return `
+            <div class="${classes.join(' ')}">
+                <span class="data">${l.data}</span>
+                <span class="hist">${docLbl}${r.codigo} ${r.nome}${l.obs ? ' — ' + l.obs : ''}${tagComp}</span>
+                <span class="val">${formatBRL(l.valor)}</span>
+            </div>`;
+        })).join('') || `<div style="color:#94a3b8;font-size:12px;padding:8px 0;">Sem lançamentos</div>`
+        : '<div style="color:#94a3b8;font-size:12px;padding:8px 0;">— (não há lançamento correspondente no AutoSystem)</div>';
+
+    // ---- Planilha ----
+    const planLinhas = g.planConta
+        ? g.planConta.lancamentos.map(l => {
+            const classes = ['linha-lanc'];
+            if (l.isDevolucao) classes.push('devolucao');
+            else if (l.ehCredito) classes.push('credito');
+            let tag = '';
+            if (l.isDevolucao) {
+                tag = l.compensado
+                    ? `<span class="tag-comp">↩ compensada com AutoSystem</span>`
+                    : `<span class="tag-dev-alert">⚠ sem contrapartida${l.nfDevolvida ? ' · NF ' + l.nfDevolvida : ''}</span>`;
+            } else if (l.ehCredito) {
+                tag = ' <span style="font-size:10px;color:#1e40af;">(crédito)</span>';
+            }
+            return `<div class="${classes.join(' ')}">
+                <span class="data">${l.data}</span>
+                <span class="hist">${l.historico || '—'}${tag}</span>
+                <span class="val">${formatBRL(l.valor)}</span>
+            </div>`;
+        }).join('') || '<div style="color:#94a3b8;font-size:12px;padding:8px 0;">Sem lançamentos</div>'
+        : '<div style="color:#94a3b8;font-size:12px;padding:8px 0;">— (não há conta correspondente na planilha)</div>';
+
+    // ---- Detalhe rodapé ----
+    let detalhe = '';
+    if (g.status === 'divergente') {
+        detalhe = `<div class="detalhe-dif">
+            <i class="fas fa-triangle-exclamation"></i>
+            Diferença de <b>R$ ${formatBRL(Math.abs(g.dif))}</b>
+            (AutoSystem líquido: R$ ${formatBRL(g.totalRel)} · Planilha líquida: R$ ${formatBRL(g.totalLiq)}${g.totalDev ? ' = ' + formatBRL(g.totalPlan) + ' − ' + formatBRL(g.totalDev) + ' dev.' : ''})
+            ${g.dif > 0 ? ' — sobra no AutoSystem' : ' — falta no AutoSystem'}
+        </div>`;
+    } else if (g.status === 'ok') {
+        detalhe = `<div class="detalhe-dif" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;">
+            <i class="fas fa-circle-check"></i>
+            <b>Conferido.</b> R$ ${formatBRL(g.totalRel)} = R$ ${formatBRL(g.totalLiq)}${g.totalDev ? ` (débito ${formatBRL(g.totalPlan)} − devolução ${formatBRL(g.totalDev)})` : ''}
+        </div>`;
+    } else if (g.status === 'devolucao') {
+        detalhe = `<div class="detalhe-info">
+            <i class="fas fa-rotate-left"></i>
+            <span><b>Devolução registrada na planilha</b> de R$ ${formatBRL(g.totalDev)}
+            sem contrapartida no AutoSystem. Verifique se a nota original foi lançada na conta correta
+            ou se o estorno ainda será processado.</span>
+        </div>`;
+    } else if (g.status === 'so-relatorio') {
+        detalhe = `<div class="detalhe-info" style="background:#fffbeb;border-color:#fde68a;color:#92400e;">
+            <i class="fas fa-arrow-up-from-bracket"></i>
+            <span>Esta conta <b>só aparece no AutoSystem</b> (R$ ${formatBRL(g.totalRel)}).
+            Ainda não há lançamento correspondente na planilha contábil.</span>
+        </div>`;
+    } else if (g.status === 'so-planilha') {
+        detalhe = `<div class="detalhe-info" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3;">
+            <i class="fas fa-arrow-down-to-bracket"></i>
+            <span>Esta conta <b>só aparece na planilha</b> (R$ ${formatBRL(g.totalPlan)}).
+            Não há lançamento correspondente no relatório AutoSystem.</span>
+        </div>`;
+    }
+
+    const detalheComp = (g.compensacoes && g.compensacoes.length)
+        ? `<div class="detalhe-comp">
+            <i class="fas fa-rotate-left"></i>
+            <span><b>${g.compensacoes.length} NF compensada(s) automaticamente:</b> ${g.compensacoes.map(c => `NF ${c.doc} (R$ ${formatBRL(c.valorAuto)})`).join(', ')} —
+            entraram no AutoSystem e foram devolvidas na planilha, por isso foram retiradas do total pendente.</span>
+        </div>`
+        : '';
+
+    // Rodapé de totais do grupo
+    const rodapeTotais = `
+        <div class="grupo-totais" style="padding:10px 22px;border-top:1px solid #edf2f7;background:#fbfcfe;justify-content:flex-start;">
+            ${g.totalRelCompensado ? `
+            <div class="total-box">
+                <span class="lbl">AutoSystem (bruto)</span>
+                <span class="vl">R$ ${formatBRL(g.totalRelBruto)}</span>
+            </div>
+            <div class="total-box">
+                <span class="lbl" style="color:#5b21b6;">Compensado (NF devolvida)</span>
+                <span class="vl" style="color:#5b21b6;">− R$ ${formatBRL(g.totalRelCompensado)}</span>
+            </div>
+            <div class="total-box">
+                <span class="lbl">AutoSystem (líquido)</span>
+                <span class="vl">R$ ${formatBRL(g.totalRel)}</span>
+            </div>` : `
+            <div class="total-box">
+                <span class="lbl">AutoSystem</span>
+                <span class="vl">R$ ${formatBRL(g.totalRel)}</span>
+            </div>`}
+            ${g.planConta ? `
+            <div class="total-box">
+                <span class="lbl">Planilha (débito)</span>
+                <span class="vl">R$ ${formatBRL(g.totalPlan)}</span>
+            </div>
+            ${g.totalDev ? `<div class="total-box">
+                <span class="lbl" style="color:#0369a1;">Devolução</span>
+                <span class="vl" style="color:#0369a1;">− R$ ${formatBRL(g.totalDev)}</span>
+            </div>
+            <div class="total-box">
+                <span class="lbl">Planilha líquida</span>
+                <span class="vl">R$ ${formatBRL(g.totalLiq)}</span>
+            </div>` : ''}` : ''}
+        </div>`;
+
+    return `<div class="grupo-card${destaque}${classeExtra}">
+        <div class="grupo-header">
+            <div class="grupo-titulo"><i class="fas fa-layer-group"></i> ${titulo}</div>
+            <div class="badges-wrap">${badge}${badgeComp}</div>
+        </div>
+        <div class="grupo-body">
+            <div class="coluna">
+                <div class="coluna-titulo"><i class="fas fa-file-lines"></i> AutoSystem</div>
+                ${relLinhas}
+            </div>
+            <div class="coluna">
+                <div class="coluna-titulo"><i class="fas fa-file-excel"></i> Planilha RAZÃO</div>
+                ${planLinhas}
+            </div>
+        </div>
+        ${rodapeTotais}
+        ${detalheComp}
+        ${detalhe}
+    </div>`;
+}
+
+/* ============================================================
+   CONTADORES
+   ============================================================ */
+function atualizarContadores() {
+    document.getElementById('countRel').textContent =
+        document.getElementById('inputRel').value.length.toLocaleString('pt-BR') + ' caracteres';
+    document.getElementById('countPlan').textContent =
+        document.getElementById('inputPlan').value.length.toLocaleString('pt-BR') + ' caracteres';
+}
+document.getElementById('inputRel').addEventListener('input', atualizarContadores);
+document.getElementById('inputPlan').addEventListener('input', atualizarContadores);
+
+/* ============================================================
+   IMPORTAÇÃO DE ARQUIVOS
+   AutoSystem: .txt (cp1252/Latin-1, com fallback pra UTF-8)
+   Planilha: .xls / .xlsx / .ods (Excel ou LibreOffice), via SheetJS —
+   reconstrói o texto célula a célula (separado por TAB, como um
+   "colar" do Excel) respeitando o tipo de cada célula: valores
+   numéricos (débito/crédito/saldo) viram texto no formato brasileiro
+   com 2 casas decimais; datas e códigos são copiados como já vêm no
+   arquivo, preservando zeros à esquerda.
+   ============================================================ */
+function decodificarTexto(buffer) {
+    try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+    } catch (e) {
+        return new TextDecoder('windows-1252').decode(buffer);
+    }
+}
+
+document.getElementById('fileRel').addEventListener('change', (ev) => {
+    const arquivo = ev.target.files[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        const texto = decodificarTexto(leitor.result);
+        document.getElementById('inputRel').value = texto;
+        document.getElementById('arquivoRelNome').innerHTML = `<i class="fas fa-check"></i> ${arquivo.name}`;
+        atualizarContadores();
+    };
+    leitor.onerror = () => alert('Não consegui ler o arquivo ' + arquivo.name + '.');
+    leitor.readAsArrayBuffer(arquivo);
+});
+
+function celulaParaTextoBR(cell) {
+    if (!cell || cell.v === undefined || cell.v === null) return '';
+    if (cell.t === 'n') {
+        // coluna monetária (débito/crédito/saldo) -> formato brasileiro, sempre com 2 casas
+        return Number(cell.v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if (cell.t === 'd') {
+        const d = cell.v instanceof Date ? cell.v : new Date(cell.v);
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+    // texto, código, data já formatada como string, etc. -> mantém como está no arquivo
+    return String(cell.w !== undefined ? cell.w : cell.v);
+}
+
+// O formato antigo "Excel 2003 XML" (comum em exportações de sistemas contábeis,
+// mesmo salvo com extensão .xls) é um arquivo de TEXTO com a codificação
+// declarada no próprio cabeçalho (ex.: windows-1252) — se passarmos os bytes
+// crus pro SheetJS sem decodificar do jeito certo, acentos (ex.: "º", "ç")
+// saem corrompidos. Detecta esse caso e decodifica manualmente antes de ler.
+function tentarDecodificarXmlAntigo(buffer) {
+    const cabecalho = new TextDecoder('ascii').decode(buffer.slice(0, 200));
+    if (!/^\s*<\?xml/i.test(cabecalho)) return null;
+    const m = cabecalho.match(/encoding=["']([^"']+)["']/i);
+    const enc = m ? m[1].toLowerCase() : 'utf-8';
+    try {
+        return new TextDecoder(enc).decode(buffer);
+    } catch (e) {
+        return new TextDecoder('windows-1252').decode(buffer);
+    }
+}
+
+function lerWorkbook(buffer) {
+    const textoXmlAntigo = tentarDecodificarXmlAntigo(buffer);
+    return textoXmlAntigo ? XLSX.read(textoXmlAntigo, { type: 'string' }) : XLSX.read(buffer, { type: 'array' });
+}
+
+function planilhaParaTexto(workbook) {
+    // usa a primeira aba que pareça ser o razão analítico; senão, a primeira aba do arquivo
+    const nomes = workbook.SheetNames;
+    const nomeEscolhido = nomes.find(n => /raz[aã]o|anal[ií]tico/i.test(n)) || nomes[0];
+    const ws = workbook.Sheets[nomeEscolhido];
+    if (!ws['!ref']) return { texto: '', aba: nomeEscolhido };
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const linhas = [];
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        const celulas = [];
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const addr = XLSX.utils.encode_cell({ r: R, c: C });
+            celulas.push(celulaParaTextoBR(ws[addr]));
+        }
+        linhas.push(celulas.join('\t'));
+    }
+    return { texto: linhas.join('\n'), aba: nomeEscolhido };
+}
+
+document.getElementById('filePlan').addEventListener('change', (ev) => {
+    const arquivo = ev.target.files[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        try {
+            const wb = lerWorkbook(leitor.result);
+            const { texto, aba } = planilhaParaTexto(wb);
+            if (!texto.trim()) { alert('Não encontrei dados na planilha ' + arquivo.name + '.'); return; }
+            document.getElementById('inputPlan').value = texto;
+            document.getElementById('arquivoPlanNome').innerHTML =
+                `<i class="fas fa-check"></i> ${arquivo.name}${wb.SheetNames.length > 1 ? ' (aba: ' + aba + ')' : ''}`;
+            atualizarContadores();
+        } catch (e) {
+            alert('Não consegui ler a planilha ' + arquivo.name + '. Verifique se é um .xls, .xlsx ou .ods válido.');
+        }
+    };
+    leitor.onerror = () => alert('Não consegui ler o arquivo ' + arquivo.name + '.');
+    leitor.readAsArrayBuffer(arquivo);
+});
+
+/* ============================================================
+   COMPARAR / RECALCULAR
+   ============================================================ */
+// Reconstrói grupos e totais a partir do que já foi importado (chamado
+// tanto pelo botão Comparar quanto ao ajustar uma correspondência manual).
+function recalcularTudo() {
+    const relatorio = state.relContas, planilha = state.planContas;
+    state.grupos = agruparContas(relatorio, planilha, state.overrides);
+
+    state.totalRelBruto = +relatorio.reduce((acc, r) => {
+        const soma = r.lancamentos.reduce((a, l) => a + l.valor, 0);
+        return acc + (r.lancamentos.length ? soma : r.valor);
+    }, 0).toFixed(2);
+
+    state.totalCompensado = +state.grupos.reduce((acc, g) => acc + (g.totalRelCompensado || 0), 0).toFixed(2);
+    state.totalRel = +(state.totalRelBruto - state.totalCompensado).toFixed(2);
+
+    state.totalPlan = +planilha.reduce((acc, p) => {
+        const t = p.totalDebito || p.lancamentos
+            .filter(l => !l.ehCredito)
+            .reduce((a, l) => a + l.valor, 0);
+        return acc + t;
+    }, 0).toFixed(2);
+
+    state.totalDev = +planilha.reduce((acc, p) => acc + (p.totalDevolucao || 0), 0).toFixed(2);
+
+    state.totalSemContrapartida = +planilha.reduce((acc, p) =>
+        acc + p.lancamentos.filter(l => l.isDevolucao && !l.compensado).reduce((a, l) => a + l.valor, 0), 0).toFixed(2);
+
+    state.totalDif = +(state.totalRel - (state.totalPlan - state.totalDev)).toFixed(2);
+
+    render();
+}
+
+document.getElementById('btnComparar').addEventListener('click', () => {
+    const txtRel = document.getElementById('inputRel').value;
+    const txtPlan = document.getElementById('inputPlan').value;
+
+    if (!txtRel.trim() || !txtPlan.trim()) {
+        alert('Cole os dois textos (relatório AutoSystem e planilha RAZÃO).');
+        return;
+    }
+
+    const relatorio = parseRelatorio(txtRel);
+    const planilha = parsePlanilha(txtPlan);
+
+    if (!relatorio.length) { alert('Não encontrei contas no relatório AutoSystem.'); return; }
+    if (!planilha.length)  { alert('Não encontrei contas na planilha RAZÃO. Verifique o formato.'); return; }
+
+    state.relContas  = relatorio;
+    state.planContas = planilha;
+    state.overrides  = {};
+    recalcularTudo();
+
+    // Depois de comparar, some com os campos de colar texto — só volta se pedirem.
+    setImportVisivel(false);
+});
+
+document.getElementById('filtroTexto').addEventListener('input', render);
+document.getElementById('filtroStatus').addEventListener('change', () => {
+    document.querySelectorAll('#chipsFiltro .chip').forEach(c =>
+        c.classList.toggle('active', c.getAttribute('data-status') === document.getElementById('filtroStatus').value));
+    render();
+});
+document.getElementById('ordenarPor').addEventListener('change', render);
+
+document.querySelectorAll('#chipsFiltro .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.getElementById('filtroStatus').value = chip.getAttribute('data-status');
+        document.querySelectorAll('#chipsFiltro .chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        render();
+    });
+});
+
+/* ============================================================
+   MOSTRAR/OCULTAR IMPORTAÇÃO
+   ============================================================ */
+function setImportVisivel(mostrar) {
+    document.getElementById('importSection').style.display = mostrar ? '' : 'none';
+    const btn = document.getElementById('btnToggleImport');
+    btn.classList.toggle('active', mostrar);
+    btn.innerHTML = mostrar
+        ? '<i class="fas fa-xmark"></i> Ocultar importação'
+        : (state.relContas.length ? '<i class="fas fa-file-import"></i> Importar outros dados' : '<i class="fas fa-file-import"></i> Importar dados');
+}
+document.getElementById('btnToggleImport').addEventListener('click', () => {
+    const aberto = document.getElementById('importSection').style.display !== 'none';
+    setImportVisivel(!aberto);
+});
+
+document.getElementById('btnCorresp').addEventListener('click', () => {
+    if (!state.grupos.length) { alert('Compare os dados primeiro para conferir as correspondências.'); return; }
+    state.showCorresp = !state.showCorresp;
+    document.getElementById('btnCorresp').classList.toggle('active', state.showCorresp);
+    renderCorrespondencias();
+    if (state.showCorresp) document.getElementById('correspondenciaPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+/* ============================================================
+   NAVEGAÇÃO FLUTUANTE
+   ============================================================ */
+document.getElementById('btnScrollTop').addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+document.getElementById('btnScrollBottom').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' }));
+
+document.getElementById('btnLimpar').addEventListener('click', () => {
+    document.getElementById('inputRel').value = '';
+    document.getElementById('inputPlan').value = '';
+    document.getElementById('filtroTexto').value = '';
+    document.getElementById('filtroStatus').value = 'todos';
+    document.getElementById('ordenarPor').value = 'padrao';
+    document.querySelectorAll('#chipsFiltro .chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-status') === 'todos'));
+    state.relContas = []; state.planContas = []; state.grupos = []; state.overrides = {}; state.showCorresp = false;
+    state.totalRel = state.totalRelBruto = state.totalCompensado = state.totalPlan = state.totalDev = state.totalDif = state.totalSemContrapartida = 0;
+    document.getElementById('gruposContainer').innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-paste fa-2x"></i><br>Cole o relatório AutoSystem e a planilha RAZÃO para começar
+        </div>`;
+    document.getElementById('alertaSemContrapartida').innerHTML = '';
+    document.getElementById('correspondenciaPanel').innerHTML = '';
+    document.getElementById('resultMeta').textContent = 'Cole os dois textos e clique em Comparar';
+    document.getElementById('totalRel').textContent  = 'R$ 0,00';
+    document.getElementById('totalPlan').textContent = 'R$ 0,00';
+    document.getElementById('totalDev').textContent  = 'R$ 0,00';
+    document.getElementById('totalComp').textContent = 'R$ 0,00';
+    document.getElementById('totalSemContrapartida').textContent = 'R$ 0,00';
+    document.getElementById('totalDif').textContent  = 'R$ 0,00';
+    setImportVisivel(true);
+    atualizarContadores();
+});
+
+/* ============================================================
+   DEBUG
+   ============================================================ */
+document.getElementById('btnDebug').addEventListener('click', () => {
+    const partes = [];
+    partes.push('===== AUTOSYSTEM =====');
+    partes.push('contas: ' + state.relContas.length);
+    state.relContas.slice(0, 15).forEach(c => {
+        const soma = c.lancamentos.reduce((a, l) => a + l.valor, 0);
+        partes.push(`  ${c.codigo} - ${c.nome} | ${c.lancamentos.length} lanç. | soma R$ ${formatBRL(soma)}`);
+    });
+
+    partes.push('\n\n===== PLANILHA =====');
+    partes.push('contas: ' + state.planContas.length);
+    state.planContas.forEach(p => {
+        partes.push(`  ${p.codigo}/${p.codigoReduzido} ${p.nome} | débito R$ ${formatBRL(p.totalDebito)} | devolução R$ ${formatBRL(p.totalDevolucao)} | lanç. ${p.lancamentos.length}`);
+        p.lancamentos.filter(l => l.isDevolucao).forEach(l => {
+            partes.push(`     ↳ DEVOLUÇÃO: ${l.data} | ${l.historico} | R$ ${formatBRL(l.valor)}${l.nfDevolvida ? ' | NF original: ' + l.nfDevolvida : ''}${l.compensado ? ' | ✅ compensada no AutoSystem' : ' | ⚠ sem contrapartida encontrada'}`);
+        });
+    });
+
+    partes.push('\n\n===== COMPENSAÇÕES =====');
+    state.grupos.forEach(g => {
+        (g.compensacoes || []).forEach(c => {
+            partes.push(`  NF ${c.doc} | AutoSystem R$ ${formatBRL(c.valorAuto)} | Devolução R$ ${formatBRL(c.valorDev)} | ${c.data}`);
+        });
+    });
+
+    document.getElementById('debugBody').textContent = partes.join('\n');
+    document.getElementById('debugModal').classList.add('show');
+});
+document.getElementById('closeDebug').addEventListener('click', () => document.getElementById('debugModal').classList.remove('show'));
+document.getElementById('debugModal').addEventListener('click', e => { if (e.target.id === 'debugModal') e.target.classList.remove('show'); });
+
+/* ============================================================
+   BLOQUEIOS (botão direito / F12 e atalhos de inspeção)
+   ============================================================ */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    const tecla = (e.key || '').toUpperCase();
+    const combinacaoDevTools = e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(tecla);
+    const verFonte = e.ctrlKey && tecla === 'U';
+    if (tecla === 'F12' || combinacaoDevTools || verFonte) {
+        e.preventDefault();
+    }
+});
+
+atualizarContadores();
+</script>
+</body>
+</html>
