@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -956,6 +955,9 @@ function parseSpedFromText() {
   const itemsByKey = new Map();  // chave "NF|ITEM" normalizada -> {nf, item, codItem, cfop, valor}
   const itemsByNF = new Map();   // NF normalizada -> array de itens
   const icmsStByNF = new Map();  // NF normalizada -> soma do "VAL. ICMS ST RETIDO ANT." informado no C110
+  // Totalizadores por documento (C190/D190/C590/D590). Servem para conferir documentos que NÃO têm
+  // itens no SPED: CT-e (D100), energia (C500), comunicação (D500) e notas escrituradas só pelo total.
+  const totaisByNF = new Map();  // NF normalizada -> [{cfop, reg, regPai, modelo, valor, base, icms}]
   let empresa='', cnpjSped='', ie='', periodo='';
 
   // Extrai valor numérico de texto livre (registro C110), aceitando tanto "879.62" (ponto decimal)
@@ -969,6 +971,14 @@ function parseSpedFromText() {
   };
 
   const addCfop = (cf, vc, vb, vi, src, nfKey) => {
+    const chaveDoc = normNumKey(nfKey);
+    if (cf && cf !== '0' && chaveDoc) {
+      if (!totaisByNF.has(chaveDoc)) totaisByNF.set(chaveDoc, []);
+      totaisByNF.get(chaveDoc).push({
+        cfop: String(cf).trim(), reg: src, regPai: currentDocReg, modelo: currentDocMod,
+        valor: vc, base: vb, icms: vi, numDoc: nfKey
+      });
+    }
     if (!cf || cf === '0') return;
     if (!cfopMap[cf]) cfopMap[cf] = {vc:0, vb:0, vi:0, srcs:new Set(), nfs: new Map()};
     cfopMap[cf].vc += vc;
@@ -984,7 +994,7 @@ function parseSpedFromText() {
     }
   };
 
-  let currentNF = null;
+  let currentNF = null, currentDocReg = '', currentDocMod = '';
   for (const ln of lines) {
     const p = ln.split('|');
     if (p.length < 3) continue;
@@ -1001,6 +1011,7 @@ function parseSpedFromText() {
 
     if (reg === 'C100') {
       currentNF = p[8] || 'NF-' + p[4];
+      currentDocReg = 'C100'; currentDocMod = p[5]||'';
       nfRecords.push({
         NUM_DOC: p[8]||'',
         DT_DOC: p[10]||'',
@@ -1013,8 +1024,10 @@ function parseSpedFromText() {
       });
     }
 
+    // CT-e / transporte (mod. 57): o número do documento é o campo 9 (o campo 8 é o SUB, quase sempre vazio).
     if (reg === 'D100') {
-      currentNF = p[8] || 'NF-' + p[4];
+      currentNF = p[9] || 'CTE-' + p[4];
+      currentDocReg = 'D100'; currentDocMod = p[5]||'';
       nfRecords.push({
         NUM_DOC: p[8]||'',
         DT_DOC: p[10]||'',
@@ -1025,6 +1038,22 @@ function parseSpedFromText() {
         VL_ICMS: '',
         CFOP: ''
       });
+    }
+
+    // Energia / água / gás (mod. 66, 6, 28...): NUM_DOC = campo 10, VL_DOC = campo 13. Origem do CFOP 1253.
+    if (reg === 'C500') {
+      currentNF = p[10] || 'C500-' + p[4];
+      currentDocReg = 'C500'; currentDocMod = p[5]||'';
+      nfRecords.push({NUM_DOC: p[10]||'', DT_DOC: p[11]||'', COD_MOD: p[5]||'', COD_PART: p[4]||'',
+                      VL_DOC: p[13]||'0', VL_BC_ICMS: p[16]||'0', VL_ICMS: p[17]||'0', CFOP: ''});
+    }
+
+    // Comunicação / telefonia / internet (mod. 21 e 22): NUM_DOC = campo 9, VL_DOC = campo 12. Origem do CFOP 1303.
+    if (reg === 'D500') {
+      currentNF = p[9] || 'D500-' + p[4];
+      currentDocReg = 'D500'; currentDocMod = p[5]||'';
+      nfRecords.push({NUM_DOC: p[9]||'', DT_DOC: p[10]||'', COD_MOD: p[5]||'', COD_PART: p[4]||'',
+                      VL_DOC: p[12]||'0', VL_BC_ICMS: '', VL_ICMS: '', CFOP: ''});
     }
 
     // Registro C110 — informação complementar da NF (texto livre). Nos combustíveis, costuma trazer
@@ -1075,10 +1104,10 @@ function parseSpedFromText() {
       addCfop(p[3], toNum(p[5]), toNum(p[6]), toNum(p[7]), 'D190', currentNF);
     }
     if (reg === 'C590' && p.length >= 6) {
-      addCfop(p[3], toNum(p[5]), 0, 0, 'C590', currentNF);
+      addCfop(p[3], toNum(p[5]), toNum(p[6]), toNum(p[7]), 'C590', currentNF);
     }
     if (reg === 'D590' && p.length >= 6) {
-      addCfop(p[3], toNum(p[5]), 0, 0, 'D590', currentNF);
+      addCfop(p[3], toNum(p[5]), toNum(p[6]), toNum(p[7]), 'D590', currentNF);
     }
     if (reg === 'C730' && p.length >= 8) {
       addCfop(p[3], toNum(p[5]), toNum(p[6]), toNum(p[7]), 'C730', currentNF);
@@ -1100,9 +1129,13 @@ function parseSpedFromText() {
     if (totalBase <= 0) return;
     itensSt.forEach(it => {
       const parte = vlSt * (it.valor / totalBase);
-      it.valorComIcmsSt = it.valor;   // guarda o valor original (com ICMS-ST embutido)
-      it.icmsStRetido = parte;
-      it.valor = it.valor - parte;    // valor líquido sem ICMS-ST, comparável ao Amaral
+      // NÃO sobrescreve o valor do item: em muitas notas (lubrificantes, por exemplo) o valor
+      // líquido do Amaral é exatamente o VL_ITEM do C170, sem nenhuma dedução de ICMS-ST — descontar
+      // à força criava divergências falsas. Guardamos as duas leituras e, na hora de comparar,
+      // a conferência usa a que corresponde ao Amaral.
+      it.valorComIcmsSt = it.valor;          // VL_ITEM - VL_DESC (padrão)
+      it.icmsStRetido = parte;               // ICMS-ST informado no C110, rateado
+      it.valorSemIcmsSt = it.valor - parte;  // alternativa, usada só se casar com o Amaral
     });
   });
 
@@ -1117,7 +1150,7 @@ function parseSpedFromText() {
     cfopMap[k].srcs = Array.from(cfopMap[k].srcs);
   }
 
-  spedData = {cfopMap, nfRecords, empresa: empresa||(postoAtual?postoAtual.nome:''), cnpj: cnpjSped, ie, periodo, itemsByKey, itemsByNF, icmsStByNF};
+  spedData = {cfopMap, nfRecords, empresa: empresa||(postoAtual?postoAtual.nome:''), cnpj: cnpjSped, ie, periodo, itemsByKey, itemsByNF, icmsStByNF, totaisByNF};
   const nome = postoAtual ? postoAtual.nome : (empresa||'Empresa SPED');
   document.getElementById('empresaNome').innerHTML = nome;
   document.getElementById('empresaSub').innerHTML = `CNPJ: ${cnpjSped||'—'} &nbsp;|&nbsp; IE: ${ie||'—'} &nbsp;|&nbsp; Período: ${periodo||'—'}`;
@@ -1392,7 +1425,23 @@ function runItemAudit() {
     }
 
     const cfopDivergente = String(spItem.cfop).trim() !== String(ref.cfop).trim();
-    const diffValor = spItem.valor - ref.valor;
+
+    // Valor comparável do SPED: por padrão o VL_ITEM líquido do C170. Quando a NF traz ICMS-ST
+    // retido no C110 (combustíveis), o Amaral às vezes lança o valor já sem esse ICMS-ST — então
+    // testamos as duas leituras e usamos a que bate com a referência. Se nenhuma bate, vale o
+    // valor cheio do C170 e a linha é apontada como divergente de verdade.
+    const candidatos = [{v: spItem.valor, st: false}];
+    if (spItem.valorSemIcmsSt !== undefined) candidatos.push({v: spItem.valorSemIcmsSt, st: true});
+    let escolhido = candidatos[0];
+    for (const c of candidatos) {
+      if (Math.abs(c.v - ref.valor) < Math.abs(escolhido.v - ref.valor)) escolhido = c;
+    }
+    const bate = Math.abs(escolhido.v - ref.valor) <= 0.05;
+    // Se nenhuma das leituras bate, mostra o valor cheio do C170 — é o número que o fiscal precisa ver.
+    spItem.valorUsado = bate ? escolhido.v : spItem.valor;
+    spItem.stAplicado = bate && escolhido.st;
+
+    const diffValor = spItem.valorUsado - ref.valor;
     const valorDiverge = Math.abs(diffValor) > 0.05;
 
     let status;
@@ -1402,6 +1451,82 @@ function runItemAudit() {
 
     rows.push({ref, sp: spItem, status, matchType, diffValor});
   });
+
+  // ------------------------------------------------------------------
+  // 2ª passada: documentos que não têm itens no SPED (C170).
+  // CT-e (D100/D190), energia (C500/C590), comunicação (D500/D590) e notas escrituradas só pelo
+  // total entram no arquivo apenas no totalizador por CFOP. O Amaral, por outro lado, detalha
+  // (ex.: AD VALOR + FRETE no mesmo CT-e). Então agrupamos as linhas do Amaral por NF + CFOP e
+  // comparamos a soma contra o totalizador do documento.
+  // ------------------------------------------------------------------
+  const poolTot = new Map();
+  (spedData.totaisByNF || new Map()).forEach((arr, nfKey) => {
+    poolTot.set(nfKey, arr.map(t => Object.assign({}, t, {_usado:false})));
+  });
+
+  const grupos = new Map();
+  rows.forEach(r => {
+    if (r.status !== 'missing') return;
+    const k = normNumKey(r.ref.nf) + '|' + String(r.ref.cfop).trim();
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(r);
+  });
+
+  const resolvidos = new Set();
+  const novasLinhas = [];
+
+  grupos.forEach((grupo, k) => {
+    const nfKeyN = k.split('|')[0];
+    const cfopRef = k.split('|')[1];
+    const disp = (poolTot.get(nfKeyN) || []).filter(t => !t._usado);
+    if (disp.length === 0) return;
+
+    const somaRef = grupo.reduce((a, r) => a + r.ref.valor, 0);
+    let alvo = disp.find(t => t.cfop === cfopRef && Math.abs(t.valor - somaRef) <= 0.05)
+            || disp.find(t => t.cfop === cfopRef)
+            || disp.find(t => Math.abs(t.valor - somaRef) <= 0.05)
+            || (disp.length === 1 ? disp[0] : null);
+    if (!alvo) return;
+    alvo._usado = true;
+
+    const cfopDivergente = alvo.cfop !== cfopRef;
+    const diff = alvo.valor - somaRef;
+    const valorDiverge = Math.abs(diff) > 0.05;
+
+    let status;
+    if (cfopDivergente) status = 'cfop';
+    else if (valorDiverge) status = 'valor';
+    else status = 'ok';
+
+    // Ajusta os contadores: as linhas saem de "não encontrado" para o status real
+    naoEncontrados -= grupo.length;
+    if (status === 'cfop') trocados += grupo.length;
+    else if (status === 'valor') valorDivergentes += grupo.length;
+    else ok += grupo.length;
+
+    grupo.forEach(r => resolvidos.add(r));
+
+    const descricoes = grupo.map(r => r.ref.descricao || r.ref.codProduto || '').filter(Boolean);
+    const refConsolidada = {
+      nf: grupo[0].ref.nf,
+      item: grupo.length > 1 ? grupo.length + ' itens' : grupo[0].ref.item,
+      codProduto: grupo.length > 1 ? '' : grupo[0].ref.codProduto,
+      descricao: descricoes.join(' + '),
+      cfop: cfopRef,
+      valor: somaRef
+    };
+
+    novasLinhas.push({
+      ref: refConsolidada,
+      sp: {cfop: alvo.cfop, valor: alvo.valor, valorUsado: alvo.valor, codItem: '', item: '', nf: alvo.numDoc},
+      status,
+      matchType: 'tot:' + alvo.reg + (alvo.regPai ? '/' + alvo.regPai : '') + (alvo.modelo ? ' mod.' + alvo.modelo : ''),
+      diffValor: diff
+    });
+  });
+
+  for (let i = rows.length - 1; i >= 0; i--) if (resolvidos.has(rows[i])) rows.splice(i, 1);
+  novasLinhas.forEach(l => rows.push(l));
 
   const order = {cfop:0, valor:1, missing:2, ok:3};
   rows.sort((a,b) => order[a.status]-order[b.status]);
@@ -1465,18 +1590,21 @@ function renderItemAuditHtml(rows, s) {
     const itemTag = r.matchType==='item'
       ? ' <span class="origem-tag" title="Casado apenas pelo número do item — produto/descrição não confirmou">≈ITEM</span>'
       : '';
-    const stTag = sp.icmsStRetido
-      ? ` <span class="origem-tag" title="ICMS-ST retido anteriormente (C110): R$ ${fmtNum(sp.icmsStRetido)} — já deduzido do valor do item (era R$ ${fmtNum(sp.valorComIcmsSt)}) para comparar com o Amaral">⛽ ST</span>`
+    const totTag = (r.matchType && r.matchType.indexOf('tot:') === 0)
+      ? ` <span class="origem-tag" title="Documento sem itens no SPED (C170) — conferido pelo totalizador ${r.matchType.slice(4)}, somando as linhas do Amaral da mesma NF e CFOP" style="background:rgba(13,31,60,0.10);">Σ ${r.matchType.slice(4)}</span>`
+      : '';
+    const stTag = (sp.icmsStRetido && sp.stAplicado)
+      ? ` <span class="origem-tag" title="ICMS-ST retido anteriormente (C110): R$ ${fmtNum(sp.icmsStRetido)} — deduzido do valor do item (C170: R$ ${fmtNum(sp.valorComIcmsSt)}) porque foi assim que o Amaral lançou">⛽ ST</span>`
       : '';
 
     return `<tr${rowClass}>
       <td>${ref.nf}</td>
       <td class="td-center">${ref.item||'—'}${itemTag}</td>
-      <td class="td-left">${ref.codProduto||sp.codItem||''} — ${ref.descricao||''}${stTag}</td>
+      <td class="td-left">${ref.codProduto||sp.codItem||''} — ${ref.descricao||''}${stTag}${totTag}</td>
       <td><span class="cfop-tag">${ref.cfop}</span></td>
       <td>${cfopSpedHtml}</td>
       <td>${fmtNum(ref.valor)}</td>
-      <td>${fmtNum(sp.valor)}</td>
+      <td>${fmtNum(sp.valorUsado !== undefined ? sp.valorUsado : sp.valor)}</td>
       <td class="${diffClass}">${(r.diffValor>=0?'+':'')}${fmtNum(r.diffValor||0)}</td>
       <td class="td-center">${badge}</td>
     </tr>`;
@@ -1558,7 +1686,7 @@ function printItemAudit() {
       <td style="text-align:center;font-weight:700;">${ref.cfop}</td>
       <td style="text-align:center;${r.status==='cfop'?'color:#E02D3C;font-weight:700;':''}">${sp.cfop}</td>
       <td style="text-align:right;">${fmtNum(ref.valor)}</td>
-      <td style="text-align:right;">${fmtNum(sp.valor)}</td>
+      <td style="text-align:right;">${fmtNum(sp.valorUsado !== undefined ? sp.valorUsado : sp.valor)}</td>
       <td style="text-align:right;${Math.abs(r.diffValor||0)>0.05?'font-weight:700;color:'+(r.diffValor<0?'#E02D3C':'#0BA360')+';':''}">${(r.diffValor>=0?'+':'')}${fmtNum(r.diffValor||0)}</td>
       <td style="text-align:center;" class="pill ${pillClass}">${pillTxt}</td>
     </tr>`;
@@ -1763,6 +1891,21 @@ function exportCSV() {
   a.download = 'sped_export.csv';
   a.click();
 }
+
+// --- Bloqueio de botão direito / atalhos de DevTools ---
+// Aviso: isto só desestimula o usuário casual; não impede alguém com
+// conhecimento técnico de ver o código-fonte (view-source:, extensões,
+// devtools desabilitado no navegador, etc.). Não é uma proteção real.
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  const k = e.key;
+  const blocked =
+    k === 'F12' ||
+    (e.ctrlKey && e.shiftKey && ['I','J','C','i','j','c'].includes(k)) ||
+    (e.ctrlKey && ['U','u','S','s'].includes(k)) ||
+    (e.metaKey && e.altKey && ['I','J','C','i','j','c'].includes(k));
+  if (blocked) e.preventDefault();
+});
 </script>
 </body>
 </html>
