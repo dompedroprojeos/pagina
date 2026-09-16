@@ -310,10 +310,11 @@
 
         // ===================== DETECÇÃO / LEITURA DE RECIBOS =====================
 
-        // Só considera PDF que tenha "recibo" no nome (evita abrir PDFs que nada têm a ver, o que travava a busca)
+        // Só considera PDF cujo nome tenha "recibo" E "sped" (evita abrir outros PDFs que só têm "recibo"
+        // no nome por coincidência, o que deixava a busca lenta e confusa)
         function looksLikeReciboPdf(name) {
             const lower = name.toLowerCase();
-            return lower.endsWith('.pdf') && lower.includes('recibo');
+            return lower.endsWith('.pdf') && lower.includes('recibo') && lower.includes('sped');
         }
 
         async function extractPdfText(file) {
@@ -361,6 +362,7 @@
         }
 
         // Reconstrói a árvore de pastas a partir da lista plana de arquivos
+        // (inclui a própria pasta raiz selecionada, caso os recibos estejam direto nela)
         function buildFolderStructure(files) {
             const dirsSet = new Set();
             const filesByDir = {};
@@ -368,7 +370,8 @@
                 const relPath = file.webkitRelativePath || file.name;
                 const parts = relPath.split('/');
                 parts.pop();
-                for (let i = 2; i <= parts.length; i++) {
+                if (parts.length === 0) parts.push(''); // segurança, não deve ocorrer com webkitdirectory
+                for (let i = 1; i <= parts.length; i++) {
                     dirsSet.add(parts.slice(0, i).join('/'));
                 }
                 const dirPath = parts.join('/');
@@ -635,7 +638,7 @@
 
         addLog('🚀 Localizador de Recibos SPED');
         addLog('📌 Selecione a pasta raiz para iniciar');
-        addLog('🔍 Busca PDFs com "recibo" no nome e confere o cabeçalho oficial');
+        addLog('🔍 Busca PDFs com "recibo" e "sped" no nome e confere o cabeçalho oficial');
         addLog('🔒 Botão direito e F12 desativados nesta página');
 
         const style = document.createElement('style');
