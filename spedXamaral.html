@@ -555,6 +555,29 @@ textarea:focus { outline: none; border-color: var(--dp-orange); box-shadow: 0 0 
   letter-spacing: 0.05em;
 }
 
+/* FILTROS DE COLUNA (conferência item a item) */
+.filter-row th {
+  background: var(--bg2);
+  padding: 6px 6px;
+  border-bottom: 2px solid var(--border);
+  vertical-align: middle;
+}
+.col-filter {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--body);
+  font-weight: 500;
+  background: var(--bg3);
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.col-filter:focus { outline: none; border-color: var(--dp-orange); box-shadow: 0 0 0 2px rgba(242,101,34,0.12); }
+select.col-filter { cursor: pointer; }
+
 /* STATUS BADGES */
 .badge {
   display: inline-flex;
@@ -1083,7 +1106,10 @@ function parseSpedFromText() {
 
       const nfKeyN = normNumKey(currentNF);
       const itemKeyN = normNumKey(numItem);
-      const itemObj = {nf: currentNF, item: numItem, codItem, cfop: cfopItem, valor: valorLiquido, cst: cstItem};
+      // Guarda também o valor BRUTO (sem deduzir o desconto do item). Em vários casos reais o Amaral
+      // lança o valor líquido do item = VL_ITEM do C170, sem descontar o campo VL_DESC — descontar
+      // esse valor à força criava divergências falsas (ex.: AREIA LAVADA, CIMENTO, FERRO etc.).
+      const itemObj = {nf: currentNF, item: numItem, codItem, cfop: cfopItem, valor: valorLiquido, valorBruto: vlItem, valorDesconto: vlDesc, cst: cstItem};
 
       if (nfKeyN && itemKeyN) itemsByKey.set(nfKeyN + '|' + itemKeyN, itemObj);
       if (nfKeyN) {
@@ -1427,11 +1453,13 @@ function runItemAudit() {
     const cfopDivergente = String(spItem.cfop).trim() !== String(ref.cfop).trim();
 
     // Valor comparável do SPED: por padrão o VL_ITEM líquido do C170. Quando a NF traz ICMS-ST
-    // retido no C110 (combustíveis), o Amaral às vezes lança o valor já sem esse ICMS-ST — então
-    // testamos as duas leituras e usamos a que bate com a referência. Se nenhuma bate, vale o
-    // valor cheio do C170 e a linha é apontada como divergente de verdade.
-    const candidatos = [{v: spItem.valor, st: false}];
-    if (spItem.valorSemIcmsSt !== undefined) candidatos.push({v: spItem.valorSemIcmsSt, st: true});
+    // retido no C110 (combustíveis), o Amaral às vezes lança o valor já sem esse ICMS-ST, e quando
+    // o item tem desconto no C170 (VL_DESC), o Amaral às vezes lança pelo valor BRUTO (sem deduzir
+    // o desconto) — então testamos as leituras possíveis e usamos a que bate com a referência. Se
+    // nenhuma bate, vale o valor líquido cheio do C170 e a linha é apontada como divergente de verdade.
+    const candidatos = [{v: spItem.valor, tipo: 'liquido'}];
+    if (spItem.valorSemIcmsSt !== undefined) candidatos.push({v: spItem.valorSemIcmsSt, tipo: 'sem_icms_st'});
+    if (spItem.valorDesconto) candidatos.push({v: spItem.valorBruto, tipo: 'bruto'});
     let escolhido = candidatos[0];
     for (const c of candidatos) {
       if (Math.abs(c.v - ref.valor) < Math.abs(escolhido.v - ref.valor)) escolhido = c;
@@ -1439,7 +1467,8 @@ function runItemAudit() {
     const bate = Math.abs(escolhido.v - ref.valor) <= 0.05;
     // Se nenhuma das leituras bate, mostra o valor cheio do C170 — é o número que o fiscal precisa ver.
     spItem.valorUsado = bate ? escolhido.v : spItem.valor;
-    spItem.stAplicado = bate && escolhido.st;
+    spItem.stAplicado = bate && escolhido.tipo === 'sem_icms_st';
+    spItem.descontoIgnorado = bate && escolhido.tipo === 'bruto';
 
     const diffValor = spItem.valorUsado - ref.valor;
     const valorDiverge = Math.abs(diffValor) > 0.05;
@@ -1570,7 +1599,6 @@ function renderItemAuditHtml(rows, s) {
         <td>—</td>
         <td>${fmtNum(ref.valor)}</td>
         <td>—</td>
-        <td>—</td>
         <td class="td-center"><span class="badge badge-err">❌ NÃO ENCONTRADO</span></td>
       </tr>`;
     }
@@ -1582,7 +1610,6 @@ function renderItemAuditHtml(rows, s) {
     else if (r.status === 'valor') badge = '<span class="badge badge-warn">⚠ VALOR DIVERGE</span>';
     else badge = '<span class="badge badge-ok">✓ OK</span>';
 
-    const diffClass = Math.abs(r.diffValor||0) > 0.05 ? (r.diffValor<0?'diff-neg':'diff-pos') : 'diff-ok';
     const cfopSpedHtml = r.status === 'cfop'
       ? `<span class="cfop-tag" style="color:var(--red);">${sp.cfop}</span>`
       : `<span class="cfop-tag">${sp.cfop}</span>`;
@@ -1596,16 +1623,18 @@ function renderItemAuditHtml(rows, s) {
     const stTag = (sp.icmsStRetido && sp.stAplicado)
       ? ` <span class="origem-tag" title="ICMS-ST retido anteriormente (C110): R$ ${fmtNum(sp.icmsStRetido)} — deduzido do valor do item (C170: R$ ${fmtNum(sp.valorComIcmsSt)}) porque foi assim que o Amaral lançou">⛽ ST</span>`
       : '';
+    const descTag = (sp.descontoIgnorado)
+      ? ` <span class="origem-tag" title="Desconto do item no C170 (R$ ${fmtNum(sp.valorDesconto)}) não foi deduzido — o valor bruto (R$ ${fmtNum(sp.valorBruto)}) bateu com o Amaral" style="background:rgba(242,101,34,0.12);color:var(--dp-orange2);">🏷 SEM DESC.</span>`
+      : '';
 
     return `<tr${rowClass}>
       <td>${ref.nf}</td>
       <td class="td-center">${ref.item||'—'}${itemTag}</td>
-      <td class="td-left">${ref.codProduto||sp.codItem||''} — ${ref.descricao||''}${stTag}${totTag}</td>
+      <td class="td-left">${ref.codProduto||sp.codItem||''} — ${ref.descricao||''}${stTag}${totTag}${descTag}</td>
       <td><span class="cfop-tag">${ref.cfop}</span></td>
       <td>${cfopSpedHtml}</td>
       <td>${fmtNum(ref.valor)}</td>
       <td>${fmtNum(sp.valorUsado !== undefined ? sp.valorUsado : sp.valor)}</td>
-      <td class="${diffClass}">${(r.diffValor>=0?'+':'')}${fmtNum(r.diffValor||0)}</td>
       <td class="td-center">${badge}</td>
     </tr>`;
   }).join('');
@@ -1624,18 +1653,37 @@ function renderItemAuditHtml(rows, s) {
       </div>
       <div class="table-wrap">
         <table class="audit-table item-audit-table">
-          <thead><tr>
-            <th class="th-left">NF</th>
-            <th class="th-center">Item</th>
-            <th class="th-left">Produto</th>
-            <th class="th-ref">CFOP Amaral (Ref.)</th>
-            <th>CFOP SPED</th>
-            <th class="th-ref">Valor Amaral</th>
-            <th>Valor SPED</th>
-            <th>Δ Valor</th>
-            <th class="th-center">Status</th>
-          </tr></thead>
-          <tbody>${rowsHtml}</tbody>
+          <thead>
+            <tr>
+              <th class="th-left">NF</th>
+              <th class="th-center">Item</th>
+              <th class="th-left">Produto</th>
+              <th class="th-ref">CFOP Amaral (Ref.)</th>
+              <th>CFOP SPED</th>
+              <th class="th-ref">Valor Amaral</th>
+              <th>Valor SPED</th>
+              <th class="th-center">Status</th>
+            </tr>
+            <tr class="filter-row" id="itemAuditFilterRow">
+              <th><input type="text" class="col-filter" data-col="0" placeholder="🔎 NF..."></th>
+              <th><input type="text" class="col-filter" data-col="1" placeholder="🔎 Item..."></th>
+              <th><input type="text" class="col-filter" data-col="2" placeholder="🔎 Produto..."></th>
+              <th><input type="text" class="col-filter" data-col="3" placeholder="🔎 CFOP..."></th>
+              <th><input type="text" class="col-filter" data-col="4" placeholder="🔎 CFOP..."></th>
+              <th><input type="text" class="col-filter" data-col="5" placeholder="🔎 Valor..."></th>
+              <th><input type="text" class="col-filter" data-col="6" placeholder="🔎 Valor..."></th>
+              <th>
+                <select class="col-filter" data-col="7">
+                  <option value="">Todos</option>
+                  <option value="OK">✓ OK</option>
+                  <option value="CFOP TROCADO">🔀 CFOP Trocado</option>
+                  <option value="VALOR DIVERGE">⚠ Valor Diverge</option>
+                  <option value="NÃO ENCONTRADO">❌ Não Encontrado</option>
+                </select>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="itemAuditTbody">${rowsHtml}</tbody>
         </table>
       </div>
     </div>
@@ -1644,6 +1692,38 @@ function renderItemAuditHtml(rows, s) {
     </div>
   `;
   area.style.display = 'block';
+  setupItemAuditFilters();
+}
+
+// Filtros de coluna da tabela de conferência item a item — cada campo de texto filtra a coluna
+// correspondente (contém, sem diferenciar maiúsculas/acentos de caixa) e o Status usa um <select>.
+function setupItemAuditFilters() {
+  const inputs = document.querySelectorAll('#itemAuditFilterRow .col-filter');
+  inputs.forEach(inp => {
+    inp.addEventListener('input', filterItemAuditRows);
+    inp.addEventListener('change', filterItemAuditRows);
+  });
+}
+
+function filterItemAuditRows() {
+  const filterRow = document.getElementById('itemAuditFilterRow');
+  if (!filterRow) return;
+  const filters = Array.from(filterRow.querySelectorAll('.col-filter')).map(inp => inp.value.trim().toUpperCase());
+  const tbody = document.getElementById('itemAuditTbody');
+  if (!tbody) return;
+  let visiveis = 0;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    let visible = true;
+    filters.forEach((f, i) => {
+      if (!f || !tds[i]) return;
+      if (!tds[i].textContent.toUpperCase().includes(f)) visible = false;
+    });
+    tr.style.display = visible ? '' : 'none';
+    if (visible) visiveis++;
+  });
+  const count = document.querySelector('#itemAuditArea .sh-count');
+  if (count) count.textContent = `${visiveis} de ${tbody.querySelectorAll('tr').length} itens exibidos`;
 }
 
 // ---------------------------------------------------------------------
@@ -1671,7 +1751,6 @@ function printItemAudit() {
         <td style="text-align:center;">—</td>
         <td style="text-align:right;">${fmtNum(ref.valor)}</td>
         <td style="text-align:right;">—</td>
-        <td style="text-align:right;">—</td>
         <td style="text-align:center;" class="pill pill-err">NÃO ENCONTRADO</td>
       </tr>`;
     }
@@ -1687,7 +1766,6 @@ function printItemAudit() {
       <td style="text-align:center;${r.status==='cfop'?'color:#E02D3C;font-weight:700;':''}">${sp.cfop}</td>
       <td style="text-align:right;">${fmtNum(ref.valor)}</td>
       <td style="text-align:right;">${fmtNum(sp.valorUsado !== undefined ? sp.valorUsado : sp.valor)}</td>
-      <td style="text-align:right;${Math.abs(r.diffValor||0)>0.05?'font-weight:700;color:'+(r.diffValor<0?'#E02D3C':'#0BA360')+';':''}">${(r.diffValor>=0?'+':'')}${fmtNum(r.diffValor||0)}</td>
       <td style="text-align:center;" class="pill ${pillClass}">${pillTxt}</td>
     </tr>`;
   }).join('');
@@ -1841,7 +1919,7 @@ function printItemAudit() {
         <thead><tr>
           <th>NF</th><th>Item</th><th>Produto</th><th>CFOP Amaral</th><th>CFOP SPED</th>
           <th style="text-align:right;">Valor Amaral</th><th style="text-align:right;">Valor SPED</th>
-          <th style="text-align:right;">Δ Valor</th><th>Status</th>
+          <th>Status</th>
         </tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>
