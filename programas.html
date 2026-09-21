@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Dom Pedro — Dashboard</title>
+
+<!-- ANTI-CACHE: Força reload da página e impede cache -->
+<script>
+    // Adiciona timestamp para evitar cache
+    (function() {
+        // Previne cache do navegador
+        const metaCache = document.createElement('meta');
+        metaCache.httpEquiv = 'Cache-Control';
+        metaCache.content = 'no-cache, no-store, must-revalidate';
+        document.head.appendChild(metaCache);
+        
+        const metaPragma = document.createElement('meta');
+        metaPragma.httpEquiv = 'Pragma';
+        metaPragma.content = 'no-cache';
+        document.head.appendChild(metaPragma);
+        
+        const metaExpires = document.createElement('meta');
+        metaExpires.httpEquiv = 'Expires';
+        metaExpires.content = '0';
+        document.head.appendChild(metaExpires);
+        
+        // Força reload se for uma versão antiga em cache
+        const timestamp = new Date().getTime();
+        const storedVersion = localStorage.getItem('app_version');
+        const currentVersion = '20260921_001';
+        
+        if (storedVersion !== currentVersion) {
+            localStorage.setItem('app_version', currentVersion);
+            if (!sessionStorage.getItem('reloaded')) {
+                sessionStorage.setItem('reloaded', 'true');
+                location.reload(true);
+            }
+        }
+        
+        // Adiciona timestamp para todos os links e iframes
+        window.addEventListener('load', function() {
+            const links = document.querySelectorAll('a[href], iframe');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.includes('javascript:')) {
+                    if (!href.includes('?v=')) {
+                        link.href = href + (href.includes('?') ? '&v=' : '?v=') + timestamp;
+                    }
+                }
+            });
+        });
+    })();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Raleway:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+/* ─────────────────────────────────────────────
+   TOKENS — kit flat: laranja · coral · turquesa
+   ───────────────────────────────────────────── */
+:root{
+  --app-version: "20260921_001";
+
+  --orange:#f57c1f;--orange-d:#dd6510;
+  --coral:#ec5a56;--coral-d:#d2413e;
+  --teal:#2db7a3;--teal-d:#1f9c8a;
+
+  --bg:#eceff0;
+  --glass:rgba(255,255,255,.55);      /* menus / barras translúcidas */
+  --glass-2:rgba(255,255,255,.80);    /* janelas */
+  --card:rgba(226,229,231,.60);       /* cinza dos cards do kit */
+  --card-h:rgba(255,255,255,.92);
+  --row:rgba(255,255,255,.50);
+  --row-h:rgba(255,255,255,.88);
+
+  --tp:#454b4f;--ts:#7b8387;--tm:#a3aaad;
+  --bd:rgba(40,50,55,.09);--bdh:rgba(40,50,55,.22);
+  --edge:rgba(255,255,255,.75);
+  --shadow:rgba(40,55,60,.20);
+  --r:4px;
+
+  --ac:var(--orange);--acd:var(--orange-d);
+}
+body.dark-mode{
+  --bg:#171b1d;
+  --glass:rgba(30,35,38,.58);
+  --glass-2:rgba(36,42,45,.85);
+  --card:rgba(255,255,255,.06);
+  --card-h:rgba(255,255,255,.14);
+  --row:rgba(255,255,255,.035);
+  --row-h:rgba(255,255,255,.10);
+  --tp:#eceff0;--ts:#aeb5b8;--tm:#7d8588;
+  --bd:rgba(255,255,255,.09);--bdh:rgba(255,255,255,.24);
+  --edge:rgba(255,255,255,.09);
+  --shadow:rgba(0,0,0,.55);
+}
+
+/* cores por elemento */
+.c-orange{--ac:var(--orange);--acd:var(--orange-d)}
+.c-coral {--ac:var(--coral); --acd:var(--coral-d)}
+.c-teal  {--ac:var(--teal);  --acd:var(--teal-d)}
+
+body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--tp);height:100vh;overflow:hidden;cursor:default;transition:background .3s}
+
+/* manchas de cor atrás dos painéis translúcidos */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(circle 430px at 8% 14%,rgba(245,124,31,.30),transparent 70%),
+  radial-gradient(circle 380px at 93% 6%,rgba(236,90,86,.22),transparent 70%),
+  radial-gradient(circle 470px at 80% 94%,rgba(45,183,163,.28),transparent 70%),
+  radial-gradient(circle 320px at 18% 90%,rgba(45,183,163,.18),transparent 70%);
+  pointer-events:none;z-index:0}
+
+/* ─── LAYOUT ─── */
+.main-container{display:flex;height:100vh;position:relative;z-index:1}
+
+/* ─── SIDEBAR (vidro) ─── */
+.sidebar{
+  width:276px;flex-shrink:0;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
+  border-right:1px solid var(--edge);
+  box-shadow:8px 0 32px -14px var(--shadow);
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+/* faixa tricolor do topo */
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;z-index:2;
+  background:linear-gradient(90deg,var(--orange) 0 33.33%,var(--coral) 33.33% 66.66%,var(--teal) 66.66%)}
+
+/* Logo */
+.sb-header{padding:22px 16px 16px;border-bottom:1px solid var(--bd)}
+.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.logo-frame{position:relative;flex-shrink:0}
+.logo-img{width:48px;height:48px;border-radius:3px;object-fit:cover;border:2px solid var(--orange);background:#fff;display:block}
+.logo-ring{position:absolute;inset:-5px;border-radius:5px;border:1px solid var(--orange);opacity:.35;animation:pulse-ring 3s ease-in-out infinite}
+@keyframes pulse-ring{0%,100%{opacity:.15}50%{opacity:.45}}
+.logo-name{font-family:'Raleway',sans-serif;font-size:22px;font-weight:500;color:var(--orange);letter-spacing:.02em;line-height:1.1}
+.logo-sub{font-size:11px;color:var(--ts);font-weight:400;margin-top:3px;letter-spacing:.04em}
+
+/* Cartão do usuário (estilo "Title / Lorem ipsum") */
+.user-card{display:flex;align-items:center;gap:11px;padding:8px;
+  background:var(--card);border:1px solid var(--bd);border-radius:3px;transition:border-color .2s}
+.user-card:hover{border-color:var(--orange)}
+.user-av{width:36px;height:36px;border-radius:2px;background:var(--orange);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Raleway',sans-serif}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:700;color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:var(--orange);font-weight:400;letter-spacing:.03em}
+.user-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 0 3px rgba(45,183,163,.22);animation:blink 2s ease-in-out infinite;flex-shrink:0;margin-right:4px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* Botões da lateral */
+.theme-btn{width:100%;margin-top:10px;padding:8px 11px;background:var(--card);
+  border:1px solid var(--bd);border-radius:3px;color:var(--ts);
+  font-family:'Lato',sans-serif;font-size:12px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:all .2s}
+.theme-btn:hover{background:var(--teal);border-color:var(--teal);color:#fff}
+
+.refresh-btn{width:100%;margin-top:8px;padding:8px 11px;background:var(--coral);
+  border:none;border-radius:3px;color:#fff;
+  font-family:'Raleway',sans-serif;font-weight:600;font-size:11px;letter-spacing:.03em;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
+.refresh-btn:hover{background:var(--coral-d)}
+
+/* ─── NAV (blocos estilo "Search + Submenu") ─── */
+.nav-menu{flex:1;overflow-y:auto;padding:14px 12px 18px;scrollbar-width:thin;scrollbar-color:var(--bdh) transparent}
+
+.nav-section{
+  margin-bottom:14px;border-radius:3px;overflow:hidden;
+  background:var(--card);border:1px solid var(--bd);
+  box-shadow:0 8px 18px -12px var(--shadow);
+}
+.nav-menu>.nav-section:nth-child(3n+1){--ac:var(--orange);--acd:var(--orange-d)}
+.nav-menu>.nav-section:nth-child(3n+2){--ac:var(--coral);--acd:var(--coral-d)}
+.nav-menu>.nav-section:nth-child(3n+3){--ac:var(--teal);--acd:var(--teal-d)}
+
+.nav-label{
+  display:flex;align-items:center;justify-content:space-between;
+  height:32px;padding-left:12px;
+  background:var(--ac);color:#fff;
+  font-family:'Raleway',sans-serif;font-size:13px;font-weight:600;letter-spacing:.02em;
+}
+.nav-label::after{content:'▾';width:32px;height:100%;background:rgba(0,0,0,.14);
+  display:grid;place-items:center;font-size:11px;font-weight:400}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;
+  background:var(--row);border-top:1px solid var(--bd);
+  color:var(--ts);font-size:12.5px;transition:background .2s,color .2s;position:relative;
+}
+.nav-item:hover{background:var(--row-h);color:var(--tp)}
+.nav-item:active{background:var(--card-h)}
+.nav-item .icon{font-size:13px;width:24px;height:24px;display:grid;place-items:center;flex-shrink:0;border-radius:2px;
+  background:color-mix(in srgb,var(--ac) 16%,transparent)}
+.nav-item .lbl{flex:1;line-height:1.3}
+.badge{font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;
+  border-radius:2px;background:var(--ac);color:#fff;letter-spacing:.05em;flex-shrink:0}
+
+/* "radio" do submenu — preenche quando a janela está aberta */
+.nav-item::after{content:'';width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  border:1.5px solid var(--bdh);background:var(--card-h);transition:border-color .2s}
+.nav-item:hover::after{border-color:var(--ac)}
+.nav-item.open{color:var(--tp);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}
+.nav-item.open::after{border-color:var(--ac);
+  background:radial-gradient(circle,var(--ac) 0 3.5px,transparent 4.5px),var(--card-h)}
+
+/* Footer */
+.sb-footer{padding:14px 18px;border-top:1px solid var(--bd)}
+.footer-txt{font-size:10.5px;color:var(--tm);text-align:center;line-height:1.8}
+.footer-txt .credit{color:var(--orange);display:block;font-weight:700}
+
+/* ─── CONTENT ─── */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* Topbar (vidro) */
+.topbar{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
+  border-bottom:1px solid var(--edge);
+  box-shadow:0 8px 26px -16px var(--shadow);
+  padding:0 22px;height:66px;gap:18px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:50}
+
+.top-title{flex:1;text-align:center;font-family:'Raleway',sans-serif;font-weight:300;
+  font-size:20px;letter-spacing:.34em;text-transform:uppercase;color:var(--orange);white-space:nowrap}
+.top-title span{display:inline-block;padding:0 4px 7px .34em;border-bottom:1px solid var(--orange)}
+
+.clock-widget{display:flex;align-items:center;gap:14px;padding:0 16px 0 0;
+  background:var(--card);border:1px solid var(--bd);border-radius:3px;overflow:hidden}
+.clock-date-block{text-align:center;padding:7px 15px;background:var(--orange);color:#fff}
+.clock-day-num{font-family:'Raleway',sans-serif;font-size:28px;font-weight:600;color:#fff;line-height:1}
+.clock-month-abbr{font-family:'Raleway',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;color:rgba(255,255,255,.88);margin-top:2px}
+.clock-weekday{font-size:13px;font-weight:700;color:var(--tp)}
+.clock-monthyear{font-size:11px;color:var(--ts);margin-top:1px}
+.clock-time{font-family:'Raleway',sans-serif;font-weight:600;font-size:12px;color:var(--orange);margin-top:2px;font-variant-numeric:tabular-nums}
+
+.force-reload{display:flex;align-items:center;gap:8px}
+.version-tag{height:30px;display:flex;align-items:center;padding:0 10px;
+  font-size:10.5px;color:var(--ts);background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--coral);border-radius:2px}
+.force-reload-btn{height:30px;background:var(--orange);border:none;border-radius:2px;
+  padding:0 14px;color:#fff;font-size:11px;font-family:'Raleway',sans-serif;font-weight:600;letter-spacing:.02em;
+  cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px}
+.force-reload-btn:hover{background:var(--orange-d)}
+.sys-chip{display:flex;align-items:center;height:30px;padding:0 12px 0 0;overflow:hidden;
+  background:var(--card);border:1px solid var(--bd);border-radius:2px;font-size:11.5px;color:var(--ts)}
+.sys-chip .dot{width:30px;height:30px;background:var(--teal);margin-right:10px;display:grid;place-items:center}
+.sys-chip .dot::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+
+@media (max-width:1180px){.top-title{display:none}}
+
+/* ─── DESKTOP ─── */
+.desktop{flex:1;position:relative;overflow:hidden}
+
+.welcome-screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;pointer-events:none;opacity:1;transition:opacity .5s;z-index:1}
+.welcome-screen.hidden{opacity:0}
+.welcome-logo{width:150px;height:150px;object-fit:contain;opacity:.4;animation:wfloat 5s ease-in-out infinite}
+@keyframes wfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.welcome-text{font-family:'Raleway',sans-serif;font-size:26px;font-weight:300;color:var(--ts);letter-spacing:.16em;text-transform:uppercase}
+.welcome-hint{font-size:12px;color:var(--tm)}
+
+.watermark{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.watermark-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);width:480px;opacity:.05;filter:grayscale(100%);user-select:none}
+
+/* ─── WINDOW ─── */
+.window{
+  position:absolute;
+  background:var(--glass-2);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  border:1px solid var(--edge);
+  border-radius:var(--r);
+  box-shadow:0 18px 46px -8px var(--shadow);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:win-open .28s cubic-bezier(.34,1.56,.64,1);
+  transition:box-shadow .15s;
+}
+@keyframes win-open{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.window.focused{box-shadow:0 24px 64px -8px var(--shadow),0 0 0 1px var(--ac)}
+.window.maximized{top:10px!important;left:10px!important;right:10px;bottom:76px;width:auto!important;height:auto!important;border-radius:var(--r)}
+
+/* Efeito genie */
+.window.genie-out{
+  animation:genie-minimize .38s cubic-bezier(.6,0,.4,1) forwards!important;
+  pointer-events:none;
+}
+.window.genie-in{
+  animation:genie-restore .38s cubic-bezier(.2,.8,.4,1.2) forwards!important;
+}
+@keyframes genie-minimize{
+  0%{opacity:1;transform:scale(1) translateY(0) skewY(0);transform-origin:bottom center;filter:blur(0)}
+  60%{opacity:.6;transform:scale(.6,.3) translateY(60%) skewY(-3deg);transform-origin:bottom center;filter:blur(2px)}
+  100%{opacity:0;transform:scale(.15,.05) translateY(80%) skewY(-6deg);transform-origin:bottom center;filter:blur(6px)}
+}
+@keyframes genie-restore{
+  0%{opacity:0;transform:scale(.15,.05) translateY(80%) skewY(-6deg);transform-origin:bottom center;filter:blur(6px)}
+  50%{opacity:.7;transform:scale(.7,.6) translateY(20%) skewY(2deg);transform-origin:bottom center;filter:blur(1px)}
+  100%{opacity:1;transform:scale(1) translateY(0) skewY(0);transform-origin:bottom center;filter:blur(0)}
+}
+
+/* Barra de título: faixa colorida + botões quadrados (como a paginação do kit) */
+.win-titlebar{
+  background:var(--ac);
+  height:38px;padding:0 0 0 14px;
+  display:flex;align-items:center;gap:10px;
+  cursor:move;user-select:none;flex-shrink:0;
+  transition:filter .2s;
+}
+.window:not(.focused) .win-titlebar{filter:saturate(.55) brightness(1.05)}
+
+.win-title-row{flex:1;order:1;display:flex;align-items:center;gap:8px;overflow:hidden}
+.win-icon{font-size:14px;flex-shrink:0}
+.win-title-text{font-family:'Raleway',sans-serif;font-size:13px;color:#fff;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.win-traffic{order:2;display:flex;align-items:stretch;align-self:stretch;flex-shrink:0}
+.win-dot{
+  width:40px;align-self:stretch;height:auto;border-radius:0;
+  background:rgba(0,0,0,.10);border:none;border-left:1px solid rgba(255,255,255,.24);
+  display:grid;place-items:center;color:#fff;cursor:pointer;
+  transition:background .15s;position:relative;
+}
+.win-dot::after{position:static;line-height:1}
+.win-dot:hover{background:rgba(0,0,0,.26)}
+.win-dot.min{order:1}   .win-dot.min::after{content:'−';font-size:17px}
+.win-dot.maxbtn{order:2}.win-dot.maxbtn::after{content:'□';font-size:13px}
+.win-dot.close{order:3} .win-dot.close::after{content:'✕';font-size:11px}
+.win-dot.close:hover{background:rgba(0,0,0,.42)}
+
+.window-body{flex:1;overflow:hidden;position:relative;background:#fff}
+.win-iframe{width:100%;height:100%;border:none;background:#fff}
+.win-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#f4f6f6}
+.win-spinner{width:26px;height:26px;border:3px solid rgba(0,0,0,.08);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.win-loading-txt{font-size:11px;color:#8a9295}
+
+/* Resize handles */
+.rh{position:absolute;z-index:20}
+.rh-n {top:-4px;left:8px;right:8px;height:8px;cursor:n-resize}
+.rh-s {bottom:-4px;left:8px;right:8px;height:8px;cursor:s-resize}
+.rh-w {left:-4px;top:8px;bottom:8px;width:8px;cursor:w-resize}
+.rh-e {right:-4px;top:8px;bottom:8px;width:8px;cursor:e-resize}
+.rh-nw{top:-4px;left:-4px;width:14px;height:14px;cursor:nw-resize}
+.rh-ne{top:-4px;right:-4px;width:14px;height:14px;cursor:ne-resize}
+.rh-sw{bottom:-4px;left:-4px;width:14px;height:14px;cursor:sw-resize}
+.rh-se{bottom:-4px;right:-4px;width:14px;height:14px;cursor:se-resize}
+.rh-se::after{content:'';position:absolute;bottom:5px;right:5px;width:7px;height:7px;
+  border-right:2px solid var(--ac);border-bottom:2px solid var(--ac);opacity:.7}
+
+/* ─── TASKBAR = abas com ponteiro (estilo "Opinions | Gallery | Related") ─── */
+.taskbar{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
+  border:1px solid var(--edge);border-radius:4px;
+  padding:6px 6px 14px;display:flex;gap:2px;align-items:flex-start;
+  box-shadow:0 12px 34px -8px var(--shadow);
+  z-index:90;max-width:90%;
+}
+.taskbar:empty{display:none}
+.tbtn{
+  padding:9px 16px;background:var(--card);border:none;border-radius:0;
+  cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;gap:7px;
+  font-size:12px;font-family:'Raleway',sans-serif;font-weight:500;color:var(--ts);
+  max-width:190px;white-space:nowrap;position:relative;
+}
+.tbtn .t-icon{font-size:13px;flex-shrink:0}
+.tbtn .t-title{overflow:hidden;text-overflow:ellipsis}
+.tbtn:hover{background:var(--card-h);color:var(--tp)}
+.tbtn.active{background:var(--ac);color:#fff}
+.tbtn::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+  border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--ac);
+  opacity:0;transition:opacity .2s}
+.tbtn.active::after{opacity:1}
+</style>
+</head>
+<body>
+<div class="main-container">
+
+<aside class="sidebar">
+  <div class="sb-header">
+    <div class="logo-row">
+      <div class="logo-frame">
+        <img src="pedro.png" alt="Dom Pedro" class="logo-img" onerror="this.style.display='none'">
+        <div class="logo-ring"></div>
+      </div>
+      <div>
+        <div class="logo-name">Dom Pedro</div>
+        <div class="logo-sub">Sistema de Gestão</div>
+      </div>
+    </div>
+    <div class="user-card">
+      <div class="user-av">WR</div>
+      <div class="user-info">
+        <div class="user-name">Waldeci Ramos</div>
+        <div class="user-role">Administrador</div>
+      </div>
+      <div class="user-dot"></div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-label">Modo Escuro</span>
+    </button>
+    <button class="refresh-btn" onclick="forceReload()">
+      🔄 Forçar Recarga (Limpar Cache)
+    </button>
+  </div>
+
+  <nav class="nav-menu">
+    <div class="nav-section">
+      <div class="nav-label">Controles</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/tarefas.html','E-mails e Liberações','✉️')">
+        <span class="icon">✉️</span><span class="lbl">E-mails e Liberações</span><span class="badge">NEW</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Analisa Produtos</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/xml_diego.html','Analisador NF','🔍')">
+        <span class="icon">🔍</span><span class="lbl">XML Diego</span><span class="badge">NEW</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/sistema_libera.html','Liberação de Funcionários','👤')">
+        <span class="icon">👤</span><span class="lbl">Liberação Funcionários</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/leitorcfop.html','leitorcfop','🔍')">
+        <span class="icon">🔍</span><span class="lbl">Converter CFOP - Códigos</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Financeiro</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/comparar_saldocredor.html','Saldo Credor','💳')">
+        <span class="icon">💳</span><span class="lbl">Saldo Credor</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/saldocredor.html','PDF Saldo Credor','📊')">
+        <span class="icon">📊</span><span class="lbl">PDF Saldo Credor</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/nfe.html','Verifica CFOP','🔄')">
+        <span class="icon">🔄</span><span class="lbl">Verifica CFOP-Origem × Lançamento</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Sistemas</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/diferenca_prodac_autosystem_Atual3.html','Prodac vs Autosystem','🔄')">
+        <span class="icon">🔄</span><span class="lbl">Prodac vs Autosystem</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/postosliberados.html','Cópia Prodac','📁')">
+        <span class="icon">📁</span><span class="lbl">Cópia Prodac</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/postos.html','Unidades','🏢')">
+        <span class="icon">🏢</span><span class="lbl">Unidades Rede Dom Pedro</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/SPEED_LOCALIZA.html','Leitor Sped TXT','📄')">
+        <span class="icon">📄</span><span class="lbl">Localiza os CFOP do TXT</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Speed</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/procuraspeed.html','Procura Speed Gerados','⚙️')">
+        <span class="icon">⚙️</span><span class="lbl">Procura Speed Gerados</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/e110.html','E110','📋')">
+        <span class="icon">📋</span><span class="lbl">E110 com reg 1200</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/achanf.html','Localizador de NF','🗂️')">
+        <span class="icon">🗂️</span><span class="lbl">Localizador de NF (Importa Speed TXT)</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Ferramentas</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/captura.html','Apuração+entrada+saídas','🔍')">
+        <span class="icon">🔍</span><span class="lbl">Apuração+entrada+saídas</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Novos</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/leiaTXTSped.html','Compara Apuração entre txt e amaral ','📊')">
+        <span class="icon">📊</span><span class="lbl">Colar sped.txt x apuração Amaral</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/inclusao_nfe_sped_v5.html','Compara Apuração','📊')">
+        <span class="icon">📊</span><span class="lbl">xml x spedd para incluir nf</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/bombas.html','Localizador CFOP  ','⚙️')">
+        <span class="icon">📊</span><span class="lbl">Bombas Postos</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Testando</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/spedeamaral.html','Amaral x Sped  ','📊')">
+        <span class="icon">📊</span><span class="lbl">Sped e Amaral</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">sped-auditor</div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/spedXamaral.html','Amaral x Sped x Entradas Excel   ','📋')">
+        <span class="icon">📊</span><span class="lbl">Sped OK</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/localizarecibos.html','Localiza Recibos   ','🔍')">
+        <span class="icon">🔍</span><span class="lbl">Localiza Recibos</span>
+      </div>
+      <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/errosestoque.html','Localiza Erros Estoque Negativo    ','🔍')">
+        <span class="icon">🔍</span><span class="lbl">Estoque Negativo erros</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="footer-txt">
+      © 2026 Sistema Dom Pedro
+      <span class="credit">@waldeciramos</span>
+      Todos os direitos reservados
+    </div>
+  </div>
+</aside>
+
+<main class="content-area">
+  <header class="topbar">
+    <div class="clock-widget">
+      <div class="clock-date-block">
+        <div class="clock-day-num" id="dn"></div>
+        <div class="clock-month-abbr" id="ma"></div>
+      </div>
+      <div>
+        <div class="clock-weekday" id="wd"></div>
+        <div class="clock-monthyear" id="my"></div>
+        <div class="clock-time" id="ct"></div>
+      </div>
+    </div>
+
+    <div class="top-title"><span>Sistema Dom Pedro</span></div>
+
+    <div class="force-reload">
+      <div class="version-tag" id="versionTag">v20260921_001</div>
+      <button class="force-reload-btn" onclick="hardReload()">
+        🔄 Hard Reload (Ctrl+F5)
+      </button>
+      <div class="sys-chip">
+        <div class="dot"></div>
+        <span>Sistema Online</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="desktop" id="desktop">
+    <div class="watermark">
+      <img class="watermark-logo" src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="">
+    </div>
+    <div class="welcome-screen" id="welcome">
+      <img class="welcome-logo" src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png" alt="Dom Pedro">
+      <div class="welcome-text">Sistema Dom Pedro</div>
+      <div class="welcome-hint">← Selecione um módulo no menu para começar</div>
+    </div>
+  </div>
+
+  <div class="taskbar" id="taskbar"></div>
+</main>
+</div>
+
+<script>
+// Função para forçar recarga completa (hard reload)
+function hardReload() {
+    if(confirm('Deseja recarregar completamente o sistema?\nIsso limpará o cache do navegador para esta página.')) {
+        // Limpa cache de sessão e armazenamento local relacionados à versão
+        sessionStorage.clear();
+        localStorage.removeItem('app_version');
+        
+        // Força recarga ignorando cache
+        location.reload(true);
+        
+        // Fallback para navegadores mais antigos
+        setTimeout(() => {
+            window.location.href = window.location.href.split('?')[0] + '?force=' + new Date().getTime();
+        }, 100);
+    }
+}
+
+// Função para forçar recarga com limpeza completa
+function forceReload() {
+    // Limpa todos os caches possíveis
+    if ('caches' in window) {
+        caches.keys().then(keys => {
+            keys.forEach(key => caches.delete(key));
+        });
+    }
+    
+    // Limpa sessionStorage e localStorage de versão
+    sessionStorage.clear();
+    localStorage.removeItem('app_version');
+    
+    // Recarrega com timestamp
+    window.location.href = window.location.href.split('?')[0] + '?nocache=' + new Date().getTime();
+}
+
+// Proteção contra inspeção
+document.addEventListener('keydown',e=>{
+  if([123].includes(e.keyCode))e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&[73,74].includes(e.keyCode))e.preventDefault();
+  if(e.ctrlKey&&[85,83].includes(e.keyCode))e.preventDefault();
+  // Ctrl+R e Ctrl+F5 são permitidos para recarga
+  if(e.ctrlKey&&[82].includes(e.keyCode)) {
+      // Permite recarga, mas avisa
+      setTimeout(() => hardReload(), 10);
+  }
+});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.onselectstart=()=>false;
+
+// Clock
+const WD=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MA=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+function tick(){
+  const n=new Date();
+  document.getElementById('dn').textContent=n.getDate();
+  document.getElementById('ma').textContent=MA[n.getMonth()];
+  document.getElementById('wd').textContent=WD[n.getDay()];
+  document.getElementById('my').textContent=MN[n.getMonth()]+' de '+n.getFullYear();
+  const p=v=>String(v).padStart(2,'0');
+  document.getElementById('ct').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+}
+tick();setInterval(tick,1000);
+
+// Theme — o novo visual nasce claro; escuro é opcional
+let isDark=localStorage.getItem('theme_flat')==='dark';
+applyTheme();
+function toggleTheme(){isDark=!isDark;localStorage.setItem('theme_flat',isDark?'dark':'light');applyTheme()}
+function applyTheme(){
+  document.body.classList.toggle('dark-mode',isDark);
+  document.getElementById('theme-icon').textContent=isDark?'☀️':'🌙';
+  document.getElementById('theme-label').textContent=isDark?'Modo Claro':'Modo Escuro';
+}
+
+// Menu: liga cada item à sua URL para marcar o "radio" quando a janela estiver aberta
+document.querySelectorAll('.nav-item').forEach(n=>{
+  const m=(n.getAttribute('onclick')||'').match(/openWin\('([^']+)'/);
+  if(m)n.dataset.url=m[1].split('?')[0];
+});
+function syncNav(){
+  const open=new Set(wins.map(w=>w.url));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('open',open.has(n.dataset.url)));
+}
+
+// Window Manager
+let wins=[],zTop=200,activeId=null,colorIdx=0;
+const PALETTE=['orange','coral','teal'];
+
+function openWin(url,title,icon){
+  // Adiciona timestamp anti-cache na URL
+  const timestamp = new Date().getTime();
+  const cleanUrl = url.split('?')[0];
+  const finalUrl = cleanUrl + '?v=' + timestamp;
+  
+  const ex=wins.find(w=>w.url===cleanUrl);
+  if(ex){focusWin(ex.id);restoreWin(ex.id);return}
+  document.getElementById('welcome').classList.add('hidden');
+
+  const color=PALETTE[colorIdx++%PALETTE.length];
+  const id='w'+Date.now();
+  const desk=document.getElementById('desktop');
+  const off=(wins.length%8)*26;
+  const W=Math.min(940,desk.offsetWidth-80);
+  const H=Math.min(640,desk.offsetHeight-80);
+
+  const el=document.createElement('div');
+  el.className='window focused c-'+color;
+  el.id=id;
+  el.style.cssText=`top:${28+off}px;left:${28+off}px;width:${W}px;height:${H}px;z-index:${++zTop}`;
+
+  el.innerHTML=`
+    <div class="win-titlebar" id="tb-${id}">
+      <div class="win-traffic">
+        <div class="win-dot close"  title="Fechar"     onclick="closeWin('${id}')"></div>
+        <div class="win-dot min"    title="Minimizar"  onclick="minWin('${id}')"></div>
+        <div class="win-dot maxbtn" title="Maximizar"  onclick="maxWin('${id}')"></div>
+      </div>
+      <div class="win-title-row">
+        <span class="win-icon">${icon}</span>
+        <span class="win-title-text">${title}</span>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="win-loading" id="ld-${id}">
+        <div class="win-spinner"></div>
+        <div class="win-loading-txt">Carregando...</div>
+      </div>
+      <iframe class="win-iframe" src="${finalUrl}" onload="document.getElementById('ld-${id}').style.display='none'"></iframe>
+    </div>
+    <div class="rh rh-n"  data-dir="n"  id="rn-${id}"></div>
+    <div class="rh rh-s"  data-dir="s"  id="rs-${id}"></div>
+    <div class="rh rh-w"  data-dir="w"  id="rw-${id}"></div>
+    <div class="rh rh-e"  data-dir="e"  id="re-${id}"></div>
+    <div class="rh rh-nw" data-dir="nw" id="rnw-${id}"></div>
+    <div class="rh rh-ne" data-dir="ne" id="rne-${id}"></div>
+    <div class="rh rh-sw" data-dir="sw" id="rsw-${id}"></div>
+    <div class="rh rh-se" data-dir="se" id="rse-${id}"></div>
+  `;
+
+  desk.appendChild(el);
+  const wobj={id,url:cleanUrl,title,icon,color,min:false,max:false,prevStyle:null};
+  wins.push(wobj);
+
+  const tb=document.getElementById('taskbar');
+  const btn=document.createElement('div');
+  btn.className='tbtn active c-'+color;
+  btn.id='tbtn-'+id;
+  btn.innerHTML=`<span class="t-icon">${icon}</span><span class="t-title">${title}</span>`;
+  btn.onclick=()=>taskbarClick(id);
+  tb.appendChild(btn);
+
+  makeDraggable(el,document.getElementById('tb-'+id));
+  makeResizable(el,id);
+  el.addEventListener('mousedown',()=>focusWin(id));
+  activeId=id;
+  updateTaskbar();
+  syncNav();
+}
+
+function closeWin(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.animation='win-close .2s ease forwards';
+  const style=document.createElement('style');
+  style.textContent='@keyframes win-close{to{opacity:0;transform:scale(.9)}}';
+  document.head.appendChild(style);
+  setTimeout(()=>{
+    el.remove();
+    document.getElementById('tbtn-'+id)?.remove();
+    wins=wins.filter(w=>w.id!==id);
+    if(activeId===id)activeId=null;
+    if(!wins.length||wins.every(w=>w.min))document.getElementById('welcome').classList.remove('hidden');
+    updateTaskbar();
+    syncNav();
+  },200);
+}
+
+function minWin(id){
+  const w=wins.find(w=>w.id===id);
+  if(!w||w.min)return;
+  const el=document.getElementById(id);
+  w.savedTop=el.style.top;w.savedLeft=el.style.left;w.savedW=el.style.width;w.savedH=el.style.height;
+  el.classList.add('genie-out');
+  el.addEventListener('animationend',()=>{
+    el.style.display='none';
+    el.classList.remove('genie-out');
+  },{once:true});
+  w.min=true;
+  if(activeId===id)activeId=null;
+  updateTaskbar();
+  if(!wins.some(w=>!w.min))document.getElementById('welcome').classList.remove('hidden');
+}
+
+function restoreWin(id){
+  const w=wins.find(w=>w.id===id);
+  if(!w)return;
+  if(!w.min){focusWin(id);return}
+  const el=document.getElementById(id);
+  el.style.display='flex';
+  el.classList.add('genie-in');
+  el.addEventListener('animationend',()=>{
+    el.classList.remove('genie-in');
+  },{once:true});
+  w.min=false;
+  document.getElementById('welcome').classList.add('hidden');
+  focusWin(id);
+}
+
+function maxWin(id){
+  const w=wins.find(w=>w.id===id);
+  if(!w)return;
+  w.max=!w.max;
+  document.getElementById(id).classList.toggle('maximized',w.max);
+}
+
+function focusWin(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  document.querySelectorAll('.window').forEach(e=>e.classList.remove('focused'));
+  el.style.zIndex=++zTop;
+  el.classList.add('focused');
+  activeId=id;
+  updateTaskbar();
+}
+
+function taskbarClick(id){
+  const w=wins.find(w=>w.id===id);
+  if(!w)return;
+  if(w.min)restoreWin(id);
+  else if(activeId===id)minWin(id);
+  else focusWin(id);
+}
+
+function updateTaskbar(){
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  if(activeId)document.getElementById('tbtn-'+activeId)?.classList.add('active');
+}
+
+function makeDraggable(win,handle){
+  handle.addEventListener('mousedown',e=>{
+    if(e.target.closest('.win-traffic'))return;
+    const w=wins.find(w=>w.id===win.id);
+    if(w?.max)return;
+    e.preventDefault();
+    const sx=e.clientX,sy=e.clientY,sl=win.offsetLeft,st=win.offsetTop;
+    focusWin(win.id);
+    function move(e){win.style.left=(sl+e.clientX-sx)+'px';win.style.top=(st+e.clientY-sy)+'px'}
+    function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up)}
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+function makeResizable(win,id){
+  const dirs=['n','s','w','e','nw','ne','sw','se'];
+  dirs.forEach(dir=>{
+    const handle=win.querySelector('.rh-'+dir);
+    if(!handle)return;
+    handle.addEventListener('mousedown',e=>{
+      e.preventDefault();e.stopPropagation();
+      const w=wins.find(w=>w.id===id);
+      if(w?.max)return;
+      const sx=e.clientX,sy=e.clientY;
+      const sw=win.offsetWidth,sh=win.offsetHeight,sl=win.offsetLeft,st=win.offsetTop;
+      const MIN_W=380,MIN_H=280;
+      function move(e){
+        const dx=e.clientX-sx,dy=e.clientY-sy;
+        let nw=sw,nh=sh,nl=sl,nt=st;
+        if(dir.includes('e'))nw=Math.max(MIN_W,sw+dx);
+        if(dir.includes('s'))nh=Math.max(MIN_H,sh+dy);
+        if(dir.includes('w')){nw=Math.max(MIN_W,sw-dx);nl=sl+sw-nw}
+        if(dir.includes('n')){nh=Math.max(MIN_H,sh-dy);nt=st+sh-nh}
+        win.style.width=nw+'px';win.style.height=nh+'px';
+        win.style.left=nl+'px';win.style.top=nt+'px';
+      }
+      function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up)}
+      document.addEventListener('mousemove',move);
+      document.addEventListener('mouseup',up);
+    });
+  });
+}
+</script>
+</body>
+</html>
