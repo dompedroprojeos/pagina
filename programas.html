@@ -7,29 +7,26 @@
 
 <!-- ANTI-CACHE: Força reload da página e impede cache -->
 <script>
-    // Adiciona timestamp para evitar cache
     (function() {
-        // Previne cache do navegador
         const metaCache = document.createElement('meta');
         metaCache.httpEquiv = 'Cache-Control';
         metaCache.content = 'no-cache, no-store, must-revalidate';
         document.head.appendChild(metaCache);
-        
+
         const metaPragma = document.createElement('meta');
         metaPragma.httpEquiv = 'Pragma';
         metaPragma.content = 'no-cache';
         document.head.appendChild(metaPragma);
-        
+
         const metaExpires = document.createElement('meta');
         metaExpires.httpEquiv = 'Expires';
         metaExpires.content = '0';
         document.head.appendChild(metaExpires);
-        
-        // Força reload se for uma versão antiga em cache
+
         const timestamp = new Date().getTime();
         const storedVersion = localStorage.getItem('app_version');
-        const currentVersion = '20260921_001';
-        
+        const currentVersion = '20260921_002';
+
         if (storedVersion !== currentVersion) {
             localStorage.setItem('app_version', currentVersion);
             if (!sessionStorage.getItem('reloaded')) {
@@ -37,8 +34,7 @@
                 location.reload(true);
             }
         }
-        
-        // Adiciona timestamp para todos os links e iframes
+
         window.addEventListener('load', function() {
             const links = document.querySelectorAll('a[href], iframe');
             links.forEach(link => {
@@ -53,202 +49,188 @@
     })();
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Raleway:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 
 /* ─────────────────────────────────────────────
-   TOKENS — kit flat: laranja · coral · turquesa
+   TOKENS — "business template": metal cinza-azulado,
+   setas/steps laranja → azul-marinho
    ───────────────────────────────────────────── */
 :root{
-  --app-version: "20260921_001";
+  --app-version: "20260921_002";
 
-  --orange:#f57c1f;--orange-d:#dd6510;
-  --coral:#ec5a56;--coral-d:#d2413e;
-  --teal:#2db7a3;--teal-d:#1f9c8a;
+  --orange:#f5920e;--orange-d:#d97800;--orange-l:#ffab33;
+  --navy:#1c3b5a;--navy-d:#122a42;--navy-l:#2c5580;
+  --steel:#8d97a1;--steel-d:#5c6670;--steel-l:#b7bfc6;
 
-  --bg:#eceff0;
-  --glass:rgba(255,255,255,.55);      /* menus / barras translúcidas */
-  --glass-2:rgba(255,255,255,.80);    /* janelas */
-  --card:rgba(226,229,231,.60);       /* cinza dos cards do kit */
-  --card-h:rgba(255,255,255,.92);
-  --row:rgba(255,255,255,.50);
-  --row-h:rgba(255,255,255,.88);
+  --bg:#c7cdd2;
+  --panel:#eef0f2;
+  --panel-2:#ffffff;
+  --row:#e2e5e8;
+  --row-h:#f6f7f8;
 
-  --tp:#454b4f;--ts:#7b8387;--tm:#a3aaad;
-  --bd:rgba(40,50,55,.09);--bdh:rgba(40,50,55,.22);
-  --edge:rgba(255,255,255,.75);
-  --shadow:rgba(40,55,60,.20);
-  --r:4px;
+  --tp:#1d2833;--ts:#5b6670;--tm:#8c959d;
+  --bd:rgba(28,40,55,.12);--bdh:rgba(28,40,55,.28);
+  --shadow:rgba(20,30,40,.35);
+  --r:3px;
 
   --ac:var(--orange);--acd:var(--orange-d);
 }
 body.dark-mode{
-  --bg:#171b1d;
-  --glass:rgba(30,35,38,.58);
-  --glass-2:rgba(36,42,45,.85);
-  --card:rgba(255,255,255,.06);
-  --card-h:rgba(255,255,255,.14);
-  --row:rgba(255,255,255,.035);
-  --row-h:rgba(255,255,255,.10);
-  --tp:#eceff0;--ts:#aeb5b8;--tm:#7d8588;
-  --bd:rgba(255,255,255,.09);--bdh:rgba(255,255,255,.24);
-  --edge:rgba(255,255,255,.09);
-  --shadow:rgba(0,0,0,.55);
+  --bg:#2b333a;
+  --panel:#333d45;
+  --panel-2:#3a444d;
+  --row:#3e4951;
+  --row-h:#48545d;
+  --tp:#eef1f3;--ts:#b6c0c8;--tm:#828d95;
+  --bd:rgba(255,255,255,.10);--bdh:rgba(255,255,255,.26);
+  --shadow:rgba(0,0,0,.6);
 }
 
-/* cores por elemento */
 .c-orange{--ac:var(--orange);--acd:var(--orange-d)}
-.c-coral {--ac:var(--coral); --acd:var(--coral-d)}
-.c-teal  {--ac:var(--teal);  --acd:var(--teal-d)}
+.c-navy  {--ac:var(--navy);  --acd:var(--navy-d)}
 
-body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--tp);height:100vh;overflow:hidden;cursor:default;transition:background .3s}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--tp);height:100vh;overflow:hidden;cursor:default;transition:background .3s}
 
-/* manchas de cor atrás dos painéis translúcidos */
+/* fundo metálico com brilho diagonal, como o cartão-template */
 body::before{content:'';position:fixed;inset:0;background:
-  radial-gradient(circle 430px at 8% 14%,rgba(245,124,31,.30),transparent 70%),
-  radial-gradient(circle 380px at 93% 6%,rgba(236,90,86,.22),transparent 70%),
-  radial-gradient(circle 470px at 80% 94%,rgba(45,183,163,.28),transparent 70%),
-  radial-gradient(circle 320px at 18% 90%,rgba(45,183,163,.18),transparent 70%);
-  pointer-events:none;z-index:0}
+  linear-gradient(125deg,var(--steel-l) 0%,var(--bg) 35%,var(--steel-d) 78%,var(--bg) 100%);
+  pointer-events:none;z-index:0;opacity:.55}
+body.dark-mode::before{opacity:.35}
 
 /* ─── LAYOUT ─── */
 .main-container{display:flex;height:100vh;position:relative;z-index:1}
 
-/* ─── SIDEBAR (vidro) ─── */
+/* ─── SIDEBAR ─── */
 .sidebar{
-  width:276px;flex-shrink:0;
-  background:var(--glass);
-  -webkit-backdrop-filter:blur(22px) saturate(150%);
-  backdrop-filter:blur(22px) saturate(150%);
-  border-right:1px solid var(--edge);
-  box-shadow:8px 0 32px -14px var(--shadow);
+  width:280px;flex-shrink:0;
+  background:linear-gradient(180deg,var(--navy) 0%,var(--navy-d) 100%);
+  border-right:1px solid rgba(0,0,0,.3);
+  box-shadow:10px 0 30px -12px var(--shadow);
   display:flex;flex-direction:column;
   position:relative;overflow:hidden;
 }
-/* faixa tricolor do topo */
-.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;z-index:2;
-  background:linear-gradient(90deg,var(--orange) 0 33.33%,var(--coral) 33.33% 66.66%,var(--teal) 66.66%)}
+.sidebar::before{content:'';position:absolute;top:0;right:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,var(--orange),var(--orange-d))}
 
 /* Logo */
-.sb-header{padding:22px 16px 16px;border-bottom:1px solid var(--bd)}
+.sb-header{padding:22px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .logo-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
 .logo-frame{position:relative;flex-shrink:0}
-.logo-img{width:48px;height:48px;border-radius:3px;object-fit:cover;border:2px solid var(--orange);background:#fff;display:block}
-.logo-ring{position:absolute;inset:-5px;border-radius:5px;border:1px solid var(--orange);opacity:.35;animation:pulse-ring 3s ease-in-out infinite}
-@keyframes pulse-ring{0%,100%{opacity:.15}50%{opacity:.45}}
-.logo-name{font-family:'Raleway',sans-serif;font-size:22px;font-weight:500;color:var(--orange);letter-spacing:.02em;line-height:1.1}
-.logo-sub{font-size:11px;color:var(--ts);font-weight:400;margin-top:3px;letter-spacing:.04em}
+.logo-img{width:46px;height:46px;border-radius:2px;object-fit:cover;background:#fff;display:block;
+  clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%)}
+.logo-ring{position:absolute;inset:-4px;border:1px solid var(--orange);opacity:.4;
+  clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);animation:pulse-ring 3s ease-in-out infinite}
+@keyframes pulse-ring{0%,100%{opacity:.18}50%{opacity:.5}}
+.logo-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:.03em;line-height:1.05;text-transform:uppercase}
+.logo-sub{font-size:10.5px;color:var(--orange-l);font-weight:600;margin-top:3px;letter-spacing:.14em;text-transform:uppercase}
 
-/* Cartão do usuário (estilo "Title / Lorem ipsum") */
-.user-card{display:flex;align-items:center;gap:11px;padding:8px;
-  background:var(--card);border:1px solid var(--bd);border-radius:3px;transition:border-color .2s}
+/* Cartão do usuário */
+.user-card{display:flex;align-items:center;gap:11px;padding:9px 10px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:2px;transition:border-color .2s}
 .user-card:hover{border-color:var(--orange)}
-.user-av{width:36px;height:36px;border-radius:2px;background:var(--orange);
+.user-av{width:34px;height:34px;border-radius:50%;background:var(--orange);
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Raleway',sans-serif}
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;
+  border:2px solid rgba(255,255,255,.35)}
 .user-info{flex:1;min-width:0}
-.user-name{font-size:13px;font-weight:700;color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-role{font-size:11px;color:var(--orange);font-weight:400;letter-spacing:.03em}
-.user-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 0 3px rgba(45,183,163,.22);animation:blink 2s ease-in-out infinite;flex-shrink:0;margin-right:4px}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+.user-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:10.5px;color:var(--orange-l);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.user-dot{width:8px;height:8px;background:var(--orange-l);border-radius:50%;box-shadow:0 0 0 3px rgba(245,146,14,.22);animation:blink 2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* Botões da lateral */
-.theme-btn{width:100%;margin-top:10px;padding:8px 11px;background:var(--card);
-  border:1px solid var(--bd);border-radius:3px;color:var(--ts);
-  font-family:'Lato',sans-serif;font-size:12px;cursor:pointer;
+.theme-btn{width:100%;margin-top:10px;padding:8px 11px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.09);border-radius:2px;color:var(--steel-l);
+  font-family:'Barlow',sans-serif;font-size:12px;font-weight:500;cursor:pointer;
   display:flex;align-items:center;gap:8px;transition:all .2s}
-.theme-btn:hover{background:var(--teal);border-color:var(--teal);color:#fff}
+.theme-btn:hover{background:rgba(255,255,255,.12);color:#fff}
 
-.refresh-btn{width:100%;margin-top:8px;padding:8px 11px;background:var(--coral);
-  border:none;border-radius:3px;color:#fff;
-  font-family:'Raleway',sans-serif;font-weight:600;font-size:11px;letter-spacing:.03em;cursor:pointer;
+.refresh-btn{width:100%;margin-top:8px;padding:8px 11px;background:var(--orange);
+  border:none;border-radius:2px;color:#fff;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s}
-.refresh-btn:hover{background:var(--coral-d)}
+.refresh-btn:hover{background:var(--orange-d)}
 
-/* ─── NAV (blocos estilo "Search + Submenu") ─── */
-.nav-menu{flex:1;overflow-y:auto;padding:14px 12px 18px;scrollbar-width:thin;scrollbar-color:var(--bdh) transparent}
+/* ─── NAV — steps numerados em setas ─── */
+.nav-menu{flex:1;overflow-y:auto;padding:16px 14px 18px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
 
-.nav-section{
-  margin-bottom:14px;border-radius:3px;overflow:hidden;
-  background:var(--card);border:1px solid var(--bd);
-  box-shadow:0 8px 18px -12px var(--shadow);
-}
-.nav-menu>.nav-section:nth-child(3n+1){--ac:var(--orange);--acd:var(--orange-d)}
-.nav-menu>.nav-section:nth-child(3n+2){--ac:var(--coral);--acd:var(--coral-d)}
-.nav-menu>.nav-section:nth-child(3n+3){--ac:var(--teal);--acd:var(--teal-d)}
-
+.nav-section{margin-bottom:18px}
 .nav-label{
-  display:flex;align-items:center;justify-content:space-between;
-  height:32px;padding-left:12px;
-  background:var(--ac);color:#fff;
-  font-family:'Raleway',sans-serif;font-size:13px;font-weight:600;letter-spacing:.02em;
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--orange-l);
+  padding:0 4px;margin-bottom:7px;display:flex;align-items:center;gap:8px;
 }
-.nav-label::after{content:'▾';width:32px;height:100%;background:rgba(0,0,0,.14);
-  display:grid;place-items:center;font-size:11px;font-weight:400}
+.nav-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
 
 .nav-item{
-  display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;
-  background:var(--row);border-top:1px solid var(--bd);
-  color:var(--ts);font-size:12.5px;transition:background .2s,color .2s;position:relative;
+  display:flex;align-items:stretch;cursor:pointer;margin-bottom:5px;
+  position:relative;transition:transform .15s;
 }
-.nav-item:hover{background:var(--row-h);color:var(--tp)}
-.nav-item:active{background:var(--card-h)}
-.nav-item .icon{font-size:13px;width:24px;height:24px;display:grid;place-items:center;flex-shrink:0;border-radius:2px;
-  background:color-mix(in srgb,var(--ac) 16%,transparent)}
-.nav-item .lbl{flex:1;line-height:1.3}
-.badge{font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;
-  border-radius:2px;background:var(--ac);color:#fff;letter-spacing:.05em;flex-shrink:0}
+.nav-item:hover{transform:translateX(3px)}
+.nav-item:nth-child(odd)  .step-num{background:linear-gradient(135deg,var(--orange-l),var(--orange-d))}
+.nav-item:nth-child(even) .step-num{background:linear-gradient(135deg,var(--navy-l),var(--navy-d))}
 
-/* "radio" do submenu — preenche quando a janela está aberta */
-.nav-item::after{content:'';width:14px;height:14px;border-radius:50%;flex-shrink:0;
-  border:1.5px solid var(--bdh);background:var(--card-h);transition:border-color .2s}
-.nav-item:hover::after{border-color:var(--ac)}
-.nav-item.open{color:var(--tp);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}
-.nav-item.open::after{border-color:var(--ac);
-  background:radial-gradient(circle,var(--ac) 0 3.5px,transparent 4.5px),var(--card-h)}
+.step-num{
+  width:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%,12px 50%);
+}
+.step-body{
+  flex:1;display:flex;align-items:center;gap:9px;padding:9px 12px 9px 16px;margin-left:-9px;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.06);border-left:none;
+  color:var(--steel-l);font-size:12.5px;font-weight:500;
+  clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);
+  transition:background .2s,color .2s;
+}
+.nav-item:hover .step-body{background:rgba(255,255,255,.11);color:#fff}
+.icon{font-size:13px;width:20px;text-align:center;flex-shrink:0}
+.lbl{flex:1;line-height:1.25}
+.badge{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;
+  background:#fff;color:var(--orange-d);letter-spacing:.05em;flex-shrink:0;border-radius:2px}
+
+.nav-item.open .step-body{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.nav-item.open .step-num{filter:brightness(1.2)}
 
 /* Footer */
-.sb-footer{padding:14px 18px;border-top:1px solid var(--bd)}
-.footer-txt{font-size:10.5px;color:var(--tm);text-align:center;line-height:1.8}
-.footer-txt .credit{color:var(--orange);display:block;font-weight:700}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08)}
+.footer-txt{font-size:10.5px;color:var(--steel-l);opacity:.7;text-align:center;line-height:1.8}
+.footer-txt .credit{color:var(--orange-l);display:block;font-weight:700}
 
 /* ─── CONTENT ─── */
 .content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
 
-/* Topbar (vidro) */
+/* Topbar */
 .topbar{
-  background:var(--glass);
-  -webkit-backdrop-filter:blur(22px) saturate(150%);
-  backdrop-filter:blur(22px) saturate(150%);
-  border-bottom:1px solid var(--edge);
-  box-shadow:0 8px 26px -16px var(--shadow);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border-bottom:1px solid var(--bd);
+  box-shadow:0 6px 20px -14px var(--shadow);
   padding:0 22px;height:66px;gap:18px;
   display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:50}
 
-.top-title{flex:1;text-align:center;font-family:'Raleway',sans-serif;font-weight:300;
-  font-size:20px;letter-spacing:.34em;text-transform:uppercase;color:var(--orange);white-space:nowrap}
-.top-title span{display:inline-block;padding:0 4px 7px .34em;border-bottom:1px solid var(--orange)}
+.top-title{flex:1;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:20px;letter-spacing:.3em;text-transform:uppercase;color:var(--navy);white-space:nowrap}
+.top-title span{color:var(--orange)}
 
-.clock-widget{display:flex;align-items:center;gap:14px;padding:0 16px 0 0;
-  background:var(--card);border:1px solid var(--bd);border-radius:3px;overflow:hidden}
+.clock-widget{display:flex;align-items:center;gap:0;border-radius:2px;overflow:hidden;border:1px solid var(--bd)}
 .clock-date-block{text-align:center;padding:7px 15px;background:var(--orange);color:#fff}
-.clock-day-num{font-family:'Raleway',sans-serif;font-size:28px;font-weight:600;color:#fff;line-height:1}
-.clock-month-abbr{font-family:'Raleway',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;color:rgba(255,255,255,.88);margin-top:2px}
+.clock-day-num{font-family:'Barlow Condensed',sans-serif;font-size:27px;font-weight:700;color:#fff;line-height:1}
+.clock-month-abbr{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.9);margin-top:2px}
+.clock-textblock{padding:6px 15px;background:var(--panel-2)}
 .clock-weekday{font-size:13px;font-weight:700;color:var(--tp)}
 .clock-monthyear{font-size:11px;color:var(--ts);margin-top:1px}
-.clock-time{font-family:'Raleway',sans-serif;font-weight:600;font-size:12px;color:var(--orange);margin-top:2px;font-variant-numeric:tabular-nums}
+.clock-time{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--navy);margin-top:2px;font-variant-numeric:tabular-nums}
 
 .force-reload{display:flex;align-items:center;gap:8px}
 .version-tag{height:30px;display:flex;align-items:center;padding:0 10px;
-  font-size:10.5px;color:var(--ts);background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--coral);border-radius:2px}
-.force-reload-btn{height:30px;background:var(--orange);border:none;border-radius:2px;
-  padding:0 14px;color:#fff;font-size:11px;font-family:'Raleway',sans-serif;font-weight:600;letter-spacing:.02em;
+  font-size:10.5px;color:var(--ts);background:var(--row);border:1px solid var(--bd);border-radius:2px}
+.force-reload-btn{height:30px;background:var(--navy);border:none;border-radius:2px;
+  padding:0 14px;color:#fff;font-size:11.5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
   cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px}
-.force-reload-btn:hover{background:var(--orange-d)}
+.force-reload-btn:hover{background:var(--navy-d)}
 .sys-chip{display:flex;align-items:center;height:30px;padding:0 12px 0 0;overflow:hidden;
-  background:var(--card);border:1px solid var(--bd);border-radius:2px;font-size:11.5px;color:var(--ts)}
-.sys-chip .dot{width:30px;height:30px;background:var(--teal);margin-right:10px;display:grid;place-items:center}
+  background:var(--row);border:1px solid var(--bd);border-radius:2px;font-size:11.5px;color:var(--ts)}
+.sys-chip .dot{width:30px;height:30px;background:var(--orange);margin-right:10px;display:grid;place-items:center}
 .sys-chip .dot::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
 
 @media (max-width:1180px){.top-title{display:none}}
@@ -259,21 +241,19 @@ body::before{content:'';position:fixed;inset:0;background:
 .welcome-screen{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:14px;pointer-events:none;opacity:1;transition:opacity .5s;z-index:1}
 .welcome-screen.hidden{opacity:0}
-.welcome-logo{width:150px;height:150px;object-fit:contain;opacity:.4;animation:wfloat 5s ease-in-out infinite}
+.welcome-logo{width:150px;height:150px;object-fit:contain;opacity:.35;animation:wfloat 5s ease-in-out infinite}
 @keyframes wfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.welcome-text{font-family:'Raleway',sans-serif;font-size:26px;font-weight:300;color:var(--ts);letter-spacing:.16em;text-transform:uppercase}
-.welcome-hint{font-size:12px;color:var(--tm)}
+.welcome-text{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:600;color:var(--navy);letter-spacing:.14em;text-transform:uppercase}
+.welcome-hint{font-size:12px;color:var(--ts)}
 
 .watermark{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-.watermark-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);width:480px;opacity:.05;filter:grayscale(100%);user-select:none}
+.watermark-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);width:480px;opacity:.05;filter:grayscale(100%);user-select:none}
 
 /* ─── WINDOW ─── */
 .window{
   position:absolute;
-  background:var(--glass-2);
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
-  border:1px solid var(--edge);
+  background:var(--panel-2);
+  border:1px solid var(--bd);
   border-radius:var(--r);
   box-shadow:0 18px 46px -8px var(--shadow);
   display:flex;flex-direction:column;overflow:hidden;
@@ -284,14 +264,8 @@ body::before{content:'';position:fixed;inset:0;background:
 .window.focused{box-shadow:0 24px 64px -8px var(--shadow),0 0 0 1px var(--ac)}
 .window.maximized{top:10px!important;left:10px!important;right:10px;bottom:76px;width:auto!important;height:auto!important;border-radius:var(--r)}
 
-/* Efeito genie */
-.window.genie-out{
-  animation:genie-minimize .38s cubic-bezier(.6,0,.4,1) forwards!important;
-  pointer-events:none;
-}
-.window.genie-in{
-  animation:genie-restore .38s cubic-bezier(.2,.8,.4,1.2) forwards!important;
-}
+.window.genie-out{animation:genie-minimize .38s cubic-bezier(.6,0,.4,1) forwards!important;pointer-events:none}
+.window.genie-in{animation:genie-restore .38s cubic-bezier(.2,.8,.4,1.2) forwards!important}
 @keyframes genie-minimize{
   0%{opacity:1;transform:scale(1) translateY(0) skewY(0);transform-origin:bottom center;filter:blur(0)}
   60%{opacity:.6;transform:scale(.6,.3) translateY(60%) skewY(-3deg);transform-origin:bottom center;filter:blur(2px)}
@@ -303,19 +277,19 @@ body::before{content:'';position:fixed;inset:0;background:
   100%{opacity:1;transform:scale(1) translateY(0) skewY(0);transform-origin:bottom center;filter:blur(0)}
 }
 
-/* Barra de título: faixa colorida + botões quadrados (como a paginação do kit) */
+/* Barra de título — degrade laranja→azul, como as setas do template */
 .win-titlebar{
-  background:var(--ac);
+  background:linear-gradient(90deg,var(--ac),var(--acd) 85%);
   height:38px;padding:0 0 0 14px;
   display:flex;align-items:center;gap:10px;
   cursor:move;user-select:none;flex-shrink:0;
   transition:filter .2s;
 }
-.window:not(.focused) .win-titlebar{filter:saturate(.55) brightness(1.05)}
+.window:not(.focused) .win-titlebar{filter:saturate(.5) brightness(1.08)}
 
 .win-title-row{flex:1;order:1;display:flex;align-items:center;gap:8px;overflow:hidden}
 .win-icon{font-size:14px;flex-shrink:0}
-.win-title-text{font-family:'Raleway',sans-serif;font-size:13px;color:#fff;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-title-text{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:#fff;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .win-traffic{order:2;display:flex;align-items:stretch;align-self:stretch;flex-shrink:0}
 .win-dot{
@@ -333,10 +307,10 @@ body::before{content:'';position:fixed;inset:0;background:
 
 .window-body{flex:1;overflow:hidden;position:relative;background:#fff}
 .win-iframe{width:100%;height:100%;border:none;background:#fff}
-.win-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#f4f6f6}
+.win-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#f4f6f7}
 .win-spinner{width:26px;height:26px;border:3px solid rgba(0,0,0,.08);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.win-loading-txt{font-size:11px;color:#8a9295}
+.win-loading-txt{font-size:11px;color:#8a9298}
 
 /* Resize handles */
 .rh{position:absolute;z-index:20}
@@ -351,32 +325,33 @@ body::before{content:'';position:fixed;inset:0;background:
 .rh-se::after{content:'';position:absolute;bottom:5px;right:5px;width:7px;height:7px;
   border-right:2px solid var(--ac);border-bottom:2px solid var(--ac);opacity:.7}
 
-/* ─── TASKBAR = abas com ponteiro (estilo "Opinions | Gallery | Related") ─── */
+/* ─── TASKBAR — numerada como os "steps" do template ─── */
 .taskbar{
   position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  background:var(--glass);
-  -webkit-backdrop-filter:blur(22px) saturate(150%);
-  backdrop-filter:blur(22px) saturate(150%);
-  border:1px solid var(--edge);border-radius:4px;
-  padding:6px 6px 14px;display:flex;gap:2px;align-items:flex-start;
+  background:linear-gradient(180deg,var(--navy),var(--navy-d));
+  border-radius:4px;padding:6px;display:flex;gap:4px;align-items:stretch;
   box-shadow:0 12px 34px -8px var(--shadow);
   z-index:90;max-width:90%;
 }
 .taskbar:empty{display:none}
 .tbtn{
-  padding:9px 16px;background:var(--card);border:none;border-radius:0;
-  cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;gap:7px;
-  font-size:12px;font-family:'Raleway',sans-serif;font-weight:500;color:var(--ts);
-  max-width:190px;white-space:nowrap;position:relative;
+  display:flex;align-items:stretch;cursor:pointer;position:relative;
 }
-.tbtn .t-icon{font-size:13px;flex-shrink:0}
-.tbtn .t-title{overflow:hidden;text-overflow:ellipsis}
-.tbtn:hover{background:var(--card-h);color:var(--tp)}
-.tbtn.active{background:var(--ac);color:#fff}
-.tbtn::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
-  border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--ac);
-  opacity:0;transition:opacity .2s}
-.tbtn.active::after{opacity:1}
+.tbtn .t-num{
+  width:24px;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:#fff;
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%,9px 50%);
+}
+.tbtn .t-body{
+  display:flex;align-items:center;gap:7px;padding:7px 14px 7px 15px;margin-left:-6px;
+  background:rgba(255,255,255,.09);color:var(--steel-l);
+  font-size:12px;font-family:'Barlow',sans-serif;font-weight:500;
+  max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  clip-path:polygon(6px 0,100% 0,100% 100%,6px 100%,0 50%);
+  transition:background .2s,color .2s;
+}
+.tbtn:hover .t-body{background:rgba(255,255,255,.16);color:#fff}
+.tbtn.active .t-body{background:#fff;color:var(--navy);font-weight:700}
 </style>
 </head>
 <body>
@@ -411,106 +386,128 @@ body::before{content:'';position:fixed;inset:0;background:
     </button>
   </div>
 
-  <nav class="nav-menu">
+  <nav class="nav-menu" id="navMenu">
     <div class="nav-section">
       <div class="nav-label">Controles</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/tarefas.html','E-mails e Liberações','✉️')">
-        <span class="icon">✉️</span><span class="lbl">E-mails e Liberações</span><span class="badge">NEW</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">✉️</span><span class="lbl">E-mails e Liberações</span><span class="badge">NEW</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Analisa Produtos</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/xml_diego.html','Analisador NF','🔍')">
-        <span class="icon">🔍</span><span class="lbl">XML Diego</span><span class="badge">NEW</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">🔍</span><span class="lbl">XML Diego</span><span class="badge">NEW</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/sistema_libera.html','Liberação de Funcionários','👤')">
-        <span class="icon">👤</span><span class="lbl">Liberação Funcionários</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">👤</span><span class="lbl">Liberação Funcionários</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/leitorcfop.html','leitorcfop','🔍')">
-        <span class="icon">🔍</span><span class="lbl">Converter CFOP - Códigos</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">🔍</span><span class="lbl">Converter CFOP - Códigos</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Financeiro</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/comparar_saldocredor.html','Saldo Credor','💳')">
-        <span class="icon">💳</span><span class="lbl">Saldo Credor</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">💳</span><span class="lbl">Saldo Credor</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/saldocredor.html','PDF Saldo Credor','📊')">
-        <span class="icon">📊</span><span class="lbl">PDF Saldo Credor</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">PDF Saldo Credor</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/nfe.html','Verifica CFOP','🔄')">
-        <span class="icon">🔄</span><span class="lbl">Verifica CFOP-Origem × Lançamento</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">🔄</span><span class="lbl">Verifica CFOP-Origem × Lançamento</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Sistemas</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/diferenca_prodac_autosystem_Atual3.html','Prodac vs Autosystem','🔄')">
-        <span class="icon">🔄</span><span class="lbl">Prodac vs Autosystem</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">🔄</span><span class="lbl">Prodac vs Autosystem</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/postosliberados.html','Cópia Prodac','📁')">
-        <span class="icon">📁</span><span class="lbl">Cópia Prodac</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">📁</span><span class="lbl">Cópia Prodac</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/postos.html','Unidades','🏢')">
-        <span class="icon">🏢</span><span class="lbl">Unidades Rede Dom Pedro</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">🏢</span><span class="lbl">Unidades Rede Dom Pedro</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/SPEED_LOCALIZA.html','Leitor Sped TXT','📄')">
-        <span class="icon">📄</span><span class="lbl">Localiza os CFOP do TXT</span>
+        <span class="step-num">04</span>
+        <span class="step-body"><span class="icon">📄</span><span class="lbl">Localiza os CFOP do TXT</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Speed</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/procuraspeed.html','Procura Speed Gerados','⚙️')">
-        <span class="icon">⚙️</span><span class="lbl">Procura Speed Gerados</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">⚙️</span><span class="lbl">Procura Speed Gerados</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/e110.html','E110','📋')">
-        <span class="icon">📋</span><span class="lbl">E110 com reg 1200</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">📋</span><span class="lbl">E110 com reg 1200</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/achanf.html','Localizador de NF','🗂️')">
-        <span class="icon">🗂️</span><span class="lbl">Localizador de NF (Importa Speed TXT)</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">🗂️</span><span class="lbl">Localizador de NF (Importa Speed TXT)</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Ferramentas</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/captura.html','Apuração+entrada+saídas','🔍')">
-        <span class="icon">🔍</span><span class="lbl">Apuração+entrada+saídas</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">🔍</span><span class="lbl">Apuração+entrada+saídas</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Novos</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/leiaTXTSped.html','Compara Apuração entre txt e amaral ','📊')">
-        <span class="icon">📊</span><span class="lbl">Colar sped.txt x apuração Amaral</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">Colar sped.txt x apuração Amaral</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/inclusao_nfe_sped_v5.html','Compara Apuração','📊')">
-        <span class="icon">📊</span><span class="lbl">xml x spedd para incluir nf</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">xml x spedd para incluir nf</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/bombas.html','Localizador CFOP  ','⚙️')">
-        <span class="icon">📊</span><span class="lbl">Bombas Postos</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">Bombas Postos</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Testando</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/spedeamaral.html','Amaral x Sped  ','📊')">
-        <span class="icon">📊</span><span class="lbl">Sped e Amaral</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">Sped e Amaral</span></span>
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">sped-auditor</div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/spedXamaral.html','Amaral x Sped x Entradas Excel   ','📋')">
-        <span class="icon">📊</span><span class="lbl">Sped OK</span>
+        <span class="step-num">01</span>
+        <span class="step-body"><span class="icon">📊</span><span class="lbl">Sped OK</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/localizarecibos.html','Localiza Recibos   ','🔍')">
-        <span class="icon">🔍</span><span class="lbl">Localiza Recibos</span>
+        <span class="step-num">02</span>
+        <span class="step-body"><span class="icon">🔍</span><span class="lbl">Localiza Recibos</span></span>
       </div>
       <div class="nav-item" onclick="openWin('https://dompedroprojeos.github.io/pagina/errosestoque.html','Localiza Erros Estoque Negativo    ','🔍')">
-        <span class="icon">🔍</span><span class="lbl">Estoque Negativo erros</span>
+        <span class="step-num">03</span>
+        <span class="step-body"><span class="icon">🔍</span><span class="lbl">Estoque Negativo erros</span></span>
       </div>
     </div>
   </nav>
@@ -531,17 +528,17 @@ body::before{content:'';position:fixed;inset:0;background:
         <div class="clock-day-num" id="dn"></div>
         <div class="clock-month-abbr" id="ma"></div>
       </div>
-      <div>
+      <div class="clock-textblock">
         <div class="clock-weekday" id="wd"></div>
         <div class="clock-monthyear" id="my"></div>
         <div class="clock-time" id="ct"></div>
       </div>
     </div>
 
-    <div class="top-title"><span>Sistema Dom Pedro</span></div>
+    <div class="top-title">Sistema <span>Dom Pedro</span></div>
 
     <div class="force-reload">
-      <div class="version-tag" id="versionTag">v20260921_001</div>
+      <div class="version-tag" id="versionTag">v20260921_002</div>
       <button class="force-reload-btn" onclick="hardReload()">
         🔄 Hard Reload (Ctrl+F5)
       </button>
@@ -568,48 +565,33 @@ body::before{content:'';position:fixed;inset:0;background:
 </div>
 
 <script>
-// Função para forçar recarga completa (hard reload)
 function hardReload() {
     if(confirm('Deseja recarregar completamente o sistema?\nIsso limpará o cache do navegador para esta página.')) {
-        // Limpa cache de sessão e armazenamento local relacionados à versão
         sessionStorage.clear();
         localStorage.removeItem('app_version');
-        
-        // Força recarga ignorando cache
         location.reload(true);
-        
-        // Fallback para navegadores mais antigos
         setTimeout(() => {
             window.location.href = window.location.href.split('?')[0] + '?force=' + new Date().getTime();
         }, 100);
     }
 }
 
-// Função para forçar recarga com limpeza completa
 function forceReload() {
-    // Limpa todos os caches possíveis
     if ('caches' in window) {
         caches.keys().then(keys => {
             keys.forEach(key => caches.delete(key));
         });
     }
-    
-    // Limpa sessionStorage e localStorage de versão
     sessionStorage.clear();
     localStorage.removeItem('app_version');
-    
-    // Recarrega com timestamp
     window.location.href = window.location.href.split('?')[0] + '?nocache=' + new Date().getTime();
 }
 
-// Proteção contra inspeção
 document.addEventListener('keydown',e=>{
   if([123].includes(e.keyCode))e.preventDefault();
   if(e.ctrlKey&&e.shiftKey&&[73,74].includes(e.keyCode))e.preventDefault();
   if(e.ctrlKey&&[85,83].includes(e.keyCode))e.preventDefault();
-  // Ctrl+R e Ctrl+F5 são permitidos para recarga
   if(e.ctrlKey&&[82].includes(e.keyCode)) {
-      // Permite recarga, mas avisa
       setTimeout(() => hardReload(), 10);
   }
 });
@@ -631,17 +613,17 @@ function tick(){
 }
 tick();setInterval(tick,1000);
 
-// Theme — o novo visual nasce claro; escuro é opcional
-let isDark=localStorage.getItem('theme_flat')==='dark';
+// Theme
+let isDark=localStorage.getItem('theme_biz')==='dark';
 applyTheme();
-function toggleTheme(){isDark=!isDark;localStorage.setItem('theme_flat',isDark?'dark':'light');applyTheme()}
+function toggleTheme(){isDark=!isDark;localStorage.setItem('theme_biz',isDark?'dark':'light');applyTheme()}
 function applyTheme(){
   document.body.classList.toggle('dark-mode',isDark);
   document.getElementById('theme-icon').textContent=isDark?'☀️':'🌙';
   document.getElementById('theme-label').textContent=isDark?'Modo Claro':'Modo Escuro';
 }
 
-// Menu: liga cada item à sua URL para marcar o "radio" quando a janela estiver aberta
+// Menu: liga cada item à sua URL para marcar como "aberto"
 document.querySelectorAll('.nav-item').forEach(n=>{
   const m=(n.getAttribute('onclick')||'').match(/openWin\('([^']+)'/);
   if(m)n.dataset.url=m[1].split('?')[0];
@@ -653,14 +635,14 @@ function syncNav(){
 
 // Window Manager
 let wins=[],zTop=200,activeId=null,colorIdx=0;
-const PALETTE=['orange','coral','teal'];
+const PALETTE=['orange','navy'];
+const PALETTE_HEX={orange:'#f5920e',navy:'#1c3b5a'};
 
 function openWin(url,title,icon){
-  // Adiciona timestamp anti-cache na URL
   const timestamp = new Date().getTime();
   const cleanUrl = url.split('?')[0];
   const finalUrl = cleanUrl + '?v=' + timestamp;
-  
+
   const ex=wins.find(w=>w.url===cleanUrl);
   if(ex){focusWin(ex.id);restoreWin(ex.id);return}
   document.getElementById('welcome').classList.add('hidden');
@@ -712,9 +694,10 @@ function openWin(url,title,icon){
 
   const tb=document.getElementById('taskbar');
   const btn=document.createElement('div');
-  btn.className='tbtn active c-'+color;
+  btn.className='tbtn active';
   btn.id='tbtn-'+id;
-  btn.innerHTML=`<span class="t-icon">${icon}</span><span class="t-title">${title}</span>`;
+  const hex=PALETTE_HEX[color];
+  btn.innerHTML=`<span class="t-num" style="background:${hex}">${icon}</span><span class="t-body">${title}</span>`;
   btn.onclick=()=>taskbarClick(id);
   tb.appendChild(btn);
 
