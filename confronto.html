@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confronto CFOP — PRODAC × AutoSystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#152227;
+    --ink-soft:#3d4d53;
+    --paper:#eef1ee;
+    --panel:#ffffff;
+    --line:#d7ddd8;
+    --ok:#3c7a6d;
+    --ok-bg:#e5f0ec;
+    --warn:#a9772c;
+    --warn-bg:#f6ecd9;
+    --bad:#9c3b2e;
+    --bad-bg:#f7e6e1;
+    --accent:#1f4d47;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.5; padding-bottom:60px;
+  }
+  header.top{
+    background:var(--ink); color:#f2f4f1; padding:22px 28px;
+    display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    border-bottom:3px solid var(--accent);
+  }
+  header.top h1{ font-size:20px; margin:0; font-weight:600; letter-spacing:.2px; }
+  header.top .sub{ font-family:var(--mono); font-size:12px; color:#b9c4bf; }
+  main{ max-width:1180px; margin:0 auto; padding:22px 20px 0; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:900px){ .grid2{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:4px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .card h2{
+    font-size:14px; text-transform:none; margin:0 0 4px; font-weight:600; color:var(--ink);
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .n{
+    display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
+    background:var(--accent); color:#fff; border-radius:3px; font-size:11px; font-family:var(--mono);
+  }
+  .card p.hint{ font-size:12.5px; color:var(--ink-soft); margin:2px 0 12px; }
+  textarea{
+    width:100%; min-height:130px; font-family:var(--mono); font-size:12px; padding:10px;
+    border:1px solid var(--line); border-radius:3px; resize:vertical; background:#fbfbf9;
+  }
+  input[type=text], input[type=email]{
+    font-family:var(--sans); font-size:13px; padding:7px 9px; border:1px solid var(--line);
+    border-radius:3px; background:#fbfbf9;
+  }
+  label.small{ font-size:12px; color:var(--ink-soft); display:block; margin-bottom:4px; }
+  button{
+    font-family:var(--sans); font-size:13px; font-weight:600; padding:8px 14px; border-radius:3px;
+    border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer;
+  }
+  button.ghost{ background:transparent; color:var(--accent); }
+  button.small{ font-size:12px; padding:5px 10px; }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  button:hover:not(:disabled){ filter:brightness(1.08); }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .status-line{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin-top:8px; min-height:16px; }
+  .status-ok{ color:var(--ok); }
+  .status-bad{ color:var(--bad); }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td{ padding:6px 8px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  th{ font-weight:600; font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  td.num, th.num{ text-align:right; font-family:var(--mono); }
+  tr.ok td{ color:var(--ink-soft); }
+  tr.divergente td{ background:var(--bad-bg); }
+  tr.ignorado td{ opacity:.5; }
+  .table-wrap{ overflow-x:auto; }
+  .pill{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;
+    font-family:var(--mono);
+  }
+  .pill-ok{ background:var(--ok-bg); color:var(--ok); }
+  .pill-warn{ background:var(--warn-bg); color:var(--warn); }
+  .pill-bad{ background:var(--bad-bg); color:var(--bad); }
+  .swap-card{ border:1px solid var(--line); border-radius:4px; margin-bottom:14px; overflow:hidden; }
+  .swap-head{
+    background:#f4f6f3; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:6px; border-bottom:1px solid var(--line);
+  }
+  .swap-head .cfops{ font-family:var(--mono); font-size:14px; font-weight:600; }
+  .swap-head .diff{ font-family:var(--mono); font-size:13px; color:var(--bad); font-weight:600; }
+  .swap-body{ padding:10px 14px; }
+  .empty{ color:var(--ink-soft); font-size:12.5px; padding:10px 0; }
+  .foot-note{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
+  #emailBox{ width:100%; min-height:220px; font-family:var(--mono); font-size:12px; padding:12px; }
+  .toast{
+    position:fixed; bottom:18px; right:18px; background:var(--ink); color:#fff; padding:9px 16px;
+    border-radius:4px; font-size:12.5px; opacity:0; transform:translateY(8px); transition:.2s;
+    pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateY(0); }
+  .step-num{ background:var(--ink); }
+  summary{ cursor:pointer; font-size:12.5px; color:var(--accent); margin-top:6px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>Confronto CFOP — PRODAC × AutoSystem</h1>
+    <div class="sub" id="empresaLine">nenhum dado carregado ainda</div>
+  </div>
+  <div class="sub" id="clock"></div>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2><span class="n">i</span> Sobre esta ferramenta</h2>
+    <p class="hint" style="margin-bottom:0">
+      Cole abaixo o relatório "Confronto Apuração do ICMS" (cabeçalho + tabelas de ENTRADAS/SAÍDAS) e, se tiver,
+      os detalhamentos por CFOP. Depois importe a planilha exportada do AutoSystem (abas <b>Notas</b> e
+      <b>Itens de Mercadoria</b>). A ferramenta cruza os números da nota (NF) entre PRODAC e AutoSystem para
+      apontar exatamente quais notas foram lançadas com o CFOP trocado.
+    </p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="n">1</span> Colar resumo do PRODAC</h2>
+      <p class="hint">Cole o cabeçalho (Empresa / CNPJ / Mês-Ano) e as tabelas de ENTRADAS e SAÍDAS, direto da página.</p>
+      <textarea id="resumoInput" placeholder="Empresa:&#10;DP LAFAIETE&#10;CNPJ:&#10;20.415.295/0071-87&#10;Mês/Ano:&#10;10/2024&#10;ENTRADAS&#10;1102  16.958,00  16.958,00 ..."></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="handleResumo()">Processar resumo</button>
+        <button class="ghost small" onclick="document.getElementById('resumoInput').value='';">Limpar</button>
+      </div>
+      <div class="status-line" id="resumoStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span> Colar detalhamento por CFOP</h2>
+      <p class="hint">Cole um bloco de cada vez (cabeçalho "EMPRESA - CFOP: X.XXX / Periodo: ..." + a lista de notas). Pode repetir para vários CFOPs — cada bloco é somado ao anterior.</p>
+      <textarea id="detalheInput" placeholder="DP LAFAIETE - CFOP: 1.652 / Periodo: 01/10/2024 - 31/10/2024&#10;01/10/2024  PETROBRAS...  4439937 ..."></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="handleDetalhe()">Adicionar detalhamento</button>
+        <button class="ghost small" onclick="detalheRows=[]; renderAll(); document.getElementById('detalheInput').value='';">Limpar tudo</button>
+      </div>
+      <div class="status-line" id="detalheStatus"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span> Importar planilha do AutoSystem</h2>
+    <p class="hint">Arquivo .xls/.xlsx com as abas "Notas" e "Itens de Mercadoria" (exportação padrão de entrada/saída).</p>
+    <div class="row">
+      <input type="file" id="xlsInput" accept=".xls,.xlsx" onchange="handleXls(event)">
+    </div>
+    <div class="status-line" id="xlsStatus"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">4</span> Configuração da análise</h2>
+    <div class="row">
+      <div>
+        <label class="small">CFOPs a ignorar (não são divergência real)</label>
+        <input type="text" id="ignoreCfops" value="1933,2933" style="width:220px">
+      </div>
+      <div>
+        <label class="small">Tolerância (R$)</label>
+        <input type="text" id="tolerance" value="0,02" style="width:90px">
+      </div>
+      <button style="margin-top:18px" onclick="analisar()">Analisar divergências</button>
+    </div>
+  </div>
+
+  <div class="card" id="resumoTableCard" style="display:none">
+    <h2>Resumo por CFOP — Valores Contábeis</h2>
+    <div class="table-wrap">
+      <table id="resumoTable">
+        <thead><tr>
+          <th>Seção</th><th>CFOP</th><th class="num">PRODAC</th><th class="num">AutoSystem (DP)</th>
+          <th class="num">Diferença</th><th>Status</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="swapsCard" style="display:none">
+    <h2>Pares de CFOP com indício de troca</h2>
+    <div id="swapsContainer"></div>
+  </div>
+
+  <div class="card" id="orphanCard" style="display:none">
+    <h2>Divergências sem par identificado</h2>
+    <p class="hint">Essas diferenças não encontraram uma contrapartida de mesmo valor em outro CFOP — cole o detalhamento correspondente para investigar, ou pode ser um erro isolado (não uma troca).</p>
+    <div class="table-wrap"><table id="orphanTable">
+      <thead><tr><th>Seção</th><th>CFOP</th><th class="num">Diferença</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <div class="card" id="emailCard" style="display:none">
+    <h2><span class="n">5</span> Notificar o posto</h2>
+    <div class="row" style="margin-bottom:10px">
+      <div>
+        <label class="small">E-mail do responsável (opcional)</label>
+        <input type="email" id="emailTo" placeholder="fiscal@posto.com.br" style="width:260px">
+      </div>
+    </div>
+    <textarea id="emailBox" readonly></textarea>
+    <div class="row" style="margin-top:10px">
+      <button onclick="copyEmail()">Copiar texto</button>
+      <button class="ghost" onclick="openMail()">Abrir no e-mail</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- state ---------- */
+let empresa = {nome:'', cnpj:'', mesAno:''};
+let resumoRows = [];      // {section, cfop, prodac, dp, all[]}
+let detalheRows = [];     // {cfop, empresa, data, emitente, nf, ncm, cst, descricao, valor,...}
+let notasAS = [];         // AutoSystem "Notas" sheet rows
+let itensAS = [];         // AutoSystem "Itens de Mercadoria" sheet rows
+let lastAnalysis = null;
+
+/* ---------- helpers ---------- */
+function parseNum(s){
+  if(s===null || s===undefined) return 0;
+  if(typeof s === 'number') return s;
+  s = String(s).trim();
+  if(s==='') return 0;
+  s = s.replace(/\./g,'').replace(',', '.');
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : v;
+}
+function fmtBRL(v){
+  const sign = v<0 ? '-' : '';
+  v = Math.abs(v);
+  return sign + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function normNF(nf){
+  if(nf===null||nf===undefined) return '';
+  const digits = String(nf).replace(/\D/g,'');
+  return digits.replace(/^0+/,'') || '0';
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function setClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleString('pt-BR');
+}
+setClock(); setInterval(setClock, 30000);
+
+/* ---------- STEP 1: resumo ---------- */
+function extractHeader(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim());
+  for(let i=0;i<lines.length;i++){
+    if(/^empresa:?$/i.test(lines[i]) && lines[i+1]) empresa.nome = lines[i+1];
+    if(/^cnpj:?$/i.test(lines[i]) && lines[i+1]) empresa.cnpj = lines[i+1];
+    if(/^m[eê]s\/?ano:?$/i.test(lines[i]) && lines[i+1]) empresa.mesAno = lines[i+1];
+  }
+}
+
+function parseResumo(text){
+  const lines = text.split(/\r?\n/);
+  let section = null;
+  const rows = [];
+  for(const raw of lines){
+    const line = raw.trim();
+    if(!line) continue;
+    if(/^entradas$/i.test(line)){ section='ENTRADAS'; continue; }
+    if(/^sa[ií]das$/i.test(line)){ section='SAIDAS'; continue; }
+    const mCfop = line.match(/^(\d{3,4})\s+(.+)$/);
+    if(mCfop && section){
+      const cfop = mCfop[1];
+      const rest = mCfop[2];
+      let nums = rest.split(/\t+/).filter(x=>x.trim()!=='');
+      if(nums.length < 2){
+        nums = rest.trim().split(/\s+/).filter(x=>x.trim()!=='');
+      }
+      const numArr = nums.map(parseNum);
+      if(numArr.length>=2){
+        rows.push({section, cfop, prodac:numArr[0], dp:numArr[1], all:numArr});
+      }
+    }
+  }
+  return rows;
+}
+
+function handleResumo(){
+  const text = document.getElementById('resumoInput').value;
+  if(!text.trim()){ document.getElementById('resumoStatus').textContent='Cole o texto primeiro.'; return; }
+  extractHeader(text);
+  const rows = parseResumo(text);
+  if(rows.length===0){
+    document.getElementById('resumoStatus').innerHTML = '<span class="status-bad">Não encontrei linhas de CFOP. Confira se copiou a tabela inteira (com ENTRADAS/SAÍDAS).</span>';
+    return;
+  }
+  // dedupe by section+cfop, keep latest
+  const map = new Map();
+  rows.forEach(r=>map.set(r.section+'|'+r.cfop, r));
+  resumoRows = Array.from(map.values());
+  document.getElementById('resumoStatus').innerHTML =
+    '<span class="status-ok">'+resumoRows.length+' CFOPs lidos ('+resumoRows.filter(r=>r.section==='ENTRADAS').length+' entradas, '+
+    resumoRows.filter(r=>r.section==='SAIDAS').length+' saídas).</span>';
+  renderAll();
+}
+
+/* ---------- STEP 2: detalhamento ---------- */
+function parseDetalhe(text){
+  const lines = text.split(/\r?\n/);
+  let currentCfop = null, currentEmpresa = null;
+  const rows = [];
+  for(const raw of lines){
+    const line = raw.trim();
+    if(!line) continue;
+    const mHead = line.match(/^(.*?)\s*-\s*CFOP:\s*([\d.]+)\s*\/\s*Periodo/i);
+    if(mHead){
+      currentEmpresa = mHead[1].trim();
+      currentCfop = mHead[2].replace(/\./g,'');
+      continue;
+    }
+    if(!currentCfop) continue;
+    if(/^(data|pesquisar)/i.test(line)) continue;
+    let parts = line.split(/\t+/).filter(x=>x!=='');
+    if(parts.length !== 12){
+      const m = line.match(/^(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d{1,12})\s+(\d{6,10})\s+(\d{2,4})\s+(.+?)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s*$/);
+      if(m) parts = m.slice(1); else continue;
+    }
+    const [data, emit, nf, ncm, cst, desc, valor, descto, frete, icms, ipi, subst] = parts;
+    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) continue;
+    rows.push({
+      cfop: currentCfop, empresa: currentEmpresa, data, emitente: emit,
+      nf: normNF(nf), nfRaw: nf, ncm, cst, descricao: desc,
+      valor: parseNum(valor), desconto: parseNum(descto), frete: parseNum(frete),
+      icms: parseNum(icms), ipi: parseNum(ipi), subst: parseNum(subst)
+    });
+  }
+  return rows;
+}
+
+function handleDetalhe(){
+  const text = document.getElementById('detalheInput').value;
+  if(!text.trim()){ document.getElementById('detalheStatus').textContent='Cole o bloco primeiro.'; return; }
+  const rows = parseDetalhe(text);
+  if(rows.length===0){
+    document.getElementById('detalheStatus').innerHTML = '<span class="status-bad">Não encontrei linhas de nota. Confira o cabeçalho "CFOP: X.XXX / Periodo" e as colunas.</span>';
+    return;
+  }
+  detalheRows = detalheRows.concat(rows);
+  document.getElementById('detalheStatus').innerHTML =
+    '<span class="status-ok">+'+rows.length+' notas adicionadas (CFOP '+rows[0].cfop+'). Total acumulado: '+detalheRows.length+'.</span>';
+  document.getElementById('detalheInput').value = '';
+  renderAll();
+}
+
+/* ---------- STEP 3: xls import ---------- */
+function findSheet(wb, nameHint){
+  const key = wb.SheetNames.find(n => n.toLowerCase().includes(nameHint.toLowerCase()));
+  return key ? wb.Sheets[key] : null;
+}
+function sheetToRowsByHeader(ws, headerNeedle){
+  const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+  let headerIdx = -1, header = null;
+  for(let i=0;i<raw.length;i++){
+    const row = raw[i];
+    if(row && row.some(c => typeof c==='string' && c.toLowerCase().includes(headerNeedle.toLowerCase()))){
+      headerIdx = i; header = row; break;
+    }
+  }
+  if(headerIdx<0) return [];
+  const colIndex = {};
+  header.forEach((h,i)=>{ if(typeof h==='string') colIndex[h.trim()] = i; });
+  const out = [];
+  for(let i=headerIdx+1;i<raw.length;i++){
+    const row = raw[i];
+    if(!row || row.every(c=>c===null||c==='')) continue;
+    out.push({row, colIndex});
+  }
+  return out;
+}
+function col(entry, name){
+  const idx = entry.colIndex[name];
+  return idx===undefined ? null : entry.row[idx];
+}
+
+function handleXls(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
+      const wsNotas = findSheet(wb, 'Notas');
+      const wsItens = findSheet(wb, 'Itens');
+      notasAS = []; itensAS = [];
+      if(wsNotas){
+        sheetToRowsByHeader(wsNotas, 'Número Nota').forEach(entry=>{
+          notasAS.push({
+            nf: normNF(col(entry,'Número Nota')),
+            nfRaw: col(entry,'Número Nota'),
+            cfop: String(col(entry,'CFOP')||'').trim(),
+            terceiro: col(entry,'Terceiro'),
+            razaoSocial: col(entry,'Razão Social'),
+            valorContabil: parseNum(col(entry,'Valor Contábil')),
+            dtEscritur: col(entry,'Dt.Escritur.')
+          });
+        });
+      }
+      if(wsItens){
+        sheetToRowsByHeader(wsItens, 'Número Nota').forEach(entry=>{
+          itensAS.push({
+            nf: normNF(col(entry,'Número Nota')),
+            cfop: String(col(entry,'CFOP')||'').trim(),
+            item: col(entry,'Número Item'),
+            produto: col(entry,'Descrição do Produto'),
+            valorLiquido: parseNum(col(entry,'Valor Líquido'))
+          });
+        });
+      }
+      let msg = [];
+      if(wsNotas) msg.push(notasAS.length+' notas'); else msg.push('aba "Notas" não encontrada');
+      if(wsItens) msg.push(itensAS.length+' itens'); else msg.push('aba "Itens" não encontrada');
+      document.getElementById('xlsStatus').innerHTML = '<span class="status-ok">'+file.name+' — '+msg.join(' / ')+'.</span>';
+      renderAll();
+    }catch(err){
+      document.getElementById('xlsStatus').innerHTML = '<span class="status-bad">Erro ao ler o arquivo: '+err.message+'</span>';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- analysis engine ---------- */
+function analisar(){
+  const ignoreSet = new Set(document.getElementById('ignoreCfops').value.split(',').map(s=>s.trim()).filter(Boolean));
+  const tol = parseNum(document.getElementById('tolerance').value) || 0.02;
+
+  const diffRows = resumoRows.map(r=>{
+    const diff = r.dp - r.prodac;
+    const ignored = ignoreSet.has(r.cfop);
+    return {...r, diff, ignored, flagged: !ignored && Math.abs(diff) > tol};
+  });
+
+  // pairing: among flagged rows in same section, find best offset match
+  const flagged = diffRows.filter(r=>r.flagged);
+  const used = new Set();
+  const pairs = [];
+  for(let i=0;i<flagged.length;i++){
+    if(used.has(i)) continue;
+    let best = -1, bestScore = Infinity;
+    for(let j=0;j<flagged.length;j++){
+      if(i===j || used.has(j)) continue;
+      if(flagged[i].section !== flagged[j].section) continue;
+      const score = Math.abs(flagged[i].diff + flagged[j].diff);
+      if(score < bestScore){ bestScore = score; best = j; }
+    }
+    if(best>=0 && bestScore <= Math.max(tol*2, 0.05)){
+      pairs.push([flagged[i], flagged[best]]);
+      used.add(i); used.add(best);
+    }
+  }
+  const orphans = flagged.filter((r,idx)=>!used.has(idx));
+
+  // for each pair, find suspect NFs
+  const notasByNF = new Map();
+  notasAS.forEach(n=>{
+    if(!notasByNF.has(n.nf)) notasByNF.set(n.nf, []);
+    notasByNF.get(n.nf).push(n);
+  });
+  const itensByNF = new Map();
+  itensAS.forEach(it=>{
+    if(!itensByNF.has(it.nf)) itensByNF.set(it.nf, []);
+    itensByNF.get(it.nf).push(it);
+  });
+
+  const swapResults = pairs.map(([a,b])=>{
+    const candidateCfops = [a.cfop, b.cfop];
+    const suspects = [];
+    detalheRows.filter(d=>candidateCfops.includes(d.cfop)).forEach(d=>{
+      const otherCfop = d.cfop === a.cfop ? b.cfop : a.cfop;
+      const asMatches = notasByNF.get(d.nf) || [];
+      const asMatch = asMatches[0];
+      let confidence = 'baixa', asCfop = asMatch ? asMatch.cfop : null;
+      if(asMatch && asMatch.cfop === otherCfop) confidence = 'alta';
+      else if(Math.abs(Math.abs(a.diff) - d.valor) <= Math.max(tol, 0.5) || Math.abs(Math.abs(b.diff) - d.valor) <= Math.max(tol, 0.5)) confidence = 'media';
+      else if(asMatch && asMatch.cfop === d.cfop) confidence = 'ok';
+      if(confidence !== 'ok'){
+        suspects.push({
+          nf: d.nfRaw, nfNorm: d.nf, emitente: d.emitente, descricao: d.descricao,
+          valor: d.valor, cfopDetalhe: d.cfop, cfopAutoSystem: asCfop, confidence,
+          itens: itensByNF.get(d.nf) || []
+        });
+      }
+    });
+    // also scan notas AS directly for the "other" cfop containing a NF absent from its expected detalhe block
+    suspects.sort((x,y)=> (x.confidence==='alta'?0:x.confidence==='media'?1:2) - (y.confidence==='alta'?0:y.confidence==='media'?1:2));
+    return {a, b, suspects};
+  });
+
+  lastAnalysis = {diffRows, swapResults, orphans};
+  renderAnalysis();
+}
+
+/* ---------- render ---------- */
+function renderAll(){
+  document.getElementById('empresaLine').textContent =
+    (empresa.nome||'—') + '   ·   CNPJ ' + (empresa.cnpj||'—') + '   ·   ' + (empresa.mesAno||'—') +
+    '   ·   ' + resumoRows.length + ' CFOPs no resumo   ·   ' + detalheRows.length + ' notas detalhadas   ·   ' +
+    notasAS.length + ' notas AutoSystem';
+}
+
+function pillFor(conf){
+  if(conf==='alta') return '<span class="pill pill-bad">Alta confiança</span>';
+  if(conf==='media') return '<span class="pill pill-warn">Valor bate — confirmar</span>';
+  return '<span class="pill pill-ok">Baixa confiança</span>';
+}
+
+function renderAnalysis(){
+  if(!lastAnalysis) return;
+  const {diffRows, swapResults, orphans} = lastAnalysis;
+
+  // resumo table
+  const tbody = document.querySelector('#resumoTable tbody');
+  tbody.innerHTML = '';
+  diffRows.sort((a,b)=> a.section.localeCompare(b.section) || a.cfop.localeCompare(b.cfop));
+  diffRows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.className = r.ignored ? 'ignorado' : (r.flagged ? 'divergente' : 'ok');
+    const statusHtml = r.ignored ? '<span class="pill pill-ok">ignorado</span>' :
+      r.flagged ? '<span class="pill pill-bad">divergente</span>' : '<span class="pill pill-ok">ok</span>';
+    tr.innerHTML = `<td>${r.section}</td><td>${r.cfop}</td><td class="num">${fmtBRL(r.prodac)}</td>
+      <td class="num">${fmtBRL(r.dp)}</td><td class="num">${fmtBRL(r.diff)}</td><td>${statusHtml}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('resumoTableCard').style.display = diffRows.length ? '' : 'none';
+
+  // swaps
+  const container = document.getElementById('swapsContainer');
+  container.innerHTML = '';
+  if(swapResults.length===0){
+    container.innerHTML = '<div class="empty">Nenhum par de CFOP com divergência compensada encontrado ainda. Processe o resumo (e clique em "Analisar divergências").</div>';
+  }
+  swapResults.forEach(({a,b,suspects})=>{
+    const div = document.createElement('div');
+    div.className = 'swap-card';
+    let rowsHtml = suspects.map(s=>`
+      <tr>
+        <td>${s.nf}</td><td>${s.emitente||''}</td><td>${s.descricao||''}</td>
+        <td class="num">${fmtBRL(s.valor)}</td>
+        <td>${s.cfopDetalhe}</td><td>${s.cfopAutoSystem||'não encontrado no AutoSystem'}</td>
+        <td>${pillFor(s.confidence)}</td>
+      </tr>`).join('');
+    if(!rowsHtml){
+      rowsHtml = `<tr><td colspan="7" class="empty">Nenhuma nota deste par foi encontrada nos blocos de detalhamento colados. Cole o detalhamento do CFOP ${a.cfop} ou ${b.cfop} para localizar a nota exata.</td></tr>`;
+    }
+    div.innerHTML = `
+      <div class="swap-head">
+        <div class="cfops">CFOP ${a.cfop} ⇄ CFOP ${b.cfop}</div>
+        <div class="diff">divergência: R$ ${fmtBRL(Math.abs(a.diff))}</div>
+      </div>
+      <div class="swap-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>NF</th><th>Emitente</th><th>Descrição</th><th class="num">Valor</th>
+          <th>CFOP (PRODAC)</th><th>CFOP (AutoSystem)</th><th>Confiança</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table></div>
+      </div>`;
+    container.appendChild(div);
+  });
+  document.getElementById('swapsCard').style.display = '';
+
+  // orphans
+  const orphanBody = document.querySelector('#orphanTable tbody');
+  orphanBody.innerHTML = orphans.map(r=>`<tr><td>${r.section}</td><td>${r.cfop}</td><td class="num">${fmtBRL(r.diff)}</td></tr>`).join('');
+  document.getElementById('orphanCard').style.display = orphans.length ? '' : 'none';
+
+  buildEmail();
+  document.getElementById('emailCard').style.display = '';
+}
+
+/* ---------- email ---------- */
+function buildEmail(){
+  if(!lastAnalysis) return;
+  const {swapResults} = lastAnalysis;
+  let total = 0;
+  let body = [];
+  body.push('Assunto: Divergência de CFOP identificada — ' + (empresa.nome||'posto') + (empresa.cnpj?(' ('+empresa.cnpj+')'):'') + ' — ' + (empresa.mesAno||''));
+  body.push('');
+  body.push('Prezados,');
+  body.push('');
+  body.push('Na conferência do Confronto de Apuração do ICMS de ' + (empresa.mesAno||'') + ' (' + (empresa.nome||'') + '), identificamos possíveis lançamentos com CFOP trocado entre PRODAC e AutoSystem:');
+  body.push('');
+  swapResults.forEach(({a,b,suspects})=>{
+    const diffVal = Math.abs(a.diff);
+    total += diffVal;
+    body.push('CFOP ' + a.cfop + ' x CFOP ' + b.cfop + '  —  diferença R$ ' + fmtBRL(diffVal));
+    if(suspects.length===0){
+      body.push('  (nota específica ainda não localizada — falta colar o detalhamento deste CFOP)');
+    } else {
+      suspects.forEach(s=>{
+        body.push('  NF ' + s.nf + '  |  ' + (s.emitente||'') + '  |  ' + (s.descricao||'') + '  |  R$ ' + fmtBRL(s.valor) +
+          '  |  PRODAC: CFOP ' + s.cfopDetalhe + '  ->  AutoSystem: CFOP ' + (s.cfopAutoSystem||'?'));
+      });
+    }
+    body.push('');
+  });
+  body.push('Divergência total identificada: R$ ' + fmtBRL(total));
+  body.push('');
+  body.push('Solicitamos a verificação e o ajuste do CFOP nos lançamentos acima.');
+  body.push('');
+  body.push('Atenciosamente,');
+  body.push('Confronto CFOP — PRODAC x AutoSystem');
+  document.getElementById('emailBox').value = body.join('\n');
+}
+function copyEmail(){
+  const box = document.getElementById('emailBox');
+  box.select();
+  document.execCommand('copy');
+  toast('Texto copiado.');
+}
+function openMail(){
+  const to = document.getElementById('emailTo').value.trim();
+  const full = document.getElementById('emailBox').value;
+  const lines = full.split('\n');
+  const subject = (lines[0]||'').replace(/^Assunto:\s*/i,'');
+  const body = lines.slice(1).join('\n').trim();
+  const url = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.location.href = url;
+}
+</script>
+</body>
+</html>
