@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confronto PRODAC × DP — Ajuste de CFOP</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f0f2f5;--card:#fff;--text:#1a1d23;--muted:#6b7280;--border:#e2e5ea;
+  --accent:#2563eb;--ok:#16a34a;--bad:#dc2626;--okbg:#f0fdf4;--badbg:#fef2f2;
+  --warn:#d97706;--warnbg:#fffbeb;
+  --brand:#e85d1f;--brand-dark:#c94a12;--brand-light:#ff8a4c;
+  --header-h:72px;--footer-h:52px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15171c;--card:#1e2129;--text:#e7e9ee;--muted:#9aa2b1;--border:#30343e;
+  --okbg:#0f2418;--badbg:#2a1414;--warnbg:#2a2313;
+}}
+:root[data-theme="dark"]{
+  --bg:#15171c;--card:#1e2129;--text:#e7e9ee;--muted:#9aa2b1;--border:#30343e;
+  --okbg:#0f2418;--badbg:#2a1414;--warnbg:#2a2313;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',Arial,Helvetica,sans-serif;
+  padding-top:var(--header-h);padding-bottom:var(--footer-h);
+  min-height:100vh;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+  color:#fff;z-index:900;
+  display:flex;align-items:center;padding:0 24px;
+  box-shadow:0 2px 12px rgba(232,93,31,.25);
+  overflow:hidden;
+}
+.app-header::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:24px 24px;
+  pointer-events:none;
+}
+.app-header::after{
+  content:'';position:absolute;
+  right:-80px;top:-80px;width:280px;height:280px;
+  border:2px solid rgba(255,255,255,.08);
+  border-radius:50%;pointer-events:none;
+}
+.header-inner{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:20px;
+  width:100%;max-width:1400px;margin:0 auto;
+}
+.brand{
+  display:flex;align-items:center;gap:12px;
+  font-size:22px;font-weight:700;letter-spacing:-.5px;
+}
+.brand-logo{
+  width:42px;height:42px;border-radius:10px;
+  background:rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;line-height:1;
+  border:1px solid rgba(255,255,255,.25);
+}
+.brand-divider{
+  width:1px;height:32px;background:rgba(255,255,255,.35);margin:0 4px;
+}
+.brand-partner{
+  font-size:15px;font-weight:600;letter-spacing:2px;
+  opacity:.95;
+}
+.header-spacer{flex:1}
+.header-actions{display:flex;gap:8px;align-items:center}
+.header-btn{
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:8px 14px;border-radius:8px;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:all .15s;font-weight:500;
+}
+.header-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px)}
+.header-btn.primary{background:#fff;color:var(--brand);font-weight:700}
+.header-btn.primary:hover{background:#f5f5f5;color:var(--brand-dark)}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.app-footer{
+  position:fixed;bottom:0;left:0;right:0;height:var(--footer-h);
+  background:var(--card);border-top:1px solid var(--border);
+  color:var(--muted);font-size:12px;
+  display:flex;align-items:center;padding:0 24px;
+  z-index:900;
+}
+.footer-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:1400px;margin:0 auto;gap:16px;flex-wrap:wrap;
+}
+.footer-inner .status{display:flex;align-items:center;gap:8px}
+.footer-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 0 3px rgba(22,163,74,.2);
+}
+.footer-dot.idle{background:var(--muted);box-shadow:0 0 0 3px rgba(107,114,128,.2)}
+.footer-dot.error{background:var(--bad);box-shadow:0 0 0 3px rgba(220,38,38,.2)}
+.footer-inner .links{display:flex;gap:16px}
+.footer-inner .links a{color:var(--muted);text-decoration:none}
+.footer-inner .links a:hover{color:var(--brand)}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap{max-width:1400px;margin:0 auto;padding:24px}
+.page-title{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.3px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+
+/* KPIs */
+.kpis{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:14px;margin-bottom:20px;
+}
+.kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:16px 18px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+  border-left:4px solid var(--accent);
+  transition:transform .15s, box-shadow .15s;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.kpi.ok{border-left-color:var(--ok)}
+.kpi.bad{border-left-color:var(--bad)}
+.kpi.warn{border-left-color:var(--warn)}
+.kpi .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.kpi .kpi-value{font-size:22px;font-weight:700;line-height:1.1;color:var(--text)}
+.kpi.bad .kpi-value{color:var(--bad)}
+.kpi.ok .kpi-value{color:var(--ok)}
+.kpi.warn .kpi-value{color:var(--warn)}
+.kpi .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* Cards */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:18px;margin-bottom:16px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.card h2{
+  font-size:14px;margin:0 0 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-weight:700;letter-spacing:.2px;
+}
+.card h2 .card-title{display:flex;align-items:center;gap:8px}
+.card-actions{display:flex;gap:6px;align-items:center}
+
+textarea{
+  width:100%;min-height:140px;font-family:'Consolas',monospace;font-size:11px;
+  border:1px solid var(--border);border-radius:8px;padding:10px;
+  background:var(--bg);color:var(--text);resize:vertical;
+}
+input[type=file]{font-size:13px;color:var(--text)}
+
+button{
+  background:var(--brand);color:#fff;border:none;border-radius:8px;
+  padding:9px 16px;font-size:13px;cursor:pointer;margin-top:8px;
+  font-weight:600;transition:all .15s;
+}
+button:hover{background:var(--brand-dark);transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+button.sec{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+button.sec:hover{background:var(--brand);color:#fff}
+button.icon{
+  background:transparent;border:1px solid var(--border);color:var(--text);
+  padding:5px 9px;font-size:14px;cursor:pointer;border-radius:8px;
+  margin:0;line-height:1;font-weight:400;
+}
+button.icon:hover{background:var(--brand);color:#fff;border-color:var(--brand);transform:translateY(-1px)}
+button.icon-print{font-size:16px}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+select,input[type=text]{
+  padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  background:var(--card);color:var(--text);font-size:13px;font-family:inherit;
+}
+select:focus,input[type=text]:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(232,93,31,.12)}
+
+.msg{font-size:12px;padding:8px 12px;border-radius:8px;margin-top:10px}
+.msg.ok{background:var(--okbg);color:var(--ok);border-left:3px solid var(--ok)}
+.msg.bad{background:var(--badbg);color:var(--bad);border-left:3px solid var(--bad)}
+.msg.warn{background:var(--warnbg);color:var(--warn);border-left:3px solid var(--warn)}
+
+/* Tables */
+table.confronto{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+table.confronto th,table.confronto td{border:1px solid var(--border);padding:8px 12px;text-align:right;white-space:nowrap}
+table.confronto th:first-child,table.confronto td:first-child{text-align:left}
+table.confronto thead th{background:var(--bg);color:var(--text);font-weight:700;text-align:center}
+table.confronto thead tr:first-child th{font-size:12px}
+table.confronto thead tr:last-child th{font-size:12px;color:var(--muted)}
+table.confronto tbody tr:hover{background:rgba(232,93,31,.04)}
+tr.linha-ok td{background:var(--okbg)}
+tr.linha-erro td{background:var(--badbg);color:var(--bad);font-weight:700}
+tr.linha-zerado td{color:var(--muted);font-weight:400}
+tr.subtotal td{background:var(--bg);font-weight:700;border-top:2px solid var(--border)}
+
+table.ajustes{width:100%;border-collapse:collapse;font-size:12px}
+table.ajustes th,table.ajustes td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right}
+table.ajustes th:first-child,table.ajustes td:first-child{text-align:left}
+table.ajustes th{color:var(--muted);font-weight:600;background:var(--bg);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+table.ajustes tr.diff-row{background:var(--badbg)}
+table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
+.tableWrap{overflow-x:auto;border-radius:8px}
+
+.destaque{
+  font-size:14px;font-weight:600;padding:14px 18px;border-radius:10px;
+  margin-bottom:12px;background:var(--badbg);color:var(--bad);
+  border-left:4px solid var(--bad);
+}
+.destaque.ok{background:var(--okbg);color:var(--ok);border-left-color:var(--ok)}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.tag.ok{background:var(--okbg);color:var(--ok)}
+.tag.bad{background:var(--badbg);color:var(--bad)}
+
+.filtro-info{
+  display:none;font-size:12px;color:var(--warn);background:var(--warnbg);
+  padding:8px 12px;border-radius:8px;margin-bottom:12px;
+  border-left:3px solid var(--warn);font-weight:500;
+}
+.filtro-info.ativo{display:block}
+
+/* Modal */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:1000;padding:24px;overflow:auto;backdrop-filter:blur(2px);
+}
+.modal-overlay.ativo{display:flex;align-items:flex-start;justify-content:center}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  max-width:1200px;width:100%;padding:24px;
+  box-shadow:0 24px 64px rgba(0,0,0,.4);
+}
+.modal h2{
+  font-size:16px;margin:0 0 6px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-weight:700;
+}
+.modal .modal-sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.modal .close-btn{
+  background:transparent;border:1px solid var(--border);color:var(--text);
+  padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;margin:0;
+  font-weight:500;
+}
+.modal .close-btn:hover{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+
+/* Print */
+@media print{
+  body{padding:0!important;background:#fff;color:#000}
+  .app-header,.app-footer,.no-print{display:none!important}
+  .wrap{padding:0;max-width:100%}
+  .kpis{display:none!important}
+  .card{border:none;padding:0;margin-bottom:14px;box-shadow:none;break-inside:avoid}
+  .card h2{margin-bottom:8px}
+  table{break-inside:auto}
+  tr{break-inside:avoid}
+  tr.linha-erro td{background:#fde8e8!important;-webkit-print-color-adjust:exact;color:#000!important}
+  tr.linha-ok td{background:#f0fdf4!important;-webkit-print-color-adjust:exact}
+  tr.diff-row td{background:#fde8e8!important;-webkit-print-color-adjust:exact}
+  .filtro-info.ativo{background:#fffbeb!important;color:#92400e!important;-webkit-print-color-adjust:exact;border-left:3px solid #d97706}
+  thead{display:table-header-group}
+  tfoot{display:table-footer-group}
+  body.print-secao .card{display:none!important}
+  body.print-secao .card.print-alvo{display:block!important}
+  body.print-secao .print-cabecalho{display:block!important}
+  body.print-secao .wrap > .page-title,
+  body.print-secao .wrap > .sub{display:none!important}
+}
+
+.print-cabecalho{display:none;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #000}
+.print-cabecalho h1{font-size:16px;margin:0 0 4px}
+.print-cabecalho .meta{font-size:11px;color:#444}
+
+/* Responsive */
+@media (max-width:640px){
+  :root{--header-h:64px}
+  .brand{font-size:18px}
+  .brand-logo{width:36px;height:36px;font-size:18px}
+  .brand-partner{display:none}
+  .header-actions .header-btn span.label{display:none}
+  .header-actions .header-btn{padding:8px 10px}
+  .wrap{padding:16px}
+  .page-title{font-size:18px}
+  .kpi .kpi-value{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================== HEADER ============================== -->
+<header class="app-header no-print">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-logo">DP</div>
+      <span></span>
+      <span class="brand-divider"></span>
+      <span class="brand-partner">Dom Pedro | Sistema Confrontar Prodac Planilha Com Coparador do ICMS</span>
+    </div>
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="diagnostico()" title="Diagnóstico">
+        🔍 <span class="label">Diagnóstico</span>
+      </button>
+      <button class="header-btn primary" onclick="imprimirTudo()" title="Imprimir relatório completo">
+        🖨️ <span class="label">Imprimir tudo</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== CONTEÚDO ============================== -->
+<div class="wrap">
+  <h1 class="page-title">Confronto PRODAC × DP — Ajuste de CFOP</h1>
+  <div class="sub" id="empresaInfo">Cole os blocos de detalhamento (PRODAC) e importe a planilha do DP.</div>
+
+  <div class="card no-print">
+    <h2><span class="card-title">📋 1. Cole os blocos de detalhamento por CFOP (PRODAC = correto)</span></h2>
+    <textarea id="pasteBox" placeholder="Cole aqui os blocos 'DP OLIVEIRA - CFOP: X.XXX / Periodo: ...' com os itens."></textarea>
+    <button onclick="processarTexto()">Processar texto</button>
+    <div id="pasteMsg"></div>
+  </div>
+
+  <div class="card no-print">
+    <h2><span class="card-title">📂 2. Importe a planilha do DP (.xls/.xlsx)</span></h2>
+    <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="processarArquivo(event)">
+    <div id="fileMsg"></div>
+  </div>
+
+  <div id="resultado" style="display:none">
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpis">
+      <div class="kpi bad">
+        <div class="kpi-label">CFOPs Divergentes</div>
+        <div class="kpi-value" id="kpiDivergentes">0</div>
+        <div class="kpi-sub">Precisam de ajuste</div>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-label">Itens a Ajustar</div>
+        <div class="kpi-value" id="kpiItens">0</div>
+        <div class="kpi-sub">Reclassificações</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Valor a Reclassificar</div>
+        <div class="kpi-value" id="kpiValor">R$ 0,00</div>
+        <div class="kpi-sub">Soma dos itens</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-label">Diferença Total</div>
+        <div class="kpi-value" id="kpiDiff">R$ 0,00</div>
+        <div class="kpi-sub">PRODAC − DP</div>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <div class="row">
+        <select id="filtroStatus" onchange="render()">
+          <option value="todos">Todos os itens</option>
+          <option value="divergente">Só divergentes (ajustar no DP)</option>
+          <option value="ok">Só OK</option>
+          <option value="naoEncontrado">Só não encontrados no DP</option>
+        </select>
+        <input type="text" id="busca" placeholder="Buscar NF, CFOP ou fornecedor..." oninput="render()">
+        <button class="sec" onclick="limparFiltros()">Limpar filtros</button>
+      </div>
+    </div>
+
+    <div id="filtroInfo" class="filtro-info"></div>
+
+    <div class="print-cabecalho" id="printCabecalho">
+      <h1 id="printTitulo">Confronto PRODAC × DP</h1>
+      <div class="meta" id="printMeta"></div>
+    </div>
+
+    <div class="card" id="cardPainel">
+      <h2>
+        <span class="card-title">🔧 Itens que você precisa ALTERAR no DP</span>
+        <span class="card-actions no-print">
+          <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardPainel','Itens a Ajustar no DP')">🖨️</button>
+        </span>
+      </h2>
+      <div id="painelAjustes"></div>
+    </div>
+
+    <div class="card" id="cardConfronto">
+      <h2>
+        <span class="card-title">📊 Confronto PRODAC × DP (Valores Contábeis)</span>
+        <span class="card-actions no-print">
+          <button class="icon" title="Ver como ficaria após os ajustes" onclick="abrirConfrontoAjustado()">👁️ Ver ajustado</button>
+          <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardConfronto','Confronto PRODAC × DP')">🖨️</button>
+        </span>
+      </h2>
+      <div class="tableWrap">
+        <table class="confronto" id="tblConfronto"></table>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px">
+        Linhas em <span style="background:var(--badbg);color:var(--bad);padding:2px 6px;border-radius:4px;font-weight:700">vermelho</span> = CFOP com divergência.
+        Linhas em <span style="background:var(--okbg);color:var(--ok);padding:2px 6px;border-radius:4px;font-weight:700">verde</span> = CFOP OK.
+        A coluna <b>Diferença</b> = PRODAC − DP.
+        CFOPs <b>1933</b> e <b>2933</b> são ignorados no cálculo.
+      </div>
+    </div>
+
+    <div class="card" id="cardComparacao">
+      <h2>
+        <span class="card-title">🔍 Comparação item a item — PRODAC × DP</span>
+        <span class="card-actions no-print">
+          <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardComparacao','Comparação Item a Item')">🖨️</button>
+        </span>
+      </h2>
+      <div id="tabelaComparacao" class="tableWrap"></div>
+    </div>
+
+    <div class="card" id="cardLista">
+      <h2>
+        <span class="card-title">📝 Lista detalhada dos itens a ajustar</span>
+        <span class="card-actions no-print">
+          <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardLista','Lista Detalhada de Itens a Ajustar')">🖨️</button>
+        </span>
+      </h2>
+      <div id="listaAjustes" class="tableWrap"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="app-footer no-print">
+  <div class="footer-inner">
+    <div class="status">
+      <span class="footer-dot idle" id="statusDot"></span>
+      <span id="statusText">Aguardando dados...</span>
+    </div>
+    <div class="links">
+      <span>Confronto PRODAC × DP · v1.0</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================== MODAL ============================== -->
+<div class="modal-overlay" id="modalAjustado" onclick="if(event.target===this)fecharModal('modalAjustado')">
+  <div class="modal">
+    <h2>
+      <span>✅ Confronto PRODAC × DP — Como ficaria APÓS os ajustes</span>
+      <button class="close-btn no-print" onclick="fecharModal('modalAjustado')">✕ Fechar</button>
+    </h2>
+    <div class="modal-sub">
+      Simulação mostrando o <b>ajuste necessário</b> em cada CFOP para que o DP fique <b>exatamente igual ao PRODAC</b>.
+      O ajuste é calculado como <b>PRODAC − DP</b>. Após o ajuste, a coluna <b>Diferença</b> fica zerada.
+    </div>
+    <div class="tableWrap">
+      <table class="confronto" id="tblConfrontoAjustado"></table>
+    </div>
+    <div class="modal-actions no-print">
+      <button class="sec" onclick="imprimirConfrontoAjustado()">🖨️ Imprimir esta simulação</button>
+      <button class="close-btn" onclick="fecharModal('modalAjustado')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ESTRUTURAS
+   ============================================================ */
+const CFOP_IGNORAR = new Set(['1933','2933']);
+
+let detalheColado = {};
+let cfopsColados = new Set();
+let dpItensByCfop = {};
+let empresaMeta = "";
+let comparacaoGlobal = [];
+let apuracaoProdac = {};
+let apuracaoDp = {};
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+function toNum(s){
+  if(typeof s === 'number') return s;
+  if(!s) return 0;
+  s = String(s).trim();
+  if(!s) return 0;
+  s = s.replace(/[^\d.,-]/g,'');
+  if(s.includes(',')) s = s.replace(/\./g,'').replace(',','.');
+  return parseFloat(s) || 0;
+}
+function fmt(n){
+  return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function normCfop(c){ return String(c).replace(/\./g,'').trim(); }
+function normNf(n){
+  let s = String(n||'').trim();
+  s = s.replace(/^0+/,'');
+  return s || String(n||'').trim();
+}
+function normDesc(d){ return String(d||'').trim().toUpperCase().replace(/\s+/g,' '); }
+function isData(s){ return /^\d{2}\/\d{2}\/\d{4}$/.test(String(s||'').trim()); }
+function isNumTok(s){ return /^-?[\d.]+,\d{2}$|^-?\d+$/.test((s||'').trim()); }
+function valorKey(v){ return (Math.round((v||0)*100)/100).toFixed(2); }
+
+/* ============================================================
+   STATUS DO FOOTER
+   ============================================================ */
+function setStatus(tipo, texto){
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'footer-dot ' + (tipo==='ok'?'':tipo);
+  txt.textContent = texto;
+}
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+function filtroAtivo(){
+  const f = document.getElementById('filtroStatus').value;
+  const b = (document.getElementById('busca').value || '').trim();
+  return { status: f, busca: b, ativo: (f !== 'todos' || b !== '') };
+}
+function passaFiltro(l){
+  const f = filtroAtivo();
+  if(f.status === 'divergente' && l.status !== 'Divergente') return false;
+  if(f.status === 'ok' && l.status !== 'OK') return false;
+  if(f.status === 'naoEncontrado' && l.cfopDp !== '—') return false;
+  if(f.busca){
+    const hay = (l.nf+' '+l.cfopProdac+' '+l.cfopDp+' '+l.emitente+' '+l.itemProdac+' '+l.itemDp).toLowerCase();
+    if(!hay.includes(f.busca.toLowerCase())) return false;
+  }
+  return true;
+}
+function cfopsNoFiltro(){
+  const set = new Set();
+  comparacaoGlobal.filter(passaFiltro).forEach(l=>{
+    set.add(l.cfopProdac);
+    if(l.cfopDp && l.cfopDp !== '—') set.add(l.cfopDp);
+  });
+  return set;
+}
+function limparFiltros(){
+  document.getElementById('filtroStatus').value = 'todos';
+  document.getElementById('busca').value = '';
+  render();
+}
+function atualizarInfoFiltro(){
+  const el = document.getElementById('filtroInfo');
+  const f = filtroAtivo();
+  if(!f.ativo){ el.classList.remove('ativo'); el.textContent = ''; return; }
+  const partes = [];
+  if(f.status === 'divergente') partes.push('Status: apenas DIVERGENTES');
+  if(f.status === 'ok') partes.push('Status: apenas OK');
+  if(f.status === 'naoEncontrado') partes.push('Status: apenas NÃO ENCONTRADOS no DP');
+  if(f.busca) partes.push(`Busca: "${f.busca}"`);
+  el.textContent = '⚠️ Filtro ativo — ' + partes.join(' · ');
+  el.classList.add('ativo');
+}
+
+/* ============================================================
+   IMPRESSÃO
+   ============================================================ */
+function imprimirTudo(){
+  atualizarInfoFiltro();
+  document.getElementById('printCabecalho').style.display = 'block';
+  document.getElementById('printTitulo').textContent = 'Confronto PRODAC × DP — Relatório completo';
+  document.getElementById('printMeta').textContent = (empresaMeta||'') + (filtroAtivo().ativo ? ' · FILTRADO' : '');
+  window.print();
+  setTimeout(()=>{ document.getElementById('printCabecalho').style.display = 'none'; }, 500);
+}
+function imprimirSecao(cardId, titulo){
+  atualizarInfoFiltro();
+  const card = document.getElementById(cardId);
+  if(!card) return;
+  const cab = document.getElementById('printCabecalho');
+  document.getElementById('printTitulo').textContent = titulo;
+  document.getElementById('printMeta').textContent = (empresaMeta||'') + (filtroAtivo().ativo ? ' · FILTRADO' : '');
+  cab.style.display = 'block';
+  document.body.classList.add('print-secao');
+  card.classList.add('print-alvo');
+  window.print();
+  setTimeout(()=>{
+    document.body.classList.remove('print-secao');
+    card.classList.remove('print-alvo');
+    cab.style.display = 'none';
+  }, 500);
+}
+function imprimirConfrontoAjustado(){
+  const modal = document.getElementById('modalAjustado');
+  document.body.classList.add('print-secao');
+  document.querySelectorAll('.wrap > .card, .wrap > .no-print').forEach(e=>e.classList.add('no-print-temp'));
+  modal.classList.add('print-alvo-modal');
+  const cab = document.getElementById('printCabecalho');
+  document.getElementById('printTitulo').textContent = 'Confronto PRODAC × DP — Simulação após ajustes';
+  document.getElementById('printMeta').textContent = empresaMeta||'';
+  cab.style.display = 'block';
+  window.print();
+  setTimeout(()=>{
+    document.body.classList.remove('print-secao');
+    document.querySelectorAll('.no-print-temp').forEach(e=>e.classList.remove('no-print-temp'));
+    modal.classList.remove('print-alvo-modal');
+    cab.style.display = 'none';
+  }, 500);
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function abrirModal(id){ document.getElementById(id).classList.add('ativo'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('ativo'); }
+function abrirConfrontoAjustado(){
+  renderTabelaConfrontoAjustado();
+  abrirModal('modalAjustado');
+}
+
+/* ============================================================
+   PROCESSAR TEXTO COLADO (PRODAC)
+   ============================================================ */
+function processarTexto(){
+  const text = document.getElementById('pasteBox').value;
+  const lines = text.split(/\r?\n/);
+  detalheColado = {};
+  cfopsColados = new Set();
+  apuracaoProdac = {};
+  apuracaoDp = {};
+
+  const mEmp  = text.match(/Empresa:\s*\n?([^\n]+)/);
+  const mCnpj = text.match(/CNPJ:\s*\n?([\d./-]+)/);
+  const mMes  = text.match(/Mês\/Ano:\s*\n?([\d/]+)/);
+  empresaMeta = [
+    mEmp  && mEmp[1].trim(),
+    mCnpj && ('CNPJ ' + mCnpj[1].trim()),
+    mMes  && ('Período ' + mMes[1].trim())
+  ].filter(Boolean).join(' · ');
+
+  lines.forEach(line=>{
+    const cols = line.split('\t');
+    if(cols.length>=3){
+      const cfop = normCfop(cols[0]);
+      if(/^\d{3,4}$/.test(cfop) && isNumTok(cols[1]) && isNumTok(cols[2])){
+        apuracaoProdac[cfop] = toNum(cols[1]);
+        apuracaoDp[cfop]     = toNum(cols[2]);
+      }
+    }
+  });
+
+  let currentCfop = null;
+  let inDetailTable = false;
+
+  for(let i=0;i<lines.length;i++){
+    const line = lines[i];
+    const trimmed = line.trim();
+    const mBloco = trimmed.match(/CFOP:\s*([\d.]+)/i);
+    if(mBloco && /Periodo|Período/i.test(trimmed)){
+      currentCfop = normCfop(mBloco[1]);
+      cfopsColados.add(currentCfop);
+      if(!detalheColado[currentCfop]) detalheColado[currentCfop] = [];
+      inDetailTable = false;
+      continue;
+    }
+    if(!currentCfop) continue;
+    if(/^Data\b/i.test(trimmed)){ inDetailTable = true; continue; }
+    if(/^Total\b/i.test(trimmed)){ inDetailTable = false; continue; }
+    if(!inDetailTable) continue;
+    const cols = line.split('\t').map(c=>c.trim());
+    if(cols.length < 6) continue;
+    if(!isData(cols[0])) continue;
+    let idx = 1;
+    let emitente = '';
+    if(!/^\d+$/.test(cols[1])){ emitente = cols[1]; idx = 2; }
+    const nfRaw = cols[idx];
+    const ncm   = cols[idx+1];
+    const cst   = cols[idx+2];
+    const desc  = cols[idx+3];
+    const valor = toNum(cols[idx+4]);
+    if(!nfRaw || !desc) continue;
+    detalheColado[currentCfop].push({
+      data: cols[0], emitente: emitente,
+      nf: normNf(nfRaw), nfRaw: nfRaw,
+      ncm: ncm, cst: cst,
+      descricao: desc, valor: valor
+    });
+  }
+
+  const nBlocos = cfopsColados.size;
+  const nItens  = Object.values(detalheColado).reduce((a,b)=>a+b.length,0);
+  const msg = document.getElementById('pasteMsg');
+  if(nBlocos===0){
+    msg.innerHTML = '<div class="msg bad">Nenhum bloco "DP OLIVEIRA - CFOP: X.XXX ..." reconhecido.</div>';
+    setStatus('error','Nenhum bloco reconhecido');
+  } else {
+    msg.innerHTML = `<div class="msg ok">${nBlocos} CFOP(s): <b>${[...cfopsColados].join(', ')}</b> — ${nItens} itens.</div>`;
+    setStatus('ok', `${nBlocos} CFOP(s) · ${nItens} itens do PRODAC`);
+  }
+  tentarRenderizar();
+}
+
+/* ============================================================
+   PROCESSAR PLANILHA DO DP
+   ============================================================ */
+function processarArquivo(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const itensSheetName = wb.SheetNames.find(n=>/iten/i.test(n)) || wb.SheetNames[1] || wb.SheetNames[0];
+      dpItensByCfop = {};
+      parseSheet(wb.Sheets[itensSheetName],
+        ['Número Nota','CFOP','Descrição do Produto','Valor Líquido','Terceiro','Número Item','NCM'],
+        row=>{
+          const cfop = normCfop(row['CFOP']);
+          const nf = normNf(row['Número Nota']);
+          (dpItensByCfop[cfop] = dpItensByCfop[cfop]||[]).push({
+            nf, nfRaw: row['Número Nota'],
+            desc: row['Descrição do Produto'],
+            valor: toNum(row['Valor Líquido']),
+            terceiro: row['Terceiro'],
+            item: row['Número Item'],
+            ncm: row['NCM']
+          });
+        });
+      const nItens = Object.values(dpItensByCfop).flat().length;
+      document.getElementById('fileMsg').innerHTML =
+        `<div class="msg ok">Planilha importada (aba <b>${itensSheetName}</b>): ${nItens} itens.</div>`;
+      setStatus('ok', `Planilha DP: ${nItens} itens`);
+      tentarRenderizar();
+    }catch(err){
+      document.getElementById('fileMsg').innerHTML = `<div class="msg bad">Erro: ${err.message}</div>`;
+      setStatus('error','Erro ao ler planilha');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseSheet(sheet, requiredCols, cb){
+  const raw = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+  let headerIdx = -1, headerMap = {};
+  for(let i=0;i<Math.min(raw.length,10);i++){
+    const row = raw[i].map(c=>String(c).trim());
+    if(row.includes('CFOP') && row.some(c=>c.includes('Número Nota'))){
+      headerIdx = i;
+      row.forEach((c,idx)=>headerMap[c]=idx);
+      break;
+    }
+  }
+  if(headerIdx===-1) return;
+  for(let i=headerIdx+1;i<raw.length;i++){
+    const r = raw[i];
+    if(!r || r.every(c=>c==='')) continue;
+    const obj = {};
+    requiredCols.forEach(col=>{ if(headerMap[col]!==undefined) obj[col]=r[headerMap[col]]; });
+    if(obj['CFOP']==='' || obj['CFOP']===undefined) continue;
+    cb(obj);
+  }
+}
+
+/* ============================================================
+   COMPARAÇÃO ITEM A ITEM
+   ============================================================ */
+function compararItens(){
+  const dpIndex         = {};
+  const dpIndexNfValor  = {};
+  const dpIndexNfNcm    = {};
+  const dpIndexNf       = {};
+
+  Object.keys(dpItensByCfop).forEach(cfopDp=>{
+    dpItensByCfop[cfopDp].forEach(it=>{
+      const k1 = it.nf + '|' + normDesc(it.desc);
+      (dpIndex[k1] = dpIndex[k1]||[]).push({cfopDp, ...it});
+      const k2 = it.nf + '|' + valorKey(it.valor);
+      (dpIndexNfValor[k2] = dpIndexNfValor[k2]||[]).push({cfopDp, ...it});
+      if(it.ncm){
+        const k3 = it.nf + '|' + String(it.ncm).trim();
+        (dpIndexNfNcm[k3] = dpIndexNfNcm[k3]||[]).push({cfopDp, ...it});
+      }
+      (dpIndexNf[it.nf] = dpIndexNf[it.nf]||[]).push({cfopDp, ...it});
+    });
+  });
+
+  const linhas = [];
+  const chavesJaProcessadas = new Set();
+  const usadosNoDp = new Set();
+  function idDp(m){ return m.cfopDp + '|' + m.nf + '|' + normDesc(m.desc) + '|' + valorKey(m.valor); }
+  function livre(m){ return !usadosNoDp.has(idDp(m)); }
+
+  [...cfopsColados].sort().forEach(cfopProdac=>{
+    const itens = detalheColado[cfopProdac] || [];
+    itens.forEach(item=>{
+      const k = item.nf + '|' + normDesc(item.descricao);
+      chavesJaProcessadas.add(k);
+      let match = null, metodo = '';
+
+      let cands = (dpIndex[k] || []).filter(livre);
+      if(cands.length){ match = cands.find(m=>m.cfopDp === cfopProdac) || cands[0]; metodo = 'NF+Descrição'; }
+
+      if(!match && item.valor > 0){
+        const c2 = (dpIndexNfValor[item.nf + '|' + valorKey(item.valor)] || []).filter(livre);
+        if(c2.length === 1){ match = c2[0]; metodo = 'NF+Valor'; }
+        else if(c2.length > 1){
+          const mMc = c2.find(m=>m.cfopDp === cfopProdac);
+          if(mMc){ match = mMc; metodo = 'NF+Valor'; }
+        }
+      }
+      if(!match && item.ncm && item.valor > 0){
+        const c3 = (dpIndexNfNcm[item.nf + '|' + String(item.ncm).trim()] || []).filter(livre);
+        const c3v = c3.filter(m=>Math.abs(m.valor - item.valor) < 0.01);
+        if(c3v.length === 1){ match = c3v[0]; metodo = 'NF+NCM+Valor'; }
+        else if(c3v.length > 1){
+          const mMc = c3v.find(m=>m.cfopDp === cfopProdac);
+          if(mMc){ match = mMc; metodo = 'NF+NCM+Valor'; }
+        }
+      }
+      if(!match && item.ncm){
+        const c4 = (dpIndexNfNcm[item.nf + '|' + String(item.ncm).trim()] || []).filter(livre);
+        if(c4.length === 1){ match = c4[0]; metodo = 'NF+NCM'; }
+      }
+      if(!match && item.descricao){
+        const pref = normDesc(item.descricao).slice(0, 12);
+        const c5 = (dpIndexNf[item.nf] || []).filter(livre).filter(m=>normDesc(m.desc).slice(0, 12) === pref);
+        if(c5.length === 1){ match = c5[0]; metodo = 'NF+Descrição parcial'; }
+        else if(c5.length > 1){
+          const mMc = c5.find(m=>m.cfopDp === cfopProdac);
+          if(mMc){ match = mMc; metodo = 'NF+Descrição parcial'; }
+        }
+      }
+      if(!match){
+        const c6 = (dpIndexNf[item.nf] || []).filter(livre).filter(m=>m.cfopDp === cfopProdac);
+        if(c6.length === 1){ match = c6[0]; metodo = 'NF+CFOP (único)'; }
+      }
+
+      let cfopDp, itemDp, valorDp, status, diff;
+      if(match){
+        usadosNoDp.add(idDp(match));
+        cfopDp = match.cfopDp; itemDp = match.desc; valorDp = match.valor;
+        status = (match.cfopDp === cfopProdac) ? 'OK' : 'Divergente';
+        diff = item.valor - match.valor;
+      } else {
+        cfopDp = '—'; itemDp = '—'; valorDp = 0;
+        status = 'Divergente'; diff = item.valor;
+      }
+
+      linhas.push({
+        nf: item.nfRaw, cfopProdac, itemProdac: item.descricao, valorProdac: item.valor,
+        cfopDp, itemDp, valorDp, diff, status,
+        emitente: item.emitente, origem: 'prodac', metodo
+      });
+    });
+  });
+
+  [...cfopsColados].sort().forEach(cfopDp=>{
+    const itensDp = dpItensByCfop[cfopDp] || [];
+    itensDp.forEach(itemDp=>{
+      const k = itemDp.nf + '|' + normDesc(itemDp.desc);
+      if(chavesJaProcessadas.has(k)) return;
+      if(usadosNoDp.has(idDp({cfopDp, ...itemDp}))) return;
+      let cfopProdacEncontrado = null, itemProdacEncontrado = null;
+      [...cfopsColados].forEach(cfopProdacCand=>{
+        (detalheColado[cfopProdacCand] || []).forEach(ip=>{
+          if(ip.nf === itemDp.nf && normDesc(ip.descricao) === normDesc(itemDp.desc)){
+            cfopProdacEncontrado = cfopProdacCand;
+            itemProdacEncontrado = ip;
+          }
+        });
+      });
+      if(cfopProdacEncontrado && cfopProdacEncontrado !== cfopDp){
+        linhas.push({
+          nf: itemDp.nfRaw, cfopProdac: cfopProdacEncontrado,
+          itemProdac: itemProdacEncontrado.descricao, valorProdac: itemProdacEncontrado.valor,
+          cfopDp: cfopDp, itemDp: itemDp.desc, valorDp: itemDp.valor,
+          diff: itemProdacEncontrado.valor - itemDp.valor, status: 'Divergente',
+          emitente: itemProdacEncontrado.emitente || itemDp.terceiro || '',
+          origem: 'dp', metodo: 'NF+Descrição'
+        });
+        chavesJaProcessadas.add(k);
+      }
+    });
+  });
+
+  return linhas;
+}
+
+/* ============================================================
+   CONFRONTO
+   ============================================================ */
+function calcularConfronto(){
+  const cfops = new Set([
+    ...Object.keys(apuracaoProdac),
+    ...Object.keys(apuracaoDp),
+    ...cfopsColados
+  ]);
+  const linhas = [];
+  cfops.forEach(cfop=>{
+    const prodac = apuracaoProdac[cfop] || 0;
+    const dpOriginal = apuracaoDp[cfop] || 0;
+    const diff = prodac - dpOriginal;
+    const precisaAjuste = Math.abs(diff) > 0.5 && !CFOP_IGNORAR.has(cfop);
+    linhas.push({ cfop, prodac, dpOriginal, diff, precisaAjuste, ignorado: CFOP_IGNORAR.has(cfop) });
+  });
+  linhas.sort((a,b)=>a.cfop.localeCompare(b.cfop));
+  return linhas;
+}
+
+function calcularConfrontoAjustado(){
+  const cfops = new Set([
+    ...Object.keys(apuracaoProdac),
+    ...Object.keys(apuracaoDp),
+    ...cfopsColados
+  ]);
+  const linhas = [];
+  cfops.forEach(cfop=>{
+    const prodac = apuracaoProdac[cfop] || 0;
+    const dpOriginal = apuracaoDp[cfop] || 0;
+    const ajusteNecessario = prodac - dpOriginal;
+    const dpAjustado = prodac;
+    const diffAjustado = 0;
+    linhas.push({
+      cfop, prodac, dpOriginal, ajusteNecessario, dpAjustado, diffAjustado,
+      ignorado: CFOP_IGNORAR.has(cfop),
+      teveAjuste: Math.abs(ajusteNecessario) > 0.005 && !CFOP_IGNORAR.has(cfop)
+    });
+  });
+  linhas.sort((a,b)=>a.cfop.localeCompare(b.cfop));
+  return linhas;
+}
+
+/* ============================================================
+   KPIs
+   ============================================================ */
+function renderKPIs(){
+  const linhas = calcularConfronto();
+  const divergentesCfop = linhas.filter(l=>l.precisaAjuste).length;
+  const divergentesItens = comparacaoGlobal.filter(l=>l.status==='Divergente').length;
+  let valor = 0;
+  comparacaoGlobal.filter(l=>l.status==='Divergente').forEach(l=>{ valor += l.valorProdac; });
+  let diffTotal = 0;
+  linhas.forEach(l=>{ if(!l.ignorado) diffTotal += l.diff; });
+
+  document.getElementById('kpiDivergentes').textContent = divergentesCfop;
+  document.getElementById('kpiItens').textContent = divergentesItens;
+  document.getElementById('kpiValor').textContent = 'R$ ' + fmt(valor);
+  document.getElementById('kpiDiff').textContent = 'R$ ' + fmt(diffTotal);
+  document.getElementById('kpiDiff').parentElement.className = 'kpi ' + (Math.abs(diffTotal)<0.01?'ok':'bad');
+}
+
+/* ============================================================
+   RENDERIZAÇÃO
+   ============================================================ */
+function tentarRenderizar(){
+  if(Object.keys(detalheColado).length && Object.keys(dpItensByCfop).length){
+    document.getElementById('resultado').style.display='block';
+    document.getElementById('empresaInfo').textContent = empresaMeta || 'Comparação carregada.';
+    comparacaoGlobal = compararItens();
+    render();
+    setStatus('ok', 'Confronto pronto — ' + comparacaoGlobal.length + ' itens analisados');
+  }
+}
+
+function render(){
+  atualizarInfoFiltro();
+  renderKPIs();
+  renderPainelAjustes();
+  renderTabelaConfronto();
+  renderTabelaComparacao();
+  renderListaAjustes();
+}
+
+function renderPainelAjustes(){
+  const el = document.getElementById('painelAjustes');
+  const f = filtroAtivo();
+  if(f.status === 'ok'){
+    el.innerHTML = '<div class="msg warn">Filtro "Só OK" ativo — sem itens a ajustar.</div>';
+    return;
+  }
+  let divergentes = comparacaoGlobal.filter(l=>l.status==='Divergente');
+  if(f.busca){
+    const b = f.busca.toLowerCase();
+    divergentes = divergentes.filter(d=>{
+      const hay = (d.nf+' '+d.cfopProdac+' '+d.cfopDp+' '+d.emitente+' '+d.itemProdac+' '+d.itemDp).toLowerCase();
+      return hay.includes(b);
+    });
+  }
+  if(divergentes.length===0){
+    el.innerHTML = '<div class="destaque ok">✅ Nenhum item precisa de ajuste no DP com o filtro atual.</div>';
+    return;
+  }
+  let totalAjuste = 0;
+  divergentes.forEach(d=>{ totalAjuste += d.valorProdac; });
+  const porPar = {};
+  divergentes.forEach(d=>{
+    const k = d.cfopProdac + '→' + d.cfopDp;
+    if(!porPar[k]) porPar[k] = {qtd:0, total:0, cfopProdac:d.cfopProdac, cfopDp:d.cfopDp};
+    porPar[k].qtd++;
+    porPar[k].total += d.valorProdac;
+  });
+  let html = `<div class="destaque">
+    ⚠️ <b>${divergentes.length} item(ns)</b> precisam ser ajustados no DP.
+    Valor total a reclassificar: <b>R$ ${fmt(totalAjuste)}</b>
+  </div>`;
+  html += `<table class="ajustes">
+    <thead><tr>
+      <th>De (CFOP no DP)</th>
+      <th>Para (CFOP correto / PRODAC)</th>
+      <th>Qtd itens</th>
+      <th>Valor a reclassificar</th>
+    </tr></thead><tbody>`;
+  Object.keys(porPar).sort().forEach(k=>{
+    const p = porPar[k];
+    html += `<tr class="diff-row">
+      <td>${p.cfopDp === '—' ? '(não encontrado)' : p.cfopDp}</td>
+      <td><b>${p.cfopProdac}</b></td>
+      <td>${p.qtd}</td>
+      <td>${fmt(p.total)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+}
+
+function renderTabelaConfronto(){
+  const el = document.getElementById('tblConfronto');
+  const linhasTodas = calcularConfronto();
+  const f = filtroAtivo();
+  let linhas = linhasTodas;
+  if(f.ativo){
+    const cfopsFiltrados = cfopsNoFiltro();
+    linhas = linhasTodas.filter(l => cfopsFiltrados.has(l.cfop));
+  }
+  if(linhas.length===0){
+    el.innerHTML = '<tbody><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Nenhum CFOP corresponde ao filtro atual.</td></tr></tbody>';
+    return;
+  }
+  let html = `
+    <thead>
+      <tr>
+        <th rowspan="2" style="vertical-align:middle">Fiscal</th>
+        <th colspan="3">Valores Contábeis</th>
+      </tr>
+      <tr>
+        <th>PRODAC</th>
+        <th>DP</th>
+        <th>Diferença (PRODAC − DP)</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  let totProdac = 0, totDpOrig = 0, totDiff = 0;
+  linhas.forEach(l=>{
+    if(!l.ignorado){
+      totProdac += l.prodac; totDpOrig += l.dpOriginal; totDiff += l.diff;
+    }
+    let cls = '';
+    if(l.ignorado) cls = 'linha-zerado';
+    else if(l.precisaAjuste) cls = 'linha-erro';
+    else if(l.prodac === 0 && l.dpOriginal === 0) cls = '';
+    else cls = 'linha-ok';
+    const labelCfop = l.ignorado ? `${l.cfop} <span style="font-size:10px;color:var(--muted)">(ignorado)</span>` : l.cfop;
+    const diffExibir = l.ignorado ? fmt(0) : fmt(l.diff);
+    html += `<tr class="${cls}">
+      <td>${labelCfop}</td>
+      <td>${fmt(l.prodac)}</td>
+      <td>${fmt(l.dpOriginal)}</td>
+      <td>${diffExibir}</td>
+    </tr>`;
+  });
+  const sufixo = f.ativo ? ' (filtrado)' : '';
+  html += `
+    <tr class="subtotal">
+      <td>SUB-TOTAIS${sufixo} <span style="font-size:10px;color:var(--muted)">(sem 1933/2933)</span></td>
+      <td>${fmt(totProdac)}</td>
+      <td>${fmt(totDpOrig)}</td>
+      <td>${fmt(totDiff)}</td>
+    </tr>`;
+  html += `</tbody>`;
+  el.innerHTML = html;
+}
+
+function renderTabelaConfrontoAjustado(){
+  const el = document.getElementById('tblConfrontoAjustado');
+  const linhas = calcularConfrontoAjustado();
+  let html = `
+    <thead>
+      <tr>
+        <th rowspan="2" style="vertical-align:middle">Fiscal</th>
+        <th colspan="4">Valores Contábeis</th>
+      </tr>
+      <tr>
+        <th>PRODAC</th>
+        <th>DP (original)</th>
+        <th>Ajuste necessário</th>
+        <th>DP (após ajuste)</th>
+        <th>Diferença após</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  let totProdac = 0, totDpOrig = 0, totAjuste = 0, totDpAjust = 0, totDiffAjust = 0;
+  linhas.forEach(l=>{
+    if(!l.ignorado){
+      totProdac += l.prodac;
+      totDpOrig  += l.dpOriginal;
+      totAjuste  += l.ajusteNecessario;
+      totDpAjust += l.dpAjustado;
+      totDiffAjust += l.diffAjustado;
+    }
+    let cls = '';
+    if(l.ignorado) cls = 'linha-zerado';
+    else if(l.teveAjuste) cls = 'linha-erro';
+    else cls = 'linha-ok';
+    const labelCfop = l.ignorado
+      ? `${l.cfop} <span style="font-size:10px;color:var(--muted)">(ignorado)</span>`
+      : l.cfop;
+    let ajusteExibir;
+    if(l.ignorado){
+      ajusteExibir = fmt(0);
+    } else if(l.teveAjuste){
+      const cor = l.ajusteNecessario > 0 ? 'var(--ok)' : 'var(--bad)';
+      const sinal = l.ajusteNecessario > 0 ? '+' : '';
+      ajusteExibir = `<span style="color:${cor};font-weight:700">${sinal}${fmt(l.ajusteNecessario)}</span>`;
+    } else {
+      ajusteExibir = fmt(0);
+    }
+    html += `<tr class="${cls}">
+      <td>${labelCfop}</td>
+      <td>${fmt(l.prodac)}</td>
+      <td>${fmt(l.dpOriginal)}</td>
+      <td>${ajusteExibir}</td>
+      <td>${fmt(l.dpAjustado)}</td>
+      <td>${l.ignorado ? fmt(0) : fmt(l.diffAjustado)}</td>
+    </tr>`;
+  });
+  html += `
+    <tr class="subtotal">
+      <td>SUB-TOTAIS <span style="font-size:10px;color:var(--muted)">(sem 1933/2933)</span></td>
+      <td>${fmt(totProdac)}</td>
+      <td>${fmt(totDpOrig)}</td>
+      <td>${fmt(totAjuste)}</td>
+      <td>${fmt(totDpAjust)}</td>
+      <td>${fmt(totDiffAjust)}</td>
+    </tr>`;
+  html += `</tbody>`;
+  el.innerHTML = html;
+}
+
+function renderTabelaComparacao(){
+  const el = document.getElementById('tabelaComparacao');
+  const linhas = comparacaoGlobal.filter(passaFiltro);
+  if(linhas.length===0){
+    el.innerHTML = '<div class="msg warn">Nenhum item encontrado com os filtros atuais.</div>';
+    return;
+  }
+  let html = `<table class="ajustes">
+    <thead><tr>
+      <th>NF</th>
+      <th>CFOP (PRODAC)</th>
+      <th>Item (PRODAC)</th>
+      <th>Valor (PRODAC)</th>
+      <th>CFOP (DP)</th>
+      <th>Item (DP)</th>
+      <th>Valor (DP)</th>
+      <th>Diferença</th>
+      <th>Match</th>
+      <th>Status</th>
+    </tr></thead><tbody>`;
+  let totProdac = 0, totDp = 0, totDiff = 0;
+  linhas.forEach(l=>{
+    totProdac += l.valorProdac; totDp += l.valorDp; totDiff += l.diff;
+    const rowCls = l.status==='Divergente' ? 'diff-row' : '';
+    const tagCls = l.status==='Divergente' ? 'bad' : 'ok';
+    html += `<tr class="${rowCls}">
+      <td>${l.nf}</td>
+      <td>${l.cfopProdac}</td>
+      <td style="text-align:left">${l.itemProdac}</td>
+      <td>${fmt(l.valorProdac)}</td>
+      <td>${l.cfopDp}</td>
+      <td style="text-align:left">${l.itemDp}</td>
+      <td>${l.valorDp ? fmt(l.valorDp) : '—'}</td>
+      <td>${fmt(l.diff)}</td>
+      <td style="font-size:10px;color:var(--muted)">${l.metodo||''}</td>
+      <td><span class="tag ${tagCls}">${l.status}</span></td>
+    </tr>`;
+  });
+  html += `</tbody><tfoot><tr class="subtotal">
+    <td colspan="3">Total (${linhas.length} itens)</td>
+    <td>${fmt(totProdac)}</td>
+    <td colspan="2"></td>
+    <td>${fmt(totDp)}</td>
+    <td>${fmt(totDiff)}</td>
+    <td colspan="2"></td>
+  </tr></tfoot></table>`;
+  el.innerHTML = html;
+}
+
+function renderListaAjustes(){
+  const el = document.getElementById('listaAjustes');
+  const f = filtroAtivo();
+  if(f.status === 'ok'){
+    el.innerHTML = '<div class="msg warn">Filtro "Só OK" ativo — sem itens a ajustar.</div>';
+    return;
+  }
+  let divergentes = comparacaoGlobal.filter(l=>l.status==='Divergente');
+  if(f.busca){
+    const b = f.busca.toLowerCase();
+    divergentes = divergentes.filter(d=>{
+      const hay = (d.nf+' '+d.cfopProdac+' '+d.cfopDp+' '+d.emitente+' '+d.itemProdac+' '+d.itemDp).toLowerCase();
+      return hay.includes(b);
+    });
+  }
+  if(divergentes.length===0){
+    el.innerHTML = '<div class="msg ok">Nenhum item a ajustar com o filtro atual. ✅</div>';
+    return;
+  }
+  let html = `<table class="ajustes">
+    <thead><tr>
+      <th>NF</th>
+      <th>Emitente</th>
+      <th>Item</th>
+      <th>Valor</th>
+      <th>CFOP atual (DP)</th>
+      <th>CFOP correto (PRODAC)</th>
+      <th>Ação</th>
+      <th>Match</th>
+    </tr></thead><tbody>`;
+  let total = 0, totalInclusao = 0, totalReclass = 0, totalDescricao = 0;
+  divergentes.forEach(d=>{
+    let acao;
+    if(d.cfopDp === '—'){ acao = 'Incluir no DP'; totalInclusao += d.valorProdac; }
+    else if(d.cfopDp === d.cfopProdac){ acao = 'Só corrigir descrição'; totalDescricao += d.valorProdac; }
+    else { acao = 'Reclassificar'; totalReclass += d.valorProdac; }
+    total += d.valorProdac;
+    html += `<tr class="diff-row">
+      <td>${d.nf}</td>
+      <td style="text-align:left">${d.emitente}</td>
+      <td style="text-align:left">${d.itemProdac}</td>
+      <td>${fmt(d.valorProdac)}</td>
+      <td>${d.cfopDp === '—' ? '(não encontrado)' : d.cfopDp}</td>
+      <td><b>${d.cfopProdac}</b></td>
+      <td>${acao}</td>
+      <td style="font-size:10px;color:var(--muted)">${d.metodo||''}</td>
+    </tr>`;
+  });
+  html += `</tbody><tfoot>
+    <tr class="subtotal">
+      <td colspan="3">TOTAL (${divergentes.length} itens)</td>
+      <td>${fmt(total)}</td>
+      <td colspan="4"></td>
+    </tr>
+    <tr class="subtotal">
+      <td colspan="3" style="font-size:11px">↳ Inclusão no DP</td>
+      <td>${fmt(totalInclusao)}</td>
+      <td colspan="4"></td>
+    </tr>
+    <tr class="subtotal">
+      <td colspan="3" style="font-size:11px">↳ Reclassificação</td>
+      <td>${fmt(totalReclass)}</td>
+      <td colspan="4"></td>
+    </tr>
+    <tr class="subtotal">
+      <td colspan="3" style="font-size:11px">↳ Só corrigir descrição</td>
+      <td>${fmt(totalDescricao)}</td>
+      <td colspan="4"></td>
+    </tr>
+  </tfoot></table>`;
+  el.innerHTML = html;
+}
+
+function diagnostico(){
+  const out = [];
+  out.push('=== PRODAC (colado) ===');
+  Object.keys(detalheColado).sort().forEach(cfop=>{
+    out.push(`CFOP ${cfop}: ${detalheColado[cfop].length} itens`);
+  });
+  out.push('');
+  out.push('=== DP (planilha) ===');
+  Object.keys(dpItensByCfop).sort().forEach(cfop=>{
+    out.push(`CFOP ${cfop}: ${dpItensByCfop[cfop].length} itens`);
+  });
+  out.push('');
+  out.push('=== Resultado do match ===');
+  comparacaoGlobal.forEach(l=>{
+    if(String(l.nf).includes('22426')){
+      out.push(`  PRODAC[${l.cfopProdac}] "${l.itemProdac}" ${l.valorProdac} → DP[${l.cfopDp}] "${l.itemDp}" ${l.valorDp} | ${l.status} | ${l.metodo}`);
+    }
+  });
+  const texto = out.join('\n');
+  console.log(texto);
+  alert(texto);
+}
+</script>
+</body>
+</html>
