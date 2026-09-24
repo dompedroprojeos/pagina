@@ -89,11 +89,14 @@ body{
 .header-btn.primary:hover{background:#f5f5f5;color:var(--brand-dark)}
 .app-footer{
   position:fixed;bottom:0;left:0;right:0;height:var(--footer-h);
-  background:var(--card);border-top:1px solid var(--border);
-  color:var(--muted);font-size:12px;
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+  border-top:none;
+  color:#fff;font-size:12px;
   display:flex;align-items:center;padding:0 24px;
   z-index:900;
+  box-shadow:0 -2px 12px rgba(232,93,31,.25);
 }
+  
 .footer-inner{
   display:flex;align-items:center;justify-content:space-between;
   width:100%;max-width:1400px;margin:0 auto;gap:16px;flex-wrap:wrap;
@@ -306,6 +309,37 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   font-size:12px;font-weight:600;z-index:1200;
   box-shadow:0 8px 24px rgba(0,0,0,.25);
 }
+
+/* ====== Modal de e-mail ====== */
+.email-destinos{
+  display:flex;flex-direction:column;gap:8px;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;margin-bottom:12px;
+}
+.email-destino{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:8px;
+  border:1.5px solid var(--border);cursor:pointer;
+  transition:all .15s;background:var(--card);
+}
+.email-destino:hover{border-color:var(--brand);transform:translateX(2px)}
+.email-destino.selecionado{
+  border-color:var(--brand);background:rgba(232,93,31,.06);
+  box-shadow:0 0 0 2px rgba(232,93,31,.15);
+}
+.email-destino input[type=radio]{
+  margin:0;accent-color:var(--brand);cursor:pointer;
+  width:16px;height:16px;
+}
+.email-destino .info{display:flex;flex-direction:column;gap:2px;flex:1}
+.email-destino .nome{font-weight:700;font-size:13px;color:var(--text)}
+.email-destino .endereco{font-size:11px;color:var(--muted);font-family:'Consolas',monospace}
+.email-destino .badge{
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;
+  background:var(--brand);color:#fff;text-transform:uppercase;letter-spacing:.4px;
+}
+.email-destino .badge.cc{background:var(--warn)}
+.email-destino .badge.to{background:var(--ok)}
 </style>
 </head>
 <body>
@@ -532,23 +566,44 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
       <button class="close-btn no-print" onclick="fecharModal('modalEmail')">✕ Fechar</button>
     </h2>
     <div class="modal-sub">
-      Vamos abrir seu programa de e-mail com <b>assunto</b> e <b>corpo</b> já preenchidos.
-      A imagem da lista será <b>copiada para a área de transferência</b> e <b>baixada em PNG</b> —
-      basta colar (<b>Ctrl+V</b>) no corpo do e-mail ou anexar o arquivo baixado.
+      Escolha o destinatário. O programa de e-mail abrirá com <b>assunto</b> e <b>corpo</b> já preenchidos.
+      Cole a imagem da lista no corpo com <b>Ctrl+V</b> antes de enviar.
     </div>
+
+    <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Destinatário</div>
+    <div class="email-destinos">
+      <label class="email-destino selecionado" id="destJulliana">
+        <input type="radio" name="destino" value="julliana" checked onchange="atualizarDestino()">
+        <div class="info">
+          <span class="nome">Julliana Alves</span>
+          <span class="endereco">julliana.alves@rededompedro.com</span>
+        </div>
+        <span class="badge to">Para</span>
+      </label>
+      <label class="email-destino" id="destFiscal">
+        <input type="radio" name="destino" value="fiscal" onchange="atualizarDestino()">
+        <div class="info">
+          <span class="nome">Fiscal — Amaral Contabilidade</span>
+          <span class="endereco">fiscal.rdp@amaralcontabilidade.net</span>
+        </div>
+        <span class="badge to">Para</span>
+      </label>
+    </div>
+
+    <div id="infoCopia" style="display:none;font-size:12px;color:var(--warn);background:var(--warnbg);padding:8px 12px;border-radius:8px;border-left:3px solid var(--warn);margin-bottom:12px">
+      📋 <b>Julliana Alves</b> (julliana.alves@rededompedro.com) será incluída em <b>cópia (CC)</b>.
+    </div>
+
     <div class="row" style="flex-direction:column;align-items:stretch;gap:10px">
       <label style="font-size:12px;color:var(--muted);font-weight:600">Assunto</label>
       <input type="text" id="emailAssunto" style="width:100%">
       <label style="font-size:12px;color:var(--muted);font-weight:600;margin-top:6px">Corpo do e-mail</label>
-      <textarea id="emailCorpo" style="min-height:180px;font-family:inherit;font-size:13px"></textarea>
-      <label style="font-size:12px;color:var(--muted);font-weight:600;margin-top:6px">Destinatário (opcional — se vazio, você escolhe no programa de e-mail)</label>
-      <input type="text" id="emailPara" placeholder="ex.: financeiro@empresa.com.br" style="width:100%">
+      <textarea id="emailCorpo" style="min-height:200px;font-family:inherit;font-size:13px"></textarea>
     </div>
+
     <div class="modal-actions no-print">
-      <button onclick="confirmarEnvioEmail()">✉️ Abrir programa de e-mail</button>
-      <button class="sec" onclick="copiarImagemListaAjustes()">📋 Copiar imagem novamente</button>
-      <button class="sec" onclick="baixarImagem()">💾 Baixar PNG</button>
-      <button class="close-btn" onclick="fecharModal('modalEmail')">Fechar</button>
+      <button onclick="abrirEmail()">✉️ Abrir programa de e-mail</button>
+      <button class="sec" onclick="fecharModal('modalEmail')">Fechar</button>
     </div>
     <div id="emailFeedback" style="display:none;margin-top:10px"></div>
   </div>
@@ -567,13 +622,11 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
    BLOQUEIO DE BOTÃO DIREITO E F12 / DEVTOOLS
    ============================================================ */
 (function(){
-  // Botão direito
   document.addEventListener('contextmenu', function(e){
     e.preventDefault();
     mostrarAvisoBloqueio('🔒 Botão direito desabilitado.');
   });
 
-  // F12, Ctrl+Shift+I/J/C, Ctrl+U
   document.addEventListener('keydown', function(e){
     const k = (e.key || '').toLowerCase();
     if(k === 'f12'){
@@ -593,7 +646,6 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
     }
   }, true);
 
-  // Botão direito em iframes/imagens (reforço)
   document.addEventListener('dragstart', function(e){
     if(e.target && (e.target.tagName === 'IMG' || e.target.tagName === 'A')){
       e.preventDefault();
@@ -615,6 +667,8 @@ function mostrarAvisoBloqueio(msg){
    ESTRUTURAS
    ============================================================ */
 const CFOP_IGNORAR = new Set(['1933','2933']);
+const EMAIL_JULLIANA = 'julliana.alves@rededompedro.com';
+const EMAIL_FISCAL   = 'fiscal.rdp@amaralcontabilidade.net';
 
 let detalheColado = {};
 let cfopsColados = new Set();
@@ -807,7 +861,6 @@ function processarTexto(){
     mMes  && ('Período ' + mMes[1].trim())
   ].filter(Boolean).join(' · ');
 
-  /* Apuração: linhas tipo "1407\t46.928,84\t46.919,34" */
   lines.forEach(line=>{
     const cols = line.split('\t');
     if(cols.length>=3){
@@ -1617,7 +1670,7 @@ function renderListaAjustes(){
 }
 
 /* ============================================================
-   GERADOR DE IMAGEM (para e-mail)
+   GERADOR DE IMAGEM (para colar no e-mail)
    ============================================================ */
 let ultimoBlob = null;
 
@@ -1799,8 +1852,8 @@ function nomeEmpresa(){
   return partes[0] || 'Empresa';
 }
 
-/** Data referente ao problema (período do PRODAC ou data atual) */
-function dataReferencia(){
+/** Período referente ao problema (mm/aaaa) — do PRODAC ou data atual */
+function periodoReferencia(){
   const m = empresaMeta.match(/Per[íi]odo\s*([0-9]{1,2}\/[0-9]{4})/i)
          || empresaMeta.match(/([0-9]{1,2}\/[0-9]{4})/);
   if(m){
@@ -1808,7 +1861,7 @@ function dataReferencia(){
     return `${mes.padStart(2,'0')}/${ano}`;
   }
   const d = new Date();
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  return `${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
 /** Data completa para o assunto */
@@ -1820,68 +1873,24 @@ function dataAssunto(){
   return `${dd}/${mm}/${yyyy}`;
 }
 
-/** Gera a imagem da lista de ajustes (retorna blob) */
-async function gerarImagemListaAjustes(){
-  const el = document.getElementById('listaAjustes');
-  if(!el || el.innerHTML.trim()===''){
-    throw new Error('Nada para enviar. Processe os dados primeiro.');
+/** Atualiza visual dos destinos e mostra/oculta aviso de cópia */
+function atualizarDestino(){
+  const sel = document.querySelector('input[name="destino"]:checked');
+  const val = sel ? sel.value : 'julliana';
+
+  document.getElementById('destJulliana').classList.toggle('selecionado', val==='julliana');
+  document.getElementById('destFiscal').classList.toggle('selecionado', val==='fiscal');
+
+  const info = document.getElementById('infoCopia');
+  if(val === 'fiscal'){
+    info.style.display = 'block';
+  } else {
+    info.style.display = 'none';
   }
-
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = `
-    position:fixed; left:-99999px; top:0;
-    background:#ffffff; color:#1a1d23;
-    padding:24px; width:1200px;
-    font-family:'Segoe UI',Arial,sans-serif;
-    box-sizing:border-box;
-  `;
-
-  const cab = document.createElement('div');
-  cab.style.cssText = `border-bottom:2px solid #e85d1f;padding-bottom:12px;margin-bottom:16px;`;
-  cab.innerHTML = `
-    <div style="font-size:18px;font-weight:700;color:#e85d1f;margin-bottom:4px">
-      📝 Lista detalhada dos itens a ajustar — Confronto PRODAC × DP
-    </div>
-    <div style="font-size:11px;color:#666">${escapeHtml(empresaMeta || '')}</div>
-    <div style="font-size:11px;color:#666;margin-top:2px">
-      Gerado em ${new Date().toLocaleString('pt-BR')}
-    </div>
-  `;
-  wrapper.appendChild(cab);
-
-  const clone = el.cloneNode(true);
-  clone.querySelectorAll('table').forEach(tbl=>{
-    tbl.style.cssText += `width:100%;border-collapse:collapse;font-size:12px;background:#ffffff;color:#1a1d23;`;
-  });
-  clone.querySelectorAll('thead th').forEach(th=>{
-    th.style.cssText += `background:#f0f2f5 !important;color:#374151 !important;font-weight:700;border:1px solid #d1d5db;padding:8px 10px;text-transform:uppercase;font-size:11px;letter-spacing:.4px;text-align:center;`;
-  });
-  clone.querySelectorAll('tbody td, tfoot td').forEach(td=>{
-    td.style.cssText += `background:#ffffff !important;color:#1a1d23 !important;border:1px solid #e5e7eb;padding:8px 10px;`;
-  });
-  clone.querySelectorAll('tr.diff-row td').forEach(td=>{
-    td.style.cssText += `background:#fef2f2 !important;color:#991b1b !important;`;
-  });
-  clone.querySelectorAll('tr.subtotal td').forEach(td=>{
-    td.style.cssText += `background:#f3f4f6 !important;color:#111827 !important;font-weight:700;border-top:2px solid #9ca3af;`;
-  });
-
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
-
-  await new Promise(r=>setTimeout(r, 50));
-
-  const canvas = await html2canvas(wrapper, {
-    backgroundColor:'#ffffff', scale:2, useCORS:true, logging:false,
-    windowWidth:wrapper.scrollWidth, windowHeight:wrapper.scrollHeight,
-  });
-  document.body.removeChild(wrapper);
-
-  return await new Promise(res => canvas.toBlob(res, 'image/png'));
 }
 
-/** Abre o modal de e-mail e prepara a imagem */
-async function enviarListaPorEmail(){
+/** Abre o modal e pré-preenche assunto e corpo */
+function enviarListaPorEmail(){
   const el = document.getElementById('listaAjustes');
   if(!el || el.innerHTML.trim()===''){
     alert('Nada para enviar. Processe os dados primeiro.');
@@ -1889,95 +1898,64 @@ async function enviarListaPorEmail(){
   }
 
   const empresa = nomeEmpresa();
-  const dataRef = dataReferencia();
   const hoje = dataAssunto();
+  const periodo = periodoReferencia();
 
+  // Assunto
   document.getElementById('emailAssunto').value =
     `${empresa} — Ajuste de CFOP — ${hoje}`;
 
+  // Corpo (exatamente no padrão solicitado)
   const corpo = [
     'Prezados, bom dia.',
     '',
-    `Segue em anexo/imagem a lista detalhada dos itens a ajustar referente ao confronto PRODAC × DP (${dataRef}).`,
+    `Segue em anexo/imagem a lista detalhada dos itens a ajustar referente ao confronto PRODAC × DP (${periodo}).`,
     '',
     'Atenciosamente,',
     '',
     'Obrigado!',
   ].join('\n');
   document.getElementById('emailCorpo').value = corpo;
-  document.getElementById('emailPara').value = '';
+
+  // Reset do destino (Julliana padrão)
+  const radioJul = document.querySelector('input[name="destino"][value="julliana"]');
+  if(radioJul) radioJul.checked = true;
+  atualizarDestino();
+
   document.getElementById('emailFeedback').style.display = 'none';
-
-  document.getElementById('loadingTexto').textContent = 'Gerando imagem da lista...';
-  document.getElementById('loadingOverlay').classList.add('ativo');
-
-  try{
-    const blob = await gerarImagemListaAjustes();
-    ultimoBlob = blob;
-
-    // Copia para o clipboard (para o usuário colar com Ctrl+V no e-mail)
-    let copiou = false;
-    try{
-      if(navigator.clipboard && window.ClipboardItem){
-        await navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ]);
-        copiou = true;
-      }
-    }catch(e){ /* ignora */ }
-
-    // Baixa o PNG automaticamente como fallback
-    try{ baixarImagem(); }catch(e){}
-
-    const fb = document.getElementById('emailFeedback');
-    fb.style.display = 'block';
-    fb.innerHTML = copiou
-      ? '<div class="msg ok">✅ Imagem copiada para a área de transferência e baixada em PNG. Ao abrir o e-mail, cole com <b>Ctrl+V</b> ou anexe o arquivo baixado.</div>'
-      : '<div class="msg warn">⚠️ A imagem foi baixada em PNG. Anexe o arquivo ao e-mail (seu navegador não permitiu copiar direto).</div>';
-
-    abrirModal('modalEmail');
-  }catch(err){
-    console.error(err);
-    alert('Erro ao preparar o e-mail: ' + err.message);
-  }finally{
-    document.getElementById('loadingOverlay').classList.remove('ativo');
-  }
+  abrirModal('modalEmail');
 }
 
-/** Copia novamente a imagem da lista para o clipboard */
-async function copiarImagemListaAjustes(){
-  const fb = document.getElementById('emailFeedback');
-  try{
-    if(!ultimoBlob) throw new Error('Nenhuma imagem gerada.');
-    if(navigator.clipboard && window.ClipboardItem){
-      await navigator.clipboard.write([ new ClipboardItem({ 'image/png': ultimoBlob }) ]);
-      fb.style.display = 'block';
-      fb.innerHTML = '<div class="msg ok">✅ Imagem copiada! Cole no e-mail com Ctrl+V.</div>';
-      return;
-    }
-    baixarImagem();
-    fb.style.display = 'block';
-    fb.innerHTML = '<div class="msg warn">⚠️ Copiar direto não é suportado. O download foi iniciado — anexe o arquivo.</div>';
-  }catch(err){
-    fb.style.display = 'block';
-    fb.innerHTML = '<div class="msg bad">Erro ao copiar: ' + err.message + '</div>';
-  }
-}
-
-/** Abre o cliente de e-mail configurado com assunto e corpo prontos */
-function confirmarEnvioEmail(){
+/** Abre o cliente de e-mail configurado com o mailto: */
+function abrirEmail(){
   const assunto = document.getElementById('emailAssunto').value.trim() || 'Ajuste de CFOP';
   const corpo   = document.getElementById('emailCorpo').value;
-  const para    = document.getElementById('emailPara').value.trim();
+  const sel     = document.querySelector('input[name="destino"]:checked');
+  const destino = sel ? sel.value : 'julliana';
 
-  const url = 'mailto:' + encodeURIComponent(para)
-            + '?subject=' + encodeURIComponent(assunto)
-            + '&body='    + encodeURIComponent(corpo);
+  let para = '', cc = '';
+  if(destino === 'julliana'){
+    para = EMAIL_JULLIANA;
+  } else if(destino === 'fiscal'){
+    para = EMAIL_FISCAL;
+    cc   = EMAIL_JULLIANA; // cópia para Julliana
+  }
 
-  // Abre o cliente padrão
+  // Monta mailto com suporte a CC
+  let url = 'mailto:' + encodeURIComponent(para);
+  const params = [];
+  if(cc) params.push('cc=' + encodeURIComponent(cc));
+  params.push('subject=' + encodeURIComponent(assunto));
+  params.push('body=' + encodeURIComponent(corpo));
+  url += '?' + params.join('&');
+
+  // Abre o cliente de e-mail
   window.location.href = url;
 
   const fb = document.getElementById('emailFeedback');
   fb.style.display = 'block';
-  fb.innerHTML = '<div class="msg ok">✉️ Programa de e-mail aberto. Cole a imagem no corpo com <b>Ctrl+V</b> ou anexe o PNG baixado, e clique em Enviar.</div>';
+  const infoCc = cc ? ` (com cópia para ${EMAIL_JULLIANA})` : '';
+  fb.innerHTML = `<div class="msg ok">✉️ Programa de e-mail aberto${infoCc}. Cole a imagem da lista no corpo com <b>Ctrl+V</b> antes de enviar.</div>`;
 }
 
 /* ============================================================
