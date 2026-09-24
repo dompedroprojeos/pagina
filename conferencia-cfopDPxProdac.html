@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Confronto PRODAC × DP — Ajuste de CFOP</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --bg:#f0f2f5;--card:#fff;--text:#1a1d23;--muted:#6b7280;--border:#e2e5ea;
   --accent:#2563eb;--ok:#16a34a;--bad:#dc2626;--okbg:#f0fdf4;--badbg:#fef2f2;
   --warn:#d97706;--warnbg:#fffbeb;
-  --brand:#e85d1f;--brand-dark:#c94a12;--brand-light:#ff8a4c;
+  --brand:#e85d1f;--brand-dark:#c94a12;
   --header-h:72px;--footer-h:52px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -29,10 +30,6 @@ body{
   padding-top:var(--header-h);padding-bottom:var(--footer-h);
   min-height:100vh;
 }
-
-/* ============================================================
-   HEADER
-   ============================================================ */
 .app-header{
   position:fixed;top:0;left:0;right:0;height:var(--header-h);
   background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
@@ -90,10 +87,6 @@ body{
 .header-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px)}
 .header-btn.primary{background:#fff;color:var(--brand);font-weight:700}
 .header-btn.primary:hover{background:#f5f5f5;color:var(--brand-dark)}
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
 .app-footer{
   position:fixed;bottom:0;left:0;right:0;height:var(--footer-h);
   background:var(--card);border-top:1px solid var(--border);
@@ -113,17 +106,10 @@ body{
 .footer-dot.idle{background:var(--muted);box-shadow:0 0 0 3px rgba(107,114,128,.2)}
 .footer-dot.error{background:var(--bad);box-shadow:0 0 0 3px rgba(220,38,38,.2)}
 .footer-inner .links{display:flex;gap:16px}
-.footer-inner .links a{color:var(--muted);text-decoration:none}
-.footer-inner .links a:hover{color:var(--brand)}
-
-/* ============================================================
-   LAYOUT
-   ============================================================ */
+.footer-brand{font-weight:600;color:var(--brand)}
 .wrap{max-width:1400px;margin:0 auto;padding:24px}
 .page-title{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.3px}
 .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
-
-/* KPIs */
 .kpis{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:14px;margin-bottom:20px;
@@ -145,8 +131,6 @@ body{
 .kpi.ok .kpi-value{color:var(--ok)}
 .kpi.warn .kpi-value{color:var(--warn)}
 .kpi .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
-
-/* Cards */
 .card{
   background:var(--card);border:1px solid var(--border);
   border-radius:12px;padding:18px;margin-bottom:16px;
@@ -159,14 +143,12 @@ body{
 }
 .card h2 .card-title{display:flex;align-items:center;gap:8px}
 .card-actions{display:flex;gap:6px;align-items:center}
-
 textarea{
-  width:100%;min-height:140px;font-family:'Consolas',monospace;font-size:11px;
+  width:100%;min-height:160px;font-family:'Consolas',monospace;font-size:11px;
   border:1px solid var(--border);border-radius:8px;padding:10px;
   background:var(--bg);color:var(--text);resize:vertical;
 }
 input[type=file]{font-size:13px;color:var(--text)}
-
 button{
   background:var(--brand);color:#fff;border:none;border-radius:8px;
   padding:9px 16px;font-size:13px;cursor:pointer;margin-top:8px;
@@ -183,20 +165,18 @@ button.icon{
 }
 button.icon:hover{background:var(--brand);color:#fff;border-color:var(--brand);transform:translateY(-1px)}
 button.icon-print{font-size:16px}
-
+button.icon-email{color:var(--brand);border-color:var(--brand)}
+button.icon-email:hover{background:var(--brand);color:#fff}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 select,input[type=text]{
   padding:8px 12px;border:1px solid var(--border);border-radius:8px;
   background:var(--card);color:var(--text);font-size:13px;font-family:inherit;
 }
 select:focus,input[type=text]:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(232,93,31,.12)}
-
 .msg{font-size:12px;padding:8px 12px;border-radius:8px;margin-top:10px}
 .msg.ok{background:var(--okbg);color:var(--ok);border-left:3px solid var(--ok)}
 .msg.bad{background:var(--badbg);color:var(--bad);border-left:3px solid var(--bad)}
 .msg.warn{background:var(--warnbg);color:var(--warn);border-left:3px solid var(--warn)}
-
-/* Tables */
 table.confronto{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 table.confronto th,table.confronto td{border:1px solid var(--border);padding:8px 12px;text-align:right;white-space:nowrap}
 table.confronto th:first-child,table.confronto td:first-child{text-align:left}
@@ -208,7 +188,6 @@ tr.linha-ok td{background:var(--okbg)}
 tr.linha-erro td{background:var(--badbg);color:var(--bad);font-weight:700}
 tr.linha-zerado td{color:var(--muted);font-weight:400}
 tr.subtotal td{background:var(--bg);font-weight:700;border-top:2px solid var(--border)}
-
 table.ajustes{width:100%;border-collapse:collapse;font-size:12px}
 table.ajustes th,table.ajustes td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right}
 table.ajustes th:first-child,table.ajustes td:first-child{text-align:left}
@@ -216,26 +195,21 @@ table.ajustes th{color:var(--muted);font-weight:600;background:var(--bg);font-si
 table.ajustes tr.diff-row{background:var(--badbg)}
 table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
 .tableWrap{overflow-x:auto;border-radius:8px}
-
 .destaque{
   font-size:14px;font-weight:600;padding:14px 18px;border-radius:10px;
   margin-bottom:12px;background:var(--badbg);color:var(--bad);
   border-left:4px solid var(--bad);
 }
 .destaque.ok{background:var(--okbg);color:var(--ok);border-left-color:var(--ok)}
-
 .tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
 .tag.ok{background:var(--okbg);color:var(--ok)}
 .tag.bad{background:var(--badbg);color:var(--bad)}
-
 .filtro-info{
   display:none;font-size:12px;color:var(--warn);background:var(--warnbg);
   padding:8px 12px;border-radius:8px;margin-bottom:12px;
   border-left:3px solid var(--warn);font-weight:500;
 }
 .filtro-info.ativo{display:block}
-
-/* Modal */
 .modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
   z-index:1000;padding:24px;overflow:auto;backdrop-filter:blur(2px);
@@ -259,8 +233,6 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   font-weight:500;
 }
 .modal .close-btn:hover{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
-
-/* Print */
 @media print{
   body{padding:0!important;background:#fff;color:#000}
   .app-header,.app-footer,.no-print{display:none!important}
@@ -282,14 +254,11 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   body.print-secao .wrap > .page-title,
   body.print-secao .wrap > .sub{display:none!important}
 }
-
 .print-cabecalho{display:none;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #000}
 .print-cabecalho h1{font-size:16px;margin:0 0 4px}
 .print-cabecalho .meta{font-size:11px;color:#444}
-
-/* Responsive */
 @media (max-width:640px){
-  :root{--header-h:64px}
+  :root{--header-h:64px;--footer-h:46px}
   .brand{font-size:18px}
   .brand-logo{width:36px;height:36px;font-size:18px}
   .brand-partner{display:none}
@@ -298,24 +267,64 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   .wrap{padding:16px}
   .page-title{font-size:18px}
   .kpi .kpi-value{font-size:18px}
+  .footer-inner{font-size:10px;gap:8px}
+  .footer-inner .links{display:none}
+}
+
+/* ====== Modal de imagem ====== */
+.modal-imagem{max-width:min(95vw, 1200px)}
+.imagem-preview{
+  max-height:65vh;overflow:auto;border:1px solid var(--border);
+  border-radius:8px;background:#fff;padding:8px;text-align:center;
+}
+.imagem-preview img{
+  max-width:100%;height:auto;display:block;margin:0 auto;
+}
+.loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:1100;align-items:center;justify-content:center;
+}
+.loading-overlay.ativo{display:flex}
+.loading-box{
+  background:var(--card);padding:28px 36px;border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);font-weight:600;
+  color:var(--text);
+}
+.spinner{
+  width:38px;height:38px;border-radius:50%;
+  border:4px solid var(--border);border-top-color:var(--brand);
+  animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#copyFeedback .msg{margin-top:0}
+
+/* Aviso de bloqueio (opcional) */
+#avisoBloqueio{
+  display:none;position:fixed;bottom:calc(var(--footer-h) + 16px);right:16px;
+  background:var(--bad);color:#fff;padding:10px 16px;border-radius:8px;
+  font-size:12px;font-weight:600;z-index:1200;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
 }
 </style>
 </head>
 <body>
 
-<!-- ============================== HEADER ============================== -->
 <header class="app-header no-print">
   <div class="header-inner">
     <div class="brand">
       <div class="brand-logo">DP</div>
       <span></span>
       <span class="brand-divider"></span>
-      <span class="brand-partner">Dom Pedro | Sistema Confrontar Prodac Planilha Com Coparador do ICMS</span>
+      <span class="brand-partner">Dom Pedro | Confronto PRODAC × DP</span>
     </div>
     <div class="header-spacer"></div>
     <div class="header-actions">
       <button class="header-btn" onclick="diagnostico()" title="Diagnóstico">
         🔍 <span class="label">Diagnóstico</span>
+      </button>
+      <button class="header-btn" onclick="diagnosticoDP()" title="Diagnóstico do DP">
+        📊 <span class="label">Diag. DP</span>
       </button>
       <button class="header-btn primary" onclick="imprimirTudo()" title="Imprimir relatório completo">
         🖨️ <span class="label">Imprimir tudo</span>
@@ -324,14 +333,13 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   </div>
 </header>
 
-<!-- ============================== CONTEÚDO ============================== -->
 <div class="wrap">
   <h1 class="page-title">Confronto PRODAC × DP — Ajuste de CFOP</h1>
-  <div class="sub" id="empresaInfo">Cole os blocos de detalhamento (PRODAC) e importe a planilha do DP.</div>
+  <div class="sub" id="empresaInfo">Cole o bloco de detalhamento (PRODAC) e importe a planilha do DP.</div>
 
   <div class="card no-print">
-    <h2><span class="card-title">📋 1. Cole os blocos de detalhamento por CFOP (PRODAC = correto)</span></h2>
-    <textarea id="pasteBox" placeholder="Cole aqui os blocos 'DP OLIVEIRA - CFOP: X.XXX / Periodo: ...' com os itens."></textarea>
+    <h2><span class="card-title">📋 1. Cole o bloco de detalhamento por CFOP (PRODAC)</span></h2>
+    <textarea id="pasteBox"></textarea>
     <button onclick="processarTexto()">Processar texto</button>
     <div id="pasteMsg"></div>
   </div>
@@ -342,9 +350,13 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
     <div id="fileMsg"></div>
   </div>
 
+  <div class="card no-print" id="cardDebugDP" style="display:none">
+    <h2><span class="card-title">🐞 Debug: itens lidos do DP por CFOP</span></h2>
+    <div id="debugDP"></div>
+  </div>
+
   <div id="resultado" style="display:none">
 
-    <!-- KPIs -->
     <div class="kpis" id="kpis">
       <div class="kpi bad">
         <div class="kpi-label">CFOPs Divergentes</div>
@@ -376,7 +388,7 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
           <option value="ok">Só OK</option>
           <option value="naoEncontrado">Só não encontrados no DP</option>
         </select>
-        <input type="text" id="busca" placeholder="Buscar NF, CFOP ou fornecedor..." oninput="render()">
+        <input type="text" id="busca" placeholder="Buscar NF, CFOP, item ou fornecedor..." oninput="render()">
         <button class="sec" onclick="limparFiltros()">Limpar filtros</button>
       </div>
     </div>
@@ -386,6 +398,16 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
     <div class="print-cabecalho" id="printCabecalho">
       <h1 id="printTitulo">Confronto PRODAC × DP</h1>
       <div class="meta" id="printMeta"></div>
+    </div>
+
+    <div class="card" id="cardNaoCasados">
+      <h2>
+        <span class="card-title">❓ Itens do PRODAC SEM correspondência no DP</span>
+        <span class="card-actions no-print">
+          <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardNaoCasados','Itens não encontrados no DP')">🖨️</button>
+        </span>
+      </h2>
+      <div id="listaNaoCasados"></div>
     </div>
 
     <div class="card" id="cardPainel">
@@ -421,6 +443,7 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
       <h2>
         <span class="card-title">🔍 Comparação item a item — PRODAC × DP</span>
         <span class="card-actions no-print">
+          <button class="icon" title="Gerar imagem para e-mail" onclick="gerarImagemGenerica('tabelaComparacao','Comparação item a item — PRODAC × DP')">📷 Gerar imagem</button>
           <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardComparacao','Comparação Item a Item')">🖨️</button>
         </span>
       </h2>
@@ -431,6 +454,8 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
       <h2>
         <span class="card-title">📝 Lista detalhada dos itens a ajustar</span>
         <span class="card-actions no-print">
+          <button class="icon" title="Gerar imagem para e-mail" onclick="gerarImagemGenerica('listaAjustes','Lista detalhada dos itens a ajustar')">📷 Gerar imagem</button>
+          <button class="icon icon-email" id="btnEnviarEmail" title="Enviar esta lista por e-mail" onclick="enviarListaPorEmail()">✉️ Enviar por e-mail</button>
           <button class="icon icon-print" title="Imprimir só esta seção" onclick="imprimirSecao('cardLista','Lista Detalhada de Itens a Ajustar')">🖨️</button>
         </span>
       </h2>
@@ -440,7 +465,6 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   </div>
 </div>
 
-<!-- ============================== FOOTER ============================== -->
 <footer class="app-footer no-print">
   <div class="footer-inner">
     <div class="status">
@@ -448,12 +472,16 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
       <span id="statusText">Aguardando dados...</span>
     </div>
     <div class="links">
-      <span>Confronto PRODAC × DP · v1.0</span>
+      <span class="footer-brand">Confronto PRODAC × DP</span>
+      <span>© <span id="anoAtual"></span> Dom Pedro · Todos os direitos reservados</span>
     </div>
   </div>
 </footer>
 
-<!-- ============================== MODAL ============================== -->
+<!-- Aviso de bloqueio -->
+<div id="avisoBloqueio">🔒 Ação bloqueada neste sistema.</div>
+
+<!-- Modal de simulação após ajustes -->
 <div class="modal-overlay" id="modalAjustado" onclick="if(event.target===this)fecharModal('modalAjustado')">
   <div class="modal">
     <h2>
@@ -462,7 +490,7 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
     </h2>
     <div class="modal-sub">
       Simulação mostrando o <b>ajuste necessário</b> em cada CFOP para que o DP fique <b>exatamente igual ao PRODAC</b>.
-      O ajuste é calculado como <b>PRODAC − DP</b>. Após o ajuste, a coluna <b>Diferença</b> fica zerada.
+      O ajuste é calculado como <b>PRODAC − DP</b>.
     </div>
     <div class="tableWrap">
       <table class="confronto" id="tblConfrontoAjustado"></table>
@@ -474,7 +502,115 @@ table.ajustes tbody tr:hover{background:rgba(232,93,31,.04)}
   </div>
 </div>
 
+<!-- Modal de visualização da imagem gerada -->
+<div class="modal-overlay" id="modalImagem" onclick="if(event.target===this)fecharModal('modalImagem')">
+  <div class="modal modal-imagem">
+    <h2>
+      <span id="modalImagemTitulo">📷 Pré-visualização da imagem</span>
+      <button class="close-btn no-print" onclick="fecharModal('modalImagem')">✕ Fechar</button>
+    </h2>
+    <div class="modal-sub" id="modalImagemSub">
+      Copie a imagem abaixo e cole no seu e-mail, ou baixe como PNG.
+    </div>
+    <div class="imagem-preview">
+      <img id="imagemGerada" alt="Pré-visualização">
+    </div>
+    <div class="modal-actions no-print">
+      <button class="sec" onclick="copiarImagem()">📋 Copiar imagem</button>
+      <button class="sec" onclick="baixarImagem()">💾 Baixar PNG</button>
+      <button class="close-btn" onclick="fecharModal('modalImagem')">Fechar</button>
+    </div>
+    <div id="copyFeedback" style="display:none;margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- Modal de envio por e-mail -->
+<div class="modal-overlay" id="modalEmail" onclick="if(event.target===this)fecharModal('modalEmail')">
+  <div class="modal">
+    <h2>
+      <span>✉️ Enviar por e-mail — Lista de itens a ajustar</span>
+      <button class="close-btn no-print" onclick="fecharModal('modalEmail')">✕ Fechar</button>
+    </h2>
+    <div class="modal-sub">
+      Vamos abrir seu programa de e-mail com <b>assunto</b> e <b>corpo</b> já preenchidos.
+      A imagem da lista será <b>copiada para a área de transferência</b> e <b>baixada em PNG</b> —
+      basta colar (<b>Ctrl+V</b>) no corpo do e-mail ou anexar o arquivo baixado.
+    </div>
+    <div class="row" style="flex-direction:column;align-items:stretch;gap:10px">
+      <label style="font-size:12px;color:var(--muted);font-weight:600">Assunto</label>
+      <input type="text" id="emailAssunto" style="width:100%">
+      <label style="font-size:12px;color:var(--muted);font-weight:600;margin-top:6px">Corpo do e-mail</label>
+      <textarea id="emailCorpo" style="min-height:180px;font-family:inherit;font-size:13px"></textarea>
+      <label style="font-size:12px;color:var(--muted);font-weight:600;margin-top:6px">Destinatário (opcional — se vazio, você escolhe no programa de e-mail)</label>
+      <input type="text" id="emailPara" placeholder="ex.: financeiro@empresa.com.br" style="width:100%">
+    </div>
+    <div class="modal-actions no-print">
+      <button onclick="confirmarEnvioEmail()">✉️ Abrir programa de e-mail</button>
+      <button class="sec" onclick="copiarImagemListaAjustes()">📋 Copiar imagem novamente</button>
+      <button class="sec" onclick="baixarImagem()">💾 Baixar PNG</button>
+      <button class="close-btn" onclick="fecharModal('modalEmail')">Fechar</button>
+    </div>
+    <div id="emailFeedback" style="display:none;margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- Overlay de carregando -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div id="loadingTexto">Gerando imagem...</div>
+  </div>
+</div>
+
 <script>
+/* ============================================================
+   BLOQUEIO DE BOTÃO DIREITO E F12 / DEVTOOLS
+   ============================================================ */
+(function(){
+  // Botão direito
+  document.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    mostrarAvisoBloqueio('🔒 Botão direito desabilitado.');
+  });
+
+  // F12, Ctrl+Shift+I/J/C, Ctrl+U
+  document.addEventListener('keydown', function(e){
+    const k = (e.key || '').toLowerCase();
+    if(k === 'f12'){
+      e.preventDefault(); e.stopPropagation();
+      mostrarAvisoBloqueio('🔒 Tecla F12 desabilitada.');
+      return false;
+    }
+    if(e.ctrlKey && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')){
+      e.preventDefault(); e.stopPropagation();
+      mostrarAvisoBloqueio('🔒 Atalho de DevTools bloqueado.');
+      return false;
+    }
+    if(e.ctrlKey && k === 'u'){
+      e.preventDefault(); e.stopPropagation();
+      mostrarAvisoBloqueio('🔒 Ver código-fonte bloqueado.');
+      return false;
+    }
+  }, true);
+
+  // Botão direito em iframes/imagens (reforço)
+  document.addEventListener('dragstart', function(e){
+    if(e.target && (e.target.tagName === 'IMG' || e.target.tagName === 'A')){
+      e.preventDefault();
+    }
+  });
+})();
+
+let _avisoTimer = null;
+function mostrarAvisoBloqueio(msg){
+  const el = document.getElementById('avisoBloqueio');
+  if(!el) return;
+  el.textContent = msg || '🔒 Ação bloqueada neste sistema.';
+  el.style.display = 'block';
+  clearTimeout(_avisoTimer);
+  _avisoTimer = setTimeout(()=>{ el.style.display = 'none'; }, 2200);
+}
+
 /* ============================================================
    ESTRUTURAS
    ============================================================ */
@@ -483,6 +619,7 @@ const CFOP_IGNORAR = new Set(['1933','2933']);
 let detalheColado = {};
 let cfopsColados = new Set();
 let dpItensByCfop = {};
+let dpItensTodos = [];
 let empresaMeta = "";
 let comparacaoGlobal = [];
 let apuracaoProdac = {};
@@ -504,15 +641,40 @@ function fmt(n){
   return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function normCfop(c){ return String(c).replace(/\./g,'').trim(); }
-function normNf(n){
-  let s = String(n||'').trim();
+
+function nfKey(n){
+  if(n === null || n === undefined) return '0';
+  let s = String(n).trim();
+  s = s.replace(/\D/g,'');
   s = s.replace(/^0+/,'');
-  return s || String(n||'').trim();
+  return s || '0';
 }
-function normDesc(d){ return String(d||'').trim().toUpperCase().replace(/\s+/g,' '); }
+function normNf(n){ return nfKey(n); }
+
+function normDesc(d){
+  let s = String(d||'').toUpperCase();
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  s = s.replace(/ST:\s*0[.,]00/g,'');
+  s = s.replace(/---+/g,' ');
+  s = s.replace(/[^A-Z0-9 ]+/g,' ');
+  s = s.replace(/\s+/g,' ').trim();
+  return s;
+}
+function descCurta(d){
+  const stop = new Set(['DE','DA','DO','DAS','DOS','E','COM','SEM','PARA','POR','A','O','OS','AS','EM','NO','NA']);
+  const palavras = normDesc(d).split(' ').filter(p=>p && !stop.has(p));
+  return palavras.slice(0,8).join(' ');
+}
+
 function isData(s){ return /^\d{2}\/\d{2}\/\d{4}$/.test(String(s||'').trim()); }
 function isNumTok(s){ return /^-?[\d.]+,\d{2}$|^-?\d+$/.test((s||'').trim()); }
 function valorKey(v){ return (Math.round((v||0)*100)/100).toFixed(2); }
+
+function escapeHtml(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 /* ============================================================
    STATUS DO FOOTER
@@ -645,6 +807,7 @@ function processarTexto(){
     mMes  && ('Período ' + mMes[1].trim())
   ].filter(Boolean).join(' · ');
 
+  /* Apuração: linhas tipo "1407\t46.928,84\t46.919,34" */
   lines.forEach(line=>{
     const cols = line.split('\t');
     if(cols.length>=3){
@@ -662,6 +825,8 @@ function processarTexto(){
   for(let i=0;i<lines.length;i++){
     const line = lines[i];
     const trimmed = line.trim();
+    if(!trimmed) continue;
+
     const mBloco = trimmed.match(/CFOP:\s*([\d.]+)/i);
     if(mBloco && /Periodo|Período/i.test(trimmed)){
       currentCfop = normCfop(mBloco[1]);
@@ -671,24 +836,34 @@ function processarTexto(){
       continue;
     }
     if(!currentCfop) continue;
+
     if(/^Data\b/i.test(trimmed)){ inDetailTable = true; continue; }
     if(/^Total\b/i.test(trimmed)){ inDetailTable = false; continue; }
+    if(/^Pesquisar/i.test(trimmed)) continue;
     if(!inDetailTable) continue;
-    const cols = line.split('\t').map(c=>c.trim());
+
+    let cols = line.split('\t').map(c=>c.trim());
+    if(cols.length < 6){
+      cols = line.split(/\s{2,}/).map(c=>c.trim());
+    }
     if(cols.length < 6) continue;
     if(!isData(cols[0])) continue;
+
     let idx = 1;
     let emitente = '';
-    if(!/^\d+$/.test(cols[1])){ emitente = cols[1]; idx = 2; }
+    if(cols[1] && !/^\d+$/.test(cols[1])){ emitente = cols[1]; idx = 2; }
+
     const nfRaw = cols[idx];
     const ncm   = cols[idx+1];
     const cst   = cols[idx+2];
     const desc  = cols[idx+3];
     const valor = toNum(cols[idx+4]);
+
     if(!nfRaw || !desc) continue;
+
     detalheColado[currentCfop].push({
       data: cols[0], emitente: emitente,
-      nf: normNf(nfRaw), nfRaw: nfRaw,
+      nf: nfKey(nfRaw), nfRaw: nfRaw,
       ncm: ncm, cst: cst,
       descricao: desc, valor: valor
     });
@@ -698,10 +873,15 @@ function processarTexto(){
   const nItens  = Object.values(detalheColado).reduce((a,b)=>a+b.length,0);
   const msg = document.getElementById('pasteMsg');
   if(nBlocos===0){
-    msg.innerHTML = '<div class="msg bad">Nenhum bloco "DP OLIVEIRA - CFOP: X.XXX ..." reconhecido.</div>';
+    msg.innerHTML = '<div class="msg bad">Nenhum bloco "CFOP: X.XXX / Periodo: ..." reconhecido.</div>';
     setStatus('error','Nenhum bloco reconhecido');
   } else {
-    msg.innerHTML = `<div class="msg ok">${nBlocos} CFOP(s): <b>${[...cfopsColados].join(', ')}</b> — ${nItens} itens.</div>`;
+    const resumo = [...cfopsColados].sort().map(c=>{
+      const arr = detalheColado[c] || [];
+      const tot = arr.reduce((a,b)=>a+b.valor,0);
+      return `CFOP ${c}: ${arr.length} itens (R$ ${fmt(tot)})`;
+    }).join(' · ');
+    msg.innerHTML = `<div class="msg ok">${nBlocos} bloco(s) · ${nItens} itens.<br>${resumo}</div>`;
     setStatus('ok', `${nBlocos} CFOP(s) · ${nItens} itens do PRODAC`);
   }
   tentarRenderizar();
@@ -717,28 +897,69 @@ function processarArquivo(ev){
   reader.onload = function(e){
     try{
       const wb = XLSX.read(e.target.result, {type:'array'});
-      const itensSheetName = wb.SheetNames.find(n=>/iten/i.test(n)) || wb.SheetNames[1] || wb.SheetNames[0];
+
+      let itensSheetName = wb.SheetNames.find(n => n.trim() === 'Itens de Mercadoria');
+
+      if(!itensSheetName){
+        itensSheetName = wb.SheetNames.find(n => /iten/i.test(n));
+      }
+
+      if(!itensSheetName){
+        for(const name of wb.SheetNames){
+          const ws = wb.Sheets[name];
+          const raw = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+          for(let i=0;i<Math.min(raw.length,20);i++){
+            const row = raw[i].map(c=>String(c).trim());
+            const hasCfop = row.some(c => c === 'CFOP');
+            const hasDesc = row.some(c => /Descri/i.test(c));
+            const hasItem = row.some(c => /N.*mero Item/i.test(c));
+            if(hasCfop && hasDesc && hasItem){
+              itensSheetName = name;
+              break;
+            }
+          }
+          if(itensSheetName) break;
+        }
+      }
+
+      if(!itensSheetName){
+        itensSheetName = wb.SheetNames[1] || wb.SheetNames[0];
+      }
+
       dpItensByCfop = {};
-      parseSheet(wb.Sheets[itensSheetName],
-        ['Número Nota','CFOP','Descrição do Produto','Valor Líquido','Terceiro','Número Item','NCM'],
-        row=>{
-          const cfop = normCfop(row['CFOP']);
-          const nf = normNf(row['Número Nota']);
-          (dpItensByCfop[cfop] = dpItensByCfop[cfop]||[]).push({
-            nf, nfRaw: row['Número Nota'],
-            desc: row['Descrição do Produto'],
-            valor: toNum(row['Valor Líquido']),
-            terceiro: row['Terceiro'],
-            item: row['Número Item'],
-            ncm: row['NCM']
-          });
-        });
-      const nItens = Object.values(dpItensByCfop).flat().length;
+      dpItensTodos = [];
+
+      parseSheet(wb.Sheets[itensSheetName], (row)=>{
+        const cfop = normCfop(row['CFOP']);
+        if(!cfop) return;
+        const nf = nfKey(row['Número Nota']);
+        const item = {
+          nf, nfRaw: row['Número Nota'],
+          desc: row['Descrição do Produto'],
+          valor: toNum(row['Valor Líquido']),
+          terceiro: row['Terceiro'],
+          itemNum: row['Número Item'],
+          ncm: row['NCM'],
+          codProd: row['Código Produto'],
+          cfop
+        };
+        (dpItensByCfop[cfop] = dpItensByCfop[cfop]||[]).push(item);
+        dpItensTodos.push(item);
+      });
+
+      const nItens = dpItensTodos.length;
+      const cfopsLidos = Object.keys(dpItensByCfop).sort();
+      const resumoCfops = cfopsLidos.map(c=>`${c}(${dpItensByCfop[c].length})`).join(', ');
+
       document.getElementById('fileMsg').innerHTML =
-        `<div class="msg ok">Planilha importada (aba <b>${itensSheetName}</b>): ${nItens} itens.</div>`;
+        `<div class="msg ok">Aba <b>${itensSheetName}</b>: ${nItens} itens em ${cfopsLidos.length} CFOP(s).<br>
+         <b>CFOPs lidos:</b> ${resumoCfops || '(nenhum)'}</div>`;
+
+      mostrarDebugDP();
       setStatus('ok', `Planilha DP: ${nItens} itens`);
       tentarRenderizar();
     }catch(err){
+      console.error(err);
       document.getElementById('fileMsg').innerHTML = `<div class="msg bad">Erro: ${err.message}</div>`;
       setStatus('error','Erro ao ler planilha');
     }
@@ -746,41 +967,104 @@ function processarArquivo(ev){
   reader.readAsArrayBuffer(file);
 }
 
-function parseSheet(sheet, requiredCols, cb){
+function parseSheet(sheet, cb){
   const raw = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
-  let headerIdx = -1, headerMap = {};
-  for(let i=0;i<Math.min(raw.length,10);i++){
+  let headerIdx = -1;
+  let headerMap = {};
+
+  for(let i=0;i<Math.min(raw.length,20);i++){
     const row = raw[i].map(c=>String(c).trim());
-    if(row.includes('CFOP') && row.some(c=>c.includes('Número Nota'))){
+    const hasCfop = row.some(c=>c === 'CFOP');
+    const hasDesc = row.some(c=>/Descri/i.test(c));
+    const hasNf   = row.some(c=>/N.*mero Nota/i.test(c));
+    if(hasCfop && (hasDesc || hasNf)){
       headerIdx = i;
-      row.forEach((c,idx)=>headerMap[c]=idx);
+      row.forEach((c,idx)=>{ if(c) headerMap[c] = idx; });
       break;
     }
   }
-  if(headerIdx===-1) return;
+  if(headerIdx === -1) return;
+
+  function findCol(patterns){
+    for(const key of Object.keys(headerMap)){
+      for(const p of patterns){
+        if(p.test(key)) return headerMap[key];
+      }
+    }
+    return undefined;
+  }
+  const colNf    = findCol([/N.*mero Nota/i]);
+  const colCfop  = findCol([/^CFOP$/i]);
+  const colDesc  = findCol([/Descri/i]);
+  const colValor = findCol([/Valor L.quido/i, /Valor Liquido/i]);
+  const colTerc  = findCol([/Terceiro/i]);
+  const colItem  = findCol([/N.*mero Item/i]);
+  const colNcm   = findCol([/^NCM$/i]);
+  const colCod   = findCol([/C.digo Produto/i]);
+
   for(let i=headerIdx+1;i<raw.length;i++){
     const r = raw[i];
     if(!r || r.every(c=>c==='')) continue;
     const obj = {};
-    requiredCols.forEach(col=>{ if(headerMap[col]!==undefined) obj[col]=r[headerMap[col]]; });
+    if(colNf    !== undefined) obj['Número Nota'] = r[colNf];
+    if(colCfop  !== undefined) obj['CFOP'] = r[colCfop];
+    if(colDesc  !== undefined) obj['Descrição do Produto'] = r[colDesc];
+    if(colValor !== undefined) obj['Valor Líquido'] = r[colValor];
+    if(colTerc  !== undefined) obj['Terceiro'] = r[colTerc];
+    if(colItem  !== undefined) obj['Número Item'] = r[colItem];
+    if(colNcm   !== undefined) obj['NCM'] = r[colNcm];
+    if(colCod   !== undefined) obj['Código Produto'] = r[colCod];
     if(obj['CFOP']==='' || obj['CFOP']===undefined) continue;
     cb(obj);
   }
+}
+
+function mostrarDebugDP(){
+  const el = document.getElementById('debugDP');
+  const card = document.getElementById('cardDebugDP');
+  if(!el) return;
+  const cfops = Object.keys(dpItensByCfop).sort();
+  if(cfops.length === 0){
+    el.innerHTML = '<div class="msg bad">Nenhum item do DP foi lido. Verifique se a aba de itens existe e se o cabeçalho tem CFOP + Descrição.</div>';
+    card.style.display = 'block';
+    return;
+  }
+  let html = `<table class="ajustes"><thead><tr>
+    <th>CFOP</th><th>Qtd itens</th><th>Valor total</th><th>Exemplo</th>
+  </tr></thead><tbody>`;
+  cfops.forEach(cfop=>{
+    const arr = dpItensByCfop[cfop];
+    const total = arr.reduce((a,b)=>a+b.valor,0);
+    const ex = arr[0];
+    html += `<tr>
+      <td><b>${cfop}</b></td>
+      <td>${arr.length}</td>
+      <td>${fmt(total)}</td>
+      <td style="text-align:left;font-size:11px">NF ${ex.nfRaw} · ${String(ex.desc).slice(0,50)} · R$ ${fmt(ex.valor)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+  card.style.display = 'block';
 }
 
 /* ============================================================
    COMPARAÇÃO ITEM A ITEM
    ============================================================ */
 function compararItens(){
-  const dpIndex         = {};
-  const dpIndexNfValor  = {};
-  const dpIndexNfNcm    = {};
-  const dpIndexNf       = {};
+  const dpIndex        = {};
+  const dpIndexCurta   = {};
+  const dpIndexNfValor = {};
+  const dpIndexNfNcm   = {};
+  const dpIndexNf      = {};
+  const dpIndexNfCfop  = {};
 
   Object.keys(dpItensByCfop).forEach(cfopDp=>{
     dpItensByCfop[cfopDp].forEach(it=>{
       const k1 = it.nf + '|' + normDesc(it.desc);
       (dpIndex[k1] = dpIndex[k1]||[]).push({cfopDp, ...it});
+      const k1c = it.nf + '|' + descCurta(it.desc);
+      (dpIndexCurta[k1c] = dpIndexCurta[k1c]||[]).push({cfopDp, ...it});
       const k2 = it.nf + '|' + valorKey(it.valor);
       (dpIndexNfValor[k2] = dpIndexNfValor[k2]||[]).push({cfopDp, ...it});
       if(it.ncm){
@@ -788,58 +1072,102 @@ function compararItens(){
         (dpIndexNfNcm[k3] = dpIndexNfNcm[k3]||[]).push({cfopDp, ...it});
       }
       (dpIndexNf[it.nf] = dpIndexNf[it.nf]||[]).push({cfopDp, ...it});
+      const k4 = it.nf + '|' + cfopDp;
+      (dpIndexNfCfop[k4] = dpIndexNfCfop[k4]||[]).push({cfopDp, ...it});
     });
   });
 
   const linhas = [];
-  const chavesJaProcessadas = new Set();
   const usadosNoDp = new Set();
-  function idDp(m){ return m.cfopDp + '|' + m.nf + '|' + normDesc(m.desc) + '|' + valorKey(m.valor); }
+  function idDp(m){ return m.cfopDp + '|' + m.nf + '|' + normDesc(m.desc) + '|' + valorKey(m.valor) + '|' + (m.itemNum||''); }
   function livre(m){ return !usadosNoDp.has(idDp(m)); }
+  function escolherMelhor(lista, cfopProdac){
+    if(!lista || lista.length===0) return null;
+    if(lista.length===1) return lista[0];
+    const mc = lista.find(m=>m.cfopDp === cfopProdac);
+    return mc || lista[0];
+  }
 
   [...cfopsColados].sort().forEach(cfopProdac=>{
     const itens = detalheColado[cfopProdac] || [];
     itens.forEach(item=>{
       const k = item.nf + '|' + normDesc(item.descricao);
-      chavesJaProcessadas.add(k);
       let match = null, metodo = '';
 
       let cands = (dpIndex[k] || []).filter(livre);
-      if(cands.length){ match = cands.find(m=>m.cfopDp === cfopProdac) || cands[0]; metodo = 'NF+Descrição'; }
+      if(cands.length){ match = escolherMelhor(cands, cfopProdac); metodo = 'NF+Descrição'; }
+
+      if(!match){
+        const kc = item.nf + '|' + descCurta(item.descricao);
+        const c2 = (dpIndexCurta[kc] || []).filter(livre);
+        if(c2.length){ match = escolherMelhor(c2, cfopProdac); metodo = 'NF+Descrição curta'; }
+      }
 
       if(!match && item.valor > 0){
-        const c2 = (dpIndexNfValor[item.nf + '|' + valorKey(item.valor)] || []).filter(livre);
-        if(c2.length === 1){ match = c2[0]; metodo = 'NF+Valor'; }
-        else if(c2.length > 1){
-          const mMc = c2.find(m=>m.cfopDp === cfopProdac);
-          if(mMc){ match = mMc; metodo = 'NF+Valor'; }
-        }
+        const c3 = (dpIndexNfValor[item.nf + '|' + valorKey(item.valor)] || []).filter(livre);
+        if(c3.length){ match = escolherMelhor(c3, cfopProdac); metodo = 'NF+Valor'; }
       }
+
       if(!match && item.ncm && item.valor > 0){
-        const c3 = (dpIndexNfNcm[item.nf + '|' + String(item.ncm).trim()] || []).filter(livre);
-        const c3v = c3.filter(m=>Math.abs(m.valor - item.valor) < 0.01);
-        if(c3v.length === 1){ match = c3v[0]; metodo = 'NF+NCM+Valor'; }
-        else if(c3v.length > 1){
-          const mMc = c3v.find(m=>m.cfopDp === cfopProdac);
-          if(mMc){ match = mMc; metodo = 'NF+NCM+Valor'; }
-        }
-      }
-      if(!match && item.ncm){
         const c4 = (dpIndexNfNcm[item.nf + '|' + String(item.ncm).trim()] || []).filter(livre);
-        if(c4.length === 1){ match = c4[0]; metodo = 'NF+NCM'; }
+        const c4v = c4.filter(m=>Math.abs(m.valor - item.valor) < 0.01);
+        if(c4v.length){ match = escolherMelhor(c4v, cfopProdac); metodo = 'NF+NCM+Valor'; }
       }
+
+      if(!match && item.ncm){
+        const c5 = (dpIndexNfNcm[item.nf + '|' + String(item.ncm).trim()] || []).filter(livre);
+        if(c5.length === 1){ match = c5[0]; metodo = 'NF+NCM'; }
+        else if(c5.length > 1){ match = escolherMelhor(c5, cfopProdac); metodo = 'NF+NCM'; }
+      }
+
       if(!match && item.descricao){
         const pref = normDesc(item.descricao).slice(0, 12);
-        const c5 = (dpIndexNf[item.nf] || []).filter(livre).filter(m=>normDesc(m.desc).slice(0, 12) === pref);
-        if(c5.length === 1){ match = c5[0]; metodo = 'NF+Descrição parcial'; }
-        else if(c5.length > 1){
-          const mMc = c5.find(m=>m.cfopDp === cfopProdac);
-          if(mMc){ match = mMc; metodo = 'NF+Descrição parcial'; }
+        const c6 = (dpIndexNf[item.nf] || []).filter(livre)
+          .filter(m=>normDesc(m.desc).slice(0, 12) === pref);
+        if(c6.length){ match = escolherMelhor(c6, cfopProdac); metodo = 'NF+Descrição parcial'; }
+      }
+
+      if(!match){
+        const c7 = (dpIndexNfCfop[item.nf + '|' + cfopProdac] || []).filter(livre);
+        if(c7.length === 1){ match = c7[0]; metodo = 'NF+CFOP'; }
+        else if(c7.length > 1){
+          let melhor = null, menorDiff = Infinity;
+          c7.forEach(m=>{
+            const d = Math.abs(m.valor - item.valor);
+            if(d < menorDiff){ menorDiff = d; melhor = m; }
+          });
+          if(melhor){
+            const tol = Math.max(item.valor * 0.10, 5);
+            if(menorDiff <= tol){ match = melhor; metodo = 'NF+CFOP+valor aprox.'; }
+          }
         }
       }
+
+      if(!match && item.valor > 0){
+        const c8 = (dpIndexNf[item.nf] || []).filter(livre);
+        let melhor = null, menorDiff = Infinity;
+        c8.forEach(m=>{
+          const d = Math.abs(m.valor - item.valor);
+          if(d < menorDiff){ menorDiff = d; melhor = m; }
+        });
+        if(melhor){
+          const tol = Math.max(item.valor * 0.10, 5);
+          if(menorDiff <= tol){ match = melhor; metodo = 'NF+valor aprox.'; }
+        }
+      }
+
+      if(!match && item.descricao){
+        const palavras = normDesc(item.descricao).split(' ').filter(p=>p.length>=4).slice(0,2).join(' ');
+        if(palavras){
+          const c9 = (dpIndexNf[item.nf] || []).filter(livre)
+            .filter(m=>normDesc(m.desc).includes(palavras));
+          if(c9.length){ match = escolherMelhor(c9, cfopProdac); metodo = 'NF+palavras-chave'; }
+        }
+      }
+
       if(!match){
-        const c6 = (dpIndexNf[item.nf] || []).filter(livre).filter(m=>m.cfopDp === cfopProdac);
-        if(c6.length === 1){ match = c6[0]; metodo = 'NF+CFOP (único)'; }
+        const c10 = (dpIndexNfCfop[item.nf + '|' + cfopProdac] || []).filter(livre);
+        if(c10.length === 1){ match = c10[0]; metodo = 'NF+CFOP (único)'; }
       }
 
       let cfopDp, itemDp, valorDp, status, diff;
@@ -856,37 +1184,9 @@ function compararItens(){
       linhas.push({
         nf: item.nfRaw, cfopProdac, itemProdac: item.descricao, valorProdac: item.valor,
         cfopDp, itemDp, valorDp, diff, status,
-        emitente: item.emitente, origem: 'prodac', metodo
+        emitente: item.emitente, origem: 'prodac', metodo,
+        ncm: item.ncm
       });
-    });
-  });
-
-  [...cfopsColados].sort().forEach(cfopDp=>{
-    const itensDp = dpItensByCfop[cfopDp] || [];
-    itensDp.forEach(itemDp=>{
-      const k = itemDp.nf + '|' + normDesc(itemDp.desc);
-      if(chavesJaProcessadas.has(k)) return;
-      if(usadosNoDp.has(idDp({cfopDp, ...itemDp}))) return;
-      let cfopProdacEncontrado = null, itemProdacEncontrado = null;
-      [...cfopsColados].forEach(cfopProdacCand=>{
-        (detalheColado[cfopProdacCand] || []).forEach(ip=>{
-          if(ip.nf === itemDp.nf && normDesc(ip.descricao) === normDesc(itemDp.desc)){
-            cfopProdacEncontrado = cfopProdacCand;
-            itemProdacEncontrado = ip;
-          }
-        });
-      });
-      if(cfopProdacEncontrado && cfopProdacEncontrado !== cfopDp){
-        linhas.push({
-          nf: itemDp.nfRaw, cfopProdac: cfopProdacEncontrado,
-          itemProdac: itemProdacEncontrado.descricao, valorProdac: itemProdacEncontrado.valor,
-          cfopDp: cfopDp, itemDp: itemDp.desc, valorDp: itemDp.valor,
-          diff: itemProdacEncontrado.valor - itemDp.valor, status: 'Divergente',
-          emitente: itemProdacEncontrado.emitente || itemDp.terceiro || '',
-          origem: 'dp', metodo: 'NF+Descrição'
-        });
-        chavesJaProcessadas.add(k);
-      }
     });
   });
 
@@ -972,10 +1272,51 @@ function tentarRenderizar(){
 function render(){
   atualizarInfoFiltro();
   renderKPIs();
+  renderNaoCasados();
   renderPainelAjustes();
   renderTabelaConfronto();
   renderTabelaComparacao();
   renderListaAjustes();
+}
+
+function renderNaoCasados(){
+  const el = document.getElementById('listaNaoCasados');
+  const naoCasados = comparacaoGlobal.filter(l=>l.cfopDp === '—');
+  if(naoCasados.length === 0){
+    el.innerHTML = '<div class="destaque ok">✅ Todos os itens do PRODAC encontraram correspondência no DP.</div>';
+    return;
+  }
+  let totalNaoCasado = 0;
+  naoCasados.forEach(l=>totalNaoCasado += l.valorProdac);
+  let html = `<div class="destaque">
+    ⚠️ <b>${naoCasados.length} item(ns)</b> do PRODAC <b>não foram encontrados</b> no DP.
+    Total: <b>R$ ${fmt(totalNaoCasado)}</b>.
+  </div>`;
+  html += `<table class="ajustes">
+    <thead><tr>
+      <th>NF</th>
+      <th>Emitente</th>
+      <th>CFOP (PRODAC)</th>
+      <th>Item (PRODAC)</th>
+      <th>Valor (PRODAC)</th>
+      <th>NCM</th>
+    </tr></thead><tbody>`;
+  naoCasados.sort((a,b)=>b.valorProdac - a.valorProdac).forEach(l=>{
+    html += `<tr class="diff-row">
+      <td>${l.nf}</td>
+      <td style="text-align:left">${l.emitente}</td>
+      <td>${l.cfopProdac}</td>
+      <td style="text-align:left">${l.itemProdac}</td>
+      <td>${fmt(l.valorProdac)}</td>
+      <td>${l.ncm||''}</td>
+    </tr>`;
+  });
+  html += `</tbody><tfoot><tr class="subtotal">
+    <td colspan="4">TOTAL NÃO CASADOS (${naoCasados.length} itens)</td>
+    <td>${fmt(totalNaoCasado)}</td>
+    <td></td>
+  </tr></tfoot></table>`;
+  el.innerHTML = html;
 }
 
 function renderPainelAjustes(){
@@ -1275,6 +1616,373 @@ function renderListaAjustes(){
   el.innerHTML = html;
 }
 
+/* ============================================================
+   GERADOR DE IMAGEM (para e-mail)
+   ============================================================ */
+let ultimoBlob = null;
+
+async function gerarImagemGenerica(elementId, titulo){
+  const el = document.getElementById(elementId);
+  if(!el || el.innerHTML.trim()===''){
+    alert('Nada para gerar. Processe os dados primeiro.');
+    return;
+  }
+
+  document.getElementById('loadingTexto').textContent = 'Gerando imagem...';
+  document.getElementById('loadingOverlay').classList.add('ativo');
+
+  try{
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      position:fixed; left:-99999px; top:0;
+      background:#ffffff; color:#1a1d23;
+      padding:24px; width:1200px;
+      font-family:'Segoe UI',Arial,sans-serif;
+      box-sizing:border-box;
+    `;
+
+    const cab = document.createElement('div');
+    cab.style.cssText = `
+      border-bottom:2px solid #e85d1f;
+      padding-bottom:12px; margin-bottom:16px;
+    `;
+    cab.innerHTML = `
+      <div style="font-size:18px;font-weight:700;color:#e85d1f;margin-bottom:4px">
+        📝 ${escapeHtml(titulo)}
+      </div>
+      <div style="font-size:11px;color:#666">
+        ${escapeHtml(empresaMeta || 'Confronto PRODAC × DP')}
+      </div>
+      <div style="font-size:11px;color:#666;margin-top:2px">
+        Gerado em ${new Date().toLocaleString('pt-BR')}
+      </div>
+    `;
+    wrapper.appendChild(cab);
+
+    const clone = el.cloneNode(true);
+
+    clone.querySelectorAll('table').forEach(tbl=>{
+      tbl.style.cssText += `
+        width:100%;border-collapse:collapse;font-size:12px;
+        background:#ffffff;color:#1a1d23;
+      `;
+    });
+    clone.querySelectorAll('thead th').forEach(th=>{
+      th.style.cssText += `
+        background:#f0f2f5 !important;color:#374151 !important;
+        font-weight:700;border:1px solid #d1d5db;padding:8px 10px;
+        text-transform:uppercase;font-size:11px;letter-spacing:.4px;
+        text-align:center;
+      `;
+    });
+    clone.querySelectorAll('tbody td, tfoot td').forEach(td=>{
+      td.style.cssText += `
+        background:#ffffff !important;color:#1a1d23 !important;
+        border:1px solid #e5e7eb;padding:8px 10px;
+      `;
+    });
+    clone.querySelectorAll('tr.diff-row td').forEach(td=>{
+      td.style.cssText += `
+        background:#fef2f2 !important;color:#991b1b !important;
+      `;
+    });
+    clone.querySelectorAll('tr.subtotal td').forEach(td=>{
+      td.style.cssText += `
+        background:#f3f4f6 !important;color:#111827 !important;
+        font-weight:700;border-top:2px solid #9ca3af;
+      `;
+    });
+
+    clone.querySelectorAll('.msg').forEach(m=>{
+      m.style.cssText += `
+        padding:10px 14px;border-radius:8px;font-size:12px;margin-top:8px;
+        border-left:3px solid #888;background:#f3f4f6;color:#111827;
+      `;
+      if(m.classList.contains('ok')) m.style.cssText += 'border-left-color:#16a34a;background:#f0fdf4;color:#166534;';
+      if(m.classList.contains('bad')) m.style.cssText += 'border-left-color:#dc2626;background:#fef2f2;color:#991b1b;';
+      if(m.classList.contains('warn')) m.style.cssText += 'border-left-color:#d97706;background:#fffbeb;color:#92400e;';
+    });
+    clone.querySelectorAll('.destaque').forEach(m=>{
+      m.style.cssText += `
+        padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:12px;
+        border-left:4px solid #dc2626;background:#fef2f2;color:#991b1b;
+      `;
+      if(m.classList.contains('ok')) m.style.cssText += 'border-left-color:#16a34a;background:#f0fdf4;color:#166534;';
+    });
+
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    await new Promise(r=>setTimeout(r, 50));
+
+    const canvas = await html2canvas(wrapper, {
+      backgroundColor:'#ffffff',
+      scale:2,
+      useCORS:true,
+      logging:false,
+      windowWidth:wrapper.scrollWidth,
+      windowHeight:wrapper.scrollHeight,
+    });
+
+    document.body.removeChild(wrapper);
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    ultimoBlob = blob;
+    const url = URL.createObjectURL(blob);
+
+    const img = document.getElementById('imagemGerada');
+    img.src = url;
+    document.getElementById('modalImagemTitulo').textContent = '📷 ' + titulo;
+    document.getElementById('modalImagemSub').textContent =
+      'Copie a imagem abaixo e cole no seu e-mail, ou baixe como PNG.';
+
+    const fb = document.getElementById('copyFeedback');
+    fb.style.display = 'none';
+    fb.innerHTML = '';
+
+    abrirModal('modalImagem');
+  }catch(err){
+    console.error(err);
+    alert('Erro ao gerar imagem: ' + err.message);
+  }finally{
+    document.getElementById('loadingOverlay').classList.remove('ativo');
+  }
+}
+
+async function copiarImagem(){
+  const fb = document.getElementById('copyFeedback');
+  try{
+    if(!ultimoBlob) throw new Error('Nenhuma imagem gerada.');
+
+    if(navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': ultimoBlob })
+      ]);
+      fb.style.display = 'block';
+      fb.innerHTML = '<div class="msg ok">✅ Imagem copiada! Cole no e-mail com Ctrl+V.</div>';
+      setTimeout(()=>{ fb.style.display='none'; }, 4000);
+      return;
+    }
+
+    baixarImagem();
+    fb.style.display = 'block';
+    fb.innerHTML = '<div class="msg warn">⚠️ Seu navegador não permite copiar imagem direto. O download foi iniciado — arraste o arquivo para o e-mail.</div>';
+    setTimeout(()=>{ fb.style.display='none'; }, 6000);
+  }catch(err){
+    console.error(err);
+    fb.style.display = 'block';
+    fb.innerHTML = '<div class="msg bad">Erro ao copiar: ' + err.message + '. Use o botão "Baixar PNG".</div>';
+  }
+}
+
+function baixarImagem(){
+  if(!ultimoBlob) return;
+  const url = URL.createObjectURL(ultimoBlob);
+  const a = document.createElement('a');
+  const data = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `confronto-${data}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+/* ============================================================
+   ENVIO POR E-MAIL — LISTA DETALHADA DE AJUSTES
+   ============================================================ */
+
+/** Extrai apenas o nome da empresa do empresaMeta */
+function nomeEmpresa(){
+  if(!empresaMeta) return 'Empresa';
+  const partes = empresaMeta.split('·').map(p=>p.trim()).filter(Boolean);
+  return partes[0] || 'Empresa';
+}
+
+/** Data referente ao problema (período do PRODAC ou data atual) */
+function dataReferencia(){
+  const m = empresaMeta.match(/Per[íi]odo\s*([0-9]{1,2}\/[0-9]{4})/i)
+         || empresaMeta.match(/([0-9]{1,2}\/[0-9]{4})/);
+  if(m){
+    const [mes, ano] = m[1].split('/');
+    return `${mes.padStart(2,'0')}/${ano}`;
+  }
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+/** Data completa para o assunto */
+function dataAssunto(){
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+/** Gera a imagem da lista de ajustes (retorna blob) */
+async function gerarImagemListaAjustes(){
+  const el = document.getElementById('listaAjustes');
+  if(!el || el.innerHTML.trim()===''){
+    throw new Error('Nada para enviar. Processe os dados primeiro.');
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = `
+    position:fixed; left:-99999px; top:0;
+    background:#ffffff; color:#1a1d23;
+    padding:24px; width:1200px;
+    font-family:'Segoe UI',Arial,sans-serif;
+    box-sizing:border-box;
+  `;
+
+  const cab = document.createElement('div');
+  cab.style.cssText = `border-bottom:2px solid #e85d1f;padding-bottom:12px;margin-bottom:16px;`;
+  cab.innerHTML = `
+    <div style="font-size:18px;font-weight:700;color:#e85d1f;margin-bottom:4px">
+      📝 Lista detalhada dos itens a ajustar — Confronto PRODAC × DP
+    </div>
+    <div style="font-size:11px;color:#666">${escapeHtml(empresaMeta || '')}</div>
+    <div style="font-size:11px;color:#666;margin-top:2px">
+      Gerado em ${new Date().toLocaleString('pt-BR')}
+    </div>
+  `;
+  wrapper.appendChild(cab);
+
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('table').forEach(tbl=>{
+    tbl.style.cssText += `width:100%;border-collapse:collapse;font-size:12px;background:#ffffff;color:#1a1d23;`;
+  });
+  clone.querySelectorAll('thead th').forEach(th=>{
+    th.style.cssText += `background:#f0f2f5 !important;color:#374151 !important;font-weight:700;border:1px solid #d1d5db;padding:8px 10px;text-transform:uppercase;font-size:11px;letter-spacing:.4px;text-align:center;`;
+  });
+  clone.querySelectorAll('tbody td, tfoot td').forEach(td=>{
+    td.style.cssText += `background:#ffffff !important;color:#1a1d23 !important;border:1px solid #e5e7eb;padding:8px 10px;`;
+  });
+  clone.querySelectorAll('tr.diff-row td').forEach(td=>{
+    td.style.cssText += `background:#fef2f2 !important;color:#991b1b !important;`;
+  });
+  clone.querySelectorAll('tr.subtotal td').forEach(td=>{
+    td.style.cssText += `background:#f3f4f6 !important;color:#111827 !important;font-weight:700;border-top:2px solid #9ca3af;`;
+  });
+
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
+
+  await new Promise(r=>setTimeout(r, 50));
+
+  const canvas = await html2canvas(wrapper, {
+    backgroundColor:'#ffffff', scale:2, useCORS:true, logging:false,
+    windowWidth:wrapper.scrollWidth, windowHeight:wrapper.scrollHeight,
+  });
+  document.body.removeChild(wrapper);
+
+  return await new Promise(res => canvas.toBlob(res, 'image/png'));
+}
+
+/** Abre o modal de e-mail e prepara a imagem */
+async function enviarListaPorEmail(){
+  const el = document.getElementById('listaAjustes');
+  if(!el || el.innerHTML.trim()===''){
+    alert('Nada para enviar. Processe os dados primeiro.');
+    return;
+  }
+
+  const empresa = nomeEmpresa();
+  const dataRef = dataReferencia();
+  const hoje = dataAssunto();
+
+  document.getElementById('emailAssunto').value =
+    `${empresa} — Ajuste de CFOP — ${hoje}`;
+
+  const corpo = [
+    'Prezados, bom dia.',
+    '',
+    `Segue em anexo/imagem a lista detalhada dos itens a ajustar referente ao confronto PRODAC × DP (${dataRef}).`,
+    '',
+    'Atenciosamente,',
+    '',
+    'Obrigado!',
+  ].join('\n');
+  document.getElementById('emailCorpo').value = corpo;
+  document.getElementById('emailPara').value = '';
+  document.getElementById('emailFeedback').style.display = 'none';
+
+  document.getElementById('loadingTexto').textContent = 'Gerando imagem da lista...';
+  document.getElementById('loadingOverlay').classList.add('ativo');
+
+  try{
+    const blob = await gerarImagemListaAjustes();
+    ultimoBlob = blob;
+
+    // Copia para o clipboard (para o usuário colar com Ctrl+V no e-mail)
+    let copiou = false;
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        await navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ]);
+        copiou = true;
+      }
+    }catch(e){ /* ignora */ }
+
+    // Baixa o PNG automaticamente como fallback
+    try{ baixarImagem(); }catch(e){}
+
+    const fb = document.getElementById('emailFeedback');
+    fb.style.display = 'block';
+    fb.innerHTML = copiou
+      ? '<div class="msg ok">✅ Imagem copiada para a área de transferência e baixada em PNG. Ao abrir o e-mail, cole com <b>Ctrl+V</b> ou anexe o arquivo baixado.</div>'
+      : '<div class="msg warn">⚠️ A imagem foi baixada em PNG. Anexe o arquivo ao e-mail (seu navegador não permitiu copiar direto).</div>';
+
+    abrirModal('modalEmail');
+  }catch(err){
+    console.error(err);
+    alert('Erro ao preparar o e-mail: ' + err.message);
+  }finally{
+    document.getElementById('loadingOverlay').classList.remove('ativo');
+  }
+}
+
+/** Copia novamente a imagem da lista para o clipboard */
+async function copiarImagemListaAjustes(){
+  const fb = document.getElementById('emailFeedback');
+  try{
+    if(!ultimoBlob) throw new Error('Nenhuma imagem gerada.');
+    if(navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([ new ClipboardItem({ 'image/png': ultimoBlob }) ]);
+      fb.style.display = 'block';
+      fb.innerHTML = '<div class="msg ok">✅ Imagem copiada! Cole no e-mail com Ctrl+V.</div>';
+      return;
+    }
+    baixarImagem();
+    fb.style.display = 'block';
+    fb.innerHTML = '<div class="msg warn">⚠️ Copiar direto não é suportado. O download foi iniciado — anexe o arquivo.</div>';
+  }catch(err){
+    fb.style.display = 'block';
+    fb.innerHTML = '<div class="msg bad">Erro ao copiar: ' + err.message + '</div>';
+  }
+}
+
+/** Abre o cliente de e-mail configurado com assunto e corpo prontos */
+function confirmarEnvioEmail(){
+  const assunto = document.getElementById('emailAssunto').value.trim() || 'Ajuste de CFOP';
+  const corpo   = document.getElementById('emailCorpo').value;
+  const para    = document.getElementById('emailPara').value.trim();
+
+  const url = 'mailto:' + encodeURIComponent(para)
+            + '?subject=' + encodeURIComponent(assunto)
+            + '&body='    + encodeURIComponent(corpo);
+
+  // Abre o cliente padrão
+  window.location.href = url;
+
+  const fb = document.getElementById('emailFeedback');
+  fb.style.display = 'block';
+  fb.innerHTML = '<div class="msg ok">✉️ Programa de e-mail aberto. Cole a imagem no corpo com <b>Ctrl+V</b> ou anexe o PNG baixado, e clique em Enviar.</div>';
+}
+
+/* ============================================================
+   DIAGNÓSTICO
+   ============================================================ */
 function diagnostico(){
   const out = [];
   out.push('=== PRODAC (colado) ===');
@@ -1288,15 +1996,43 @@ function diagnostico(){
   });
   out.push('');
   out.push('=== Resultado do match ===');
-  comparacaoGlobal.forEach(l=>{
-    if(String(l.nf).includes('22426')){
-      out.push(`  PRODAC[${l.cfopProdac}] "${l.itemProdac}" ${l.valorProdac} → DP[${l.cfopDp}] "${l.itemDp}" ${l.valorDp} | ${l.status} | ${l.metodo}`);
-    }
+  out.push(`Total de itens comparados: ${comparacaoGlobal.length}`);
+  out.push(`OK: ${comparacaoGlobal.filter(l=>l.status==='OK').length}`);
+  out.push(`Divergentes: ${comparacaoGlobal.filter(l=>l.status==='Divergente').length}`);
+  out.push(`Não casados (cfopDp = —): ${comparacaoGlobal.filter(l=>l.cfopDp==='—').length}`);
+  const naoCasados = comparacaoGlobal.filter(l=>l.cfopDp==='—');
+  if(naoCasados.length){
+    out.push('');
+    out.push('=== Itens NÃO CASADOS (top 20 por valor) ===');
+    naoCasados.sort((a,b)=>b.valorProdac - a.valorProdac).slice(0,20).forEach(l=>{
+      out.push(`  NF ${l.nf} | CFOP ${l.cfopProdac} | ${l.itemProdac} | R$ ${fmt(l.valorProdac)}`);
+    });
+  }
+  const texto = out.join('\n');
+  console.log(texto);
+  alert(texto);
+}
+
+function diagnosticoDP(){
+  const out = [];
+  out.push('=== DP: CFOPs lidos ===');
+  Object.keys(dpItensByCfop).sort().forEach(cfop=>{
+    out.push(`CFOP ${cfop}: ${dpItensByCfop[cfop].length} itens, total R$ ${fmt(dpItensByCfop[cfop].reduce((a,b)=>a+b.valor,0))}`);
+  });
+  out.push('');
+  out.push('=== DP: 5 primeiros itens ===');
+  dpItensTodos.slice(0,5).forEach(it=>{
+    out.push(`  NF raw="${it.nfRaw}" nfKey="${it.nf}" CFOP=${it.cfop} | ${it.desc} | R$ ${fmt(it.valor)}`);
   });
   const texto = out.join('\n');
   console.log(texto);
   alert(texto);
 }
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+document.getElementById('anoAtual').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
