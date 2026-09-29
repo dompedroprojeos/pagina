@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner Específico - PDFs ICMS "Número A"</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+<style>
+:root{--primary-color:#2d5aa0;--secondary-color:#1a365d;--accent-color:#4299e1;--success-color:#48bb78;--warning-color:#ed8936;--error-color:#f56565}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif}
+.main-container{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;margin:30px 0}
+.app-header{background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));color:#fff;padding:25px 30px}
+.app-title{font-weight:700;font-size:1.8rem;margin:0}.app-subtitle{opacity:.9;font-size:.95rem;margin-top:5px}
+.criteria-card{background:#f7fafc;border:2px solid #e2e8f0;border-radius:15px;padding:20px;margin-bottom:20px}
+.criteria-item{display:flex;align-items:center;margin-bottom:10px;padding:8px 12px;background:#fff;border-radius:10px;border-left:4px solid var(--primary-color)}
+.criteria-item i{color:var(--primary-color);margin-right:10px;font-size:1.2rem}
+.folder-selector{border:3px dashed var(--accent-color);background:rgba(66,153,225,.05);border-radius:15px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .3s}
+.folder-selector:hover{background:rgba(66,153,225,.1);transform:translateY(-3px);box-shadow:0 10px 25px rgba(66,153,225,.2)}
+.folder-icon{font-size:4rem;color:var(--accent-color);margin-bottom:12px}
+.file-pattern{background:#e6fffa;color:#234e52;padding:4px 14px;border-radius:20px;font-family:'Courier New',monospace;font-weight:600;font-size:.9rem;display:inline-block;margin:4px;border:2px solid #81e6d9}
+.status-badge{padding:5px 12px;border-radius:12px;font-size:.75rem;font-weight:600}
+.status-valid{background:#c6f6d5;color:#22543d}.status-invalid{background:#fed7d7;color:#742a2a}.status-warn{background:#feebc8;color:#744210}.status-off{background:#e2e8f0;color:#4a5568}
+.result-item{background:#fff;border-radius:12px;padding:15px;margin-bottom:12px;border:1px solid #e2e8f0;transition:all .2s}
+.result-item:hover{border-color:var(--accent-color);box-shadow:0 5px 15px rgba(66,153,225,.1)}
+.result-item.valid{border-left:5px solid var(--success-color)}.result-item.invalid{border-left:5px solid var(--error-color);opacity:.85}
+.result-item.dv{border-left:5px solid var(--warning-color)}
+.file-name{font-weight:600;color:var(--secondary-color);font-family:'Courier New',monospace;font-size:1.1rem}
+.file-path{color:#718096;font-size:.8rem;font-family:'Courier New',monospace;margin-top:3px}
+.data-field{background:#edf2f7;padding:5px 12px;border-radius:8px;font-family:'Courier New',monospace;font-size:.9rem;display:inline-block}
+.data-field.found{background:#c6f6d5;color:#22543d}.data-field.missing{background:#fed7d7;color:#742a2a}.data-field.warn{background:#feebc8;color:#744210}
+.data-row{display:flex;align-items:center;margin-bottom:5px;flex-wrap:wrap}.data-label{min-width:190px;font-weight:600}
+.cmp{margin-top:12px;padding:12px;border-radius:10px;background:#f7fafc;border:1px dashed #a0aec0}
+.validation-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;margin-right:10px;flex:none}
+.validation-icon.valid{background:#c6f6d5;color:#22543d}.validation-icon.invalid{background:#fed7d7;color:#742a2a}
+.progress-container{height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin:15px 0}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent-color),var(--primary-color));transition:width .3s}
+.log-entry{padding:6px 12px;border-radius:8px;margin-bottom:5px;font-size:.85rem;font-family:'Courier New',monospace;background:#f7fafc;border-left:3px solid var(--accent-color);word-break:break-all}
+.log-entry.success{border-color:var(--success-color);background:#f0fff4}.log-entry.warning{border-color:var(--warning-color);background:#fffaf0}.log-entry.error{border-color:var(--error-color);background:#fff5f5}
+.stats-card{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff;border-radius:15px;padding:16px;text-align:center;height:100%}
+.stats-number{font-size:2.1rem;font-weight:700}.stats-label{opacity:.9;font-size:.82rem}
+.export-btn{background:linear-gradient(135deg,var(--success-color),#38a169);color:#fff;border:none;padding:12px 25px;border-radius:10px;font-weight:600}
+.export-btn:disabled{opacity:.6}
+.step-card{background:#fff;border-radius:15px;padding:20px;border:2px solid #e2e8f0;margin-bottom:20px;position:relative}
+.step-card.active{border-color:var(--accent-color);box-shadow:0 5px 20px rgba(66,153,225,.15)}
+.step-number{position:absolute;top:-14px;left:20px;background:var(--primary-color);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.raw-box{background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-family:'Courier New',monospace;font-size:.78rem;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin-top:10px}
+#planPaste{width:100%;min-height:180px;font-family:'Courier New',monospace;font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="container"><div class="main-container">
+<div class="app-header"><div class="row align-items-center">
+ <div class="col-md-8"><h1 class="app-title"><i class="bi bi-file-earmark-check-fill me-3"></i>Scanner Específico - PDFs ICMS</h1>
+ <div class="app-subtitle">Busca "NÚMERO A.pdf", extrai CNPJ, Período, Saldo Credor 009/014 e confere com a planilha colada</div></div>
+ <div class="col-md-4 text-end">
+   <div class="form-check form-switch d-inline-block me-3">
+     <input class="form-check-input" type="checkbox" id="autoProcess" checked style="transform:scale(1.3)">
+     <label class="form-check-label" for="autoProcess">Auto</label>
+   </div>
+   <div class="form-check form-switch d-inline-block">
+     <input class="form-check-input" type="checkbox" id="debugMode" style="transform:scale(1.3)">
+     <label class="form-check-label" for="debugMode">Debug</label>
+   </div>
+ </div>
+</div></div>
+
+<div class="container-fluid py-4"><div class="row">
+<div class="col-lg-4">
+ <div class="criteria-card">
+  <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Critérios de Busca</h5>
+  <div class="criteria-item"><i class="bi bi-123"></i><div><strong>Padrão do Nome:</strong><div class="mt-1">
+   <span class="file-pattern">630 A.pdf</span><span class="file-pattern">1028 A.pdf</span><span class="file-pattern">649 A.pdf</span></div></div></div>
+  <div class="criteria-item mb-0"><i class="bi bi-shield-check"></i><div><strong>Validações:</strong>
+   <div class="small">• CNPJ validado por dígito verificador<br>• 014 ancorado na linha exata do RESUMO (2ª página)</div></div></div>
+ </div>
+
+ <div class="step-card active" id="step1Card">
+  <div class="step-number">1</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-folder-plus me-2"></i>Buscar PDFs</h5>
+  <div class="folder-selector" id="folderSelector">
+   <div class="folder-icon"><i class="bi bi-folder-plus"></i></div>
+   <h5 class="mb-2">Selecionar Pasta Raiz</h5>
+   <p class="text-muted mb-0 small">Busca recursiva por <br><strong>"NÚMERO ESPAÇO A.pdf"</strong></p>
+   <div id="folderInfo" class="d-none mt-3" onclick="event.stopPropagation()">
+    <div class="alert alert-primary mb-2 py-2"><div class="d-flex justify-content-between align-items-center">
+     <div><i class="bi bi-folder-fill me-2"></i><strong id="selectedFolderName"></strong></div>
+     <span id="foundCount" class="badge bg-primary">0 encontrados</span></div></div>
+    <button id="scanButton" class="btn btn-primary btn-lg w-100"><i class="bi bi-search me-2"></i>Iniciar Busca Específica</button>
+   </div>
+  </div>
+  <div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="recursiveSearch" checked>
+   <label class="form-check-label" for="recursiveSearch">Buscar em subpastas</label></div>
+ </div>
+
+ <div class="step-card" id="step2Card">
+  <div class="step-number">2</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-clipboard-data me-2"></i>Colar Planilha</h5>
+  <p class="small text-muted mb-2">Copie as células do Excel/Google Sheets (a partir da linha dos meses) e cole aqui:</p>
+  <textarea id="planPaste" class="form-control" placeholder="Janeiro&#9;Fevereiro&#9;...&#10;Unidade&#9;CNPJ&#9;Estado&#9;ICMS a pagar&#9;Crédito Inicial&#9;Saldo a transportar&#9;..."></textarea>
+  <div class="d-flex gap-2 mt-2">
+    <button id="parsePlan" class="btn btn-success"><i class="bi bi-check2 me-1"></i>Processar Planilha</button>
+    <button id="clearPlan" class="btn btn-outline-secondary"><i class="bi bi-x-circle me-1"></i>Limpar</button>
+  </div>
+  <div id="planMsg" class="small text-muted mt-2">Cole a planilha e clique em Processar.</div>
+ </div>
+
+ <div class="step-card">
+  <div class="step-number">3</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-download me-2"></i>Exportar Resultados</h5>
+  <select id="exportFormat" class="form-select mb-3"><option value="excel">Excel XLSX</option><option value="csv">CSV (Excel)</option><option value="json">JSON</option></select>
+  <button id="exportButton" class="btn export-btn w-100" disabled><i class="bi bi-file-earmark-arrow-down me-2"></i>Exportar Dados Encontrados</button>
+ </div>
+</div>
+
+<div class="col-lg-8">
+ <div id="progressSection" class="card border-0 shadow-sm mb-4 d-none"><div class="card-body">
+  <h5 class="card-title"><i class="bi bi-speedometer2 me-2"></i>Progresso da Busca</h5>
+  <div class="progress-container"><div id="progressBar" class="progress-bar" style="width:0%"></div></div>
+  <div class="d-flex justify-content-between"><small id="progressText">Preparando...</small><small id="progressPercent">0%</small></div>
+  <div class="mt-2 small text-muted">Processando: <span id="currentFile" class="fw-semibold text-dark"></span></div>
+ </div></div>
+
+ <div id="statsSection" class="row mb-4 d-none">
+  <div class="col mb-2"><div class="stats-card"><div class="stats-number" id="stTotal">0</div><div class="stats-label">Encontrados</div></div></div>
+  <div class="col mb-2"><div class="stats-card"><div class="stats-number" id="stData">0</div><div class="stats-label">Com Dados</div></div></div>
+  <div class="col mb-2"><div class="stats-card"><div class="stats-number" id="stNo">0</div><div class="stats-label">Sem Dados</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#48bb78,#38a169)"><div class="stats-number" id="stOk">0</div><div class="stats-label">✓ Conferem</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#ed8936,#dd6b20)"><div class="stats-number" id="stDv">0</div><div class="stats-label">⚠ Divergem</div></div></div>
+ </div>
+
+ <div id="filtersSection" class="card border-0 shadow-sm mb-4 d-none"><div class="card-body"><div class="row g-2">
+  <div class="col-md-3"><input type="text" id="filterCNPJ" class="form-control" placeholder="CNPJ..."></div>
+  <div class="col-md-3"><input type="text" id="filterPeriod" class="form-control" placeholder="Ex: 10/2024"></div>
+  <div class="col-md-3"><input type="text" id="filterFile" class="form-control" placeholder="Nome/unidade..."></div>
+  <div class="col-md-3"><select id="filterStatus" class="form-select"><option value="">Todos</option><option value="ok">Conferem</option><option value="dv">Divergem</option><option value="nf">Sem correspondência</option></select></div>
+ </div></div></div>
+
+ <div class="card border-0 shadow-sm"><div class="card-body">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+   <h5 class="card-title mb-0"><i class="bi bi-check2-square me-2"></i>Resultados da Extração</h5>
+   <span id="resultsCount" class="badge bg-primary">0 com dados</span></div>
+  <div id="resultsContainer"><div class="text-center text-muted py-5"><i class="bi bi-folder2-open display-4 d-block mb-3"></i>
+   <p>Passo 1: selecione a pasta. Passo 2: cole a planilha.</p></div></div>
+ </div></div>
+
+ <div class="card border-0 shadow-sm mt-4"><div class="card-body">
+  <div class="d-flex justify-content-between mb-2"><h5 class="card-title mb-0"><i class="bi bi-journal-text me-2"></i>Log de Processamento</h5>
+   <button id="clearLogs" class="btn btn-sm btn-outline-secondary"><i class="bi bi-trash"></i> Limpar</button></div>
+  <div id="logsContainer" style="max-height:220px;overflow-y:auto"><div class="log-entry">Sistema pronto</div></div>
+ </div></div>
+</div>
+</div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* =====================================================================
+   Scanner ICMS - PDFs "Número A" + Planilha Colada
+   CORREÇÃO: extração do 014 agora recorta o trecho da LINHA 014
+   até o próximo rótulo (015, 016, INFORMAÇÕES...) e pega o ÚLTIMO
+   valor monetário desse trecho (que é o valor do 014).
+   ===================================================================== */
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const $ = id => document.getElementById(id);
+let dirHandle = null;
+let allPDFs = [];
+let processed = [];
+let skipped = 0;
+let plan = null;
+
+/* ---------- Helpers ---------- */
+const dig = s => String(s || '').replace(/\D/g, '');
+const br = s => {
+  if (s == null || s === '') return null;
+  let str = String(s).trim().replace(/R\$\s*/g, '').replace(/\s+/g, '');
+  let neg = false;
+  if (str.startsWith('-')) { neg = true; str = str.slice(1); }
+  if (str === '' || str === '---') return null;
+  let n;
+  if (str.includes(',')) n = parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  else n = parseFloat(str);
+  if (isNaN(n)) return null;
+  return neg ? -n : n;
+};
+const fmt = n => n == null ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const normTxt = s => String(s ?? '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/* ---------- Validação de CNPJ ---------- */
+function validarCNPJ(cnpj) {
+  const c = dig(cnpj);
+  if (c.length !== 14) return false;
+  if (/^(\d)\1+$/.test(c)) return false;
+  const calc = (base, pesos) => {
+    const soma = base.split('').reduce((acc, d, i) => acc + parseInt(d) * pesos[i], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+  const dv1 = calc(c.substring(0, 12), [5,4,3,2,9,8,7,6,5,4,3,2]);
+  const dv2 = calc(c.substring(0, 13), [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+  return dv1 === parseInt(c[12]) && dv2 === parseInt(c[13]);
+}
+function formatarCNPJ(cnpj) {
+  const c = dig(cnpj);
+  if (c.length !== 14) return cnpj;
+  return c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+}
+
+function addLog(msg, type = 'info') {
+  const d = document.createElement('div');
+  d.className = 'log-entry ' + type;
+  d.textContent = msg;
+  $('logsContainer').prepend(d);
+  while ($('logsContainer').children.length > 100) $('logsContainer').lastChild.remove();
+}
+$('clearLogs').onclick = () => $('logsContainer').innerHTML = '<div class="log-entry">Log limpo</div>';
+
+/* =====================================================================
+   PLANILHA COLADA — parser
+   ===================================================================== */
+const MESES = {
+  'JANEIRO': 1, 'FEVEREIRO': 2, 'MARCO': 3, 'ABRIL': 4,
+  'MAIO': 5, 'JUNHO': 6, 'JULHO': 7, 'AGOSTO': 8,
+  'SETEMBRO': 9, 'OUTUBRO': 10, 'NOVEMBRO': 11, 'DEZEMBRO': 12
+};
+
+function parseColado(texto) {
+  const linhas = texto.split(/\r?\n/).map(l => l.split('\t'));
+  if (linhas.length < 3) throw new Error('Precisa de pelo menos 3 linhas');
+
+  let mesRow = -1;
+  for (let i = 0; i < Math.min(linhas.length, 5); i++) {
+    const r = linhas[i].map(normTxt);
+    if (r.filter(v => MESES[v]).length >= 3) { mesRow = i; break; }
+  }
+  if (mesRow < 0) throw new Error('Linha dos meses não encontrada');
+
+  const mesDaColuna = {};
+  let mesAtual = null;
+  for (let c = 0; c < linhas[mesRow].length; c++) {
+    const v = normTxt(linhas[mesRow][c]);
+    if (MESES[v]) mesAtual = MESES[v];
+    if (mesAtual) mesDaColuna[c] = mesAtual;
+  }
+
+  let headerRow = -1;
+  for (let i = mesRow; i < Math.min(linhas.length, mesRow + 4); i++) {
+    const r = linhas[i].map(normTxt);
+    if (r.includes('UNIDADE') && r.includes('CNPJ')) { headerRow = i; break; }
+  }
+  if (headerRow < 0) throw new Error('Linha do cabeçalho não encontrada');
+
+  const header = linhas[headerRow].map(normTxt);
+  const colUnidade = header.indexOf('UNIDADE');
+  const colCNPJ = header.indexOf('CNPJ');
+  const colEstado = header.indexOf('ESTADO');
+
+  const credCol = {}, salCol = {};
+  for (let c = 0; c < header.length; c++) {
+    const mes = mesDaColuna[c];
+    if (!mes) continue;
+    const v = header[c];
+    if (v.startsWith('CREDITO INICIAL') && credCol[mes] == null) credCol[mes] = c;
+    if (v.startsWith('SALDO A TRANSPORTAR') && salCol[mes] == null) salCol[mes] = c;
+  }
+
+  const dados = {};
+  let cnpjsInvalidos = 0;
+  for (let i = headerRow + 1; i < linhas.length; i++) {
+    const r = linhas[i];
+    if (!r || !r.length) continue;
+    const cnpjDig = dig(r[colCNPJ]);
+    if (cnpjDig.length !== 14) continue;
+    if (!validarCNPJ(cnpjDig)) { cnpjsInvalidos++; continue; }
+    const cred = new Array(12).fill(null);
+    const sal = new Array(12).fill(null);
+    for (let m = 1; m <= 12; m++) {
+      if (credCol[m] != null) cred[m - 1] = br(r[credCol[m]]);
+      if (salCol[m] != null)  sal[m - 1]  = br(r[salCol[m]]);
+    }
+    dados[cnpjDig] = {
+      unidade: colUnidade >= 0 ? r[colUnidade] : null,
+      estado: colEstado >= 0 ? r[colEstado] : null,
+      cred, sal
+    };
+  }
+
+  const total = Object.keys(dados).length;
+  if (!total) throw new Error('Nenhum CNPJ válido encontrado');
+  return { dados, credCol, salCol, total, cnpjsInvalidos };
+}
+
+$('parsePlan').onclick = () => {
+  const txt = $('planPaste').value;
+  if (!txt.trim()) { alert('Cole a planilha primeiro.'); return; }
+  try {
+    const parsed = parseColado(txt);
+    plan = parsed.dados;
+    $('planMsg').innerHTML = `<span class="text-success">✔ ${parsed.total} CNPJs válidos${parsed.cnpjsInvalidos ? ` <span class="text-warning">(${parsed.cnpjsInvalidos} ignorados)</span>` : ''}</span>`;
+    addLog(`Planilha processada: ${parsed.total} CNPJs`, 'success');
+    $('step2Card').classList.remove('active');
+    if (processed.length) render();
+  } catch (err) {
+    plan = null;
+    $('planMsg').innerHTML = `<span class="text-danger">Erro: ${esc(err.message)}</span>`;
+    addLog('Erro ao processar planilha: ' + err.message, 'error');
+  }
+};
+
+$('clearPlan').onclick = () => {
+  $('planPaste').value = '';
+  plan = null;
+  $('planMsg').textContent = 'Cole a planilha e clique em Processar.';
+  if (processed.length) render();
+};
+
+/* =====================================================================
+   CONFERÊNCIA PDF × PLANILHA
+   ===================================================================== */
+function cmp(it) {
+  if (!plan) return { st: 'np', msg: 'Planilha não processada' };
+  const m = (it.periodo || '').match(/(\d{1,2})\/(\d{4})/);
+  if (!m) return { st: 'nf', msg: 'Período não identificado no PDF' };
+  const mes = +m[1];
+  if (mes < 1 || mes > 12) return { st: 'nf', msg: 'Mês inválido' };
+
+  const u = plan[dig(it.cnpj)];
+  if (!u) return { st: 'nf', msg: 'CNPJ não encontrado na planilha' };
+
+  const sal = u.sal[mes - 1];
+  const cred = u.cred[mes - 1];
+
+  const r = { st: 'ok', unidade: u.unidade, estado: u.estado, mes, sal, cred };
+  r.ok14 = (it.v14 == null || sal == null) ? null : Math.abs(it.v14 - sal) < 0.005;
+  r.ok09 = (it.v09 == null || cred == null) ? null : Math.abs(it.v09 - cred) < 0.005;
+
+  if (r.ok14 === null && r.ok09 === null) {
+    r.st = 'nf';
+    r.msg = 'Mês sem valor na planilha ou PDF sem saldo';
+  } else if (r.ok14 === false || r.ok09 === false) {
+    r.st = 'dv';
+  }
+  return r;
+}
+
+/* =====================================================================
+   PASTA + BUSCA
+   ===================================================================== */
+$('folderSelector').onclick = async () => {
+  if (!window.showDirectoryPicker) {
+    alert('Seu navegador não suporta a File System Access API. Use Chrome ou Edge.');
+    return;
+  }
+  try {
+    dirHandle = await window.showDirectoryPicker();
+    $('selectedFolderName').textContent = dirHandle.name;
+    $('folderInfo').classList.remove('d-none');
+    addLog(`Pasta selecionada: "${dirHandle.name}"`);
+    if ($('autoProcess').checked) setTimeout(() => $('scanButton').click(), 400);
+  } catch (e) {
+    if (e.name !== 'AbortError') addLog('Erro ao selecionar pasta: ' + e.message, 'error');
+  }
+};
+
+const validName = n => /^\d+\s*A\.pdf$/i.test(n);
+
+async function findPDFs(dir, rec, base = '') {
+  const ok = [];
+  try {
+    for await (const h of dir.values()) {
+      const name = h.name;
+      const p = base ? `${base}/${name}` : name;
+      if (h.kind === 'file' && name.toLowerCase().endsWith('.pdf')) {
+        if (validName(name)) ok.push({ name, handle: h, path: p, directory: base });
+        else skipped++;
+      } else if (rec && h.kind === 'directory') {
+        try { ok.push(...await findPDFs(h, rec, p)); }
+        catch (e) { addLog(`Erro subpasta "${p}": ${e.message}`, 'warning'); }
+      }
+    }
+  } catch (e) { addLog(`Erro listando: ${e.message}`, 'error'); }
+  return ok;
+}
+
+$('scanButton').onclick = async () => {
+  if (!dirHandle) return;
+  $('scanButton').disabled = true;
+  skipped = 0;
+  processed = [];
+  addLog('Iniciando busca específica...');
+
+  try { allPDFs = await findPDFs(dirHandle, $('recursiveSearch').checked); }
+  catch (e) { addLog('Erro na busca: ' + e.message, 'error'); $('scanButton').disabled = false; return; }
+
+  if (!allPDFs.length) {
+    addLog('Nenhum "NÚMERO A.pdf" encontrado', 'warning');
+    $('scanButton').disabled = false;
+    return;
+  }
+
+  $('foundCount').textContent = `${allPDFs.length} arquivo(s)`;
+  addLog(`${allPDFs.length} arquivo(s) válidos, ${skipped} ignorados`, 'success');
+  $('step1Card').classList.remove('active');
+  $('step2Card').classList.add('active');
+
+  $('progressSection').classList.remove('d-none');
+  $('statsSection').classList.remove('d-none');
+  $('filtersSection').classList.remove('d-none');
+
+  for (let i = 0; i < allPDFs.length; i++) {
+    const f = allPDFs[i];
+    const pct = Math.round((i + 1) / allPDFs.length * 100);
+    $('progressBar').style.width = pct + '%';
+    $('progressPercent').textContent = pct + '%';
+    $('progressText').textContent = `Arquivo ${i + 1} de ${allPDFs.length}`;
+    $('currentFile').textContent = f.name;
+
+    try {
+      const pages = await readPDF(f.handle);
+      const d = extract(pages, f);
+      processed.push(d);
+      addLog(`${d.possui_dados ? '✓' : '⚠'} ${f.path}: ${d.periodo || '?'} | CNPJ=${d.cnpj || '—'} | 009=${d.saldo_credor || '—'} | 014=${d.saldo_014 || '—'}`,
+        d.possui_dados ? 'success' : 'warning');
+    } catch (e) {
+      processed.push({ arquivo: f.name, caminho: f.path, possui_dados: false, validacoes: ['Erro: ' + e.message] });
+      addLog(`Erro em ${f.name}: ${e.message}`, 'error');
+    }
+    if (i % 3 === 0 || i === allPDFs.length - 1) render();
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  $('progressText').textContent = 'Processamento concluído!';
+  $('currentFile').textContent = '';
+  $('scanButton').disabled = false;
+  $('exportButton').disabled = !processed.some(d => d.possui_dados);
+  render();
+};
+
+/* ---------- Leitura PDF (retorna array de páginas, texto reconstruído por linha) ----------
+   Por que mudou: content.items.map(x=>x.str).join(' ') usa a ORDEM DO STREAM do PDF,
+   não a ordem visual. Nesse formulário há um rótulo vertical "D É B I T O / C R É D I T O /
+   S A L D O" desenhado numa faixa lateral, e no texto bruto do stream esses caracteres
+   ficam intercalados perto da linha "014 - Saldo credor...", empurrando ou cortando o valor
+   116.268,68 para fora do trecho que a extração recortava. CNPJ, Período e 009 continuavam
+   funcionando porque ficam em áreas de layout simples (uma coluna), sem essa faixa lateral.
+   A correção agrupa os itens de texto pela posição Y (linha visual) e ordena cada linha
+   pela posição X (esquerda→direita), reconstruindo o texto como ele aparece na página. */
+function reconstruirTexto(items) {
+  const tol = 3; // tolerância em pts para considerar itens na mesma linha visual
+  const arr = items
+    .filter(it => it.str !== undefined && it.str !== '')
+    .map(it => ({ str: it.str, x: it.transform[4], y: it.transform[5] }));
+  // ordena de cima para baixo; entre itens de mesma altura, a ordem exata não importa aqui
+  // porque cada linha é reordenada por X no final (evita o problema de "bucket" arredondado
+  // separar itens que na prática estão a menos de 1pt de diferença de Y)
+  arr.sort((a, b) => (b.y - a.y) || (a.x - b.x));
+  const linhas = [];
+  let cur = [], anchorY = null;
+  for (const it of arr) {
+    if (anchorY === null || Math.abs(it.y - anchorY) > tol) {
+      if (cur.length) linhas.push(cur);
+      cur = [it]; anchorY = it.y;
+    } else cur.push(it);
+  }
+  if (cur.length) linhas.push(cur);
+  return linhas
+    .map(l => l.sort((a, b) => a.x - b.x).map(i => i.str).join(' ').replace(/[ \t]+/g, ' ').trim())
+    .join('\n');
+}
+
+async function readPDF(handle) {
+  const file = await handle.getFile();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    pages.push(reconstruirTexto(content.items));
+  }
+  return pages;
+}
+
+/* =====================================================================
+   EXTRAÇÃO — 014 ancorado na LINHA do 014 (recorta até o próximo rótulo)
+   ===================================================================== */
+function extract(pages, f) {
+  const fullText = pages.join(' \n ');
+  const d = {
+    arquivo: f.name, caminho: f.path,
+    cnpj: null, periodo: null,
+    saldo_credor: null, saldo_014: null,
+    v09: null, v14: null, validacoes: [], raw: fullText,
+    debug_secao: ''
+  };
+
+  /* ---------- CNPJ ---------- */
+  const cnpjPats = [
+    /CNPJ[\/\s:.-]*([\d]{2}[.\s]?[\d]{3}[.\s]?[\d]{3}[\/\s]?[\d]{4}[-\s]?[\d]{2})/i,
+    /CNPJ[^\d]{0,10}([\d]{14})/i,
+    /([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/,
+    /\b([\d]{14})\b/
+  ];
+  for (const rx of cnpjPats) {
+    const m = fullText.match(rx);
+    if (m) {
+      const raw = dig(m[1]);
+      if (raw.length === 14) {
+        d.cnpj = formatarCNPJ(raw);
+        if (!validarCNPJ(raw)) d.validacoes.push('⚠ CNPJ inválido (dígito verificador)');
+        break;
+      }
+    }
+  }
+
+  /* ---------- Período ---------- */
+  const mesNome = { JANEIRO:1, FEVEREIRO:2, MARCO:3, ABRIL:4, MAIO:5, JUNHO:6, JULHO:7, AGOSTO:8, SETEMBRO:9, OUTUBRO:10, NOVEMBRO:11, DEZEMBRO:12 };
+  const perPats = [
+    /(?:M[êe]s\s*(?:ou\s*)?(?:Per[íi]odo)?\s*\/?\s*Ano)\s*[:\-]?\s*(\d{1,2})\s*[\/\-]\s*(\d{4})/i,
+    /Ano\s*[:\-]?\s*(\d{1,2})\s*[\/\-]\s*(\d{4})/i,
+    /Per[íi]odo[^\d]{0,20}(\d{1,2})\s*[\/\-]\s*(\d{4})/i,
+    /(?:M[êe]s|Refer[êe]ncia)[^\d]{0,20}(\d{1,2})\s*[\/\-]\s*(\d{4})/i,
+    /\b(\d{2})\/(\d{4})\b/
+  ];
+  for (const rx of perPats) {
+    const m = fullText.match(rx);
+    if (m) {
+      const mm = parseInt(m[1], 10);
+      if (mm >= 1 && mm <= 12) { d.periodo = `${m[1].padStart(2, '0')}/${m[2]}`; break; }
+    }
+  }
+  if (!d.periodo) {
+    for (const [nome, numMes] of Object.entries(mesNome)) {
+      const rx = new RegExp('\\b' + nome + '\\b[^\\d]{0,40}(\\d{4})', 'i');
+      const m = fullText.match(rx);
+      if (m) { d.periodo = `${String(numMes).padStart(2, '0')}/${m[1]}`; break; }
+    }
+  }
+
+  const valRx = '([\\d]{1,3}(?:\\.[\\d]{3})*,\\d{2}|\\d+,\\d{2})';
+
+  /* ---------- 009 ---------- */
+  const pats009 = [
+    new RegExp('009\\s*[-–]?\\s*Saldo\\s*credor\\s*do\\s*per[íi]odo\\s*anterior[^\\d]{0,120}?' + valRx, 'i'),
+    new RegExp('009[^\\d]{0,120}?' + valRx, 'i'),
+    new RegExp('Saldo\\s*credor\\s*do\\s*per[íi]odo\\s*anterior[^\\d]{0,80}?' + valRx, 'i')
+  ];
+  for (const rx of pats009) {
+    const m = fullText.match(rx);
+    if (m) { d.saldo_credor = m[1]; d.v09 = br(m[1]); break; }
+  }
+
+  /* =====================================================================
+     014 — ESTRATÉGIA CORRIGIDA
+     ---------------------------------------------------------------------
+     1) Escopo prioritário: 2ª página (RESUMO DA APURAÇÃO DO IMPOSTO)
+     2) Localiza o índice do "014"
+     3) Recorta do "014" até o PRÓXIMO rótulo "0XX -" ou "INFORMAÇÕES"
+        (isso delimita EXATAMENTE a linha do 014)
+     4) Pega o ÚLTIMO valor monetário desse trecho (o valor do 014)
+        — se não achar, pega o PRIMEIRO
+     ===================================================================== */
+
+  // 1) Escolhe o escopo
+  let escopo = fullText;
+  let origemPagina = 'texto completo';
+  if (pages.length >= 2 && /RESUMO\s+DA\s+APURA[CÇ][AÃ]O/i.test(pages[1])) {
+    escopo = pages[1];
+    origemPagina = '2ª página (RESUMO)';
+  } else {
+    for (let i = 0; i < pages.length; i++) {
+      if (/RESUMO\s+DA\s+APURA[CÇ][AÃ]O/i.test(pages[i])) {
+        escopo = pages[i];
+        origemPagina = `página ${i + 1} (RESUMO)`;
+        break;
+      }
+    }
+  }
+  d.debug_secao = escopo.substring(0, 3000);
+
+  // 2a) NOVO: com o texto agora reconstruído por linha, tenta achar a própria
+  // linha do "014" e pegar o valor direto dela (mais confiável que recortar por índice de caractere)
+  const linhasEscopo = escopo.split('\n');
+  const idxLinha014 = linhasEscopo.findIndex(l => /\b014\b/.test(l));
+  if (idxLinha014 !== -1) {
+    let candidatas = [linhasEscopo[idxLinha014]];
+    for (let k = 1; k <= 2 && idxLinha014 + k < linhasEscopo.length; k++) {
+      const prox = linhasEscopo[idxLinha014 + k];
+      if (/\b0\d{2}\s*[-–]/.test(prox) || /INFORMA[CÇ][ÕO]ES/i.test(prox)) break;
+      candidatas.push(prox);
+    }
+    const valoresLinha = [...candidatas.join(' ').matchAll(new RegExp(valRx, 'g'))];
+    if (valoresLinha.length) {
+      const ultimo = valoresLinha[valoresLinha.length - 1];
+      d.saldo_014 = ultimo[1];
+      d.v14 = br(ultimo[1]);
+      d.validacoes.push(`014 (linha reconstruída) = ${ultimo[1]}`);
+    }
+  }
+
+  // 2b) Se a busca por linha não achou, cai no método antigo por recorte de índice
+  const idx014 = d.v14 == null ? escopo.search(/\b014\b/) : -1;
+  if (idx014 !== -1) {
+    // 3) Recorta do 014 até o próximo rótulo "0XX -" (015, 016, ...) ou INFORMAÇÕES
+    let trecho = escopo.substring(idx014);
+
+    // Limita ao próximo rótulo "0XX -" (com 3 dígitos)
+    const proxRotulo = trecho.substring(3).search(/\b0\d{2}\s*[-–]/);
+    if (proxRotulo !== -1) {
+      trecho = trecho.substring(0, proxRotulo + 3);
+    }
+    // Limita a "INFORMAÇÕES COMPLEMENTARES"
+    const idxInfo = trecho.search(/INFORMA[CÇ][ÕO]ES\s+COMPLEMENTARES/i);
+    if (idxInfo !== -1) {
+      trecho = trecho.substring(0, idxInfo);
+    }
+
+    // 4) Pega o ÚLTIMO valor monetário do trecho (o valor do 014)
+    const todosValores = [...trecho.matchAll(new RegExp(valRx, 'g'))];
+    if (todosValores.length) {
+      // Último valor é o do 014 (o primeiro é o "014" em si, se casar)
+      const ultimo = todosValores[todosValores.length - 1];
+      d.saldo_014 = ultimo[1];
+      d.v14 = br(ultimo[1]);
+      d.validacoes.push(`014 (${origemPagina}, ${todosValores.length} valor(es) no trecho) = ${ultimo[1]}`);
+    } else {
+      d.validacoes.push('014: nenhum valor monetário encontrado no trecho');
+    }
+  } else {
+    d.validacoes.push('Rótulo 014 não encontrado');
+  }
+
+  // Fallback: se ainda não achou, tenta regex direto no texto completo
+  if (d.v14 == null) {
+    const fallback = fullText.match(new RegExp('014\\s*[-–:.]?\\s*Saldo\\s*credor[\\s\\S]{0,200}?' + valRx, 'i'));
+    if (fallback) {
+      d.saldo_014 = fallback[1];
+      d.v14 = br(fallback[1]);
+      d.validacoes.push(`014 (fallback texto completo) = ${fallback[1]}`);
+    }
+  }
+
+  if (!d.cnpj) d.validacoes.push('CNPJ não encontrado');
+  if (!d.periodo) d.validacoes.push('Período não encontrado');
+  if (!d.saldo_credor) d.validacoes.push('009 não encontrado');
+  if (d.v14 == null) d.validacoes.push('014 não encontrado');
+
+  if ($('debugMode').checked) {
+    console.log('=== PDF:', f.path, '===');
+    console.log('Páginas:', pages.length);
+    console.log('Trecho 014 (debug_secao):', d.debug_secao.substring(0, 600));
+  }
+
+  d.possui_dados = !!(d.cnpj || d.periodo || d.saldo_credor || d.v14 != null);
+  return d;
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+function filtrados() {
+  const c = $('filterCNPJ').value.trim().toLowerCase();
+  const p = $('filterPeriod').value.trim();
+  const n = $('filterFile').value.trim().toLowerCase();
+  const s = $('filterStatus').value;
+  return processed.filter(it => {
+    const r = cmp(it);
+    return (!c || (it.cnpj || '').toLowerCase().includes(c))
+        && (!p || (it.periodo || '').includes(p))
+        && (!n || (it.arquivo + it.caminho + (r.unidade || '')).toLowerCase().includes(n))
+        && (!s || r.st === s);
+  });
+}
+
+function render() {
+  const cs = processed.map(cmp);
+  $('stTotal').textContent = allPDFs.length;
+  $('stData').textContent = processed.filter(d => d.possui_dados).length;
+  $('stNo').textContent = processed.filter(d => !d.possui_dados).length;
+  $('stOk').textContent = cs.filter(r => r.st === 'ok').length;
+  $('stDv').textContent = cs.filter(r => r.st === 'dv').length;
+
+  const list = filtrados();
+  $('resultsCount').textContent = `${list.filter(d => d.possui_dados).length} com dados`;
+
+  if (!list.length) {
+    $('resultsContainer').innerHTML = '<div class="text-center text-muted py-5">Nenhum resultado</div>';
+    return;
+  }
+
+  const F = v => `<span class="data-field ${v ? 'found' : 'missing'}">${esc(v || 'Não encontrado')}</span>`;
+  const B = ok => ok === null
+    ? '<span class="status-badge status-off">sem valor</span>'
+    : ok
+      ? '<span class="status-badge status-valid">✓ IGUAL</span>'
+      : '<span class="status-badge status-warn">⚠ DIFERENTE</span>';
+
+  $('resultsContainer').innerHTML = list.map(it => {
+    const r = cmp(it);
+    let box = '';
+    if (r.st === 'np') {
+      box = '<div class="cmp small text-muted">Cole e processe a planilha (Passo 2) para conferir.</div>';
+    } else if (r.msg && !r.unidade) {
+      box = `<div class="cmp"><span class="status-badge status-invalid">✗ ${esc(r.msg)}</span></div>`;
+    } else {
+      box = `<div class="cmp">
+        <div class="mb-2"><b><i class="bi bi-table me-1"></i>Planilha:</b> ${esc(r.unidade || '—')}${r.estado ? ' — ' + esc(r.estado) : ''} — mês ${String(r.mes).padStart(2, '0')}</div>
+        <div class="data-row"><div class="data-label">Saldo a transportar (014):</div>PDF <b>${fmt(it.v14)}</b> &nbsp;×&nbsp; Planilha <b>${fmt(r.sal)}</b> &nbsp;${B(r.ok14)}</div>
+        <div class="data-row mb-0"><div class="data-label">Crédito Inicial (009):</div>PDF <b>${fmt(it.v09)}</b> &nbsp;×&nbsp; Planilha <b>${fmt(r.cred)}</b> &nbsp;${B(r.ok09)}</div>
+      </div>`;
+    }
+
+    const cls = r.st === 'dv' ? 'dv' : (it.possui_dados ? 'valid' : 'invalid');
+    let dbg = '';
+    if ($('debugMode').checked) {
+      if (it.raw) dbg += `<details class="mt-2"><summary class="small text-muted">Ver texto bruto do PDF</summary><div class="raw-box">${esc(it.raw)}</div></details>`;
+      if (it.debug_secao) dbg += `<details class="mt-2"><summary class="small text-muted">Ver seção RESUMO DA APURAÇÃO DO IMPOSTO</summary><div class="raw-box">${esc(it.debug_secao)}</div></details>`;
+    }
+
+    return `<div class="result-item ${cls}"><div class="d-flex align-items-start">
+      <div class="validation-icon ${it.possui_dados ? 'valid' : 'invalid'}"><i class="bi bi-${it.possui_dados ? 'check' : 'x'}"></i></div>
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between">
+          <div><div class="file-name">${esc(it.arquivo)}</div><div class="file-path">${esc(it.caminho)}</div></div>
+          <span class="status-badge ${it.possui_dados ? 'status-valid' : 'status-invalid'}">${it.possui_dados ? 'COM DADOS' : 'SEM DADOS'}</span>
+        </div>
+        <div class="mt-3">
+          <div class="data-row"><div class="data-label">CNPJ:</div>${F(it.cnpj)}</div>
+          <div class="data-row"><div class="data-label">Período:</div>${F(it.periodo)}</div>
+          <div class="data-row"><div class="data-label">Saldo Credor (009):</div>${F(it.saldo_credor)}</div>
+          <div class="data-row"><div class="data-label">Saldo a transportar (014):</div>${F(it.saldo_014)}</div>
+        </div>
+        ${box}
+        ${it.validacoes && it.validacoes.length
+          ? `<div class="mt-2">${it.validacoes.map(v => `<span class="badge bg-light text-dark me-1">${esc(v)}</span>`).join('')}</div>`
+          : ''}
+        ${dbg}
+      </div>
+    </div></div>`;
+  }).join('');
+}
+
+['filterCNPJ', 'filterPeriod', 'filterFile'].forEach(i => $(i).addEventListener('input', render));
+$('filterStatus').onchange = render;
+$('debugMode').onchange = render;
+
+/* =====================================================================
+   EXPORTAR
+   ===================================================================== */
+$('exportButton').onclick = () => {
+  const rows = filtrados().filter(d => d.possui_dados).map(it => {
+    const r = cmp(it);
+    return {
+      Arquivo: it.arquivo,
+      Caminho: it.caminho,
+      CNPJ: it.cnpj || '',
+      'CNPJ Válido?': it.cnpj ? (validarCNPJ(it.cnpj) ? 'SIM' : 'NÃO') : '',
+      'Período': it.periodo || '',
+      'Saldo Credor Anterior (009)': it.saldo_credor || '',
+      'Saldo a transportar (014)': it.saldo_014 || '',
+      Unidade: r.unidade || '',
+      'Planilha - Crédito Inicial': r.cred ?? '',
+      'Planilha - Saldo a transportar': r.sal ?? '',
+      '009 Confere?': r.ok09 === null ? '' : (r.ok09 ? 'SIM' : 'NÃO'),
+      '014 Confere?': r.ok14 === null ? '' : (r.ok14 ? 'SIM' : 'NÃO'),
+      Resultado: r.st === 'ok' ? 'CONFERE' : r.st === 'dv' ? 'DIVERGENTE' : (r.msg || '')
+    };
+  });
+
+  if (!rows.length) { alert('Nada para exportar.'); return; }
+
+  const fmtSel = $('exportFormat').value;
+  const ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+
+  if (fmtSel === 'excel') {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Conferência');
+    XLSX.writeFile(wb, `conferencia_icms_${ts}.xlsx`);
+    return;
+  }
+
+  let blob, name;
+  if (fmtSel === 'json') {
+    blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
+    name = `dados_icms_${ts}.json`;
+  } else {
+    const h = Object.keys(rows[0]);
+    const csv = [h.join(',')].concat(
+      rows.map(r => h.map(k => `"${String(r[k]).replace(/"/g, '""')}"`).join(','))
+    ).join('\n');
+    blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    name = `dados_icms_${ts}.csv`;
+  }
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+};
+</script>
+</body>
+</html>
