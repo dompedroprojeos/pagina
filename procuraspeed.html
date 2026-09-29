@@ -1,969 +1,754 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner SPED - Controle de Pastas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #ff6b00 0%, #000000 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', sans-serif;
-            padding: 20px;
-        }
-        
-        .main-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(255, 107, 0, 0.3);
-            overflow: hidden;
-            border: 1px solid #ff6b00;
-        }
-        
-        .app-header {
-            background: linear-gradient(90deg, #ff6b00, #000000);
-            color: white;
-            padding: 20px 30px;
-        }
-        
-        .folder-selector {
-            border: 3px dashed #ff6b00;
-            border-radius: 15px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 20px;
-            background: #1a1a1a;
-            color: white;
-        }
-        
-        .folder-selector:hover {
-            background: #333333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
-            border-color: #ff8533;
-        }
-        
-        .folder-icon {
-            font-size: 4rem;
-            color: #ff6b00;
-            margin-bottom: 15px;
-        }
-        
-        .btn-scan {
-            background: linear-gradient(90deg, #ff6b00, #cc5500);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-            width: 100%;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        
-        .btn-scan:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
-        }
-        
-        .btn-scan:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .result-item {
-            background: white;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid #ff6b00;
-            transition: all 0.2s;
-        }
-        
-        .result-item.has-file {
-            border-left: 5px solid #28a745;
-            background: #f8f9fa;
-        }
-        
-        .result-item.no-file {
-            border-left: 5px solid #ff6b00;
-            background: #fff3e6;
-        }
-        
-        .result-item.ignored {
-            border-left: 5px solid #6c757d;
-            background: #e9ecef;
-            opacity: 0.8;
-        }
-        
-        .folder-name {
-            font-weight: 600;
-            color: #000000;
-        }
-        
-        .folder-path {
-            color: #ff6b00;
-            font-size: 0.8rem;
-            word-break: break-all;
-        }
-        
-        .stats-card {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid #ff6b00;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .stats-card h6 {
-            color: #ff6b00;
-        }
-        
-        .log-entry {
-            font-size: 0.8rem;
-            font-family: monospace;
-            padding: 4px 8px;
-            border-left: 3px solid #ff6b00;
-            background: #1a1a1a;
-            margin-bottom: 3px;
-            color: #ff6b00;
-        }
-        
-        .status-tag {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            margin-left: 8px;
-            display: inline-block;
-        }
-        
-        .status-has {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-missing {
-            background: #ff6b00;
-            color: white;
-        }
-        
-        .status-ignored {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .filter-badge {
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin-right: 5px;
-            transition: all 0.2s;
-            background: #333333;
-            color: white;
-            display: inline-block;
-            margin-bottom: 5px;
-            border: 1px solid #ff6b00;
-        }
-        
-        .filter-badge.active {
-            background: #ff6b00;
-            color: black;
-            border-color: white;
-            font-weight: bold;
-        }
-        
-        .folder-checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            margin-right: 10px;
-            margin-top: 2px;
-            accent-color: #ff6b00;
-        }
-        
-        .progress-fast {
-            height: 6px;
-            background: #333333;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .progress-bar-fast {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b00, #cc5500);
-            transition: width 0.1s ease;
-        }
-        
-        .badge-count {
-            background: #ff6b00;
-            color: black;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner SPED Fiscal</title>
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#14213d;--mut:#64748b;--line:#e2e8f0;--ok:#0f9d75;--sem:#e08a00;--aus:#d9463b;--desc:#94a3b8;--acc:#2456d6;--pdf:#b91c1c;--both:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+.top{background:var(--ink);color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.top h1{margin:0;font-size:1.35rem;font-weight:700}.top p{margin:2px 0 0;color:#a8b5d1;font-size:.85rem}
+.wrap{display:grid;grid-template-columns:290px 1fr;gap:20px;padding:20px 28px;max-width:1600px;margin:auto}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;padding:14px}}
+.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,33,61,.08);margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:.95rem}
+.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:600;cursor:pointer;font-size:.9rem;width:100%;margin-top:8px;background:var(--acc);color:#fff;transition:transform .15s,filter .15s}
+.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.g{background:var(--ok)}.btn.r{background:var(--aus)}.btn.l{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.pick{border:2px dashed #9db4ee;border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#f5f8ff}
+.pick:hover{background:#eaf0ff}.pick b{display:block;font-size:1rem}.pick small{color:var(--mut)}
+input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;margin-bottom:8px;background:#fff}
+label.sw{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.85rem;color:var(--mut)}
+label.lb{display:block;font-size:.78rem;color:var(--mut);margin:6px 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+code{background:#eef2ff;padding:1px 6px;border-radius:5px;font-size:.82rem}
+.hero{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:center}
+@media(max-width:700px){.hero{grid-template-columns:1fr;justify-items:center}}
+.donut{width:190px;height:190px;border-radius:50%;background:conic-gradient(var(--line) 0 100%);position:relative;display:grid;place-items:center;transition:background .6s ease}
+.donut::after{content:"";position:absolute;inset:26px;background:#fff;border-radius:50%}
+.donut div{position:relative;z-index:1;text-align:center}
+.donut strong{font-size:2.3rem;display:block;line-height:1}.donut span{font-size:.78rem;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;width:100%}
+.kpi{border-left:4px solid var(--c);padding:6px 12px;background:#f8fafc;border-radius:0 8px 8px 0}
+.kpi b{font-size:1.5rem;display:block}.kpi span{font-size:.75rem;color:var(--mut)}
+.ufs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 22px}
+.uf{cursor:pointer;padding:6px 8px;border-radius:8px;border:1px solid transparent}
+.uf:hover{background:#f1f5f9}.uf.on{border-color:var(--acc);background:#eef3ff}
+.uf .h{display:flex;justify-content:space-between;font-weight:600;font-size:.85rem}.uf .h span{color:var(--mut);font-weight:500}
+.bar{height:8px;background:var(--line);border-radius:5px;margin-top:5px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.p{background:var(--pdf)}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:14px}
+.tabs button{background:none;border:0;padding:9px 16px;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem}
+.tabs button.on{color:var(--acc);border-color:var(--acc)}
+.tabs em{font-style:normal;background:var(--line);border-radius:10px;padding:1px 8px;margin-left:6px;font-size:.75rem}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.78rem;color:var(--mut);padding:8px 10px;border-bottom:2px solid var(--line);position:sticky;top:0;background:#fff;z-index:1}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#f8fafc}
+.tw{max-height:560px;overflow:auto}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.t-ok{background:#d6f5ea;color:#0a6b4f}.t-sem{background:#fdebc8;color:#8a5300}.t-ausente{background:#fbdcd9;color:#8f2a22}.t-desc{background:#e5e9ef;color:#475569}
+.t-aprox{background:#dbeafe;color:#1e40af;font-size:.68rem;padding:1px 6px;margin-left:5px}
+.t-alias{background:#fef3c7;color:#92400e;font-size:.68rem;padding:1px 6px;margin-left:5px}
+.fn{display:inline-block;background:#eef2ff;color:#243b8f;border-radius:6px;padding:1px 7px;margin:2px 3px 0 0;font:.76rem Consolas,monospace}
+.fn.pdf{background:#fee2e2;color:#991b1b}
+.path{color:var(--mut);font:.76rem Consolas,monospace;word-break:break-all}
+.log{max-height:150px;overflow:auto;font:.78rem Consolas,monospace}.log div{padding:3px 0;border-bottom:1px solid var(--line)}
+.log .error{color:var(--aus)}.log .success{color:var(--ok)}.log .warning{color:var(--sem)}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+.d-none{display:none!important}
+.chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600;margin-right:4px}
+.chip.s{background:#d6f5ea;color:#0a6b4f}
+.chip.p{background:#fee2e2;color:#991b1b}
+.chip.n{background:#e5e9ef;color:#64748b}
 
-        .file-icon {
-            font-size: 1rem;
-            margin-right: 5px;
-            color: #ff6b00;
-        }
-
-        .file-details {
-            font-size: 0.85rem;
-            background: #1a1a1a;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin-top: 5px;
-            color: white;
-            border-left: 3px solid #ff6b00;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .btn-outline-success {
-            color: white;
-            border-color: #28a745;
-        }
-        
-        .btn-outline-success:hover {
-            background: #28a745;
-            color: black;
-        }
-        
-        .btn-outline-danger {
-            color: white;
-            border-color: #ff6b00;
-        }
-        
-        .btn-outline-danger:hover {
-            background: #ff6b00;
-            color: black;
-        }
-        
-        .btn-outline-secondary {
-            color: white;
-            border-color: #6c757d;
-        }
-        
-        .btn-outline-secondary:hover {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-success {
-            background: #28a745;
-            border: none;
-        }
-        
-        .btn-primary {
-            background: #ff6b00;
-            border: none;
-            color: black;
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            border: none;
-            color: black;
-        }
-        
-        .current-path {
-            background: #1a1a1a;
-            color: #ff6b00;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-family: monospace;
-            border: 1px solid #ff6b00;
-            word-break: break-all;
-        }
-        
-        .current-path i {
-            color: white;
-            margin-right: 5px;
-        }
-        
-        .alert-info {
-            background: #1a1a1a;
-            border: 1px solid #ff6b00;
-            color: white;
-        }
-        
-        .text-muted {
-            color: #ff6b00 !important;
-        }
-        
-        .results-header {
-            color: #ff6b00;
-            border-bottom: 2px solid #ff6b00;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-    </style>
+#overlayProg{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%, rgba(36,86,214,.35) 0%, rgba(20,33,61,.75) 60%, rgba(10,18,38,.9) 100%);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);display:none;place-items:center;z-index:9999;animation:fadeIn .3s ease}
+#overlayProg.on{display:grid}
+#overlayProg::before,#overlayProg::after{content:"";position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;animation:float 8s ease-in-out infinite}
+#overlayProg::before{width:340px;height:340px;background:radial-gradient(circle,#4f7be6 0%,transparent 70%);top:10%;left:15%;opacity:.55}
+#overlayProg::after{width:300px;height:300px;background:radial-gradient(circle,#0f9d75 0%,transparent 70%);bottom:12%;right:18%;opacity:.45;animation-delay:2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-25px) scale(1.12)}}
+.progBox{position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:28px;padding:44px 54px 36px;text-align:center;min-width:400px;box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);animation:pop .45s cubic-bezier(.2,.9,.3,1.25);overflow:hidden}
+.progBox::before{content:"";position:absolute;inset:0;border-radius:28px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.05) 40%,rgba(255,255,255,.3));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.ring{width:200px;height:200px;margin:0 auto 22px;position:relative;filter:drop-shadow(0 8px 24px rgba(36,86,214,.5))}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring .track{fill:none;stroke:rgba(255,255,255,.15);stroke-width:10}
+.ring .track2{fill:none;stroke:rgba(255,255,255,.06);stroke-width:18}
+.ring .fill{fill:none;stroke:url(#gradProg);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 10px rgba(79,123,230,.9)) drop-shadow(0 0 22px rgba(15,157,117,.6))}
+.ring .fill.pulse{animation:pulseStroke 1.8s ease-in-out infinite}
+@keyframes pulseStroke{0%,100%{filter:drop-shadow(0 0 8px rgba(79,123,230,.7)) drop-shadow(0 0 16px rgba(15,157,117,.4))}50%{filter:drop-shadow(0 0 16px rgba(79,123,230,1)) drop-shadow(0 0 32px rgba(15,157,117,.9))}}
+.ring .dot{fill:#fff;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px #4f7be6);transition:cx .5s cubic-bezier(.4,0,.2,1),cy .5s cubic-bezier(.4,0,.2,1)}
+.ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ring .center .pct{font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-2px;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.55),0 0 30px rgba(79,123,230,.85),0 0 60px rgba(79,123,230,.55);font-variant-numeric:tabular-nums}
+.ring .center .pct::after{content:"%";font-size:1.5rem;font-weight:600;margin-left:2px;opacity:.75;vertical-align:top}
+.ring .center .lbl{font-size:.7rem;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.72);margin-top:6px;font-weight:600}
+.progTitle{font-size:1.15rem;font-weight:700;color:#fff;margin:0 0 6px;text-shadow:0 2px 12px rgba(0,0,0,.35);letter-spacing:.3px}
+.progSub{font-size:.85rem;color:rgba(255,255,255,.78);margin:0 0 8px;min-height:1.3em;font-weight:500}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.dots span{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#4f7be6,#0f9d75);box-shadow:0 0 10px rgba(79,123,230,.9);animation:bounce 1.3s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:.18s;background:linear-gradient(135deg,#7ea6ff,#4f7be6)}
+.dots span:nth-child(3){animation-delay:.36s;background:linear-gradient(135deg,#0f9d75,#5fd0a4)}
+@keyframes bounce{0%,80%,100%{transform:scale(.55);opacity:.4}40%{transform:scale(1.15);opacity:1}}
+.progStats{display:flex;gap:26px;justify-content:center;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.16)}
+.progStats > div{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.progStats b{font-size:1.6rem;color:#fff;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(79,123,230,.7)}
+.progStats small{font-size:.68rem;color:rgba(255,255,255,.65);margin-top:5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="main-container">
-            <!-- Cabeçalho -->
-            <div class="app-header">
-                <h1 class="h3 mb-0">
-                    <i class="bi bi-file-text me-2"></i>
-                    Scanner SPED - Controle de Pastas
-                </h1>
-                <small>Busca em todas as subpastas | Design Laranja/Preto</small>
-            </div>
 
-            <div class="row g-0">
-                <!-- Sidebar -->
-                <div class="col-lg-4 p-4" style="background: #000000;">
-                    <!-- Seletor de pasta -->
-                    <div class="folder-selector mb-4" id="folderSelector">
-                        <div class="folder-icon">
-                            <i class="bi bi-folder-plus"></i>
-                        </div>
-                        <h5>Clique para selecionar pasta</h5>
-                        <p class="text-white-50 small">
-                            Selecione a pasta raiz para buscar TODAS as subpastas
-                        </p>
-                        
-                        <div id="folderInfo" class="mt-3 d-none">
-                            <div class="alert alert-info py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span id="selectedFolderName" class="fw-bold text-white">Pasta</span>
-                                    <span id="foundCount" class="badge-count">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Botão Scan -->
-                    <button id="scanButton" class="btn-scan mb-4" disabled>
-                        <i class="bi bi-search me-2"></i>Buscar TODAS as Pastas
-                    </button>
-
-                    <!-- Caminho atual sendo escaneado -->
-                    <div id="currentPathContainer" class="current-path d-none mb-3">
-                        <i class="bi bi-folder2-open"></i>
-                        <span id="currentScanPath">Aguardando...</span>
-                    </div>
-
-                    <!-- Estatísticas -->
-                    <div id="statsSection" class="stats-card d-none">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span><i class="bi bi-folder"></i> Total de Pastas:</span>
-                            <span class="fw-bold text-white" id="totalFolders">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span><i class="bi bi-check-circle text-success"></i> JÁ GERADOS:</span>
-                            <span class="fw-bold text-success" id="hasFileFolders">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span><i class="bi bi-exclamation-circle text-warning"></i> NÃO GERADOS:</span>
-                            <span class="fw-bold text-warning" id="noFileFolders">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span><i class="bi bi-x-circle text-secondary"></i> IGNORADOS:</span>
-                            <span class="fw-bold text-secondary" id="ignoredFolders">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between" style="border-top: 1px solid #ff6b00; padding-top: 10px; margin-top: 5px;">
-                            <span><i class="bi bi-file-text text-warning"></i> PRECISAM GERAR:</span>
-                            <span class="fw-bold text-warning" id="needToGenerate">0</span>
-                        </div>
-                    </div>
-
-                    <!-- Filtros -->
-                    <div class="stats-card">
-                        <h6 class="mb-2">Filtrar por:</h6>
-                        <div class="action-buttons">
-                            <span class="filter-badge active" id="filterAll">Todas</span>
-                            <span class="filter-badge" id="filterHas">Já gerados</span>
-                            <span class="filter-badge" id="filterNo">Não gerados</span>
-                            <span class="filter-badge" id="filterNeed">Precisam gerar</span>
-                            <span class="filter-badge" id="filterIgnored">Ignorados</span>
-                        </div>
-                    </div>
-
-                    <!-- Ações em Massa -->
-                    <div class="stats-card">
-                        <h6 class="mb-2">Marcar como "Não gerar":</h6>
-                        <div class="action-buttons">
-                            <button id="ignoreAllHas" class="btn btn-sm btn-outline-success w-100 mb-1">
-                                <i class="bi bi-check-all"></i> Quem já tem
-                            </button>
-                            <button id="ignoreAllNo" class="btn btn-sm btn-outline-danger w-100 mb-1">
-                                <i class="bi bi-x-circle"></i> Quem não tem
-                            </button>
-                            <button id="unignoreAll" class="btn btn-sm btn-outline-secondary w-100">
-                                <i class="bi bi-arrow-counterclockwise"></i> Resetar todos
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Exportação -->
-                    <div class="stats-card">
-                        <h6 class="mb-2">Relatórios:</h6>
-                        <button id="exportButton" class="btn btn-success w-100 mb-2" disabled>
-                            <i class="bi bi-download"></i> Lista completa
-                        </button>
-                        <button id="exportNeedGenerate" class="btn btn-primary w-100 mb-2" disabled>
-                            <i class="bi bi-file-text"></i> Só os que PRECISAM
-                        </button>
-                        <button id="exportMissingButton" class="btn btn-warning w-100" disabled>
-                            <i class="bi bi-exclamation-triangle"></i> Só os não gerados
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Conteúdo principal -->
-                <div class="col-lg-8 p-4" style="background: #f5f5f5;">
-                    <!-- Barra de progresso -->
-                    <div id="progressSection" class="stats-card d-none" style="background: white; color: black;">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span id="progressText" class="small" style="color: black;">Escaneando pastas...</span>
-                            <span id="progressPercent" class="small" style="color: black;">0%</span>
-                        </div>
-                        <div class="progress-fast">
-                            <div id="progressBar" class="progress-bar-fast" style="width: 0%;"></div>
-                        </div>
-                        <div id="currentFile" class="small text-warning mt-1"></div>
-                    </div>
-
-                    <!-- Lista de Pastas -->
-                    <div class="stats-card" style="background: white;">
-                        <div class="d-flex justify-content-between align-items-center mb-3 results-header">
-                            <h5 class="mb-0" style="color: #ff6b00;">TODAS as Pastas Encontradas</h5>
-                            <span class="badge-count" id="resultsCount">0</span>
-                        </div>
-                        
-                        <div id="resultsContainer" style="max-height: 500px; overflow-y: auto;">
-                            <div class="text-center py-5">
-                                <i class="bi bi-folder2-open display-4 d-block mb-3" style="color: #ff6b00;"></i>
-                                <p style="color: #666;">Clique em "Buscar TODAS as Pastas"</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Logs -->
-                    <div class="stats-card mt-4" style="background: #1a1a1a;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <small class="fw-bold" style="color: #ff6b00;">LOG DE EXECUÇÃO</small>
-                            <button id="clearLogs" class="btn btn-sm btn-outline-warning py-0">limpar</button>
-                        </div>
-                        <div id="logsContainer" style="max-height: 120px; overflow-y: auto;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div id="overlayProg">
+  <div class="progBox">
+    <div class="ring">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="gradProg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7ea6ff"/>
+            <stop offset="50%" stop-color="#4f7be6"/>
+            <stop offset="100%" stop-color="#0f9d75"/>
+          </linearGradient>
+        </defs>
+        <circle class="track2" cx="100" cy="100" r="86"/>
+        <circle class="track" cx="100" cy="100" r="78"/>
+        <circle class="fill pulse" id="ringFill" cx="100" cy="100" r="78" stroke-dasharray="490" stroke-dashoffset="490"/>
+        <circle class="dot" id="ringDot" cx="100" cy="22" r="4.5"/>
+      </svg>
+      <div class="center">
+        <div class="pct" id="ringPct">0</div>
+        <div class="lbl">progresso</div>
+      </div>
     </div>
+    <p class="progTitle">Lendo pastas…</p>
+    <p class="progSub" id="progSub">Iniciando varredura</p>
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="progStats">
+      <div><b id="statPastas">0</b><small>Pastas</small></div>
+      <div><b id="statPostos">0</b><small>Postos</small></div>
+      <div><b id="statArquivos">0</b><small>Arquivos</small></div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // Estado
-        let selectedDirectoryHandle = null;
-        let allFolders = [];
-        let filteredFolders = [];
-        let currentFilter = 'all';
-        let ignoredFolders = new Set();
-        let isScanning = false;
+<div class="top">
+  <div><h1>Scanner SPED Fiscal</h1><p>Procura <code style="background:#2b3a63;color:#dbe5ff">sped_fiscal_*.txt</code> e <code style="background:#3a1e1e;color:#ffd6d6">Recibo sped*.pdf</code></p></div>
+  <div id="stamp" style="color:#a8b5d1;font-size:.85rem"></div>
+</div>
 
-        // Elementos DOM
-        const folderSelector = document.getElementById('folderSelector');
-        const folderInfo = document.getElementById('folderInfo');
-        const selectedFolderName = document.getElementById('selectedFolderName');
-        const scanButton = document.getElementById('scanButton');
-        const progressSection = document.getElementById('progressSection');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const progressPercent = document.getElementById('progressPercent');
-        const currentFile = document.getElementById('currentFile');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const logsContainer = document.getElementById('logsContainer');
-        const exportButton = document.getElementById('exportButton');
-        const exportMissingButton = document.getElementById('exportMissingButton');
-        const exportNeedGenerate = document.getElementById('exportNeedGenerate');
-        const statsSection = document.getElementById('statsSection');
-        const totalFolders = document.getElementById('totalFolders');
-        const hasFileFolders = document.getElementById('hasFileFolders');
-        const noFileFolders = document.getElementById('noFileFolders');
-        const ignoredFoldersSpan = document.getElementById('ignoredFolders');
-        const needToGenerate = document.getElementById('needToGenerate');
-        const foundCount = document.getElementById('foundCount');
-        const resultsCount = document.getElementById('resultsCount');
-        const currentPathContainer = document.getElementById('currentPathContainer');
-        const currentScanPath = document.getElementById('currentScanPath');
+<div class="wrap">
+<aside>
+  <div class="card">
+    <h3>1. Pasta</h3>
+    <div class="pick" id="folderSelector"><b id="pickTitle">Escolher pasta</b><small id="pickSub">Selecione a pasta raiz</small></div>
+    <button id="scanButton" class="btn" disabled>Escanear</button>
 
-        // Filtros
-        const filterAll = document.getElementById('filterAll');
-        const filterHas = document.getElementById('filterHas');
-        const filterNo = document.getElementById('filterNo');
-        const filterNeed = document.getElementById('filterNeed');
-        const filterIgnored = document.getElementById('filterIgnored');
+    <label class="lb">Profundidade da busca</label>
+    <select id="searchDepth">
+      <option value="0">Apenas a pasta selecionada</option>
+      <option value="1" selected>Somente subpastas diretas (1 nível)</option>
+      <option value="2">Até 2 níveis</option>
+      <option value="3">Até 3 níveis</option>
+      <option value="-1">Ilimitado (recursivo total)</option>
+    </select>
 
-        // Função para verificar se é arquivo SPED (começa com sped_fiscal_)
-        function isSpedTxtFile(name) {
-            return name.toLowerCase().startsWith('sped_fiscal_') && name.toLowerCase().endsWith('.txt');
+    <label class="sw"><input type="checkbox" id="debugLog"> Modo diagnóstico (log detalhado)</label>
+  </div>
+  <div class="card">
+    <h3>2. Filtros</h3>
+    <input type="text" id="filterText" placeholder="Nome, código ou pasta...">
+    <select id="filterStatus">
+      <option value="">Todas as situações</option>
+      <option value="ok">Com SPED</option>
+      <option value="sem">Pasta sem arquivo</option>
+      <option value="ausente">Pasta ausente</option>
+      <option value="desc">Pasta não cadastrada</option>
+    </select>
+    <select id="filterDoc">
+      <option value="">Todos os documentos</option>
+      <option value="ambos">SPED + Recibo</option>
+      <option value="so_sped">Só SPED</option>
+      <option value="so_pdf">Só Recibo</option>
+      <option value="falta_pdf">Falta Recibo</option>
+      <option value="falta_sped">Falta SPED</option>
+      <option value="nenhum">Nenhum dos dois</option>
+    </select>
+    <select id="filterPerfil"><option value="">Todos os perfis</option><option value="A">Perfil A</option><option value="B">Perfil B</option></select>
+    <button id="resetFiltros" class="btn l">Limpar filtros</button>
+  </div>
+  <div class="card">
+    <h3>3. Exportar</h3>
+    <select id="exportFormat"><option value="excel">Excel XLSX</option><option value="csv">CSV</option><option value="json">JSON</option></select>
+    <button id="exportButton" class="btn g" disabled>Exportar escaneados</button>
+    <button id="exportFaltantes" class="btn r" disabled>Exportar faltantes</button>
+  </div>
+</aside>
+
+<main>
+  <div class="card">
+    <div class="hero">
+      <div class="donut" id="donut"><div><strong id="pct">–</strong><span>das unidades com SPED</span></div></div>
+      <div class="kpis">
+        <div class="kpi" style="--c:var(--ok)"><b id="kOk">0</b><span>Com SPED</span></div>
+        <div class="kpi" style="--c:var(--pdf)"><b id="kPdf">0</b><span>Com Recibo PDF</span></div>
+        <div class="kpi" style="--c:var(--both)"><b id="kAmbos">0</b><span>SPED + Recibo</span></div>
+        <div class="kpi" style="--c:var(--sem)"><b id="kSem">0</b><span>Pasta sem arquivo</span></div>
+        <div class="kpi" style="--c:var(--aus)"><b id="kAus">0</b><span>Pasta ausente</span></div>
+        <div class="kpi" style="--c:var(--desc)"><b id="kDesc">0</b><span>Não cadastradas</span></div>
+        <div class="kpi" style="--c:var(--acc)"><b id="kFiles">0</b><span>Arquivos SPED</span></div>
+        <div class="kpi" style="--c:var(--pdf)"><b id="kFilesPdf">0</b><span>Arquivos PDF</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Cobertura por estado <small style="color:var(--mut);font-weight:400">— clique para filtrar</small></h3>
+    <div class="ufs" id="ufs"><div class="empty" style="grid-column:1/-1;padding:14px">Escaneie uma pasta para ver a cobertura.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button id="tabEnc" class="on">Escaneados<em id="bEnc">0</em></button>
+      <button id="tabFal">Faltantes<em id="bFal">0</em></button>
+    </div>
+    <div id="painelEnc" class="tw"></div>
+    <div id="painelFal" class="tw d-none"></div>
+    <div id="selInfo" class="d-none" style="margin-top:10px;font-size:.85rem;color:var(--mut)"><span id="nSel">0</span> faltante(s) selecionado(s) — a exportação usa só os selecionados.</div>
+  </div>
+
+  <div class="card"><h3>Log</h3><div class="log" id="logs"><div>Sistema pronto</div></div></div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let dirHandle=null,resultados=[],faltantes=[],ufAtiva='',marcados=new Set(),pastasLidas=0;
+
+const PREFIX_SPED=/^sped_fiscal_.*\.txt$/i;
+const PREFIX_PDF=/^recibo[\s_\-\.]*sped.*\.pdf$/i;
+
+/* ============== CADASTRO ============== */
+const UNIDADES_RAW=`
+PARAÍSO DO TOCANTINS|45|TO|B|
+SÃO CRISTÓVÃO FILIAL|95|SE|B|
+PARAGOMINAS|37|PA|A|Paragominas - Antigo;Paragominas - Filial - Devolvido
+ALIANÇA|28|MG|B|
+BETIM|11|MG|B|
+BETIM 2|36|MG|B|
+BUENO BRANDÃO|58|MG|B|
+CAMANDUCAIA URBANO 1|60|MG|B|
+CAMANDUCAIA URBANO 2|63|MG|B|
+CAMBUÍ RODOVIA|22|MG|B|Cambuí Rodovia - Antigo
+CAMBUÍ URBANO 1|30|MG|B|
+CAMBUÍ URBANO 2|42|MG|B|
+CARMÓPOLIS|35|MG|B|Carmópolis - Antigo
+CENTRAL|47|MG|B|
+CONSELHEIRO LAFAIETE|91|MG|B|
+CONTAGEM FERNÃO DIAS|43|MG|B|
+CONTAGEM NORTE|20|MG|B|
+CONTAGEM SUL|21|MG|B|
+DIVISA ALEGRE|41|MG|B|
+DIVISA ALEGRE 2|55|MG|B|
+DOM PEDRO 1|2|MG|B|
+DOM PEDRO 2|6|MG|B|
+EXTREMA|70|MG|B|
+FREI INOCÊNCIO|87|MG|B|
+FUMAÇA|14|MG|B|Fumaça - Antigo
+IGARATINGA|34|MG|B|
+INCONFIDENTES|56|MG|B|
+INHAPIM|103|MG|B|
+ITAGUARA|50|MG|B|
+ITATIAIUÇU|3|MG|B|
+JK|27|MG|B|
+JUIZ DE FORA RODOVIA|80|MG|B|
+JUIZ DE FORA URBANO|57|MG|B|Juiz de Fora Urbano - Antigo
+LUZ|104|MG|B|
+MONTES CLAROS|81|MG|B|Montes Claros - Antigo
+MURIAÉ|18|MG|B|
+NOVA SERRANA|33|MG|B|
+OLIVEIRA|29|MG|B|
+OURO FINO|61|MG|B|
+PAJEÚ|44|MG|B|
+PARAOPEBA|19|MG|B|
+PAULINHO|9|MG|B|
+POSTO 99|10|MG|B|
+POUSO ALEGRE RODOVIA|7|MG|B|
+POUSO ALEGRE URBANO 1|59|MG|B|
+POUSO ALEGRE URBANO 2|69|MG|B|
+POUSO ALEGRE URBANO 3|77|MG|B|
+SALINAS|15|MG|B|
+SÃO GONÇALO RODOVIA 1|32|MG|B|
+SÃO GONÇALO RODOVIA 2|99|MG|B|
+SÃO GONÇALO RODOVIA 3|100|MG|B|
+SÃO GONÇALO URBANO 2|53|MG|B|
+SENADOR AMARAL|51|MG|B|
+TURIM|13|MG|B|
+RUSSAS|102|CE|B|
+CEARA|12|CE|B|XP Transportes Ceará
+GOIAS|6|GO|A|XP Transportes Goiás
+MATRIZ|1|MG|B|
+PARÁ|7|PA|A|XP Transportes Pará
+SERGIPE|11|SE|B|XP Transportes Sergipe
+TOCANTINS|9|TO|B|XP Transportes Tocantins
+BARRA MANSA NORTE|89|RJ|A|
+BARRA MANSA SUL|90|RJ|A|
+APARECIDA|17|SP|A|
+ATIBAIA|8|SP|A|
+ATIBAIA URBANO FILIAL (A PARTIR DE 09/08)|68|SP|A|Atibaia Urbano - Antigo;Atibaia Urbano
+BRAGANÇA RODOVIA|88|SP|A|
+BRAGANÇA URBANO 1|66|SP|A|
+GUARA|24|SP|A|
+GUARA URBANO 2|64|SP|A|
+GUARA URBANO 3|65|SP|A|
+JACAREÍ|67|SP|A|Jacareí - Antigo
+JOIA|25|SP|A|
+LEME|4|SP|A|
+LORENA|54|SP|A|
+MIRACATU NORTE|26|SP|A|
+PINDA|5|SP|A|Pinda - Antigo
+SALES OLIVEIRA|78|SP|A|
+SÃO JOSÉ DOS CAMPOS|86|SP|A|
+VARGEM|82|SP|A|
+ATIBAIA|2|SP|A|
+TRES RIOS|3|RJ|A|
+BARREIRAS|96|BA|A|
+ITABERABA|97|BA|A|
+JAGUAQUARA|31|BA|A|
+PLANALTO|92|BA|A|
+SANTO ESTEVÃO 1|48|BA|A|
+SANTO ESTEVÃO 2|93|BA|A|
+SANTO ESTEVÃO 3|94|BA|A|
+SÃO JORGE|83|BA|A|
+VALENÇA|98|BA|A|
+VITÓRIA DA CONQUISTA|79|BA|A|
+BAHIA|4|BA|A|XP Transportes Bahia
+`;
+
+const norm=s=>String(s??'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const UNIDADES_LISTA=[];
+const ALIASES={};
+UNIDADES_RAW.trim().split('\n').forEach(l=>{
+  const p=l.split('|').map(s=>s.trim());
+  if(p.length<4)return;
+  const u={nome:p[0],codigo:p[1],uf:p[2],perfil:p[3],key:norm(p[0])};
+  UNIDADES_LISTA.push(u);
+  if(p[4]){
+    p[4].split(';').forEach(a=>{
+      const alvo=norm(a.trim());
+      if(alvo) ALIASES[alvo]=u;
+    });
+  }
+});
+
+const UNIDADES={};
+UNIDADES_LISTA.forEach(u=>{if(!UNIDADES[u.key])UNIDADES[u.key]=u;});
+
+function limpaNome(s){return norm(s).replace(/[^A-Z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
+function removeSufixos(k){
+  let s = ' ' + k + ' ';
+  const sufixos = ['ANTIGO','ANTIGA','ANTIGOS','ANTIGAS','NOVO','NOVA','NOVOS','NOVAS','FILIAL','MATRIZ','DEVOLVIDO','DEVOLVIDA','DESATIVADO','DESATIVADA','INCORPORADO','INCORPORADA','ENCERRADO','ENCERRADA','INATIVO','INATIVA','EM OBRAS','PARADO','PARADA'];
+  sufixos.forEach(suf => {
+    const re = new RegExp('(^|\\s)' + suf + '(\\s|$)','g');
+    s = s.replace(re,' ');
+  });
+  s = s.replace(/\s+\d+\s*$/,' ');
+  s = s.split(/\s+/).filter(t=>t.length>1).join(' ');
+  return s.trim();
+}
+
+function matchUnidade(nome){
+  const kOriginal = limpaNome(nome);
+  if (!kOriginal) return null;
+  if (ALIASES[kOriginal]) return {...ALIASES[kOriginal],_match:'alias'};
+  if (UNIDADES[kOriginal]) return {...UNIDADES[kOriginal],_match:'exato'};
+
+  const semParenteses = limpaNome(nome.replace(/\s*\([^)]*\)\s*/g,' '));
+  if (UNIDADES[semParenteses]) return {...UNIDADES[semParenteses],_match:'exato'};
+  if (ALIASES[semParenteses]) return {...ALIASES[semParenteses],_match:'alias'};
+
+  const kLimpo = removeSufixos(kOriginal);
+  if (kLimpo && UNIDADES[kLimpo]) return {...UNIDADES[kLimpo],_match:'limpo'};
+  if (kLimpo && ALIASES[kLimpo]) return {...ALIASES[kLimpo],_match:'alias'};
+
+  const kLimpo2 = removeSufixos(semParenteses);
+  if (kLimpo2 && UNIDADES[kLimpo2]) return {...UNIDADES[kLimpo2],_match:'limpo'};
+  if (kLimpo2 && ALIASES[kLimpo2]) return {...ALIASES[kLimpo2],_match:'alias'};
+
+  const alvo = kLimpo || kOriginal;
+  const tokens = alvo.split(' ').filter(t=>t.length>1);
+  if (!tokens.length) return null;
+
+  let melhor=null, melhorScore=0;
+  const candidatos = [
+    ...Object.keys(UNIDADES).map(k=>({key:k,u:UNIDADES[k]})),
+    ...Object.keys(ALIASES).map(k=>({key:k,u:ALIASES[k]}))
+  ];
+  for (const {key,u} of candidatos) {
+    const keyTokens = key.split(' ');
+    let m=0;
+    for (const t of tokens) if (keyTokens.includes(t)) m++;
+    if (m === 0) continue;
+    const cobertura = m / keyTokens.length;
+    const coberturaPasta = m / tokens.length;
+    if (cobertura < 0.5 && coberturaPasta < 0.5) continue;
+    const score = m * 1000 + key.length;
+    if (score > melhorScore) { melhorScore = score; melhor = u; }
+  }
+  if (melhor) return {...melhor, _match:'tokens'};
+  return null;
+}
+
+function addLog(msg,type=''){
+  const d=document.createElement('div');d.className=type;d.textContent=new Date().toLocaleTimeString('pt-BR')+'  '+msg;
+  $('logs').prepend(d);while($('logs').children.length>200)$('logs').lastChild.remove();
+}
+
+const RING_CIRC=2*Math.PI*78;
+function setProgresso(pct,sub,stats){
+  pct=Math.max(0,Math.min(100,pct));
+  $('ringFill').style.strokeDashoffset=RING_CIRC*(1-pct/100);
+  $('ringPct').textContent=Math.round(pct);
+  const ang=(pct/100)*2*Math.PI - Math.PI/2;
+  $('ringDot').setAttribute('cx',100+78*Math.cos(ang));
+  $('ringDot').setAttribute('cy',100+78*Math.sin(ang));
+  if(sub!==undefined)$('progSub').textContent=sub;
+  if(stats){
+    if(stats.pastas!==undefined)$('statPastas').textContent=stats.pastas;
+    if(stats.postos!==undefined)$('statPostos').textContent=stats.postos;
+    if(stats.arquivos!==undefined)$('statArquivos').textContent=stats.arquivos;
+  }
+}
+function mostrarOverlay(){ $('overlayProg').classList.add('on'); setProgresso(0,'Iniciando varredura',{pastas:0,postos:0,arquivos:0}); }
+function esconderOverlay(){ $('overlayProg').classList.remove('on'); }
+
+$('folderSelector').onclick=async()=>{
+  if(!window.showDirectoryPicker){alert('Use Chrome ou Edge (File System Access API).');return;}
+  try{
+    dirHandle=await window.showDirectoryPicker();
+    $('pickTitle').textContent=dirHandle.name;$('pickSub').textContent='Pasta selecionada — clique para trocar';
+    $('scanButton').disabled=false;addLog(`Pasta selecionada: "${dirHandle.name}"`);
+  }catch(e){if(e.name!=='AbortError')addLog('Erro: '+e.message,'error');}
+};
+
+/* ============== ESCANEAMENTO COM PROFUNDIDADE LIMITADA ==============
+   profundidade 0 = pasta selecionada
+   profundidade 1 = subpastas diretas  ← padrão
+   profundidade 2 = netos
+   profundidade -1 = ilimitado
+*/
+async function escanearDir(dir, basePath = '', profundidade = 0, maxProf = 1) {
+  const nomePasta = dir.name;
+  const caminhoAtual = basePath ? `${basePath}/${nomePasta}` : nomePasta;
+  const unidade = matchUnidade(nomePasta);
+
+  const entrada = {
+    pasta: caminhoAtual,
+    arquivos: [], arquivosPdf: [],
+    temSped: false, temPdf: false,
+    unidade: unidade || null,
+    matchTipo: unidade?._match || null,
+    profundidade
+  };
+
+  const subs = [];
+  pastasLidas++;
+
+  const pctLeitura = Math.min(70, Math.log10(pastasLidas + 1) * 30);
+  setProgresso(pctLeitura, `Lendo: ${nomePasta}`, {
+    pastas: pastasLidas,
+    postos: resultados.length,
+    arquivos: resultados.reduce((a, r) => a + r.arquivos.length + r.arquivosPdf.length, 0)
+  });
+
+  if (pastasLidas % 8 === 0) await new Promise(r => setTimeout(r, 0));
+
+  try {
+    for await (const h of dir.values()) {
+      if (h.kind === 'file') {
+        if (PREFIX_SPED.test(h.name)) {
+          entrada.arquivos.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temSped = true;
         }
-
-        // Extrair informações do nome do arquivo
-        function parseSpedFileName(name) {
-            const match = name.match(/sped_fiscal_(\d{6})_(\d{14})\.txt$/i);
-            if (match) {
-                return {
-                    periodo: match[1],
-                    cnpj: match[2].replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-                };
-            }
-            return null;
+        if (PREFIX_PDF.test(h.name)) {
+          entrada.arquivosPdf.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temPdf = true;
         }
+      } else {
+        subs.push(h);
+      }
+    }
+  } catch (e) {
+    addLog(`Erro lendo "${caminhoAtual}": ${e.message}`, 'error');
+  }
 
-        // Log
-        function addLog(msg) {
-            const log = document.createElement('div');
-            log.className = 'log-entry';
-            log.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logsContainer.prepend(log);
-            if (logsContainer.children.length > 20) {
-                logsContainer.removeChild(logsContainer.lastChild);
-            }
-        }
+  if ($('debugLog').checked) {
+    const tagU = unidade ? `→ ${unidade.nome} (${unidade._match||'?'})` : '';
+    const tagD = entrada.temSped||entrada.temPdf ? '📄' : '';
+    console.log(`[SCAN d=${profundidade}] ${caminhoAtual} | subs:${subs.length} | SPED:${entrada.arquivos.length} | PDF:${entrada.arquivosPdf.length} ${tagU} ${tagD}`);
+    if (unidade || entrada.temSped || entrada.temPdf) {
+      addLog(`📁 [d=${profundidade}] ${caminhoAtual} ${tagU}`, unidade ? (unidade._match==='exato'?'':'warning') : '');
+    }
+  }
 
-        document.getElementById('clearLogs').addEventListener('click', () => {
-            logsContainer.innerHTML = '';
-        });
+  const temDocumentos = entrada.temSped || entrada.temPdf;
+  if (unidade || temDocumentos) {
+    resultados.push(entrada);
+    if (!unidade && temDocumentos) {
+      addLog(`⚠ "${nomePasta}" tem documentos mas não casou — registrada como NÃO CADASTRADA`,'warning');
+    } else if (unidade && unidade._match && unidade._match !== 'exato') {
+      addLog(`✔ "${nomePasta}" casada com "${unidade.nome}" (match: ${unidade._match})`,'success');
+    }
+    setProgresso(pctLeitura, `Posto: ${unidade ? unidade.nome : nomePasta}`, {
+      pastas: pastasLidas,
+      postos: resultados.length,
+      arquivos: resultados.reduce((a, r) => a + r.arquivos.length + r.arquivosPdf.length, 0)
+    });
+  }
 
-        // Selecionar pasta
-        folderSelector.addEventListener('click', async function(e) {
-            if (isScanning) return;
-            
-            try {
-                if (!window.showDirectoryPicker) {
-                    alert('Use Chrome/Edge versão 86+ ou outro navegador compatível com File System Access API');
-                    return;
-                }
-                
-                selectedDirectoryHandle = await window.showDirectoryPicker({
-                    id: 'sped-scanner',
-                    mode: 'read'
-                });
-                
-                if (selectedDirectoryHandle) {
-                    selectedFolderName.textContent = selectedDirectoryHandle.name;
-                    folderInfo.classList.remove('d-none');
-                    scanButton.disabled = false;
-                    addLog(`📁 Pasta raiz selecionada: ${selectedDirectoryHandle.name}`);
-                }
-                
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    alert('Erro ao selecionar pasta: ' + error.message);
-                    addLog(`❌ Erro: ${error.message}`);
-                }
-            }
-        });
+  // 🔑 SÓ DESCE SE AINDA NÃO ATINGIU O LIMITE
+  const podeDescer = maxProf === -1 || profundidade < maxProf;
+  if (podeDescer) {
+    for (const sub of subs) {
+      await escanearDir(sub, caminhoAtual, profundidade + 1, maxProf);
+    }
+  } else if (subs.length > 0 && $('debugLog').checked) {
+    console.log(`[SCAN] ⏹ Parando em "${caminhoAtual}" (d=${profundidade}, ${subs.length} subs ignoradas)`);
+  }
+}
 
-        // Busca recursiva em TODAS as subpastas
-        async function scanAllFolders(dirHandle, path = '') {
-            const folders = [];
-            let totalScanned = 0;
-            
-            async function scan(currentHandle, currentPath) {
-                if (!isScanning) return;
-                
-                try {
-                    // Mostrar caminho atual sendo escaneado
-                    currentPathContainer.classList.remove('d-none');
-                    currentScanPath.textContent = currentPath || 'Raiz';
-                    
-                    const entries = [];
-                    for await (const entry of currentHandle.values()) {
-                        entries.push(entry);
-                    }
-                    
-                    // Verificar arquivos SPED na pasta atual
-                    const spedFiles = [];
-                    
-                    for (const entry of entries) {
-                        if (entry.kind === 'file') {
-                            if (isSpedTxtFile(entry.name)) {
-                                const info = parseSpedFileName(entry.name);
-                                spedFiles.push({
-                                    name: entry.name,
-                                    handle: entry,
-                                    info: info,
-                                    path: currentPath ? `${currentPath}/${entry.name}` : entry.name
-                                });
-                                currentFile.textContent = `📄 Encontrado: ${entry.name}`;
-                            }
-                        }
-                    }
-                    
-                    // Adicionar a pasta atual à lista (exceto a raiz)
-                    if (currentPath) {
-                        folders.push({
-                            name: currentHandle.name,
-                            path: currentPath,
-                            handle: currentHandle,
-                            files: spedFiles,
-                            hasSpedFile: spedFiles.length > 0,
-                            fileCount: spedFiles.length,
-                            isIgnored: ignoredFolders.has(currentPath)
-                        });
-                        
-                        totalScanned++;
-                        
-                        // Atualizar progresso
-                        progressText.textContent = `Escaneando: ${currentPath}`;
-                        progressPercent.textContent = `${Math.min(100, Math.round(totalScanned/2))}%`;
-                        progressBar.style.width = `${Math.min(100, totalScanned)}%`;
-                    }
-                    
-                    // Escanear todas as subpastas recursivamente
-                    for (const entry of entries) {
-                        if (entry.kind === 'directory') {
-                            const newPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
-                            await scan(entry, newPath);
-                        }
-                    }
-                    
-                } catch (error) {
-                    // Ignorar erros de permissão em pastas específicas
-                    if (error.name !== 'NotAllowedError') {
-                        addLog(`⚠️ Erro ao acessar ${currentPath}: ${error.message}`);
-                    }
-                }
-            }
-            
-            await scan(dirHandle, '');
-            currentPathContainer.classList.add('d-none');
-            return folders;
-        }
+function calcularFaltantes(){
+  const porKey={};
+  resultados.forEach(r=>{if(!r.unidade)return;(porKey[r.unidade.key]=porKey[r.unidade.key]||[]).push(r);});
+  const falt=[];
+  UNIDADES_LISTA.forEach(u=>{
+    const oc=porKey[u.key]||[];
+    const temSped=oc.some(r=>r.temSped);
+    const temPdf=oc.some(r=>r.temPdf);
+    if(temSped)return;
+    falt.push({unidade:u,tipo:oc.length?'sem':'ausente',temPdf,pastas:oc.map(r=>r.pasta),arquivos:oc.flatMap(r=>r.arquivos)});
+  });
+  return falt;
+}
 
-        // Buscar TODAS as pastas
-        scanButton.addEventListener('click', async () => {
-            if (!selectedDirectoryHandle || isScanning) return;
-            
-            isScanning = true;
-            scanButton.disabled = true;
-            allFolders = [];
-            
-            progressSection.classList.remove('d-none');
-            statsSection.classList.remove('d-none');
-            resultsContainer.innerHTML = '<div class="text-center py-4"><i class="bi bi-arrow-repeat spinning" style="color: #ff6b00; font-size: 2rem;"></i><br><span style="color: #666;">Escaneando todas as subpastas...</span></div>';
-            
-            addLog('🔍 Iniciando busca em TODAS as pastas...');
-            
-            try {
-                const startTime = Date.now();
-                allFolders = await scanAllFolders(selectedDirectoryHandle);
-                const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
-                
-                // Ordenar por caminho
-                allFolders.sort((a, b) => a.path.localeCompare(b.path));
-                
-                updateStats();
-                applyFilter('all');
-                
-                // Log resumido
-                const hasCount = allFolders.filter(f => f.hasSpedFile).length;
-                const noCount = allFolders.filter(f => !f.hasSpedFile).length;
-                
-                addLog(`✅ Busca concluída em ${elapsedTime}s`);
-                addLog(`📊 Total: ${allFolders.length} pastas | Já gerados: ${hasCount} | Não gerados: ${noCount}`);
-                
-                if (allFolders.length > 0) {
-                    exportButton.disabled = false;
-                    exportMissingButton.disabled = false;
-                    exportNeedGenerate.disabled = false;
-                }
-                
-            } catch (error) {
-                addLog(`❌ Erro na busca: ${error.message}`);
-                resultsContainer.innerHTML = `<div class="alert alert-danger">Erro: ${error.message}</div>`;
-            }
-            
-            progressSection.classList.add('d-none');
-            isScanning = false;
-            scanButton.disabled = false;
-        });
+$('scanButton').onclick=async()=>{
+  if(!dirHandle)return;
+  $('scanButton').disabled=true;
+  resultados=[];faltantes=[];marcados=new Set();ufAtiva='';pastasLidas=0;
 
-        // Atualizar estatísticas
-        function updateStats() {
-            totalFolders.textContent = allFolders.length;
-            foundCount.textContent = allFolders.length;
-            
-            const hasFile = allFolders.filter(f => f.hasSpedFile && !f.isIgnored).length;
-            const noFile = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored).length;
-            const ignored = allFolders.filter(f => f.isIgnored).length;
-            
-            hasFileFolders.textContent = hasFile;
-            noFileFolders.textContent = noFile;
-            ignoredFoldersSpan.textContent = ignored;
-            
-            // Pastas que PRECISAM gerar = não tem arquivo E não estão ignoradas
-            const needGenerate = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored).length;
-            needToGenerate.textContent = needGenerate;
-            
-            resultsCount.textContent = filteredFolders.length;
-        }
+  const maxProf = parseInt($('searchDepth').value,10);
+  const descProf = maxProf===-1?'ilimitado':(maxProf===0?'só a pasta':`até ${maxProf} nível(is)`);
+  addLog(`Profundidade: ${descProf}`);
 
-        // Aplicar filtro
-        function applyFilter(filter) {
-            currentFilter = filter;
-            
-            // Atualizar botões
-            [filterAll, filterHas, filterNo, filterNeed, filterIgnored].forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            if (filter === 'all') filterAll.classList.add('active');
-            if (filter === 'has') filterHas.classList.add('active');
-            if (filter === 'no') filterNo.classList.add('active');
-            if (filter === 'need') filterNeed.classList.add('active');
-            if (filter === 'ignored') filterIgnored.classList.add('active');
-            
-            // Filtrar
-            filteredFolders = allFolders.filter(f => {
-                if (filter === 'all') return true;
-                if (filter === 'has') return f.hasSpedFile && !f.isIgnored;
-                if (filter === 'no') return !f.hasSpedFile && !f.isIgnored;
-                if (filter === 'need') return !f.hasSpedFile && !f.isIgnored;
-                if (filter === 'ignored') return f.isIgnored;
-                return true;
-            });
-            
-            renderResults();
-            updateStats();
-        }
+  mostrarOverlay();
+  addLog('Escaneando...');
+  const t0=performance.now();
 
-        // Renderizar resultados
-        function renderResults() {
-            if (filteredFolders.length === 0) {
-                resultsContainer.innerHTML = '<div class="text-center text-muted py-4">Nenhuma pasta encontrada</div>';
-                return;
-            }
-            
-            let html = '';
-            const displayCount = Math.min(100, filteredFolders.length);
-            
-            for (let i = 0; i < displayCount; i++) {
-                const folder = filteredFolders[i];
-                const statusClass = folder.isIgnored ? 'ignored' : (folder.hasSpedFile ? 'has-file' : 'no-file');
-                const statusText = folder.isIgnored ? 'IGNORADO' : (folder.hasSpedFile ? 'JÁ GERADO' : 'NÃO GERADO');
-                const statusType = folder.isIgnored ? 'ignored' : (folder.hasSpedFile ? 'has' : 'missing');
-                
-                html += `
-                    <div class="result-item ${statusClass}">
-                        <div class="d-flex align-items-start">
-                            <input type="checkbox" class="folder-checkbox mt-1" 
-                                   data-path="${folder.path}" 
-                                   ${folder.isIgnored ? 'checked' : ''}>
-                            <div style="flex: 1;">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <span class="folder-name">
-                                        <i class="bi bi-folder file-icon"></i>
-                                        ${folder.name}
-                                        <span class="status-tag status-${statusType}">${statusText}</span>
-                                    </span>
-                                </div>
-                                <div class="folder-path">
-                                    <i class="bi bi-pin-map-fill"></i> ${folder.path}
-                                </div>`;
-                
-                // Mostrar arquivos encontrados
-                if (folder.files && folder.files.length > 0) {
-                    html += `<div class="file-details mt-2">`;
-                    folder.files.forEach(file => {
-                        html += `
-                            <div class="d-flex justify-content-between align-items-center small">
-                                <span><i class="bi bi-file-text text-warning me-1"></i>${file.name}</span>`;
-                        if (file.info) {
-                            html += `<span class="text-warning">${file.info.periodo}</span>`;
-                        }
-                        html += `</div>`;
-                    });
-                    html += `</div>`;
-                }
-                
-                html += `</div></div></div>`;
-            }
-            
-            if (filteredFolders.length > displayCount) {
-                html += `<div class="text-center text-muted small mt-2">... e mais ${filteredFolders.length - displayCount} pastas</div>`;
-            }
-            
-            resultsContainer.innerHTML = html;
-            resultsCount.textContent = filteredFolders.length;
-            
-            // Eventos dos checkboxes
-            document.querySelectorAll('.folder-checkbox').forEach(cb => {
-                cb.addEventListener('change', function(e) {
-                    const path = this.dataset.path;
-                    toggleIgnore(path, this.checked);
-                });
-            });
-        }
+  try{
+    await escanearDir(dirHandle,'',0,maxProf);
+    setProgresso(80,'Calculando faltantes…',{
+      pastas:pastasLidas,
+      postos:resultados.length,
+      arquivos:resultados.reduce((a,r)=>a+r.arquivos.length+r.arquivosPdf.length,0)
+    });
+    await new Promise(r=>setTimeout(r,120));
+    faltantes=calcularFaltantes();
+    setProgresso(100,'Concluído!',{
+      pastas:pastasLidas,
+      postos:resultados.length,
+      arquivos:resultados.reduce((a,r)=>a+r.arquivos.length+r.arquivosPdf.length,0)
+    });
+    await new Promise(r=>setTimeout(r,500));
+  }catch(e){
+    addLog('Erro: '+e.message,'error');
+  }
 
-        // Marcar pasta como ignorada
-        function toggleIgnore(path, ignore) {
-            const folder = allFolders.find(f => f.path === path);
-            if (folder) {
-                folder.isIgnored = ignore;
-                if (ignore) {
-                    ignoredFolders.add(path);
-                    addLog(`✗ Ignorado: ${folder.name}`);
-                } else {
-                    ignoredFolders.delete(path);
-                    addLog(`✓ Reativado: ${folder.name}`);
-                }
-                updateStats();
-                applyFilter(currentFilter);
-            }
-        }
+  esconderOverlay();
 
-        // Event listeners dos filtros
-        filterAll.addEventListener('click', () => applyFilter('all'));
-        filterHas.addEventListener('click', () => applyFilter('has'));
-        filterNo.addEventListener('click', () => applyFilter('no'));
-        filterNeed.addEventListener('click', () => applyFilter('need'));
-        filterIgnored.addEventListener('click', () => applyFilter('ignored'));
+  const arq=resultados.reduce((a,r)=>a+r.arquivos.length,0);
+  const arqPdf=resultados.reduce((a,r)=>a+r.arquivosPdf.length,0);
+  if(!resultados.length)addLog('Nenhuma pasta de posto encontrada.','warning');
+  addLog(`Concluído em ${((performance.now()-t0)/1000).toFixed(1)}s: ${pastasLidas} pastas, ${resultados.length} postos, ${arq} SPED, ${arqPdf} PDF, ${faltantes.length} faltante(s)`,'success');
+  $('stamp').textContent='Último escaneamento: '+new Date().toLocaleString('pt-BR');
+  $('scanButton').disabled=false;
+  $('exportButton').disabled=!resultados.length;$('exportFaltantes').disabled=!faltantes.length;
+  render();
+};
 
-        // Ações em massa
-        document.getElementById('ignoreAllHas').addEventListener('click', () => {
-            let count = 0;
-            allFolders.forEach(f => {
-                if (f.hasSpedFile && !f.isIgnored) {
-                    f.isIgnored = true;
-                    ignoredFolders.add(f.path);
-                    count++;
-                }
-            });
-            updateStats();
-            applyFilter(currentFilter);
-            addLog(`✅ ${count} pastas com arquivo marcadas como IGNORADAS`);
-        });
+const situacao=r=>!r.unidade?'desc':(r.temSped?'ok':'sem');
+const TAGS={ok:['Com SPED','t-ok'],sem:['Pasta sem arquivo','t-sem'],ausente:['Pasta ausente','t-ausente'],desc:['Não cadastrada','t-desc']};
+const tag=s=>`<span class="tag ${TAGS[s][1]}">${TAGS[s][0]}</span>`;
+const chipsDoc=(temSped,temPdf)=>`<span class="chip ${temSped?'s':'n'}">${temSped?'SPED ✓':'SPED ✗'}</span><span class="chip ${temPdf?'p':'n'}">${temPdf?'PDF ✓':'PDF ✗'}</span>`;
 
-        document.getElementById('ignoreAllNo').addEventListener('click', () => {
-            let count = 0;
-            allFolders.forEach(f => {
-                if (!f.hasSpedFile && !f.isIgnored) {
-                    f.isIgnored = true;
-                    ignoredFolders.add(f.path);
-                    count++;
-                }
-            });
-            updateStats();
-            applyFilter(currentFilter);
-            addLog(`⚠️ ${count} pastas sem arquivo marcadas como IGNORADAS`);
-        });
+function passa(nome,cod,uf,perfil,pasta,st,temSped,temPdf){
+  const t=$('filterText').value.trim().toLowerCase(),s=$('filterStatus').value,p=$('filterPerfil').value,d=$('filterDoc').value;
+  if(ufAtiva&&(uf||'SEM UF')!==ufAtiva)return false;
+  if(s&&s!==st)return false;
+  if(p&&perfil!==p)return false;
+  if(d){
+    if(d==='ambos'&&!(temSped&&temPdf))return false;
+    if(d==='so_sped'&&!(temSped&&!temPdf))return false;
+    if(d==='so_pdf'&&!(temPdf&&!temSped))return false;
+    if(d==='falta_pdf'&&temPdf)return false;
+    if(d==='falta_sped'&&temSped)return false;
+    if(d==='nenhum'&&(temSped||temPdf))return false;
+  }
+  if(t&&!(`${nome} ${cod} ${pasta}`.toLowerCase().includes(t)))return false;
+  return true;
+}
 
-        document.getElementById('unignoreAll').addEventListener('click', () => {
-            allFolders.forEach(f => {
-                f.isIgnored = false;
-            });
-            ignoredFolders.clear();
-            updateStats();
-            applyFilter(currentFilter);
-            addLog('✓ Todas as pastas foram resetadas');
-        });
+function renderResumo(){
+  const total=UNIDADES_LISTA.length;
+  const semN=faltantes.filter(f=>f.tipo==='sem').length;
+  const ausN=faltantes.length-semN;
+  const okN=resultados.length||faltantes.length?total-faltantes.length:0;
+  const pdfUnicos=new Set();
+  resultados.forEach(r=>{if(r.unidade&&r.temPdf)pdfUnicos.add(r.unidade.key);});
+  const bothKeys=new Set();
+  resultados.forEach(r=>{if(r.unidade&&r.temSped&&r.temPdf)bothKeys.add(r.unidade.key);});
+  const desc=resultados.filter(r=>!r.unidade).length;
+  const arq=resultados.reduce((a,r)=>a+r.arquivos.length,0);
+  const arqPdf=resultados.reduce((a,r)=>a+r.arquivosPdf.length,0);
+  $('kOk').textContent=okN;$('kSem').textContent=semN;$('kAus').textContent=ausN;
+  $('kDesc').textContent=desc;$('kFiles').textContent=arq;
+  $('kPdf').textContent=pdfUnicos.size;$('kAmbos').textContent=bothKeys.size;$('kFilesPdf').textContent=arqPdf;
+  if(!resultados.length&&!faltantes.length){$('pct').textContent='–';$('donut').style.background='conic-gradient(var(--line) 0 100%)';return;}
+  const a=okN/total*100,b=a+semN/total*100;
+  $('pct').textContent=Math.round(a)+'%';
+  $('donut').style.background=`conic-gradient(var(--ok) 0 ${a}%,var(--sem) ${a}% ${b}%,var(--aus) ${b}% 100%)`;
+}
 
-        // Exportar lista completa
-        exportButton.addEventListener('click', () => {
-            const headers = ['Pasta', 'Caminho', 'Status', 'Arquivos SPED'];
-            const rows = allFolders.map(f => [
-                f.name,
-                f.path,
-                f.isIgnored ? 'IGNORADO' : (f.hasSpedFile ? 'JÁ GERADO' : 'NÃO GERADO'),
-                f.files.map(file => file.name).join('; ')
-            ]);
-            
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
-            
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `todas_pastas_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-            
-            addLog(`📊 Exportadas ${allFolders.length} pastas`);
-        });
+function renderUfs(){
+  if(!resultados.length&&!faltantes.length)return;
+  const m={};
+  UNIDADES_LISTA.forEach(u=>{(m[u.uf]=m[u.uf]||{t:0,f:0,pdf:0}).t++;});
+  faltantes.forEach(f=>m[f.unidade.uf].f++);
+  const seenPdf=new Set();
+  resultados.forEach(r=>{
+    if(r.unidade&&r.temPdf&&!seenPdf.has(r.unidade.key)){
+      seenPdf.add(r.unidade.key);
+      m[r.unidade.uf].pdf=(m[r.unidade.uf].pdf||0)+1;
+    }
+  });
+  const ordem=['MG','SP','RJ','BA','CE','GO','PA','SE','TO'];
+  const semUf=resultados.filter(r=>!r.unidade).length;
+  const html=Object.keys(m).sort((a,b)=>ordem.indexOf(a)-ordem.indexOf(b)).map(uf=>{
+    const ok=m[uf].t-m[uf].f;
+    const pctOk=ok/m[uf].t*100;
+    const pctPdf=(m[uf].pdf||0)/m[uf].t*100;
+    return `<div class="uf ${ufAtiva===uf?'on':''}" data-uf="${uf}"><div class="h">${uf}<span>${ok}/${m[uf].t}${m[uf].pdf?` · 📄${m[uf].pdf}`:''}</span></div><div class="bar"><i style="width:${pctOk}%"></i><i class="p" style="width:${pctPdf}%"></i></div></div>`;
+  }).join('')+(semUf?`<div class="uf ${ufAtiva==='SEM UF'?'on':''}" data-uf="SEM UF"><div class="h">SEM CADASTRO<span>${semUf}</span></div><div class="bar"><i style="width:0"></i></div></div>`:'');
+  $('ufs').innerHTML=html;
+  $('ufs').querySelectorAll('.uf').forEach(e=>e.onclick=()=>{ufAtiva=ufAtiva===e.dataset.uf?'':e.dataset.uf;render();});
+}
 
-        // Exportar só as que PRECISAM gerar
-        exportNeedGenerate.addEventListener('click', () => {
-            const needGenerate = allFolders.filter(f => !f.hasSpedFile && !f.isIgnored);
-            
-            if (needGenerate.length === 0) {
-                alert('Nenhuma pasta precisa ser gerada!');
-                return;
-            }
-            
-            const headers = ['Pasta', 'Caminho'];
-            const rows = needGenerate.map(f => [f.name, f.path]);
-            
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
-            
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `precisam_gerar_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-            
-            addLog(`📋 Exportadas ${needGenerate.length} pastas que PRECISAM gerar`);
-        });
+function render(){
+  $('bEnc').textContent=resultados.length;$('bFal').textContent=faltantes.length;
+  renderResumo();renderUfs();renderEnc();renderFal();
+}
 
-        // Exportar só as sem arquivo
-        exportMissingButton.addEventListener('click', () => {
-            const missing = allFolders.filter(f => !f.hasSpedFile);
-            
-            if (missing.length === 0) {
-                alert('Nenhuma pasta sem arquivo encontrada!');
-                return;
-            }
-            
-            const headers = ['Pasta', 'Caminho', 'Status'];
-            const rows = missing.map(f => [
-                f.name,
-                f.path,
-                f.isIgnored ? 'IGNORADO' : 'NÃO GERADO'
-            ]);
-            
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
-            
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `nao_gerados_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-            
-            addLog(`📋 Exportadas ${missing.length} pastas não geradas`);
-        });
+function renderEnc(){
+  const ordem={sem:0,desc:1,ok:2};
+  const list=resultados.filter(r=>passa(
+    r.unidade?.nome||'',r.unidade?.codigo||'',r.unidade?.uf,r.unidade?.perfil,r.pasta,
+    situacao(r),r.temSped,r.temPdf
+  )).sort((a,b)=>ordem[situacao(a)]-ordem[situacao(b)]||a.pasta.localeCompare(b.pasta));
+  if(!list.length){$('painelEnc').innerHTML='<div class="empty">Nenhum resultado.</div>';return;}
+  $('painelEnc').innerHTML='<table><thead><tr><th>Unidade</th><th>UF</th><th>Cód.</th><th>Perfil</th><th>Situação</th><th>Docs</th><th>Arquivos</th></tr></thead><tbody>'+list.map(r=>{
+    const u=r.unidade;
+    const nomeExibir=u?u.nome:r.pasta.split('/').pop();
+    const pastaCurta=r.pasta.split('/').pop();
+    let badge='';
+    if(u && r.matchTipo && r.matchTipo!=='exato'){
+      const cls=r.matchTipo==='alias'?'t-alias':'t-aprox';
+      badge=`<span class="tag ${cls}" title="Pasta: ${esc(pastaCurta)}">≈ ${r.matchTipo}</span>`;
+    }
+    const todos=[...r.arquivos.map(a=>({...a,tipo:'sped'})),...r.arquivosPdf.map(a=>({...a,tipo:'pdf'}))];
+    return `<tr><td><b>${esc(nomeExibir)}</b>${badge}<div class="path">${esc(r.pasta)}</div></td><td>${u?u.uf:'—'}</td><td>${u?u.codigo:'—'}</td><td>${u?u.perfil:'—'}</td><td>${tag(situacao(r))}</td><td>${chipsDoc(r.temSped,r.temPdf)}</td><td>${todos.map(a=>`<span class="fn ${a.tipo==='pdf'?'pdf':''}" title="${esc(a.path)}">${esc(a.name)}</span>`).join('')||'—'}</td></tr>`;
+  }).join('')+'</tbody></table>';
+}
 
-        // Inicialização
-        addLog('🚀 Scanner SPED - Controle de Pastas (Laranja/Preto)');
-        addLog('📌 Selecione a pasta raiz para iniciar');
-        addLog('🔍 Busca arquivos que começam com "sped_fiscal_"');
-        
-        // CSS adicional para animação
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .spinning {
-                animation: spin 1s linear infinite;
-                display: inline-block;
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+const chave=f=>f.unidade.key+'|'+f.unidade.codigo;
+function faltFiltrados(){
+  return faltantes.filter(f=>passa(
+    f.unidade.nome,f.unidade.codigo,f.unidade.uf,f.unidade.perfil,f.pastas.join(' '),
+    f.tipo,false,f.temPdf||false
+  ));
+}
+
+function renderFal(){
+  $('nSel').textContent=marcados.size;
+  if(!faltantes.length){$('painelFal').innerHTML=`<div class="empty">${resultados.length?'Nenhum faltante — todas as unidades têm SPED.':'Escaneie uma pasta para gerar o relatório.'}</div>`;return;}
+  const list=faltFiltrados().sort((a,b)=>a.unidade.uf.localeCompare(b.unidade.uf)||a.unidade.nome.localeCompare(b.unidade.nome));
+  if(!list.length){$('painelFal').innerHTML='<div class="empty">Nenhum resultado.</div>';return;}
+  $('painelFal').innerHTML='<table><thead><tr><th style="width:30px"><input type="checkbox" id="chkAll"></th><th>Unidade</th><th>UF</th><th>Cód.</th><th>Perfil</th><th>Falta</th><th>Outros docs</th></tr></thead><tbody>'+list.map(f=>{
+    const k=chave(f);
+    return `<tr><td><input type="checkbox" class="chk" data-k="${esc(k)}" ${marcados.has(k)?'checked':''}></td><td><b>${esc(f.unidade.nome)}</b>${f.pastas.length?`<div class="path">${f.pastas.map(esc).join(' • ')}</div>`:''}</td><td>${f.unidade.uf}</td><td>${f.unidade.codigo}</td><td>${f.unidade.perfil}</td><td>${tag(f.tipo)}</td><td>${chipsDoc(false,f.temPdf||false)}</td></tr>`;
+  }).join('')+'</tbody></table>';
+  $('chkAll').onchange=e=>{list.forEach(f=>e.target.checked?marcados.add(chave(f)):marcados.delete(chave(f)));renderFal();};
+  $('painelFal').querySelectorAll('.chk').forEach(c=>c.onchange=()=>{c.checked?marcados.add(c.dataset.k):marcados.delete(c.dataset.k);$('nSel').textContent=marcados.size;});
+}
+
+function aba(fal){
+  $('tabFal').classList.toggle('on',fal);$('tabEnc').classList.toggle('on',!fal);
+  $('painelFal').classList.toggle('d-none',!fal);$('painelEnc').classList.toggle('d-none',fal);
+  $('selInfo').classList.toggle('d-none',!fal);
+}
+$('tabEnc').onclick=()=>aba(false);$('tabFal').onclick=()=>aba(true);
+$('filterText').addEventListener('input',render);
+$('filterStatus').onchange=render;$('filterPerfil').onchange=render;$('filterDoc').onchange=render;
+$('resetFiltros').onclick=()=>{$('filterText').value='';$('filterStatus').value='';$('filterPerfil').value='';$('filterDoc').value='';ufAtiva='';render();};
+
+function exportar(linhas,nome){
+  if(!linhas.length){alert('Nada para exportar.');return;}
+  const f=$('exportFormat').value,ts=new Date().toISOString().slice(0,19).replace(/:/g,'-');
+  if(f==='excel'){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(linhas),'Dados');XLSX.writeFile(wb,`${nome}_${ts}.xlsx`);return;}
+  let blob,fn;
+  if(f==='json'){blob=new Blob([JSON.stringify(linhas,null,2)],{type:'application/json'});fn=`${nome}_${ts}.json`;}
+  else{const h=Object.keys(linhas[0]);const csv=[h.join(',')].concat(linhas.map(r=>h.map(k=>`"${String(r[k]).replace(/"/g,'""')}"`).join(','))).join('\n');blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});fn=`${nome}_${ts}.csv`;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
+}
+
+$('exportButton').onclick=()=>{
+  const linhas=[];
+  resultados.filter(r=>passa(
+    r.unidade?.nome||'',r.unidade?.codigo||'',r.unidade?.uf,r.unidade?.perfil,r.pasta,
+    situacao(r),r.temSped,r.temPdf
+  )).forEach(r=>{
+    const base={
+      Pasta:r.pasta,
+      Unidade:r.unidade?.nome||'',
+      'Código AS':r.unidade?.codigo||'',
+      UF:r.unidade?.uf||'',
+      Perfil:r.unidade?.perfil||'',
+      'Cadastrada?':r.unidade?'SIM':'NÃO',
+      'Match':r.matchTipo||'',
+      'Tem SPED?':r.temSped?'SIM':'NÃO',
+      'Tem Recibo PDF?':r.temPdf?'SIM':'NÃO'
+    };
+    const todos=[...r.arquivos.map(a=>({...a,tipo:'SPED'})),...r.arquivosPdf.map(a=>({...a,tipo:'RECIBO PDF'}))];
+    if(!todos.length)linhas.push({...base,'Tipo Arquivo':'','Arquivo':'','Caminho':''});
+    else todos.forEach(a=>linhas.push({...base,'Tipo Arquivo':a.tipo,Arquivo:a.name,Caminho:a.path}));
+  });
+  exportar(linhas,'sped_fiscal_encontrados');
+};
+
+$('exportFaltantes').onclick=()=>{
+  const base=faltFiltrados(),usar=marcados.size?base.filter(f=>marcados.has(chave(f))):base;
+  exportar(usar.map(f=>({
+    UF:f.unidade.uf,
+    'Código AS':f.unidade.codigo,
+    Unidade:f.unidade.nome,
+    Perfil:f.unidade.perfil,
+    'Tipo de Falta':f.tipo==='ausente'?'PASTA AUSENTE':'SEM ARQUIVO SPED',
+    'Tem Recibo PDF?':f.temPdf?'SIM':'NÃO',
+    'Pastas encontradas':f.pastas.join(' | ')
+  })),marcados.size?'sped_fiscal_faltantes_selecionados':'sped_fiscal_faltantes');
+};
+</script>
 </body>
 </html>
