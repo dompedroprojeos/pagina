@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner SPED Fiscal - Por Estado + Faltantes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+<style>
+:root{--primary-color:#2d5aa0;--secondary-color:#1a365d;--accent-color:#4299e1;--success-color:#48bb78;--warning-color:#ed8936;--error-color:#f56565}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif}
+.main-container{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;margin:30px 0}
+.app-header{background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));color:#fff;padding:25px 30px}
+.app-title{font-weight:700;font-size:1.8rem;margin:0}.app-subtitle{opacity:.9;font-size:.95rem;margin-top:5px}
+.step-card{background:#fff;border-radius:15px;padding:20px;border:2px solid #e2e8f0;margin-bottom:20px;position:relative}
+.step-card.active{border-color:var(--accent-color);box-shadow:0 5px 20px rgba(66,153,225,.15)}
+.step-number{position:absolute;top:-14px;left:20px;background:var(--primary-color);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.folder-selector{border:3px dashed var(--accent-color);background:rgba(66,153,225,.05);border-radius:15px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .3s}
+.folder-selector:hover{background:rgba(66,153,225,.1);transform:translateY(-3px);box-shadow:0 10px 25px rgba(66,153,225,.2)}
+.folder-icon{font-size:4rem;color:var(--accent-color);margin-bottom:12px}
+.file-pattern{background:#e6fffa;color:#234e52;padding:4px 14px;border-radius:20px;font-family:'Courier New',monospace;font-weight:600;font-size:.9rem;display:inline-block;margin:4px;border:2px solid #81e6d9}
+.stats-card{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff;border-radius:15px;padding:16px;text-align:center;height:100%}
+.stats-number{font-size:2.1rem;font-weight:700}.stats-label{opacity:.9;font-size:.82rem}
+.result-item{background:#fff;border-radius:12px;padding:15px;margin-bottom:12px;border:1px solid #e2e8f0;transition:all .2s}
+.result-item:hover{border-color:var(--accent-color);box-shadow:0 5px 15px rgba(66,153,225,.1)}
+.result-item.valid{border-left:5px solid var(--success-color)}
+.result-item.missing{border-left:5px solid var(--error-color);opacity:.9}
+.result-item.desconhecida{border-left:5px solid #a0aec0;opacity:.85}
+.result-item.fantasma{border-left:5px solid #9f7aea;opacity:.9}
+.file-name{font-weight:600;color:var(--secondary-color);font-family:'Courier New',monospace;font-size:1.05rem}
+.file-path{color:#718096;font-size:.8rem;font-family:'Courier New',monospace;margin-top:3px}
+.folder-badge{background:#edf2f7;color:#2d3748;padding:2px 10px;border-radius:8px;font-family:'Courier New',monospace;font-size:.78rem}
+.log-entry{padding:6px 12px;border-radius:8px;margin-bottom:5px;font-size:.85rem;font-family:'Courier New',monospace;background:#f7fafc;border-left:3px solid var(--accent-color);word-break:break-all}
+.log-entry.success{border-color:var(--success-color);background:#f0fff4}.log-entry.warning{border-color:var(--warning-color);background:#fffaf0}.log-entry.error{border-color:var(--error-color);background:#fff5f5}
+.progress-container{height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin:15px 0}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent-color),var(--primary-color));transition:width .3s}
+.export-btn{background:linear-gradient(135deg,var(--success-color),#38a169);color:#fff;border:none;padding:12px 25px;border-radius:10px;font-weight:600}
+.export-btn:disabled{opacity:.6}
+.export-btn-red{background:linear-gradient(135deg,#f56565,#c53030);color:#fff;border:none;padding:12px 25px;border-radius:10px;font-weight:600}
+.export-btn-red:disabled{opacity:.6}
+.pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin:2px}
+.pill-ok{background:#c6f6d5;color:#22543d}.pill-miss{background:#fed7d7;color:#742a2a}.pill-info{background:#bee3f8;color:#2a4365}
+.pill-uf{background:#fefcbf;color:#744210;font-family:'Courier New',monospace;font-weight:700}
+.pill-cod{background:#e9d8fd;color:#44337a;font-family:'Courier New',monospace}
+.pill-perfil{background:#bee3f8;color:#2a4365}
+.pill-fantasma{background:#e9d8fd;color:#553c9a}
+.tab-uf{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tab-uf button{border:2px solid #e2e8f0;background:#fff;padding:6px 14px;border-radius:20px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s}
+.tab-uf button:hover{border-color:var(--accent-color)}
+.tab-uf button.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color)}
+.tab-uf button .badge{background:rgba(0,0,0,.12);margin-left:6px;color:#2d3748}
+.tab-uf button.active .badge{background:rgba(255,255,255,.35);color:#fff}
+.section-tabs{display:flex;gap:8px;margin-bottom:15px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
+.section-tabs button{background:none;border:none;padding:10px 18px;font-weight:600;font-size:.95rem;color:#718096;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s}
+.section-tabs button:hover{color:var(--primary-color)}
+.section-tabs button.active{color:var(--primary-color);border-bottom-color:var(--primary-color)}
+.section-tabs button .badge{background:#edf2f7;color:#4a5568;margin-left:6px;padding:2px 8px;border-radius:10px;font-size:.72rem}
+.section-tabs button.active .badge{background:var(--primary-color);color:#fff}
+.relatorio-header{background:linear-gradient(135deg,#fef5e7,#fde8cc);border:2px solid #f6ad55;border-radius:12px;padding:15px;margin-bottom:15px}
+.relatorio-header h5{margin:0;color:#7b341e}
+.relatorio-header .subtitulo{color:#975a16;font-size:.85rem;margin-top:5px}
+.info-tip{background:#ebf8ff;border-left:4px solid #4299e1;padding:10px 14px;border-radius:8px;font-size:.85rem;color:#2a4365;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="container"><div class="main-container">
+<div class="app-header">
+ <h1 class="app-title"><i class="bi bi-file-earmark-text-fill me-3"></i>Scanner SPED Fiscal - Por Estado</h1>
+ <div class="app-subtitle">Localiza <strong>sped_fiscal_*.txt</strong> em <em>SPED - LMC CORRIGIDO</em>, cruza com a tabela de unidades e gera relatório de faltantes</div>
+</div>
+
+<div class="container-fluid py-4"><div class="row">
+<div class="col-lg-4">
+ <div class="step-card active" id="step1Card">
+  <div class="step-number">1</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-folder-plus me-2"></i>Selecionar Pasta Raiz</h5>
+  <div class="folder-selector" id="folderSelector">
+   <div class="folder-icon"><i class="bi bi-folder-plus"></i></div>
+   <h5 class="mb-2">Escolher Pasta</h5>
+   <p class="text-muted mb-0 small">Busca recursiva por <br><span class="file-pattern">sped_fiscal_*.txt</span></p>
+   <div id="folderInfo" class="d-none mt-3" onclick="event.stopPropagation()">
+    <div class="alert alert-primary mb-2 py-2"><div class="d-flex justify-content-between align-items-center">
+     <div><i class="bi bi-folder-fill me-2"></i><strong id="selectedFolderName"></strong></div>
+     <span id="foundCount" class="badge bg-primary">0</span></div></div>
+    <button id="scanButton" class="btn btn-primary btn-lg w-100"><i class="bi bi-search me-2"></i>Escanear</button>
+   </div>
+  </div>
+  <div class="form-check form-switch mt-3">
+   <input class="form-check-input" type="checkbox" id="recursiveSearch" checked>
+   <label class="form-check-label" for="recursiveSearch">Buscar em subpastas</label>
+  </div>
+  <div class="form-check form-switch mt-2">
+   <input class="form-check-input" type="checkbox" id="sóSpedLMC" checked>
+   <label class="form-check-label" for="sóSpedLMC">Só dentro de "SPED - LMC CORRIGIDO"</label>
+  </div>
+ </div>
+
+ <div class="step-card">
+  <div class="step-number">2</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-download me-2"></i>Exportar</h5>
+  <select id="exportFormat" class="form-select mb-3">
+   <option value="excel">Excel XLSX</option>
+   <option value="csv">CSV</option>
+   <option value="json">JSON</option>
+  </select>
+  <button id="exportButton" class="btn export-btn w-100 mb-2" disabled><i class="bi bi-file-earmark-arrow-down me-2"></i>Exportar Encontrados</button>
+  <button id="exportFaltantes" class="btn export-btn-red w-100" disabled><i class="bi bi-exclamation-triangle me-2"></i>Exportar Faltantes</button>
+ </div>
+
+ <div class="step-card">
+  <div class="step-number">3</div>
+  <h5 class="card-title mb-3 mt-2"><i class="bi bi-funnel me-2"></i>Filtros Rápidos</h5>
+  <input type="text" id="filterText" class="form-control mb-2" placeholder="Nome / pasta / caminho...">
+  <input type="text" id="filterCodigo" class="form-control mb-2" placeholder="Código AS (ex: 45)">
+  <select id="filterStatus" class="form-select mb-2">
+   <option value="">Todos</option>
+   <option value="ok">Com SPED</option>
+   <option value="missing">Sem SPED</option>
+   <option value="desconhecida">Pasta não cadastrada</option>
+  </select>
+  <select id="filterPerfil" class="form-select mb-2">
+   <option value="">Todos os perfis</option>
+   <option value="A">Perfil A</option>
+   <option value="B">Perfil B</option>
+  </select>
+  <button id="resetFiltros" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpar filtros</button>
+ </div>
+</div>
+
+<div class="col-lg-8">
+ <div id="progressSection" class="card border-0 shadow-sm mb-4 d-none"><div class="card-body">
+  <h5 class="card-title"><i class="bi bi-speedometer2 me-2"></i>Progresso</h5>
+  <div class="progress-container"><div id="progressBar" class="progress-bar" style="width:0%"></div></div>
+  <div class="d-flex justify-content-between"><small id="progressText">Preparando...</small><small id="progressPercent">0%</small></div>
+ </div></div>
+
+ <div id="statsSection" class="row mb-4 d-none">
+  <div class="col mb-2"><div class="stats-card"><div class="stats-number" id="stPastas">0</div><div class="stats-label">Pastas</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#48bb78,#38a169)"><div class="stats-number" id="stOk">0</div><div class="stats-label">Com SPED</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#ed8936,#dd6b20)"><div class="stats-number" id="stMiss">0</div><div class="stats-label">Sem SPED</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#4299e1,#2b6cb0)"><div class="stats-number" id="stFiles">0</div><div class="stats-label">Arquivos</div></div></div>
+  <div class="col mb-2"><div class="stats-card" style="background:linear-gradient(135deg,#f56565,#c53030)"><div class="stats-number" id="stFaltantes">0</div><div class="stats-label">Faltantes</div></div></div>
+ </div>
+
+ <div class="card border-0 shadow-sm mb-4"><div class="card-body">
+  <div class="section-tabs">
+   <button id="tabEncontrados" class="active"><i class="bi bi-list-check me-1"></i>Escaneados <span class="badge" id="badgeEncontrados">0</span></button>
+   <button id="tabFaltantes"><i class="bi bi-exclamation-triangle me-1"></i>Relatório de Faltantes <span class="badge" id="badgeFaltantes">0</span></button>
+  </div>
+
+  <!-- ============ ABA 1: ESCANEADOS ============ -->
+  <div id="painelEncontrados">
+   <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="card-title mb-0"><i class="bi bi-list-ul me-2"></i>Resultado por Pasta</h5>
+    <span id="resultsCount" class="badge bg-primary">0</span>
+   </div>
+   <div id="tabsUf" class="tab-uf"></div>
+   <div id="resultsContainer"><div class="text-center text-muted py-5">
+    <i class="bi bi-folder2-open display-4 d-block mb-3"></i>
+    <p>Selecione a pasta e clique em Escanear.</p>
+   </div></div>
+  </div>
+
+  <!-- ============ ABA 2: FALTANTES ============ -->
+  <div id="painelFaltantes" class="d-none">
+   <div class="relatorio-header">
+    <h5><i class="bi bi-clipboard-x me-2"></i>Relatório de Faltantes</h5>
+    <div class="subtitulo">Unidades da tabela cadastrada que <strong>não apareceram</strong> no escaneamento, ou apareceram <strong>sem nenhum arquivo sped_fiscal_*.txt</strong>.</div>
+   </div>
+
+   <div class="info-tip">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Tipos de falta:</strong>
+    <span class="pill pill-miss">PASTA AUSENTE</span> a pasta da unidade não foi encontrada na varredura
+    <span class="pill" style="background:#feebc8;color:#744210">SEM ARQUIVO</span> a pasta existe mas não tem nenhum <code>sped_fiscal_*.txt</code>
+   </div>
+
+   <!-- Filtros específicos do relatório -->
+   <div class="row g-2 mb-3">
+    <div class="col-md-3">
+     <label class="form-label small fw-bold mb-1">UF</label>
+     <select id="faltUf" class="form-select form-select-sm">
+      <option value="">Todas</option>
+     </select>
+    </div>
+    <div class="col-md-3">
+     <label class="form-label small fw-bold mb-1">Perfil</label>
+     <select id="faltPerfil" class="form-select form-select-sm">
+      <option value="">Todos</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+     </select>
+    </div>
+    <div class="col-md-3">
+     <label class="form-label small fw-bold mb-1">Tipo de falta</label>
+     <select id="faltTipo" class="form-select form-select-sm">
+      <option value="">Todos</option>
+      <option value="ausente">Pasta ausente</option>
+      <option value="semArquivo">Sem arquivo</option>
+     </select>
+    </div>
+    <div class="col-md-3">
+     <label class="form-label small fw-bold mb-1">Busca livre</label>
+     <input type="text" id="faltBusca" class="form-control form-control-sm" placeholder="Nome ou código...">
+    </div>
+   </div>
+
+   <div class="d-flex gap-2 mb-3">
+    <button id="faltMarcarTodos" class="btn btn-sm btn-outline-primary"><i class="bi bi-check2-square me-1"></i>Marcar todos</button>
+    <button id="faltLimparMarcados" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-square me-1"></i>Limpar seleção</button>
+    <span class="ms-auto small text-muted align-self-center"><span id="faltSelecionados">0</span> selecionado(s)</span>
+   </div>
+
+   <div id="faltantesContainer">
+    <div class="text-center text-muted py-5">Escaneie uma pasta para gerar o relatório.</div>
+   </div>
+  </div>
+ </div></div>
+
+ <div class="card border-0 shadow-sm"><div class="card-body">
+  <div class="d-flex justify-content-between mb-2">
+   <h5 class="card-title mb-0"><i class="bi bi-journal-text me-2"></i>Log</h5>
+   <button id="clearLogs" class="btn btn-sm btn-outline-secondary"><i class="bi bi-trash"></i> Limpar</button>
+  </div>
+  <div id="logsContainer" style="max-height:220px;overflow-y:auto"><div class="log-entry">Sistema pronto</div></div>
+ </div></div>
+</div>
+</div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let dirHandle = null;
+let resultados = [];      // pastas encontradas no scan
+let faltantes = [];       // unidades da tabela que não têm SPED
+let ufAtiva = '';
+let faltMarcados = new Set();
+const PREFIX = /^sped_fiscal_.*\.txt$/i;
+const PASTA_ALVO = /sped\s*-\s*lmc\s*corrigido/i;
+
+/* =====================================================================
+   TABELA DE UNIDADES
+   ===================================================================== */
+const UNIDADES_RAW = `
+PARAÍSO DO TOCANTINS|45|TO|B
+SÃO CRISTÓVÃO FILIAL|95|SE|B
+PARAGOMINAS|37|PA|A
+ALIANÇA|28|MG|B
+BETIM|11|MG|B
+BETIM 2|36|MG|B
+BUENO BRANDÃO|58|MG|B
+CAMANDUCAIA URBANO 1|60|MG|B
+CAMANDUCAIA URBANO 2|63|MG|B
+CAMBUÍ RODOVIA|22|MG|B
+CAMBUÍ URBANO 1|30|MG|B
+CAMBUÍ URBANO 2|42|MG|B
+CARMÓPOLIS|35|MG|B
+CENTRAL|47|MG|B
+CONSELHEIRO LAFAIETE|91|MG|B
+CONTAGEM FERNÃO DIAS|43|MG|B
+CONTAGEM NORTE|20|MG|B
+CONTAGEM SUL|21|MG|B
+DIVISA ALEGRE|41|MG|B
+DIVISA ALEGRE 2|55|MG|B
+DOM PEDRO 1|2|MG|B
+DOM PEDRO 2|6|MG|B
+EXTREMA|70|MG|B
+FREI INOCÊNCIO|87|MG|B
+FUMAÇA|14|MG|B
+IGARATINGA|34|MG|B
+INCONFIDENTES|56|MG|B
+INHAPIM|103|MG|B
+ITAGUARA|50|MG|B
+ITATIAIUÇU|3|MG|B
+JK|27|MG|B
+JUIZ DE FORA RODOVIA|80|MG|B
+JUIZ DE FORA URBANO|57|MG|B
+LUZ|104|MG|B
+MONTES CLAROS|81|MG|B
+MURIAÉ|18|MG|B
+NOVA SERRANA|33|MG|B
+OLIVEIRA|29|MG|B
+OURO FINO|61|MG|B
+PAJEÚ|44|MG|B
+PARAOPEBA|19|MG|B
+PAULINHO|9|MG|B
+POSTO 99|10|MG|B
+POUSO ALEGRE RODOVIA|7|MG|B
+POUSO ALEGRE URBANO 1|59|MG|B
+POUSO ALEGRE URBANO 2|69|MG|B
+POUSO ALEGRE URBANO 3|77|MG|B
+SALINAS|15|MG|B
+SÃO GONÇALO RODOVIA 1|32|MG|B
+SÃO GONÇALO RODOVIA 2|99|MG|B
+SÃO GONÇALO RODOVIA 3|100|MG|B
+SÃO GONÇALO URBANO 2|53|MG|B
+SENADOR AMARAL|51|MG|B
+TURIM|13|MG|B
+RUSSAS|102|CE|B
+CEARA|12|CE|B
+GOIAS|6|GO|A
+MATRIZ|1|MG|B
+PARÁ|7|PA|A
+SERGIPE|11|SE|B
+TOCANTINS|9|TO|B
+BARRA MANSA NORTE|89|RJ|A
+BARRA MANSA SUL|90|RJ|A
+APARECIDA|17|SP|A
+ATIBAIA|8|SP|A
+ATIBAIA URBANO FILIAL (A PARTIR DE 09/08)|68|SP|A
+BRAGANÇA RODOVIA|88|SP|A
+BRAGANÇA URBANO 1|66|SP|A
+GUARA|24|SP|A
+GUARA URBANO 2|64|SP|A
+GUARA URBANO 3|65|SP|A
+JACAREÍ|67|SP|A
+JOIA|25|SP|A
+LEME|4|SP|A
+LORENA|54|SP|A
+MIRACATU NORTE|26|SP|A
+PINDA|5|SP|A
+SALES OLIVEIRA|78|SP|A
+SÃO JOSÉ DOS CAMPOS|86|SP|A
+VARGEM|82|SP|A
+ATIBAIA|2|SP|A
+TRES RIOS|3|RJ|A
+BARREIRAS|96|BA|A
+ITABERABA|97|BA|A
+JAGUAQUARA|31|BA|A
+PLANALTO|92|BA|A
+SANTO ESTEVÃO 1|48|BA|A
+SANTO ESTEVÃO 2|93|BA|A
+SANTO ESTEVÃO 3|94|BA|A
+SÃO JORGE|83|BA|A
+VALENÇA|98|BA|A
+VITÓRIA DA CONQUISTA|79|BA|A
+BAHIA|4|BA|A
+`;
+
+const norm = s => String(s ?? '').trim().toUpperCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/\s+/g, ' ');
+
+// Lista completa de unidades cadastradas (array, mantém duplicatas como entradas separadas)
+const UNIDADES_LISTA = [];
+UNIDADES_RAW.trim().split('\n').forEach(l => {
+  const partes = l.split('|').map(s => s.trim());
+  if (partes.length < 4) return;
+  const [nome, codigo, uf, perfil] = partes;
+  UNIDADES_LISTA.push({ nome, codigo, uf, perfil, key: norm(nome) });
+});
+
+// Mapa por chave (primeiro vence)
+const UNIDADES = {};
+UNIDADES_LISTA.forEach(u => { if (!UNIDADES[u.key]) UNIDADES[u.key] = u; });
+
+function matchUnidade(nomePasta) {
+  const k = norm(nomePasta);
+  if (UNIDADES[k]) return UNIDADES[k];
+  const kSemParen = k.replace(/\s*\([^)]*\)\s*/g, '').trim();
+  if (UNIDADES[kSemParen]) return UNIDADES[kSemParen];
+  for (const key of Object.keys(UNIDADES)) {
+    if (k === key || k.startsWith(key + ' ') || key.startsWith(k + ' ')) return UNIDADES[key];
+  }
+  return null;
+}
+
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function addLog(msg, type = 'info') {
+  const d = document.createElement('div');
+  d.className = 'log-entry ' + type;
+  d.textContent = msg;
+  $('logsContainer').prepend(d);
+  while ($('logsContainer').children.length > 200) $('logsContainer').lastChild.remove();
+}
+$('clearLogs').onclick = () => $('logsContainer').innerHTML = '<div class="log-entry">Log limpo</div>';
+
+/* ---------- Seleção de pasta ---------- */
+$('folderSelector').onclick = async () => {
+  if (!window.showDirectoryPicker) {
+    alert('Seu navegador não suporta a File System Access API. Use Chrome ou Edge.');
+    return;
+  }
+  try {
+    dirHandle = await window.showDirectoryPicker();
+    $('selectedFolderName').textContent = dirHandle.name;
+    $('folderInfo').classList.remove('d-none');
+    addLog(`Pasta selecionada: "${dirHandle.name}"`);
+  } catch (e) {
+    if (e.name !== 'AbortError') addLog('Erro ao selecionar pasta: ' + e.message, 'error');
+  }
+};
+
+/* =====================================================================
+   ESCANEAMENTO
+   ===================================================================== */
+async function escanearDir(dir, basePath = '', dentroLMC = false, profundidadeLMC = -1) {
+  let subpastas = [];
+  const entrada = {
+    pasta: basePath || dir.name,
+    pastaPai: basePath.includes('/') ? basePath.split('/').slice(0, -1).join('/') : '',
+    arquivos: [],
+    temSped: false,
+    dentroLMC,
+    unidade: null
+  };
+
+  const ehPastaLMC = PASTA_ALVO.test(dir.name);
+
+  try {
+    for await (const h of dir.values()) {
+      if (h.kind === 'file') {
+        if (PREFIX.test(h.name)) {
+          const p = basePath ? `${basePath}/${h.name}` : h.name;
+          entrada.arquivos.push({ name: h.name, path: p });
+          entrada.temSped = true;
+        }
+      } else if (h.kind === 'directory') {
+        subpastas.push(h);
+      }
+    }
+  } catch (e) {
+    addLog(`Erro lendo "${basePath || dir.name}": ${e.message}`, 'error');
+  }
+
+  const dentroAgora = dentroLMC || ehPastaLMC;
+  const novaProfundidade = ehPastaLMC ? 0 : (dentroLMC ? profundidadeLMC + 1 : -1);
+
+  if (dentroAgora && novaProfundidade >= 1) {
+    const nomeUnidade = basePath.split('/').filter(Boolean).pop() || dir.name;
+    entrada.unidade = matchUnidade(nomeUnidade);
+    entrada.pasta = basePath;
+    resultados.push(entrada);
+  }
+
+  if ($('recursiveSearch').checked) {
+    for (const sub of subpastas) {
+      const novoBase = basePath ? `${basePath}/${sub.name}` : sub.name;
+      await escanearDir(sub, novoBase, dentroAgora, novaProfundidade);
+    }
+  }
+}
+
+/* =====================================================================
+   CÁLCULO DOS FALTANTES
+   Compara a lista completa de unidades cadastradas com o que foi
+   encontrado no scan. Gera:
+   - tipo "ausente":    pasta da unidade não apareceu
+   - tipo "semArquivo": pasta apareceu mas sem nenhum sped_fiscal_*.txt
+   ===================================================================== */
+function calcularFaltantes() {
+  const falt = [];
+  const pastasPorKey = {};
+  resultados.forEach(r => {
+    if (!r.unidade) return;
+    const k = r.unidade.key;
+    if (!pastasPorKey[k]) pastasPorKey[k] = [];
+    pastasPorKey[k].push(r);
+  });
+
+  UNIDADES_LISTA.forEach(u => {
+    const ocorrencias = pastasPorKey[u.key] || [];
+    const comArquivo = ocorrencias.find(r => r.temSped);
+    if (comArquivo) return; // está OK
+
+    const existeSemArquivo = ocorrencias.length > 0;
+    falt.push({
+      unidade: u,
+      tipo: existeSemArquivo ? 'semArquivo' : 'ausente',
+      pastas: ocorrencias.map(r => r.pasta),
+      arquivos: ocorrencias.flatMap(r => r.arquivos)
+    });
+  });
+
+  return falt;
+}
+
+$('scanButton').onclick = async () => {
+  if (!dirHandle) return;
+  $('scanButton').disabled = true;
+  resultados = [];
+  faltantes = [];
+  faltMarcados = new Set();
+  ufAtiva = '';
+  addLog('Iniciando escaneamento...');
+
+  $('progressSection').classList.remove('d-none');
+  $('statsSection').classList.remove('d-none');
+  $('progressBar').style.width = '30%';
+  $('progressPercent').textContent = '...';
+  $('progressText').textContent = 'Varrendo pastas...';
+
+  try {
+    await escanearDir(dirHandle, '');
+  } catch (e) {
+    addLog('Erro: ' + e.message, 'error');
+  }
+
+  faltantes = calcularFaltantes();
+
+  $('progressBar').style.width = '100%';
+  $('progressPercent').textContent = '100%';
+  $('progressText').textContent = 'Concluído!';
+
+  const totalArquivos = resultados.reduce((a, r) => a + r.arquivos.length, 0);
+  const comSped = resultados.filter(r => r.temSped).length;
+  const semSped = resultados.length - comSped;
+  const semCadastro = resultados.filter(r => !r.unidade).length;
+
+  $('foundCount').textContent = `${totalArquivos} arquivo(s)`;
+  addLog(`Concluído: ${resultados.length} pastas | ${comSped} com SPED | ${semSped} sem SPED | ${totalArquivos} arquivo(s) | ${semCadastro} sem cadastro | ${faltantes.length} faltante(s)`,
+    totalArquivos ? 'success' : 'warning');
+
+  $('scanButton').disabled = false;
+  $('exportButton').disabled = resultados.length === 0;
+  $('exportFaltantes').disabled = faltantes.length === 0;
+  render();
+  renderFaltantes();
+};
+
+/* =====================================================================
+   RENDER - ABA ESCANEADOS
+   ===================================================================== */
+function filtrados() {
+  const t = $('filterText').value.trim().toLowerCase();
+  const cod = $('filterCodigo').value.trim();
+  const s = $('filterStatus').value;
+  const p = $('filterPerfil').value;
+
+  return resultados.filter(r => {
+    if (ufAtiva && (r.unidade?.uf || 'SEM UF') !== ufAtiva) return false;
+    if (s === 'ok' && !r.temSped) return false;
+    if (s === 'missing' && r.temSped) return false;
+    if (s === 'desconhecida' && r.unidade) return false;
+    if (p && (r.unidade?.perfil || '') !== p) return false;
+    if (cod && !(r.unidade?.codigo || '').includes(cod)) return false;
+    if (t) {
+      const blob = (r.pasta + ' ' + (r.unidade?.nome || '') + ' ' + r.arquivos.map(a => a.name).join(' ')).toLowerCase();
+      if (!blob.includes(t)) return false;
+    }
+    return true;
+  });
+}
+
+function renderTabsUf() {
+  const ufs = {};
+  resultados.forEach(r => {
+    const uf = r.unidade?.uf || 'SEM UF';
+    ufs[uf] = (ufs[uf] || 0) + 1;
+  });
+  const ordem = ['MG', 'SP', 'RJ', 'BA', 'CE', 'GO', 'PA', 'SE', 'TO', 'SEM UF'];
+  const keys = Object.keys(ufs).sort((a, b) => {
+    const ia = ordem.indexOf(a), ib = ordem.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1; if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  $('tabsUf').innerHTML =
+    `<button class="${ufAtiva === '' ? 'active' : ''}" data-uf="">Todas <span class="badge">${resultados.length}</span></button>` +
+    keys.map(uf =>
+      `<button class="${ufAtiva === uf ? 'active' : ''}" data-uf="${esc(uf)}">${esc(uf)} <span class="badge">${ufs[uf]}</span></button>`
+    ).join('');
+
+  [...$('tabsUf').querySelectorAll('button')].forEach(b => {
+    b.onclick = () => { ufAtiva = b.dataset.uf; render(); };
+  });
+}
+
+function render() {
+  const totalArquivos = resultados.reduce((a, r) => a + r.arquivos.length, 0);
+  $('stPastas').textContent = resultados.length;
+  $('stOk').textContent = resultados.filter(r => r.temSped).length;
+  $('stMiss').textContent = resultados.filter(r => !r.temSped).length;
+  $('stFiles').textContent = totalArquivos;
+  $('stFaltantes').textContent = faltantes.length;
+
+  $('badgeEncontrados').textContent = resultados.length;
+  $('badgeFaltantes').textContent = faltantes.length;
+
+  renderTabsUf();
+
+  const list = filtrados();
+  $('resultsCount').textContent = list.length;
+
+  if (!list.length) {
+    $('resultsContainer').innerHTML = '<div class="text-center text-muted py-5">Nenhum resultado</div>';
+    return;
+  }
+
+  list.sort((a, b) => {
+    if (a.temSped !== b.temSped) return a.temSped - b.temSped;
+    const ufA = a.unidade?.uf || 'ZZ', ufB = b.unidade?.uf || 'ZZ';
+    if (ufA !== ufB) return ufA.localeCompare(ufB);
+    return a.pasta.localeCompare(b.pasta);
+  });
+
+  $('resultsContainer').innerHTML = list.map(r => {
+    const unidade = r.unidade;
+    const cls = !unidade ? 'desconhecida' : (r.temSped ? 'valid' : 'missing');
+    const icon = r.temSped ? 'check' : 'x';
+    const badgeCls = r.temSped ? 'pill-ok' : 'pill-miss';
+    const badgeTxt = r.temSped ? `${r.arquivos.length} arquivo(s)` : 'SEM SPED';
+
+    const ufPill = unidade ? `<span class="pill pill-uf">${esc(unidade.uf)}</span>` : `<span class="pill" style="background:#e2e8f0;color:#4a5568">SEM CADASTRO</span>`;
+    const codPill = unidade ? `<span class="pill pill-cod">Código ${esc(unidade.codigo)}</span>` : '';
+    const perfilPill = unidade ? `<span class="pill pill-perfil">Perfil ${esc(unidade.perfil)}</span>` : '';
+    const nomeUnidade = unidade ? `<span class="fw-semibold">${esc(unidade.nome)}</span>` : `<span class="text-muted fst-italic">${esc(r.pasta.split('/').pop())}</span>`;
+
+    const arquivosHtml = r.arquivos.length
+      ? `<div class="mt-2">${r.arquivos.map(a =>
+          `<div class="pill pill-info" title="${esc(a.path)}"><i class="bi bi-file-earmark-text me-1"></i>${esc(a.name)}</div>`
+        ).join('')}</div>`
+      : '';
+
+    return `<div class="result-item ${cls}">
+      <div class="d-flex align-items-start">
+        <div class="me-2 mt-1"><i class="bi bi-${icon}-circle-fill text-${r.temSped ? 'success' : 'danger'}"></i></div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+              <div class="file-name"><i class="bi bi-folder-fill text-warning me-1"></i>${nomeUnidade}</div>
+              <div class="file-path">${esc(r.pasta)}</div>
+            </div>
+            <div class="text-end"><span class="pill ${badgeCls}">${badgeTxt}</span></div>
+          </div>
+          <div class="mt-2">${ufPill}${codPill}${perfilPill}</div>
+          ${arquivosHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* =====================================================================
+   RENDER - ABA FALTANTES
+   ===================================================================== */
+function preencherFiltroUfFaltantes() {
+  const ufs = [...new Set(UNIDADES_LISTA.map(u => u.uf))].sort();
+  $('faltUf').innerHTML = '<option value="">Todas</option>' +
+    ufs.map(uf => `<option value="${esc(uf)}">${esc(uf)}</option>`).join('');
+}
+
+function faltantesFiltrados() {
+  const uf = $('faltUf').value;
+  const pf = $('faltPerfil').value;
+  const tp = $('faltTipo').value;
+  const bs = $('faltBusca').value.trim().toLowerCase();
+
+  return faltantes.filter(f => {
+    if (uf && f.unidade.uf !== uf) return false;
+    if (pf && f.unidade.perfil !== pf) return false;
+    if (tp && f.tipo !== tp) return false;
+    if (bs) {
+      const blob = (f.unidade.nome + ' ' + f.unidade.codigo).toLowerCase();
+      if (!blob.includes(bs)) return false;
+    }
+    return true;
+  });
+}
+
+function renderFaltantes() {
+  const list = faltantesFiltrados();
+  $('faltSelecionados').textContent = faltMarcados.size;
+
+  if (!faltantes.length) {
+    $('faltantesContainer').innerHTML = '<div class="text-center text-muted py-5">Nenhum faltante — todas as unidades cadastradas têm SPED! 🎉</div>';
+    return;
+  }
+  if (!list.length) {
+    $('faltantesContainer').innerHTML = '<div class="text-center text-muted py-5">Nenhum resultado com os filtros atuais.</div>';
+    return;
+  }
+
+  // Agrupa por UF
+  const porUf = {};
+  list.forEach(f => {
+    if (!porUf[f.unidade.uf]) porUf[f.unidade.uf] = [];
+    porUf[f.unidade.uf].push(f);
+  });
+
+  const ordemUf = ['MG', 'SP', 'RJ', 'BA', 'CE', 'GO', 'PA', 'SE', 'TO'];
+  const ufs = Object.keys(porUf).sort((a, b) => {
+    const ia = ordemUf.indexOf(a), ib = ordemUf.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1; if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  $('faltantesContainer').innerHTML = ufs.map(uf => {
+    const itens = porUf[uf];
+    return `<div class="mb-3">
+      <div class="d-flex align-items-center mb-2">
+        <span class="pill pill-uf">${esc(uf)}</span>
+        <span class="ms-2 small text-muted">${itens.length} faltante(s)</span>
+      </div>
+      ${itens.map(f => {
+        const key = f.unidade.key + '|' + f.unidade.codigo;
+        const marcado = faltMarcados.has(key);
+        const tipoPill = f.tipo === 'ausente'
+          ? '<span class="pill pill-miss">PASTA AUSENTE</span>'
+          : '<span class="pill" style="background:#feebc8;color:#744210">SEM ARQUIVO</span>';
+        const pastasHtml = f.pastas.length
+          ? `<div class="file-path mt-1">${f.pastas.map(p => esc(p)).join(' • ')}</div>`
+          : '';
+
+        return `<div class="result-item missing" data-key="${esc(key)}">
+          <div class="d-flex align-items-start">
+            <div class="form-check me-2 mt-1">
+              <input class="form-check-input falt-check" type="checkbox" ${marcado ? 'checked' : ''} data-key="${esc(key)}">
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                  <div class="file-name">${esc(f.unidade.nome)}</div>
+                  <div class="file-path"><span class="pill pill-cod">Código ${esc(f.unidade.codigo)}</span>
+                    <span class="pill pill-perfil">Perfil ${esc(f.unidade.perfil)}</span>
+                    ${tipoPill}</div>
+                </div>
+              </div>
+              ${pastasHtml}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  // Listeners dos checkboxes
+  [...$('faltantesContainer').querySelectorAll('.falt-check')].forEach(cb => {
+    cb.onchange = () => {
+      const k = cb.dataset.key;
+      if (cb.checked) faltMarcados.add(k); else faltMarcados.delete(k);
+      $('faltSelecionados').textContent = faltMarcados.size;
+    };
+  });
+}
+
+// Aplica eventos dos filtros
+['faltUf', 'faltPerfil', 'faltTipo'].forEach(i => $(i).onchange = renderFaltantes);
+$('faltBusca').addEventListener('input', renderFaltantes);
+
+$('faltMarcarTodos').onclick = () => {
+  faltantesFiltrados().forEach(f => faltMarcados.add(f.unidade.key + '|' + f.unidade.codigo));
+  renderFaltantes();
+};
+$('faltLimparMarcados').onclick = () => {
+  faltMarcados.clear();
+  renderFaltantes();
+};
+
+// Alternância entre abas
+$('tabEncontrados').onclick = () => {
+  $('tabEncontrados').classList.add('active');
+  $('tabFaltantes').classList.remove('active');
+  $('painelEncontrados').classList.remove('d-none');
+  $('painelFaltantes').classList.add('d-none');
+};
+$('tabFaltantes').onclick = () => {
+  $('tabFaltantes').classList.add('active');
+  $('tabEncontrados').classList.remove('active');
+  $('painelFaltantes').classList.remove('d-none');
+  $('painelEncontrados').classList.add('d-none');
+};
+
+['filterText', 'filterCodigo'].forEach(i => $(i).addEventListener('input', render));
+$('filterStatus').onchange = render;
+$('filterPerfil').onchange = render;
+
+$('resetFiltros').onclick = () => {
+  $('filterText').value = '';
+  $('filterCodigo').value = '';
+  $('filterStatus').value = '';
+  $('filterPerfil').value = '';
+  ufAtiva = '';
+  render();
+};
+
+/* =====================================================================
+   EXPORTAÇÕES
+   ===================================================================== */
+function exportarLinhas(linhas, nomeBase) {
+  if (!linhas.length) { alert('Nada para exportar.'); return; }
+  const fmtSel = $('exportFormat').value;
+  const ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+
+  if (fmtSel === 'excel') {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(linhas), 'Dados');
+    XLSX.writeFile(wb, `${nomeBase}_${ts}.xlsx`);
+    return;
+  }
+
+  let blob, name;
+  if (fmtSel === 'json') {
+    blob = new Blob([JSON.stringify(linhas, null, 2)], { type: 'application/json' });
+    name = `${nomeBase}_${ts}.json`;
+  } else {
+    const h = Object.keys(linhas[0]);
+    const csv = [h.join(',')].concat(
+      linhas.map(r => h.map(k => `"${String(r[k]).replace(/"/g, '""')}"`).join(','))
+    ).join('\n');
+    blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    name = `${nomeBase}_${ts}.csv`;
+  }
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+$('exportButton').onclick = () => {
+  const linhas = [];
+  filtrados().sort((a, b) => (a.temSped - b.temSped) || a.pasta.localeCompare(b.pasta)).forEach(r => {
+    const base = {
+      Pasta: r.pasta,
+      Unidade: r.unidade?.nome || '',
+      'Código AS': r.unidade?.codigo || '',
+      UF: r.unidade?.uf || '',
+      Perfil: r.unidade?.perfil || '',
+      'Cadastrada?': r.unidade ? 'SIM' : 'NÃO',
+      'Tem SPED?': r.temSped ? 'SIM' : 'NÃO'
+    };
+    if (r.arquivos.length === 0) linhas.push({ ...base, Arquivo: '', Caminho: '' });
+    else r.arquivos.forEach(a => linhas.push({ ...base, Arquivo: a.name, Caminho: a.path }));
+  });
+  exportarLinhas(linhas, 'sped_fiscal_encontrados');
+};
+
+$('exportFaltantes').onclick = () => {
+  // Se há marcados, exporta só eles; senão, exporta tudo que está filtrado
+  const base = faltantesFiltrados();
+  const usar = faltMarcados.size
+    ? base.filter(f => faltMarcados.has(f.unidade.key + '|' + f.unidade.codigo))
+    : base;
+
+  const linhas = usar.map(f => ({
+    UF: f.unidade.uf,
+    'Código AS': f.unidade.codigo,
+    Unidade: f.unidade.nome,
+    Perfil: f.unidade.perfil,
+    'Tipo de Falta': f.tipo === 'ausente' ? 'PASTA AUSENTE' : 'SEM ARQUIVO',
+    'Pastas encontradas': f.pastas.join(' | '),
+    'Arquivos encontrados': f.arquivos.map(a => a.name).join(' | ')
+  }));
+
+  exportarLinhas(linhas, faltMarcados.size ? 'sped_fiscal_faltantes_selecionados' : 'sped_fiscal_faltantes');
+};
+
+/* ---------- Init ---------- */
+preencherFiltroUfFaltantes();
+</script>
+</body>
+</html>
