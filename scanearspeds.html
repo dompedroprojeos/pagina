@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner SPED Fiscal</title>
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#14213d;--mut:#64748b;--line:#e2e8f0;--ok:#0f9d75;--sem:#e08a00;--aus:#d9463b;--desc:#94a3b8;--acc:#2456d6;--pdf:#b91c1c;--both:#7c3aed;--dp:#0891b2;--rec:#6d28d9;--vazia:#be185d;--apura:#0284c7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+
+/* CABEÇALHO DO SISTEMA */
+.top{background:linear-gradient(135deg,#14213d 0%,#1e3a8a 100%);color:#fff;padding:16px 32px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(20,33,61,.25)}
+.top::after{content:"";position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#2456d6 0%,#0f9d75 100%)}
+.top-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;max-width:1600px;margin:auto}
+.top-brand{display:flex;align-items:center;gap:16px}
+.top-brand .brand-logo{height:48px;max-width:150px;object-fit:contain;background:#fff;padding:6px 10px;border-radius:8px}
+.top-brand .brand-fallback{display:flex;align-items:center;justify-content:center;height:48px;padding:0 14px;background:#fff;color:#2456d6;font-weight:800;letter-spacing:1.5px;font-size:.85rem;border-radius:8px}
+.top-title h1{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:10px}
+.top-title h1 .badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:2px 10px;border-radius:12px;font-size:.7rem;font-weight:700;letter-spacing:1px}
+.top-title p{margin:4px 0 0;color:#a8b5d1;font-size:.85rem}
+.top-right{display:flex;align-items:center;gap:14px;color:#a8b5d1;font-size:.82rem}
+.top-right .stat-topo{display:flex;flex-direction:column;align-items:center;padding:6px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px}
+.top-right .stat-topo b{font-size:1.15rem;color:#fff;line-height:1;font-weight:800}
+.top-right .stat-topo small{font-size:.65rem;letter-spacing:1px;text-transform:uppercase;margin-top:3px;color:#a8b5d1}
+@media(max-width:700px){.top{padding:14px 18px}.top-right{display:none}}
+
+.wrap{display:grid;grid-template-columns:290px 1fr;gap:20px;padding:20px 28px 60px;max-width:1600px;margin:auto}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;padding:14px 14px 60px}}
+
+.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,33,61,.08);margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:.95rem}
+.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:600;cursor:pointer;font-size:.9rem;width:100%;margin-top:8px;background:var(--acc);color:#fff;transition:transform .15s,filter .15s}
+.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.g{background:var(--ok)}.btn.r{background:var(--aus)}.btn.l{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.roxo{background:#7c3aed}
+.pick{border:2px dashed #9db4ee;border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#f5f8ff}
+.pick:hover{background:#eaf0ff}.pick b{display:block;font-size:1rem}.pick small{color:var(--mut)}
+input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;margin-bottom:8px;background:#fff}
+label.sw{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.85rem;color:var(--mut)}
+label.lb{display:block;font-size:.78rem;color:var(--mut);margin:6px 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+code{background:#eef2ff;padding:1px 6px;border-radius:5px;font-size:.82rem}
+.hero{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center}
+@media(max-width:700px){.hero{grid-template-columns:1fr;justify-items:center}}
+.donut{width:170px;height:170px;border-radius:50%;background:conic-gradient(var(--line) 0 100%);position:relative;display:grid;place-items:center;transition:background .6s ease}
+.donut::after{content:"";position:absolute;inset:24px;background:#fff;border-radius:50%}
+.donut div{position:relative;z-index:1;text-align:center}
+.donut strong{font-size:2.1rem;display:block;line-height:1}.donut span{font-size:.72rem;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;width:100%}
+.kpi{border-left:4px solid var(--c);padding:6px 12px;background:#f8fafc;border-radius:0 8px 8px 0}
+.kpi b{font-size:1.4rem;display:block}.kpi span{font-size:.72rem;color:var(--mut)}
+.ufs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 22px}
+.uf{cursor:pointer;padding:6px 8px;border-radius:8px;border:1px solid transparent}
+.uf:hover{background:#f1f5f9}.uf.on{border-color:var(--acc);background:#eef3ff}
+.uf .h{display:flex;justify-content:space-between;font-weight:600;font-size:.85rem}.uf .h span{color:var(--mut);font-weight:500}
+.bar{height:8px;background:var(--line);border-radius:5px;margin-top:5px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.p{background:var(--pdf)}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:14px}
+.tabs button{background:none;border:0;padding:9px 16px;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem}
+.tabs button.on{color:var(--acc);border-color:var(--acc)}
+.tabs em{font-style:normal;background:var(--line);border-radius:10px;padding:1px 8px;margin-left:6px;font-size:.75rem}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.78rem;color:var(--mut);padding:8px 10px;border-bottom:2px solid var(--line);position:sticky;top:0;background:#fff;z-index:1}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#f8fafc}
+.tw{max-height:560px;overflow:auto}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;white-space:nowrap;letter-spacing:.2px}
+.t-ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.t-nao_transmitido{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.t-apuracao{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.t-vazia{background:#fce7f3;color:#9d174d;border:1px solid #f9a8d4}
+.t-ausente{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.t-desc{background:#e5e9ef;color:#475569;border:1px solid #cbd5e1}
+.t-aprox{background:#dbeafe;color:#1e40af;font-size:.68rem;padding:1px 6px;margin-left:5px;cursor:help}
+.t-alias{background:#fef3c7;color:#92400e;font-size:.68rem;padding:1px 6px;margin-left:5px;cursor:help}
+.t-dp{background:#cffafe;color:#155e75;font-size:.68rem;padding:1px 6px;margin-left:5px;cursor:help}
+.fn{display:inline-block;background:#eef2ff;color:#243b8f;border-radius:6px;padding:1px 7px;margin:2px 3px 0 0;font:.76rem Consolas,monospace}
+.fn.pdf{background:#fee2e2;color:#991b1b}
+.fn.rec{background:#ede9fe;color:#5b21b6}
+.fn.ap{background:#e0f2fe;color:#075985}
+.fn.rej{background:#fde8e8;color:#991b1b;border:1px solid #fecaca}
+.path{color:var(--mut);font:.76rem Consolas,monospace;word-break:break-all}
+.log{max-height:150px;overflow:auto;font:.78rem Consolas,monospace}.log div{padding:3px 0;border-bottom:1px solid var(--line)}
+.log .error{color:var(--aus)}.log .success{color:var(--ok)}.log .warning{color:var(--sem)}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+.d-none{display:none!important}
+
+.docs-cell{display:flex;flex-direction:column;gap:5px;min-width:110px}
+.doc-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:8px;font-size:.72rem;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.doc-chip .icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:.7rem;font-weight:900;line-height:1}
+.doc-chip.ok{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;border:1px solid #6ee7b7;box-shadow:0 1px 2px rgba(15,157,117,.15)}
+.doc-chip.ok .icon{background:#0f9d75;color:#fff}
+.doc-chip.miss{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0}
+.doc-chip.miss .icon{background:#cbd5e1;color:#fff}
+.doc-chip.ap{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1e40af;border:1px solid #93c5fd}
+.doc-chip.ap .icon{background:#0284c7;color:#fff}
+
+#legendaBox{background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,33,61,.08);border-left:4px solid var(--acc);display:none}
+#legendaBox.on{display:block}
+#legendaBox h4{margin:0 0 10px;font-size:.85rem;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.legendaGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 20px;font-size:.82rem}
+.legendaItem{display:flex;align-items:flex-start;gap:8px}
+.legendaItem .tag{margin:0;flex-shrink:0}
+.legendaItem .desc{color:var(--mut);line-height:1.4}
+
+#periodoBox{background:linear-gradient(135deg,#14213d 0%,#2456d6 100%);border-radius:14px;padding:22px 26px;color:#fff;margin-bottom:16px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;box-shadow:0 8px 32px rgba(20,33,61,.25);position:relative;overflow:hidden}
+#periodoBox::before{content:"";position:absolute;top:-50%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+#periodoBox::after{content:"";position:absolute;bottom:-80%;left:-5%;width:300px;height:300px;background:radial-gradient(circle,rgba(15,157,117,.15) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.periodoIcone{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,#4f7be6,#0f9d75);display:grid;place-items:center;font-size:2rem;box-shadow:0 8px 24px rgba(79,123,230,.5),inset 0 1px 0 rgba(255,255,255,.3);position:relative;z-index:1}
+.periodoTexto{position:relative;z-index:1}
+.periodoTexto .lab{font-size:.7rem;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.65);font-weight:600;margin-bottom:4px}
+.periodoTexto .val{font-size:1.9rem;font-weight:800;line-height:1.1;letter-spacing:-.5px;text-shadow:0 2px 12px rgba(0,0,0,.3)}
+.periodoTexto .sub{font-size:.82rem;color:rgba(255,255,255,.75);margin-top:4px}
+.periodoStats{display:flex;gap:20px;position:relative;z-index:1}
+.periodoStats > div{display:flex;flex-direction:column;align-items:center;min-width:70px;padding:10px 14px;background:rgba(255,255,255,.1);border-radius:12px;border:1px solid rgba(255,255,255,.15)}
+.periodoStats b{font-size:1.4rem;font-weight:800;line-height:1}
+.periodoStats small{font-size:.65rem;color:rgba(255,255,255,.7);margin-top:4px;letter-spacing:1px;text-transform:uppercase;font-weight:600}
+#periodoBox.vazio{background:linear-gradient(135deg,#64748b 0%,#94a3b8 100%)}
+#periodoBox.vazio .periodoIcone{background:linear-gradient(135deg,#94a3b8,#cbd5e1)}
+@media(max-width:800px){#periodoBox{grid-template-columns:1fr;text-align:center}.periodoIcone{margin:0 auto}.periodoStats{justify-content:center}}
+
+/* RODAPÉ DO SISTEMA */
+.rodape-sistema{background:linear-gradient(135deg,#14213d 0%,#1e3a8a 100%);color:#a8b5d1;padding:22px 32px;margin-top:30px;border-top:4px solid transparent;border-image:linear-gradient(90deg,#2456d6,#0f9d75) 1}
+.rodape-sistema-inner{max-width:1600px;margin:auto;display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center}
+@media(max-width:700px){.rodape-sistema-inner{grid-template-columns:1fr;text-align:center}}
+.rodape-sistema .rod-l{display:flex;flex-direction:column;gap:4px}
+.rodape-sistema .rod-l b{color:#fff;font-weight:800;font-size:.92rem;letter-spacing:.3px}
+.rodape-sistema .rod-l small{font-size:.72rem;color:#a8b5d1}
+.rodape-sistema .rod-c{text-align:center;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;color:#64748b;font-weight:700}
+.rodape-sistema .rod-c b{color:#0f9d75;font-weight:800}
+.rodape-sistema .rod-r{display:flex;justify-content:flex-end;gap:16px;font-size:.72rem;align-items:center}
+@media(max-width:700px){.rodape-sistema .rod-r{justify-content:center}}
+.rodape-sistema .rod-r .chip-ver{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;font-size:.7rem;font-weight:600;color:#fff}
+.rodape-sistema .rod-r .chip-ver .dot{width:7px;height:7px;border-radius:50%;background:#0f9d75;box-shadow:0 0 8px #0f9d75;animation:pulseDot 2s infinite}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* OVERLAY PROGRESSO */
+#overlayProg{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%, rgba(36,86,214,.35) 0%, rgba(20,33,61,.75) 60%, rgba(10,18,38,.9) 100%);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);display:none;place-items:center;z-index:9999;animation:fadeIn .3s ease}
+#overlayProg.on{display:grid}
+#overlayProg::before,#overlayProg::after{content:"";position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;animation:float 8s ease-in-out infinite}
+#overlayProg::before{width:340px;height:340px;background:radial-gradient(circle,#4f7be6 0%,transparent 70%);top:10%;left:15%;opacity:.55}
+#overlayProg::after{width:300px;height:300px;background:radial-gradient(circle,#0f9d75 0%,transparent 70%);bottom:12%;right:18%;opacity:.45;animation-delay:2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-25px) scale(1.12)}}
+.progBox{position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:28px;padding:44px 54px 36px;text-align:center;min-width:400px;box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);animation:pop .45s cubic-bezier(.2,.9,.3,1.25);overflow:hidden}
+.progBox::before{content:"";position:absolute;inset:0;border-radius:28px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.05) 40%,rgba(255,255,255,.3));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.ring{width:200px;height:200px;margin:0 auto 22px;position:relative;filter:drop-shadow(0 8px 24px rgba(36,86,214,.5))}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring .track{fill:none;stroke:rgba(255,255,255,.15);stroke-width:10}
+.ring .track2{fill:none;stroke:rgba(255,255,255,.06);stroke-width:18}
+.ring .fill{fill:none;stroke:url(#gradProg);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 10px rgba(79,123,230,.9)) drop-shadow(0 0 22px rgba(15,157,117,.6))}
+.ring .fill.pulse{animation:pulseStroke 1.8s ease-in-out infinite}
+@keyframes pulseStroke{0%,100%{filter:drop-shadow(0 0 8px rgba(79,123,230,.7)) drop-shadow(0 0 16px rgba(15,157,117,.4))}50%{filter:drop-shadow(0 0 16px rgba(79,123,230,1)) drop-shadow(0 0 32px rgba(15,157,117,.9))}}
+.ring .dot{fill:#fff;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px #4f7be6);transition:cx .5s cubic-bezier(.4,0,.2,1),cy .5s cubic-bezier(.4,0,.2,1)}
+.ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ring .center .pct{font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-2px;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.55),0 0 30px rgba(79,123,230,.85),0 0 60px rgba(79,123,230,.55);font-variant-numeric:tabular-nums}
+.ring .center .pct::after{content:"%";font-size:1.5rem;font-weight:600;margin-left:2px;opacity:.75;vertical-align:top}
+.ring .center .lbl{font-size:.7rem;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.72);margin-top:6px;font-weight:600}
+.progTitle{font-size:1.15rem;font-weight:700;color:#fff;margin:0 0 6px;text-shadow:0 2px 12px rgba(0,0,0,.35);letter-spacing:.3px}
+.progSub{font-size:.85rem;color:rgba(255,255,255,.78);margin:0 0 8px;min-height:1.3em;font-weight:500}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.dots span{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#4f7be6,#0f9d75);box-shadow:0 0 10px rgba(79,123,230,.9);animation:bounce 1.3s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:.18s;background:linear-gradient(135deg,#7ea6ff,#4f7be6)}
+.dots span:nth-child(3){animation-delay:.36s;background:linear-gradient(135deg,#0f9d75,#5fd0a4)}
+@keyframes bounce{0%,80%,100%{transform:scale(.55);opacity:.4}40%{transform:scale(1.15);opacity:1}}
+.progStats{display:flex;gap:26px;justify-content:center;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.16)}
+.progStats > div{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.progStats b{font-size:1.6rem;color:#fff;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(79,123,230,.7)}
+.progStats small{font-size:.68rem;color:rgba(255,255,255,.65);margin-top:5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+
+/* MODAL RELATÓRIO */
+#modalRel{position:fixed;inset:0;background:rgba(20,33,61,.8);backdrop-filter:blur(8px);display:none;place-items:start center;z-index:10000;padding:20px;overflow:auto}
+#modalRel.on{display:grid}
+.modalBox{background:#f1f5f9;border-radius:16px;max-width:1100px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.2,.9,.3,1.2);overflow:hidden}
+.modalHead{background:#fff;border-bottom:2px solid var(--line);padding:16px 22px;z-index:2}
+.modalHead .linha1{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.modalHead h3{margin:0;font-size:1.05rem}
+.modalHead .acoes{display:flex;gap:8px;align-items:center}
+.modalHead .filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.modalHead .filtros label{display:block;font-size:.7rem;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.modalHead .filtros select{margin:0;padding:7px 10px;font-size:.85rem}
+.modalHead button{border:0;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:.85rem}
+.modalHead .btn-print{background:var(--acc);color:#fff}
+.modalHead .btn-close{background:#e5e9ef;color:var(--ink)}
+.modalHead .contador{font-size:.82rem;color:var(--mut);margin-top:10px;font-weight:500}
+.modalHead .contador b{color:var(--ink);font-weight:800}
+.modalBody{padding:22px;background:#f1f5f9}
+
+/* FOLHA A4 */
+.folha{background:#fff;padding:15mm 12mm 15mm 12mm;width:210mm;max-width:100%;min-height:297mm;margin:0 auto 20px;border-radius:6px;box-shadow:0 8px 30px rgba(20,33,61,.12);position:relative;display:flex;flex-direction:column}
+.folha::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#14213d 0%,#2456d6 50%,#0f9d75 100%)}
+.folha-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-bottom:14px;margin-bottom:16px;gap:16px;position:relative}
+.folha-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#2456d6 20%,#2456d6 80%,transparent)}
+.folha-head .head-l,.folha-head .head-r{display:flex;align-items:center;min-width:0}
+.folha-head .head-r{justify-content:flex-end}
+.folha-head img{max-height:60px;max-width:190px;object-fit:contain;display:block}
+.folha-head .logo-fallback{display:flex;align-items:center;justify-content:center;height:60px;min-width:150px;font-weight:800;color:var(--acc);letter-spacing:1.5px;font-size:.95rem;border:2px dashed #93c5fd;border-radius:10px;padding:0 16px;background:#eff6ff}
+.folha-head .titulo{text-align:center;padding:0 8px}
+.folha-head .titulo h2{margin:0;font-size:1.3rem;color:var(--ink);letter-spacing:.3px;font-weight:800}
+.folha-head .titulo h3{margin:4px 0 0;font-size:.82rem;color:var(--mut);font-weight:500}
+.folha-head .titulo .uf-badge{display:inline-block;margin-top:8px;padding:4px 18px;border-radius:14px;background:linear-gradient(135deg,#2456d6,#0f9d75);color:#fff;font-weight:800;font-size:.85rem;letter-spacing:2px;box-shadow:0 4px 12px rgba(36,86,214,.35)}
+.folha-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:.78rem;color:var(--mut);padding:12px 16px;background:#f8fafc;border-radius:10px;margin-bottom:14px;border-left:4px solid var(--acc)}
+@media(max-width:600px){.folha-meta{grid-template-columns:repeat(2,1fr)}}
+.folha-meta > div{display:flex;flex-direction:column;gap:2px}
+.folha-meta .meta-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#94a3b8}
+.folha-meta .meta-val{color:var(--ink);font-weight:700;font-size:.88rem}
+.resumo-faixa{padding:10px 14px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:6px;font-size:.76rem;color:#78350f;margin-bottom:14px}
+.resumo-faixa b{font-weight:800}
+table.rel{width:100%;border-collapse:collapse;font-size:.8rem;border-radius:8px;overflow:hidden;flex:0 0 auto}
+table.rel th{background:linear-gradient(180deg,#f1f5f9,#e2e8f0);color:var(--ink);font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid #cbd5e1;padding:9px 11px;position:static;font-weight:800}
+table.rel td{border-bottom:1px solid #e2e8f0;padding:9px 11px;color:var(--ink)}
+table.rel tbody tr:nth-child(even) td{background:#f8fafc}
+table.rel tbody tr:last-child td{border-bottom:0}
+table.rel .sit-cell{font-weight:600;font-size:.76rem}
+table.rel .sit-cell.ok{color:#065f46}
+table.rel .sit-cell.nao{color:#92400e}
+table.rel .sit-cell.apur{color:#1e40af}
+table.rel .sit-cell.vazia{color:#9d174d}
+table.rel .sit-cell.ausente{color:#991b1b}
+table.rel .sit-desc{font-size:.68rem;color:#94a3b8;font-weight:400;margin-top:2px}
+.folha-foot{margin-top:auto;padding-top:14px;border-top:2px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;font-size:.7rem;color:var(--mut)}
+.folha-foot .foot-l{display:flex;flex-direction:column;gap:3px}
+.folha-foot .foot-l b{color:var(--ink);font-weight:800;font-size:.78rem}
+.folha-foot .foot-l small{font-size:.64rem;letter-spacing:.5px}
+.folha-foot .foot-c{text-align:center;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#94a3b8}
+.folha-foot .assinatura{border-top:1px solid #64748b;padding-top:5px;text-align:center;font-size:.68rem;color:var(--mut);min-width:200px;justify-self:end}
+.folha .pagina-num{position:absolute;bottom:8mm;right:12mm;font-size:.62rem;color:#cbd5e1;font-weight:700;letter-spacing:1px}
+
+@media print{
+  @page{size:A4;margin:0}
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
+  .top,.wrap,main,.rodape-sistema,.no-print{display:none!important}
+  #modalRel{position:static!important;background:#fff!important;display:block!important;padding:0!important;backdrop-filter:none!important;overflow:visible!important}
+  .modalBox{box-shadow:none!important;border-radius:0!important;max-width:none!important;overflow:visible!important;background:#fff!important}
+  .modalHead{display:none!important}
+  .modalBody{padding:0!important;background:#fff!important}
+  .folha{box-shadow:none!important;border:0!important;border-radius:0!important;width:210mm!important;min-height:297mm!important;max-width:none!important;padding:15mm 12mm!important;margin:0!important;page-break-after:always;page-break-inside:avoid;display:flex!important;flex-direction:column!important}
+  .folha::before{display:block!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .folha:last-child{page-break-after:auto}
+  .folha .pagina-num{position:absolute!important;bottom:8mm!important;right:12mm!important}
+}
+</style>
+</head>
+<body>
+
+<div id="overlayProg">
+  <div class="progBox">
+    <div class="ring">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="gradProg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7ea6ff"/>
+            <stop offset="50%" stop-color="#4f7be6"/>
+            <stop offset="100%" stop-color="#0f9d75"/>
+          </linearGradient>
+        </defs>
+        <circle class="track2" cx="100" cy="100" r="86"/>
+        <circle class="track" cx="100" cy="100" r="78"/>
+        <circle class="fill pulse" id="ringFill" cx="100" cy="100" r="78" stroke-dasharray="490" stroke-dashoffset="490"/>
+        <circle class="dot" id="ringDot" cx="100" cy="22" r="4.5"/>
+      </svg>
+      <div class="center">
+        <div class="pct" id="ringPct">0</div>
+        <div class="lbl">progresso</div>
+      </div>
+    </div>
+    <p class="progTitle">Lendo pastas…</p>
+    <p class="progSub" id="progSub">Iniciando varredura</p>
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="progStats">
+      <div><b id="statPastas">0</b><small>Pastas</small></div>
+      <div><b id="statPostos">0</b><small>Postos</small></div>
+      <div><b id="statArquivos">0</b><small>Arquivos</small></div>
+    </div>
+  </div>
+</div>
+
+<!-- CABEÇALHO DO SISTEMA -->
+<div class="top">
+  <div class="top-inner">
+    <div class="top-brand">
+      <img id="logoSistemaImg" class="brand-logo" src="https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png"
+           onerror="this.style.display='none';document.getElementById('logoSistemaFallback').style.display='flex'">
+      <div id="logoSistemaFallback" class="brand-fallback" style="display:none">DOM PEDRO</div>
+      <div class="top-title">
+        <h1>Scanner SPED Fiscal <span class="badge">v3.1</span></h1>
+        <p>Remessa (.REC) · SPED Fiscal (.txt) · Recibo (.pdf) · Apuração (NNN A*.pdf)</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="stat-topo"><b id="topTotal">0</b><small>Unidades</small></div>
+      <div class="stat-topo"><b id="topOk">0</b><small>OK</small></div>
+      <div class="stat-topo"><b id="topPend">0</b><small>Pendentes</small></div>
+      <div class="stat-topo"><b id="topPeriodo">—</b><small>Período</small></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalRel">
+  <div class="modalBox">
+    <div class="modalHead">
+      <div class="linha1">
+        <h3 id="modalTitulo">Relatório de Empresas Pendentes</h3>
+        <div class="acoes">
+          <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+          <button class="btn-close" onclick="fecharRelatorio()">✕ Fechar</button>
+        </div>
+      </div>
+      <div class="filtros">
+        <div>
+          <label>Estado</label>
+          <select id="relUF"><option value="">Todos os estados</option></select>
+        </div>
+        <div>
+          <label>Situação</label>
+          <select id="relTipo">
+            <option value="faltantes">Só Pendências (padrão)</option>
+            <option value="todos">Todas as unidades</option>
+            <option value="transmitido">✅ Transmitido</option>
+            <option value="nao_transmitido">⚠️ Não foi transmitido</option>
+            <option value="com_apuracao">📋 Tem Apuração (todas)</option>
+            <option value="apuracao_sem_transmitir">📋 Apuração sem Transmissão</option>
+            <option value="vazio">📂 Pasta vazia</option>
+            <option value="ausente">❌ Pasta não encontrada</option>
+          </select>
+        </div>
+        <div>
+          <label>Perfil</label>
+          <select id="relPerfil">
+            <option value="">Todos os perfis</option>
+            <option value="A">Perfil A</option>
+            <option value="B">Perfil B</option>
+            <option value="DP">DP</option>
+          </select>
+        </div>
+        <div>
+          <label>Agrupamento</label>
+          <select id="relAgrupar">
+            <option value="uf">Por Estado (uma folha por UF)</option>
+            <option value="unico">Lista única (todos juntos)</option>
+          </select>
+        </div>
+      </div>
+      <div class="contador" id="relContador">Aguardando geração…</div>
+    </div>
+    <div class="modalBody" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="wrap">
+<aside>
+  <div class="card">
+    <h3>1. Pasta</h3>
+    <div class="pick" id="folderSelector"><b id="pickTitle">Escolher pasta</b><small id="pickSub">Selecione a pasta raiz</small></div>
+    <button id="scanButton" class="btn" disabled>Escanear</button>
+
+    <label class="lb">Profundidade da busca</label>
+    <select id="searchDepth">
+      <option value="0">Apenas a pasta selecionada</option>
+      <option value="1" selected>Somente subpastas diretas (1 nível)</option>
+      <option value="2">Até 2 níveis</option>
+      <option value="3">Até 3 níveis</option>
+      <option value="-1">Ilimitado (recursivo total)</option>
+    </select>
+
+    <label class="lb">Período de trabalho (opcional)</label>
+    <input type="text" id="periodoManual" placeholder="Ex: 12-2025 ou 10/2024" style="margin-bottom:8px">
+
+    <label class="sw"><input type="checkbox" id="debugLog"> Modo diagnóstico</label>
+  </div>
+
+  <div class="card">
+    <h3>2. Filtros</h3>
+    <input type="text" id="filterText" placeholder="Nome, código ou pasta...">
+    <select id="filterStatus">
+      <option value="">Todas as situações</option>
+      <option value="transmitido">✅ Transmitido</option>
+      <option value="nao_transmitido">⚠️ Não foi transmitido</option>
+      <option value="apuracao">📋 Com Apuração Copiada</option>
+      <option value="vazio">📂 Pasta vazia</option>
+      <option value="ausente">❌ Pasta não encontrada</option>
+      <option value="desc">Não cadastrada</option>
+    </select>
+    <select id="filterPerfil"><option value="">Todos os perfis</option><option value="A">Perfil A</option><option value="B">Perfil B</option><option value="DP">DP</option></select>
+    <button id="resetFiltros" class="btn l">Limpar filtros</button>
+  </div>
+
+  <div class="card">
+    <h3>3. Relatórios & Exportação</h3>
+    <small style="color:var(--mut);font-size:.76rem;display:block;margin-bottom:8px">Gera relatório A4 com filtros granulares.</small>
+    <button id="btnRelFaltantes" class="btn roxo" disabled>📄 Gerar Relatório A4</button>
+    <select id="exportFormat" style="margin-top:12px"><option value="excel">Excel XLSX</option><option value="csv">CSV</option><option value="json">JSON</option></select>
+    <button id="exportButton" class="btn g" disabled>Exportar escaneados</button>
+    <button id="exportFaltantes" class="btn r" disabled>Exportar pendências</button>
+  </div>
+</aside>
+
+<main>
+  <div id="periodoBox" class="vazio">
+    <div class="periodoIcone" id="periodoIcone">📅</div>
+    <div class="periodoTexto">
+      <div class="lab">Período em análise</div>
+      <div class="val" id="periodoVal">Nenhum período detectado</div>
+      <div class="sub" id="periodoSub">Selecione uma pasta e escaneie para detectar automaticamente</div>
+    </div>
+    <div class="periodoStats">
+      <div><b id="pTotal">0</b><small>Unidades</small></div>
+      <div><b id="pOk">0</b><small>Transmitidas</small></div>
+      <div><b id="pFalt">0</b><small>Pendentes</small></div>
+    </div>
+  </div>
+
+  <div id="legendaBox">
+    <h4>🔍 Legenda</h4>
+    <div class="legendaGrid">
+      <div class="legendaItem"><span class="tag t-ok">✅ Transmitido</span><span class="desc">Tem <b>Recibo</b> (transmissão confirmada)</span></div>
+      <div class="legendaItem"><span class="tag t-nao_transmitido">⚠️ Não transmitido</span><span class="desc">Tem Remessa/Sped mas <b>falta Recibo</b></span></div>
+      <div class="legendaItem"><span class="tag t-apuracao">📋 Apuração</span><span class="desc">Tem <b>NNN A*.pdf</b> mas falta transmissão</span></div>
+      <div class="legendaItem"><span class="tag t-vazia">📂 Pasta vazia</span><span class="desc">Sem nenhum documento</span></div>
+      <div class="legendaItem"><span class="tag t-ausente">❌ Não encontrada</span><span class="desc">Pasta não existe no servidor</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hero">
+      <div class="donut" id="donut"><div><strong id="pct">–</strong><span>unidades transmitidas</span></div></div>
+      <div class="kpis">
+        <div class="kpi" style="--c:var(--ok)"><b id="kOk">0</b><span>Transmitidos</span></div>
+        <div class="kpi" style="--c:var(--sem)"><b id="kNaoTrans">0</b><span>Não transmitidos</span></div>
+        <div class="kpi" style="--c:var(--apura)"><b id="kApuracao">0</b><span>Com Apuração</span></div>
+        <div class="kpi" style="--c:var(--vazia)"><b id="kVazia">0</b><span>Pasta vazia</span></div>
+        <div class="kpi" style="--c:var(--aus)"><b id="kAus">0</b><span>Não encontrada</span></div>
+        <div class="kpi" style="--c:var(--desc)"><b id="kDesc">0</b><span>Não cadastradas</span></div>
+        <div class="kpi" style="--c:var(--acc)"><b id="kFiles">0</b><span>Arquivos</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Cobertura por estado <small style="color:var(--mut);font-weight:400">— clique para filtrar</small></h3>
+    <div class="ufs" id="ufs"><div class="empty" style="grid-column:1/-1;padding:14px">Escaneie uma pasta para ver a cobertura.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button id="tabEnc" class="on">Escaneados<em id="bEnc">0</em></button>
+      <button id="tabFal">Pendentes<em id="bFal">0</em></button>
+    </div>
+    <div id="painelEnc" class="tw"></div>
+    <div id="painelFal" class="tw d-none"></div>
+    <div id="selInfo" class="d-none" style="margin-top:10px;font-size:.85rem;color:var(--mut)"><span id="nSel">0</span> pendente(s) selecionado(s) — a exportação usa só os selecionados.</div>
+  </div>
+
+  <div class="card"><h3>Log</h3><div class="log" id="logs"><div>Sistema pronto</div></div></div>
+</main>
+</div>
+
+<!-- RODAPÉ DO SISTEMA -->
+<div class="rodape-sistema">
+  <div class="rodape-sistema-inner">
+    <div class="rod-l">
+      <b>Rede Dom Pedro de Postos Ltda</b>
+      <small>Departamento Fiscal · Sistema de Verificação SPED</small>
+    </div>
+    <div class="rod-c">
+      Scanner SPED Fiscal · <b>v3.1</b>
+    </div>
+    <div class="rod-r">
+      <span class="chip-ver"><span class="dot"></span>Sistema Online</span>
+      <span id="rodData">—</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let dirHandle=null,resultados=[],faltantes=[],ufAtiva='',marcados=new Set(),pastasLidas=0;
+
+/* ============================================================
+   PADRÕES DE ARQUIVO
+   ============================================================ */
+const PREFIX_SPED = /^sped_fiscal_.*\.txt$/i;
+const PREFIX_PDF  = /^recibo[\s_\-\.]*(sped|transmiss[aã]o).*\.pdf$/i;
+const PREFIX_REC  = /^spedefd.*\.rec$/i;
+const PREFIX_APUR = /\b\d+[\s_\-\.]+a[a-z0-9\s\-\._]*\.pdf$/i;
+
+/* ============================================================
+   LOGOS — FIXOS NO CÓDIGO
+   ============================================================ */
+const LOGO_DOMPEDRO = 'https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro-branco.png';
+const LOGO_PEDRINHO = 'https://rededompedro.com/wp-content/uploads/2023/08/pedrinho.png';
+
+/* ============== CADASTRO ============== */
+const UNIDADES_RAW=`
+PARAÍSO DO TOCANTINS|45|TO|B|
+SÃO CRISTÓVÃO FILIAL|95|SE|B|
+PARAGOMINAS|37|PA|A|Paragominas - Antigo;Paragominas - Filial - Devolvido
+ALIANÇA|28|MG|B|
+BETIM|11|MG|B|
+BETIM 2|36|MG|B|
+BUENO BRANDÃO|58|MG|B|
+CAMANDUCAIA URBANO 1|60|MG|B|
+CAMANDUCAIA URBANO 2|63|MG|B|
+CAMBUÍ RODOVIA|22|MG|B|Cambuí Rodovia - Antigo
+CAMBUÍ URBANO 1|30|MG|B|
+CAMBUÍ URBANO 2|42|MG|B|
+CARMÓPOLIS|35|MG|B|Carmópolis - Antigo
+CENTRAL|47|MG|B|
+CONSELHEIRO LAFAIETE|91|MG|B|
+CONTAGEM FERNÃO DIAS|43|MG|B|
+CONTAGEM NORTE|20|MG|B|
+CONTAGEM SUL|21|MG|B|
+DIVISA ALEGRE|41|MG|B|
+DIVISA ALEGRE 2|55|MG|B|
+DOM PEDRO 1|2|MG|B|DP 1;DP1;DP 1 - Retificador
+DOM PEDRO 2|6|MG|B|DP 2;DP2;DP 2 - Retificador
+EXTREMA|70|MG|B|Extrema Urbano;Extrema - Urbano;Extrema Rodovia
+FREI INOCÊNCIO|87|MG|B|
+FUMAÇA|14|MG|B|Fumaça - Antigo
+IGARATINGA|34|MG|B|
+INCONFIDENTES|56|MG|B|
+INHAPIM|103|MG|B|
+ITAGUARA|50|MG|B|
+ITATIAIUÇU|3|MG|B|
+JK|27|MG|B|
+JUIZ DE FORA RODOVIA|80|MG|B|
+JUIZ DE FORA URBANO|57|MG|B|Juiz de Fora Urbano - Antigo
+LUZ|104|MG|B|
+MONTES CLAROS|81|MG|B|Montes Claros - Antigo
+MURIAÉ|18|MG|B|
+NOVA SERRANA|33|MG|B|
+OLIVEIRA|29|MG|B|
+OURO FINO|61|MG|B|
+PAJEÚ|44|MG|B|
+PARAOPEBA|19|MG|B|
+PAULINHO|9|MG|B|
+POSTO 99|10|MG|B|
+POUSO ALEGRE RODOVIA|7|MG|B|
+POUSO ALEGRE URBANO 1|59|MG|B|
+POUSO ALEGRE URBANO 2|69|MG|B|
+POUSO ALEGRE URBANO 3|77|MG|B|
+SALINAS|15|MG|B|
+SÃO GONÇALO RODOVIA 1|32|MG|B|
+SÃO GONÇALO RODOVIA 2|99|MG|B|
+SÃO GONÇALO RODOVIA 3|100|MG|B|
+SÃO GONÇALO URBANO 2|53|MG|B|
+SENADOR AMARAL|51|MG|B|
+TURIM|13|MG|B|
+RUSSAS|102|CE|B|
+CEARA|12|CE|B|XP Transportes Ceará
+GOIAS|6|GO|A|XP Transportes Goiás
+MATRIZ|1|MG|B|
+PARÁ|7|PA|A|XP Transportes Pará
+SERGIPE|11|SE|B|XP Transportes Sergipe
+TOCANTINS|9|TO|B|XP Transportes Tocantins
+BARRA MANSA NORTE|89|RJ|A|
+BARRA MANSA SUL|90|RJ|A|
+APARECIDA|17|SP|A|
+ATIBAIA|8|SP|A|
+ATIBAIA URBANO FILIAL (A PARTIR DE 09/08)|68|SP|A|Atibaia Urbano - Antigo;Atibaia Urbano
+BRAGANÇA RODOVIA|88|SP|A|
+BRAGANÇA URBANO 1|66|SP|A|
+GUARA|24|SP|A|
+GUARA URBANO 2|64|SP|A|
+GUARA URBANO 3|65|SP|A|
+JACAREÍ|67|SP|A|Jacareí - Antigo
+JOIA|25|SP|A|
+LEME|4|SP|A|
+LORENA|54|SP|A|
+MIRACATU NORTE|26|SP|A|
+PINDA|5|SP|A|Pinda - Antigo
+SALES OLIVEIRA|78|SP|A|
+SÃO JOSÉ DOS CAMPOS|86|SP|A|
+VARGEM|82|SP|A|
+ATIBAIA|2|SP|A|
+TRES RIOS|3|RJ|A|
+BARREIRAS|96|BA|A|
+ITABERABA|97|BA|A|
+JAGUAQUARA|31|BA|A|
+PLANALTO|92|BA|A|
+SANTO ESTEVÃO 1|48|BA|A|
+SANTO ESTEVÃO 2|93|BA|A|
+SANTO ESTEVÃO 3|94|BA|A|
+SÃO JORGE|83|BA|A|
+VALENÇA|98|BA|A|
+VITÓRIA DA CONQUISTA|79|BA|A|
+BAHIA|4|BA|A|XP Transportes Bahia
+`;
+
+const norm=s=>String(s??'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const UNIDADES_LISTA=[];
+const ALIASES={};
+UNIDADES_RAW.trim().split('\n').forEach(l=>{
+  const p=l.split('|').map(s=>s.trim());
+  if(p.length<4)return;
+  const u={nome:p[0],codigo:p[1],uf:p[2],perfil:p[3],key:norm(p[0])};
+  UNIDADES_LISTA.push(u);
+  if(p[4]){
+    p[4].split(';').forEach(a=>{
+      const alvo=norm(a.trim());
+      if(alvo) ALIASES[alvo]=u;
+    });
+  }
+});
+
+const UNIDADES={};
+UNIDADES_LISTA.forEach(u=>{if(!UNIDADES[u.key])UNIDADES[u.key]=u;});
+
+function limpaNome(s){return norm(s).replace(/[^A-Z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
+function removeSufixos(k){
+  let s = ' ' + k + ' ';
+  const sufixos = ['ANTIGO','ANTIGA','ANTIGOS','ANTIGAS','NOVO','NOVA','NOVOS','NOVAS','FILIAL','MATRIZ','DEVOLVIDO','DEVOLVIDA','DESATIVADO','DESATIVADA','INCORPORADO','INCORPORADA','ENCERRADO','ENCERRADA','INATIVO','INATIVA','EM OBRAS','PARADO','PARADA','RETIFICADOR','RETIFICADORA'];
+  sufixos.forEach(suf => {
+    const re = new RegExp('(^|\\s)' + suf + '(\\s|$)','g');
+    s = s.replace(re,' ');
+  });
+  s = s.replace(/\s+\d+\s*$/,' ');
+  s = s.split(/\s+/).filter(t=>t.length>1).join(' ');
+  return s.trim();
+}
+
+function matchUnidade(nome){
+  const kOriginal = limpaNome(nome);
+  if (!kOriginal) return null;
+  if (ALIASES[kOriginal]) return {...ALIASES[kOriginal],_match:'alias'};
+  if (UNIDADES[kOriginal]) return {...UNIDADES[kOriginal],_match:'exato'};
+
+  const semParenteses = limpaNome(nome.replace(/\s*\([^)]*\)\s*/g,' '));
+  if (UNIDADES[semParenteses]) return {...UNIDADES[semParenteses],_match:'exato'};
+  if (ALIASES[semParenteses]) return {...ALIASES[semParenteses],_match:'alias'};
+
+  const kLimpo = removeSufixos(kOriginal);
+  if (kLimpo && UNIDADES[kLimpo]) return {...UNIDADES[kLimpo],_match:'limpo'};
+  if (kLimpo && ALIASES[kLimpo]) return {...ALIASES[kLimpo],_match:'alias'};
+
+  const kLimpo2 = removeSufixos(semParenteses);
+  if (kLimpo2 && UNIDADES[kLimpo2]) return {...UNIDADES[kLimpo2],_match:'limpo'};
+  if (kLimpo2 && ALIASES[kLimpo2]) return {...ALIASES[kLimpo2],_match:'alias'};
+
+  const alvo = kLimpo || kOriginal;
+  const tokens = alvo.split(' ').filter(t=>t.length>1);
+  if (!tokens.length) return null;
+
+  let melhor=null, melhorScore=0;
+  const candidatos = [
+    ...Object.keys(UNIDADES).map(k=>({key:k,u:UNIDADES[k]})),
+    ...Object.keys(ALIASES).map(k=>({key:k,u:ALIASES[k]}))
+  ];
+  for (const {key,u} of candidatos) {
+    const keyTokens = key.split(' ');
+    let score = 0, matches = 0;
+    for (const t of tokens) {
+      if (keyTokens.includes(t)) {
+        matches++;
+        score += t.length + (t.length >= 5 ? 5 : 0);
+        if (t === tokens[0] && t === keyTokens[0]) score += 10;
+      }
+    }
+    if (matches === 0) continue;
+    const cobertura = matches / keyTokens.length;
+    const coberturaPasta = matches / tokens.length;
+    if (cobertura < 0.5 && coberturaPasta < 0.5) continue;
+    score -= keyTokens.length * 2;
+    if (score > melhorScore) { melhorScore = score; melhor = u; }
+  }
+  if (melhor) return {...melhor, _match:'tokens'};
+  return null;
+}
+
+/* ============== PERÍODO ============== */
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function parsePeriodo(texto) {
+  if (!texto) return null;
+  const s = String(texto);
+  let m;
+  m = s.match(/\b(0?[1-9]|1[0-2])[\-\.\_\/](20\d{2})\b/);
+  if (m) return {mes:+m[1], ano:+m[2]};
+  m = s.match(/\b(20\d{2})[\-\.\_\/](0?[1-9]|1[0-2])\b/);
+  if (m) return {mes:+m[2], ano:+m[1]};
+  m = s.match(/[^0-9](0[1-9]|1[0-2])(20\d{2})[^0-9]/);
+  if (m) return {mes:+m[1], ano:+m[2]};
+  m = s.match(/(0[1-9]|1[0-2])(20\d{2})(?:[^0-9]|$)/);
+  if (m) return {mes:+m[1], ano:+m[2]};
+  return null;
+}
+function formataPeriodo(p){ if(!p) return null; return `${MESES[p.mes-1]}/${p.ano}`; }
+function formataPeriodoCurto(p){ if(!p) return null; return `${String(p.mes).padStart(2,'0')}/${p.ano}`; }
+
+let periodoDetectado = null;
+function detectarPeriodo() {
+  const manual = $('periodoManual').value.trim();
+  if (manual) { const p = parsePeriodo(manual); if (p) return {...p, origem:'manual'}; }
+  const votos = {};
+  const registra = (p, peso=1) => {
+    if (!p) return;
+    const key = `${p.ano}-${String(p.mes).padStart(2,'0')}`;
+    votos[key] = (votos[key]||0) + peso;
+  };
+  resultados.forEach(r=>{
+    registra(parsePeriodo(r.pasta), 3);
+    r.arquivos.forEach(a=>registra(parsePeriodo(a.name), 1));
+    r.arquivosPdf.forEach(a=>registra(parsePeriodo(a.name), 1));
+    r.arquivosRec.forEach(a=>registra(parsePeriodo(a.name), 1));
+  });
+  let melhorKey=null, melhorVotos=0;
+  for (const k in votos){ if(votos[k] > melhorVotos){ melhorVotos=votos[k]; melhorKey=k; } }
+  if (!melhorKey) return null;
+  const [ano,mes] = melhorKey.split('-').map(Number);
+  return {mes, ano, origem:'auto', votos:melhorVotos};
+}
+function renderPeriodo(){
+  periodoDetectado = detectarPeriodo();
+  const box = $('periodoBox');
+  if (!periodoDetectado) {
+    box.classList.add('vazio');
+    $('periodoVal').textContent = 'Nenhum período detectado';
+    $('periodoSub').textContent = resultados.length ? 'Não foi possível identificar mês/ano' : 'Selecione uma pasta e escaneie';
+  } else {
+    box.classList.remove('vazio');
+    $('periodoVal').textContent = formataPeriodo(periodoDetectado);
+    const origem = periodoDetectado.origem === 'manual' ? 'definido manualmente' : 'detectado automaticamente';
+    $('periodoSub').textContent = `Mês de referência ${origem}${periodoDetectado.votos?` · ${periodoDetectado.votos} ocorrência(s)`:''}`;
+  }
+  const total = UNIDADES_LISTA.length;
+  const okN = resultados.length||faltantes.length ? total - faltantes.length : 0;
+  $('pTotal').textContent = resultados.length ? total : 0;
+  $('pOk').textContent = okN;
+  $('pFalt').textContent = faltantes.length;
+  $('topTotal').textContent = resultados.length ? total : 0;
+  $('topOk').textContent = okN;
+  $('topPend').textContent = faltantes.length;
+  $('topPeriodo').textContent = periodoDetectado ? formataPeriodoCurto(periodoDetectado) : '—';
+}
+
+function addLog(msg,type=''){
+  const d=document.createElement('div');d.className=type;d.textContent=new Date().toLocaleTimeString('pt-BR')+'  '+msg;
+  $('logs').prepend(d);while($('logs').children.length>200)$('logs').lastChild.remove();
+}
+
+const RING_CIRC=2*Math.PI*78;
+function setProgresso(pct,sub,stats){
+  pct=Math.max(0,Math.min(100,pct));
+  $('ringFill').style.strokeDashoffset=RING_CIRC*(1-pct/100);
+  $('ringPct').textContent=Math.round(pct);
+  const ang=(pct/100)*2*Math.PI - Math.PI/2;
+  $('ringDot').setAttribute('cx',100+78*Math.cos(ang));
+  $('ringDot').setAttribute('cy',100+78*Math.sin(ang));
+  if(sub!==undefined)$('progSub').textContent=sub;
+  if(stats){
+    if(stats.pastas!==undefined)$('statPastas').textContent=stats.pastas;
+    if(stats.postos!==undefined)$('statPostos').textContent=stats.postos;
+    if(stats.arquivos!==undefined)$('statArquivos').textContent=stats.arquivos;
+  }
+}
+function mostrarOverlay(){ $('overlayProg').classList.add('on'); setProgresso(0,'Iniciando varredura',{pastas:0,postos:0,arquivos:0}); }
+function esconderOverlay(){ $('overlayProg').classList.remove('on'); }
+
+$('folderSelector').onclick=async()=>{
+  if(!window.showDirectoryPicker){alert('Use Chrome ou Edge (File System Access API).');return;}
+  try{
+    dirHandle=await window.showDirectoryPicker();
+    $('pickTitle').textContent=dirHandle.name;$('pickSub').textContent='Pasta selecionada — clique para trocar';
+    $('scanButton').disabled=false;addLog(`Pasta selecionada: "${dirHandle.name}"`);
+    const p = parsePeriodo(dirHandle.name);
+    if (p) $('periodoManual').placeholder = `Detectado: ${formataPeriodoCurto(p)}`;
+  }catch(e){if(e.name!=='AbortError')addLog('Erro: '+e.message,'error');}
+};
+
+async function escanearDir(dir, basePath = '', profundidade = 0, maxProf = 1) {
+  const nomePasta = dir.name;
+  const caminhoAtual = basePath ? `${basePath}/${nomePasta}` : nomePasta;
+  const unidade = matchUnidade(nomePasta);
+
+  const entrada = {
+    pasta: caminhoAtual,
+    arquivos: [], arquivosPdf: [], arquivosRec: [], arquivosApur: [],
+    temSped: false, temPdf: false, temRec: false, temApur: false,
+    unidade: unidade || null,
+    matchTipo: unidade?._match || null,
+    profundidade
+  };
+
+  const subs = [];
+  pastasLidas++;
+
+  const pctLeitura = Math.min(70, Math.log10(pastasLidas + 1) * 30);
+  setProgresso(pctLeitura, `Lendo: ${nomePasta}`, {
+    pastas: pastasLidas,
+    postos: resultados.length,
+    arquivos: resultados.reduce((a, r) => a + r.arquivos.length + r.arquivosPdf.length + r.arquivosRec.length + r.arquivosApur.length, 0)
+  });
+
+  if (pastasLidas % 8 === 0) await new Promise(r => setTimeout(r, 0));
+
+  try {
+    for await (const h of dir.values()) {
+      if (h.kind === 'file') {
+        if (PREFIX_SPED.test(h.name)) {
+          entrada.arquivos.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temSped = true;
+        }
+        if (PREFIX_PDF.test(h.name)) {
+          entrada.arquivosPdf.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temPdf = true;
+        }
+        if (PREFIX_REC.test(h.name)) {
+          entrada.arquivosRec.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temRec = true;
+        }
+        if (PREFIX_APUR.test(h.name) && !PREFIX_PDF.test(h.name)) {
+          entrada.arquivosApur.push({ name: h.name, path: `${caminhoAtual}/${h.name}` });
+          entrada.temApur = true;
+        }
+      } else {
+        subs.push(h);
+      }
+    }
+  } catch (e) {
+    addLog(`Erro lendo "${caminhoAtual}": ${e.message}`, 'error');
+  }
+
+  if ($('debugLog').checked) {
+    const tagU = unidade ? `→ ${unidade.nome}` : '';
+    console.log(`[SCAN d=${profundidade}] ${caminhoAtual} | SPED:${entrada.arquivos.length} | PDF:${entrada.arquivosPdf.length} | REC:${entrada.arquivosRec.length} | APUR:${entrada.arquivosApur.length} ${tagU}`);
+  }
+
+  const temDocumentos = entrada.temSped || entrada.temPdf || entrada.temRec || entrada.temApur;
+  if (unidade || temDocumentos) {
+    resultados.push(entrada);
+  }
+
+  const podeDescer = maxProf === -1 || profundidade < maxProf;
+  if (podeDescer) {
+    for (const sub of subs) {
+      await escanearDir(sub, caminhoAtual, profundidade + 1, maxProf);
+    }
+  }
+}
+
+function classificarR(entradas) {
+  const temSped = entradas.some(r => r.temSped);
+  const temPdf  = entradas.some(r => r.temPdf);
+  const temRec  = entradas.some(r => r.temRec);
+  const temApur = entradas.some(r => r.temApur);
+  if (temPdf) return 'transmitido';
+  if (temApur && !temSped && !temRec) return 'apuracao';
+  if (temSped || temRec) return 'nao_transmitido';
+  if (temApur) return 'apuracao';
+  return 'vazio';
+}
+
+function calcularFaltantes(){
+  const falt = [];
+  UNIDADES_LISTA.forEach(u=>{
+    const oc = resultados.filter(r => r.unidade && r.unidade.key === u.key);
+    if (oc.length === 0) {
+      falt.push({ unidade: u, tipo:'ausente', temSped:false, temPdf:false, temRec:false, temApur:false, pastas:[], arquivos:[] });
+      return;
+    }
+    const tipo = classificarR(oc);
+    if (tipo === 'transmitido') return;
+    falt.push({
+      unidade: u,
+      tipo,
+      temSped: oc.some(r=>r.temSped),
+      temPdf:  oc.some(r=>r.temPdf),
+      temRec:  oc.some(r=>r.temRec),
+      temApur: oc.some(r=>r.temApur),
+      pastas:  oc.map(r=>r.pasta),
+      arquivos: oc.flatMap(r=>r.arquivos)
+    });
+  });
+  return falt;
+}
+
+/* Base unificada com TODAS as unidades */
+function baseUnificada() {
+  const lista = [];
+  UNIDADES_LISTA.forEach(u=>{
+    const oc = resultados.filter(r => r.unidade && r.unidade.key === u.key);
+    const temSped = oc.some(r=>r.temSped);
+    const temPdf  = oc.some(r=>r.temPdf);
+    const temRec  = oc.some(r=>r.temRec);
+    const temApur = oc.some(r=>r.temApur);
+    let tipo;
+    if (oc.length === 0) tipo = 'ausente';
+    else tipo = classificarR(oc);
+    lista.push({
+      unidade: u,
+      tipo,
+      temSped, temPdf, temRec, temApur,
+      pastas: oc.map(r=>r.pasta)
+    });
+  });
+  return lista;
+}
+
+$('scanButton').onclick=async()=>{
+  if(!dirHandle)return;
+  $('scanButton').disabled=true;
+  resultados=[];faltantes=[];marcados=new Set();ufAtiva='';pastasLidas=0;
+
+  const maxProf = parseInt($('searchDepth').value,10);
+  mostrarOverlay();
+  addLog('Escaneando...');
+  const t0=performance.now();
+
+  try{
+    await escanearDir(dirHandle,'',0,maxProf);
+    setProgresso(80,'Calculando pendências…');
+    await new Promise(r=>setTimeout(r,120));
+    faltantes=calcularFaltantes();
+    setProgresso(100,'Concluído!');
+    await new Promise(r=>setTimeout(r,500));
+  }catch(e){ addLog('Erro: '+e.message,'error'); }
+
+  esconderOverlay();
+
+  const arq=resultados.reduce((a,r)=>a+r.arquivos.length,0);
+  const arqPdf=resultados.reduce((a,r)=>a+r.arquivosPdf.length,0);
+  const arqRec=resultados.reduce((a,r)=>a+r.arquivosRec.length,0);
+  const arqApur=resultados.reduce((a,r)=>a+r.arquivosApur.length,0);
+  addLog(`Concluído: ${pastasLidas} pastas, ${resultados.length} postos, ${arq} SPED, ${arqPdf} Recibo, ${arqRec} Remessa, ${arqApur} Apuração, ${faltantes.length} pendente(s)`,'success');
+  $('rodData').textContent = 'Última atualização: ' + new Date().toLocaleString('pt-BR');
+  $('scanButton').disabled=false;
+  $('exportButton').disabled=!resultados.length;
+  $('exportFaltantes').disabled=!faltantes.length;
+  $('btnRelFaltantes').disabled=!resultados.length;
+  render();
+};
+
+const situacao = r => !r.unidade ? 'desc' : classificarR([r]);
+
+const TAGS = {
+  transmitido:     ['✅ Transmitido','t-ok'],
+  nao_transmitido: ['⚠️ Não foi transmitido','t-nao_transmitido'],
+  apuracao:        ['📋 Com Apuração Copiada','t-apuracao'],
+  vazio:           ['📂 Pasta vazia','t-vazia'],
+  ausente:         ['❌ Não encontrada','t-ausente'],
+  desc:            ['Não cadastrada','t-desc']
+};
+const tag = s => `<span class="tag ${TAGS[s][1]}">${TAGS[s][0]}</span>`;
+
+const docChip = (ok, label, extra={}) => ok
+  ? `<span class="doc-chip ${extra.ap?'ap':'ok'}"><span class="icon">✓</span>${label}</span>`
+  : `<span class="doc-chip miss"><span class="icon">✕</span>${label}</span>`;
+
+const chipsDoc = (temSped, temPdf, temRec, temApur) => `<div class="docs-cell">
+  ${docChip(temRec, 'Rem')}
+  ${docChip(temSped, 'Sped')}
+  ${docChip(temPdf, 'Rec')}
+  ${docChip(temApur, 'Apur', {ap:true})}
+</div>`;
+
+function passa(nome,cod,uf,perfil,pasta,st){
+  const t=$('filterText').value.trim().toLowerCase(),s=$('filterStatus').value,p=$('filterPerfil').value;
+  if(ufAtiva&&(uf||'SEM UF')!==ufAtiva)return false;
+  if(s&&s!==st)return false;
+  if(p&&perfil!==p)return false;
+  if(t&&!(`${nome} ${cod} ${pasta}`.toLowerCase().includes(t)))return false;
+  return true;
+}
+
+function renderResumo(){
+  const total=UNIDADES_LISTA.length;
+  const transmitido=resultados.length||faltantes.length?total-faltantes.length:0;
+  const naoTrans=faltantes.filter(f=>f.tipo==='nao_transmitido').length;
+  const apurSet=new Set();
+  resultados.forEach(r=>{ if(r.unidade && r.temApur) apurSet.add(r.unidade.key); });
+  const vazia=faltantes.filter(f=>f.tipo==='vazio').length;
+  const aus=faltantes.filter(f=>f.tipo==='ausente').length;
+  const desc=resultados.filter(r=>!r.unidade).length;
+  const arq=resultados.reduce((a,r)=>a+r.arquivos.length+r.arquivosPdf.length+r.arquivosRec.length+r.arquivosApur.length,0);
+
+  $('kOk').textContent=transmitido;
+  $('kNaoTrans').textContent=naoTrans;
+  $('kApuracao').textContent=apurSet.size;
+  $('kVazia').textContent=vazia;
+  $('kAus').textContent=aus;
+  $('kDesc').textContent=desc;
+  $('kFiles').textContent=arq;
+
+  if(!resultados.length&&!faltantes.length){$('pct').textContent='–';$('donut').style.background='conic-gradient(var(--line) 0 100%)';return;}
+  const pOk=transmitido/total*100;
+  const pNao=pOk+naoTrans/total*100;
+  const pVazia=pNao+vazia/total*100;
+  $('pct').textContent=Math.round(pOk)+'%';
+  $('donut').style.background=`conic-gradient(
+    var(--ok) 0 ${pOk}%,
+    var(--sem) ${pOk}% ${pNao}%,
+    var(--vazia) ${pNao}% ${pVazia}%,
+    var(--aus) ${pVazia}% 100%
+  )`;
+}
+
+function renderUfs(){
+  if(!resultados.length&&!faltantes.length)return;
+  const m={};
+  UNIDADES_LISTA.forEach(u=>{
+    const ufKey = (u.uf && u.uf !== '—') ? u.uf : 'DP';
+    (m[ufKey]=m[ufKey]||{t:0,f:0}).t++;
+  });
+  faltantes.forEach(f=>{
+    const ufKey = (f.unidade.uf && f.unidade.uf !== '—') ? f.unidade.uf : 'DP';
+    m[ufKey].f++;
+  });
+  const ordem=['MG','SP','RJ','BA','CE','GO','PA','SE','TO','DP'];
+  const semUf=resultados.filter(r=>!r.unidade).length;
+  const html=Object.keys(m).sort((a,b)=>ordem.indexOf(a)-ordem.indexOf(b)).map(uf=>{
+    const ok=m[uf].t-m[uf].f;
+    const pctOk=m[uf].t ? ok/m[uf].t*100 : 0;
+    return `<div class="uf ${ufAtiva===uf?'on':''}" data-uf="${uf}"><div class="h">${uf}<span>${ok}/${m[uf].t}</span></div><div class="bar"><i style="width:${pctOk}%"></i></div></div>`;
+  }).join('')+(semUf?`<div class="uf ${ufAtiva==='SEM UF'?'on':''}" data-uf="SEM UF"><div class="h">SEM CADASTRO<span>${semUf}</span></div><div class="bar"><i style="width:0"></i></div></div>`:'');
+  $('ufs').innerHTML=html;
+  $('ufs').querySelectorAll('.uf').forEach(e=>e.onclick=()=>{ufAtiva=ufAtiva===e.dataset.uf?'':e.dataset.uf;render();});
+}
+
+function render(){
+  $('bEnc').textContent=resultados.length;$('bFal').textContent=faltantes.length;
+  renderPeriodo();renderResumo();renderUfs();renderEnc();renderFal();
+  const legenda = $('legendaBox');
+  if (resultados.length || faltantes.length) legenda.classList.add('on');
+  else legenda.classList.remove('on');
+  atualizarDropdownRelatorio();
+}
+
+function isArquivoRejeitado(nome){ return /rejeitad/i.test(nome); }
+
+function renderEnc(){
+  const ordem={vazio:0,apuracao:1,nao_transmitido:2,desc:3,transmitido:4};
+  const list=resultados.filter(r=>passa(
+    r.unidade?.nome||'',r.unidade?.codigo||'',r.unidade?.uf,r.unidade?.perfil,r.pasta,
+    situacao(r)
+  )).sort((a,b)=>ordem[situacao(a)]-ordem[situacao(b)]||a.pasta.localeCompare(b.pasta));
+  if(!list.length){$('painelEnc').innerHTML='<div class="empty">Nenhum resultado.</div>';return;}
+  $('painelEnc').innerHTML='<table><thead><tr><th>Unidade</th><th>UF</th><th>Cód.</th><th>Perfil</th><th>Situação</th><th>Documentos</th><th>Arquivos</th></tr></thead><tbody>'+list.map(r=>{
+    const u=r.unidade;
+    const nomeExibir=u?u.nome:r.pasta.split('/').pop();
+    let badge='';
+    if(u && r.matchTipo && r.matchTipo!=='exato'){
+      const cls=r.matchTipo==='alias'?'t-alias':(u.perfil==='DP'?'t-dp':'t-aprox');
+      badge=`<span class="tag ${cls}" title="Pasta: ${esc(r.pasta.split('/').pop())}">≈ ${r.matchTipo}</span>`;
+    }
+    if(u && u.perfil==='DP') badge+=`<span class="tag t-dp">DP</span>`;
+    const todos=[
+      ...r.arquivosRec.map(a=>({...a,tipo:'rec'})),
+      ...r.arquivos.map(a=>({...a,tipo:'sped'})),
+      ...r.arquivosPdf.map(a=>({...a,tipo:'pdf'})),
+      ...r.arquivosApur.map(a=>({...a,tipo:'ap'}))
+    ];
+    return `<tr><td><b>${esc(nomeExibir)}</b>${badge}<div class="path">${esc(r.pasta)}</div></td><td>${u&&u.uf!=='—'?u.uf:'—'}</td><td>${u&&u.codigo!=='—'?u.codigo:'—'}</td><td>${u?u.perfil:'—'}</td><td>${tag(situacao(r))}</td><td>${chipsDoc(r.temSped,r.temPdf,r.temRec,r.temApur)}</td><td>${todos.map(a=>{
+      const rej = isArquivoRejeitado(a.name);
+      const cls = a.tipo==='pdf'?'pdf':(a.tipo==='rec'?'rec':(a.tipo==='ap'?'ap':(rej?'rej':'')));
+      return `<span class="fn ${cls}" title="${esc(a.path)}${rej?' ⚠ REJEITADO':''}">${esc(a.name)}${rej?' ⚠':''}</span>`;
+    }).join('')||'—'}</td></tr>`;
+  }).join('')+'</tbody></table>';
+}
+
+const chave=f=>f.unidade.key+'|'+f.unidade.codigo;
+function faltFiltrados(){
+  return faltantes.filter(f=>passa(
+    f.unidade.nome,f.unidade.codigo,f.unidade.uf,f.unidade.perfil,f.pastas.join(' '),
+    f.tipo
+  ));
+}
+
+function renderFal(){
+  $('nSel').textContent=marcados.size;
+  if(!faltantes.length){$('painelFal').innerHTML=`<div class="empty">${resultados.length?'Nenhuma pendência.':'Escaneie uma pasta.'}</div>`;return;}
+  const list=faltFiltrados().sort((a,b)=>a.unidade.uf.localeCompare(b.unidade.uf)||a.unidade.nome.localeCompare(b.unidade.nome));
+  if(!list.length){$('painelFal').innerHTML='<div class="empty">Nenhum resultado.</div>';return;}
+  $('painelFal').innerHTML='<table><thead><tr><th style="width:30px"><input type="checkbox" id="chkAll"></th><th>Unidade</th><th>UF</th><th>Cód.</th><th>Perfil</th><th>Situação</th><th>Documentos</th></tr></thead><tbody>'+list.map(f=>{
+    const k=chave(f);
+    return `<tr><td><input type="checkbox" class="chk" data-k="${esc(k)}" ${marcados.has(k)?'checked':''}></td><td><b>${esc(f.unidade.nome)}</b>${f.pastas.length?`<div class="path">${f.pastas.map(esc).join(' • ')}</div>`:''}</td><td>${f.unidade.uf!=='—'?f.unidade.uf:'—'}</td><td>${f.unidade.codigo!=='—'?f.unidade.codigo:'—'}</td><td>${f.unidade.perfil}</td><td>${tag(f.tipo)}</td><td>${chipsDoc(f.temSped,f.temPdf,f.temRec,f.temApur)}</td></tr>`;
+  }).join('')+'</tbody></table>';
+  $('chkAll').onchange=e=>{list.forEach(f=>e.target.checked?marcados.add(chave(f)):marcados.delete(chave(f)));renderFal();};
+  $('painelFal').querySelectorAll('.chk').forEach(c=>c.onchange=()=>{c.checked?marcados.add(c.dataset.k):marcados.delete(c.dataset.k);$('nSel').textContent=marcados.size;});
+}
+
+function aba(fal){
+  $('tabFal').classList.toggle('on',fal);$('tabEnc').classList.toggle('on',!fal);
+  $('painelFal').classList.toggle('d-none',!fal);$('painelEnc').classList.toggle('d-none',fal);
+  $('selInfo').classList.toggle('d-none',!fal);
+}
+$('tabEnc').onclick=()=>aba(false);$('tabFal').onclick=()=>aba(true);
+$('filterText').addEventListener('input',render);
+$('filterStatus').onchange=render;$('filterPerfil').onchange=render;
+$('periodoManual').addEventListener('input',renderPeriodo);
+$('resetFiltros').onclick=()=>{$('filterText').value='';$('filterStatus').value='';$('filterPerfil').value='';ufAtiva='';render();};
+
+/* ============================================================
+   RELATÓRIO
+   ============================================================ */
+function atualizarDropdownRelatorio(){
+  const sel = $('relUF');
+  const atual = sel.value;
+  const todasUfs = new Set();
+  baseUnificada().forEach(x=>{
+    const uf = (x.unidade.uf && x.unidade.uf !== '—') ? x.unidade.uf : 'DP';
+    todasUfs.add(uf);
+  });
+  const ufsOrd = [...todasUfs].sort();
+  sel.innerHTML = '<option value="">Todos os estados</option>' +
+    ufsOrd.map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join('');
+  if ([...sel.options].some(o=>o.value===atual)) sel.value = atual;
+}
+
+function tipoLabel(tipo){
+  if (tipo === 'ausente')         return 'Pasta não encontrada';
+  if (tipo === 'vazio')           return 'Pasta vazia';
+  if (tipo === 'nao_transmitido') return 'Não foi transmitido';
+  if (tipo === 'apuracao')        return 'Com Apuração Copiada';
+  if (tipo === 'transmitido')     return 'Transmitido';
+  return 'Pendente';
+}
+function tipoClasse(tipo){
+  if (tipo === 'ausente')         return 'ausente';
+  if (tipo === 'vazio')           return 'vazia';
+  if (tipo === 'nao_transmitido') return 'nao';
+  if (tipo === 'apuracao')        return 'apur';
+  if (tipo === 'transmitido')     return 'ok';
+  return '';
+}
+function tipoDescricaoLonga(tipo){
+  if (tipo === 'ausente')         return 'Pasta não existe no servidor';
+  if (tipo === 'vazio')           return 'Pasta existe sem nenhum documento';
+  if (tipo === 'nao_transmitido') return 'Tem Remessa/SPED mas falta Recibo de transmissão';
+  if (tipo === 'apuracao')        return 'Tem NNN A*.pdf (Apropriação) mas não foi transmitida';
+  if (tipo === 'transmitido')     return 'Transmissão confirmada';
+  return '—';
+}
+
+function filtrarRelatorio() {
+  const base = baseUnificada();
+  const ufSel = $('relUF').value;
+  const tipoSel = $('relTipo').value;
+  const perfilSel = $('relPerfil').value;
+
+  let lista = base.slice();
+
+  if (marcados.size && (tipoSel === 'faltantes' || tipoSel === 'apuracao_sem_transmitir')) {
+    lista = lista.filter(x=>marcados.has(chave(x)));
+  }
+
+  if (ufSel) {
+    lista = lista.filter(x=>{
+      const uf = (x.unidade.uf && x.unidade.uf !== '—') ? x.unidade.uf : 'DP';
+      return uf === ufSel;
+    });
+  }
+
+  // 🔑 FILTROS PRINCIPAIS
+  if (tipoSel === 'faltantes') {
+    lista = lista.filter(x => x.tipo !== 'transmitido');
+  } else if (tipoSel === 'todos') {
+    // mantém tudo
+  } else if (tipoSel === 'com_apuracao') {
+    // ✅ PEGA TODAS QUE TÊM O ARQUIVO DE APURAÇÃO (transmitidas ou não)
+    lista = lista.filter(x => x.temApur);
+  } else if (tipoSel === 'apuracao_sem_transmitir') {
+    // Só as que têm apuração E não foram transmitidas
+    lista = lista.filter(x => x.temApur && x.tipo !== 'transmitido');
+  } else {
+    lista = lista.filter(x => x.tipo === tipoSel);
+  }
+
+  if (perfilSel) lista = lista.filter(x => x.unidade.perfil === perfilSel);
+
+  return lista;
+}
+
+function gerarRelatorio(){
+  const lista = filtrarRelatorio();
+
+  const ufSel = $('relUF').value;
+  const tipoSel = $('relTipo').value;
+  const perfilSel = $('relPerfil').value;
+  const partes = [];
+  partes.push(`${lista.length} empresa(s)`);
+  if (ufSel) partes.push(`UF: ${ufSel}`);
+  if (tipoSel === 'faltantes') partes.push('Só pendências');
+  else if (tipoSel === 'todos') partes.push('Todas');
+  else if (tipoSel === 'com_apuracao') partes.push('Tem Apuração');
+  else if (tipoSel === 'apuracao_sem_transmitir') partes.push('Apuração sem transmissão');
+  else partes.push(tipoLabel(tipoSel));
+  if (perfilSel) partes.push(`Perfil: ${perfilSel}`);
+  $('relContador').innerHTML = partes.join(' · ');
+
+  const modalBody = $('modalBody');
+
+  if (!lista.length) {
+    modalBody.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#94a3b8;font-size:1rem"><div style="font-size:3rem;margin-bottom:12px">🔍</div>Nenhuma unidade encontrada para os filtros selecionados.<br><small>Ajuste os filtros acima — o relatório atualiza automaticamente.</small></div>';
+    $('modalTitulo').textContent = `Relatório${ufSel?' — '+ufSel:''}`;
+    $('modalRel').classList.add('on');
+    return;
+  }
+
+  const per = periodoDetectado ? formataPeriodo(periodoDetectado) : '—';
+  const perCurto = periodoDetectado ? formataPeriodoCurto(periodoDetectado) : '';
+  const agora = new Date().toLocaleString('pt-BR');
+  const agrupar = $('relAgrupar').value;
+
+  let grupos;
+  if (agrupar === 'uf') {
+    const porUf = {};
+    lista.forEach(x=>{
+      const uf = (x.unidade.uf && x.unidade.uf !== '—') ? x.unidade.uf : 'DP';
+      (porUf[uf]=porUf[uf]||[]).push(x);
+    });
+    grupos = Object.keys(porUf).sort().map(uf=>({ titulo: uf, itens: porUf[uf] }));
+  } else {
+    grupos = [{ titulo: 'Geral', itens: lista }];
+  }
+
+  const logoD = LOGO_DOMPEDRO
+    ? `<img src="${LOGO_DOMPEDRO}" alt="Dom Pedro" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+       <div class="logo-fallback" style="display:none">DOM PEDRO</div>`
+    : `<div class="logo-fallback">DOM PEDRO</div>`;
+  const logoP = LOGO_PEDRINHO
+    ? `<img src="${LOGO_PEDRINHO}" alt="Pedrinho" onerror="this.style.display='none'">`
+    : '';
+
+  let html = '';
+  const totalPag = grupos.reduce((acc,g)=>acc + Math.ceil(g.itens.length/25), 0);
+  let pagAtual = 0;
+
+  grupos.forEach(grupo=>{
+    const itens = grupo.itens.slice().sort((a,b)=>a.unidade.nome.localeCompare(b.unidade.nome));
+    const contagem = {
+      transmitido:     itens.filter(f=>f.tipo==='transmitido').length,
+      nao_transmitido: itens.filter(f=>f.tipo==='nao_transmitido').length,
+      apuracao:        itens.filter(f=>f.tipo==='apuracao').length,
+      vazio:           itens.filter(f=>f.tipo==='vazio').length,
+      ausente:         itens.filter(f=>f.tipo==='ausente').length,
+      comApur:         itens.filter(f=>f.temApur).length
+    };
+    const partes = [];
+    if (contagem.transmitido)     partes.push(`<b style="color:#065f46">${contagem.transmitido}</b> transmitida(s)`);
+    if (contagem.nao_transmitido) partes.push(`<b style="color:#92400e">${contagem.nao_transmitido}</b> não transmitida(s)`);
+    if (contagem.apuracao)        partes.push(`<b style="color:#1e40af">${contagem.apuracao}</b> só apuração`);
+    if (contagem.vazio)           partes.push(`<b style="color:#9d174d">${contagem.vazio}</b> vazia(s)`);
+    if (contagem.ausente)         partes.push(`<b style="color:#991b1b">${contagem.ausente}</b> ausente(s)`);
+    if (tipoSel === 'com_apuracao' && contagem.comApur) {
+      partes.unshift(`<b style="color:#1e40af">${contagem.comApur}</b> com apuração copiada`);
+    }
+    const resumo = partes.join(' · ') || 'sem registros';
+
+    const TAM = 25;
+    const lotes = [];
+    for (let i=0; i<itens.length; i+=TAM) lotes.push(itens.slice(i, i+TAM));
+
+    lotes.forEach((lote, idxLote)=>{
+      pagAtual++;
+      const offset = idxLote * TAM;
+
+      html += `
+      <div class="folha">
+        <div class="folha-head">
+          <div class="head-l">${logoD}</div>
+          <div class="titulo">
+            <h2>Relatório de Empresas</h2>
+            <h3>SPED Fiscal — Período ${per}${lotes.length>1?` · Lote ${idxLote+1}/${lotes.length}`:''}</h3>
+            <span class="uf-badge">${esc(grupo.titulo)}</span>
+          </div>
+          <div class="head-r">${logoP}</div>
+        </div>
+
+        <div class="folha-meta">
+          <div><span class="meta-lbl">Período</span><span class="meta-val">${perCurto || per}</span></div>
+          <div><span class="meta-lbl">${agrupar==='uf'?'UF':'Grupo'}</span><span class="meta-val">${esc(grupo.titulo)}</span></div>
+          <div><span class="meta-lbl">Total listado</span><span class="meta-val">${itens.length} empresa(s)</span></div>
+          <div><span class="meta-lbl">Emitido em</span><span class="meta-val">${agora}</span></div>
+        </div>
+
+        <div class="resumo-faixa">
+          <b>Resumo${lotes.length>1?` (lote ${idxLote+1}/${lotes.length})`:''}:</b> ${resumo}
+        </div>
+
+        <table class="rel">
+          <thead>
+            <tr>
+              <th style="width:40px">#</th>
+              <th>Empresa / Unidade</th>
+              <th style="width:70px">Código</th>
+              <th style="width:60px">Perfil</th>
+              <th style="width:240px">Situação</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lote.map((f,i)=>`
+              <tr>
+                <td>${offset+i+1}</td>
+                <td><b>${esc(f.unidade.nome)}</b></td>
+                <td>${f.unidade.codigo!=='—'?esc(f.unidade.codigo):'—'}</td>
+                <td>${esc(f.unidade.perfil)}</td>
+                <td class="sit-cell ${tipoClasse(f.tipo)}">
+                  ${tipoLabel(f.tipo)}
+                  <div class="sit-desc">${tipoDescricaoLonga(f.tipo)}</div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="folha-foot">
+          <div class="foot-l">
+            <b>Rede Dom Pedro de Postos Ltda</b>
+            <small>Departamento Fiscal · SPED Fiscal</small>
+          </div>
+          <div class="foot-c">
+            Relatório gerado automaticamente<br>${esc(grupo.titulo)} · ${perCurto || per}
+          </div>
+          <div class="assinatura">Responsável pelo Envio</div>
+        </div>
+        <div class="pagina-num">Página ${pagAtual} de ${totalPag}</div>
+      </div>`;
+    });
+  });
+
+  modalBody.innerHTML = html;
+  $('modalTitulo').textContent = `Relatório${ufSel?' — '+ufSel:''} — ${per}`;
+  $('modalRel').classList.add('on');
+}
+
+function fecharRelatorio(){ $('modalRel').classList.remove('on'); }
+
+$('btnRelFaltantes').onclick = () => {
+  atualizarDropdownRelatorio();
+  if (ufAtiva) $('relUF').value = ufAtiva;
+  gerarRelatorio();
+};
+$('relUF').onchange = () => gerarRelatorio();
+$('relTipo').onchange = () => gerarRelatorio();
+$('relPerfil').onchange = () => gerarRelatorio();
+$('relAgrupar').onchange = () => gerarRelatorio();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharRelatorio();
+});
+
+/* ============================================================
+   EXPORTAÇÃO
+   ============================================================ */
+function exportar(linhas,nome){
+  if(!linhas.length){alert('Nada para exportar.');return;}
+  const f=$('exportFormat').value,ts=new Date().toISOString().slice(0,19).replace(/:/g,'-');
+  if(f==='excel'){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(linhas),'Dados');XLSX.writeFile(wb,`${nome}_${ts}.xlsx`);return;}
+  let blob,fn;
+  if(f==='json'){blob=new Blob([JSON.stringify(linhas,null,2)],{type:'application/json'});fn=`${nome}_${ts}.json`;}
+  else{const h=Object.keys(linhas[0]);const csv=[h.join(',')].concat(linhas.map(r=>h.map(k=>`"${String(r[k]).replace(/"/g,'""')}"`).join(','))).join('\n');blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});fn=`${nome}_${ts}.csv`;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
+}
+
+$('exportButton').onclick=()=>{
+  const linhas=[];
+  const per = periodoDetectado ? formataPeriodoCurto(periodoDetectado) : '';
+  resultados.filter(r=>passa(
+    r.unidade?.nome||'',r.unidade?.codigo||'',r.unidade?.uf,r.unidade?.perfil,r.pasta,
+    situacao(r)
+  )).forEach(r=>{
+    const base={
+      'Período':per, Pasta:r.pasta,
+      Unidade:r.unidade?.nome||'',
+      'Código AS':r.unidade?.codigo||'',
+      UF:r.unidade?.uf||'', Perfil:r.unidade?.perfil||'',
+      'Cadastrada?':r.unidade?'SIM':'NÃO',
+      'Match':r.matchTipo||'',
+      'Situação':TAGS[situacao(r)][0],
+      'Tem Remessa (.REC)?':r.temRec?'SIM':'NÃO',
+      'Tem SPED Fiscal?':r.temSped?'SIM':'NÃO',
+      'Tem Recibo?':r.temPdf?'SIM':'NÃO',
+      'Tem Apuração?':r.temApur?'SIM':'NÃO'
+    };
+    const todos=[
+      ...r.arquivosRec.map(a=>({...a,tipo:'REMESSA (.REC)'})),
+      ...r.arquivos.map(a=>({...a,tipo:'SPED FISCAL'})),
+      ...r.arquivosPdf.map(a=>({...a,tipo:'RECIBO'})),
+      ...r.arquivosApur.map(a=>({...a,tipo:'APURAÇÃO'}))
+    ];
+    if(!todos.length)linhas.push({...base,'Tipo Arquivo':'','Arquivo':'','Caminho':''});
+    else todos.forEach(a=>{
+      const rej = isArquivoRejeitado(a.name);
+      linhas.push({...base,'Tipo Arquivo':a.tipo,Arquivo:a.name,Caminho:a.path,'Rejeitado?':rej?'SIM':'NÃO'});
+    });
+  });
+  exportar(linhas,'sped_fiscal_encontrados'+(per?`_${per.replace('/','-')}`:''));
+};
+
+$('exportFaltantes').onclick=()=>{
+  const base=faltFiltrados(),usar=marcados.size?base.filter(f=>marcados.has(chave(f))):base;
+  const per = periodoDetectado ? formataPeriodoCurto(periodoDetectado) : '';
+  exportar(usar.map(f=>({
+    'Período':per, UF:f.unidade.uf,
+    'Código AS':f.unidade.codigo, Unidade:f.unidade.nome, Perfil:f.unidade.perfil,
+    'Situação':tipoLabel(f.tipo),
+    'Tem Remessa (.REC)?':f.temRec?'SIM':'NÃO',
+    'Tem SPED Fiscal?':f.temSped?'SIM':'NÃO',
+    'Tem Recibo?':f.temPdf?'SIM':'NÃO',
+    'Tem Apuração?':f.temApur?'SIM':'NÃO',
+    'Pastas encontradas':f.pastas.join(' | ')
+  })),(marcados.size?'sped_fiscal_pendencias_selecionadas':'sped_fiscal_pendencias')+(per?`_${per.replace('/','-')}`:''));
+};
+
+// Inicialização
+$('rodData').textContent = 'Aguardando escaneamento';
+</script>
+</body>
+</html>
