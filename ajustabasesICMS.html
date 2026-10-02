@@ -1,0 +1,159 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Localizador de Bases de Cálculo de ICMS a Serem Zerados</title>
+<script>
+(function(){
+ document.addEventListener('contextmenu',function(e){e.preventDefault();return false},true);
+ document.addEventListener('keydown',function(e){
+  var k=(e.key||'').toLowerCase();
+  if(e.key==='F12'||e.keyCode===123||
+    (e.ctrlKey&&e.shiftKey&&['i','j','c','k'].indexOf(k)>-1)||
+    (e.metaKey&&e.altKey&&['i','j','c','u'].indexOf(k)>-1)||
+    (e.ctrlKey&&k==='u')){e.preventDefault();e.stopPropagation();return false}
+ },true);
+ document.addEventListener('dragstart',function(e){if(e.target&&e.target.tagName==='IMG')e.preventDefault()},true);
+})();
+</script>
+<style>
+:root{--o:#e8601c;--ink:#1f2937;--mut:#6b7280;--line:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;background:#fbf1ea;color:var(--ink);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+header{background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,#e8601c;color:#fff;padding:20px 32px}
+header h1{margin:0;font-size:1.4rem}header p{margin:4px 0 0;color:#ffe7d6;font-size:.85rem}
+main{max-width:1300px;margin:auto;padding:20px}
+.card{background:#fff;border-top:3px solid var(--o);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.drop{border:2px dashed #fdba74;background:#fff7ed;border-radius:12px;padding:22px;text-align:center;position:relative;cursor:pointer}.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+label{display:block;font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
+input[type=text],input[type=date],select{width:100%;padding:9px 12px;border:2px solid #fdba74;border-radius:10px;font:inherit;background:#fff}
+button.b{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;color:#fff;background:var(--o);width:100%}
+.info{background:#fff7ed;border-left:4px solid var(--o);padding:9px 14px;border-radius:6px;margin-top:12px;font-size:.85rem}
+.warn{background:#fef3c7;border-left-color:#f59e0b}.ok{background:#d1fae5;border-left-color:#10b981}
+.combo{border:1px solid #fdba74;border-radius:10px;margin-top:12px;overflow:hidden}
+.combo h4{margin:0;background:#fff7ed;padding:8px 14px;color:#9a3412;display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font-size:.82rem}th{text-align:left;padding:7px 10px;font-size:.7rem;text-transform:uppercase;color:#9a3412}
+td{padding:6px 10px;border-top:1px solid var(--line)}td.n{text-align:right;font-variant-numeric:tabular-nums}
+</style></head><body>
+<header><h1>Localizador de Bases de Cálculo de ICMS a Serem Zerados</h1><p>Informe o valor que você procura e veja quais notas do SPED somam esse valor</p></header>
+<main>
+<div class="card"><div class="drop"><input type="file" id="f" accept=".txt,.sped"><b id="fn">📂 Selecione o arquivo SPED (.txt)</b><br><small>Lido no seu computador, nada é enviado · registros C100/C190, C500/C590, D100/D190 e C800/C850 (CF-e)</small></div></div>
+<div class="card"><div class="grid">
+ <div><label>CFOP</label><select id="cf"><option value="">Todos</option></select></div>
+ <div><label>Campo somado</label><select id="cp"><option value="opr">Valor da operação</option><option value="bc">Base ICMS</option><option value="ic">Valor ICMS</option></select></div>
+ <div><label>Valor procurado (R$)</label><input type="text" id="al" placeholder="ex: 21.534,79"></div>
+ <div><label>Tolerância (R$)</label><input type="text" id="tl" value="0,00"></div>
+ <div><label>Emissão de</label><input type="date" id="d1"></div>
+ <div><label>Emissão até</label><input type="date" id="d2"></div>
+ <div><button class="b" id="go">🔎 Localizar combinação</button></div>
+ <div><button class="b" id="cmp" style="background:#475569">📊 Mostrar o que compõe o campo</button></div>
+</div><div id="ctx"></div></div>
+<div class="card"><b>Zerar e salvar o TXT completo</b> <small style='color:#6b7280'>— zere em quantas etapas quiser e salve só no final</small>
+ <div style="margin:10px 0;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center">
+  <span style="font-size:.75rem;font-weight:700;color:#6b7280">ZERAR:</span>
+  <label style="display:inline-flex;gap:6px;text-transform:none;font-size:.85rem;margin:0"><input type="checkbox" id="zo"> Valor da operação</label>
+  <label style="display:inline-flex;gap:6px;text-transform:none;font-size:.85rem;margin:0"><input type="checkbox" id="zb" checked> Base ICMS</label>
+  <label style="display:inline-flex;gap:6px;text-transform:none;font-size:.85rem;margin:0"><input type="checkbox" id="zi"> Valor ICMS</label>
+  <label style="display:inline-flex;gap:6px;text-transform:none;font-size:.85rem;margin:0"><input type="checkbox" id="zc" checked> Recalcular contadores (9900/x990/9999)</label>
+  </div>
+ <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+  <button class="b" id="zm" style="width:auto">0️⃣ Zerar marcados</button>
+  <button class="b" id="zr" style="width:auto;background:#b45309">0️⃣ Zerar todos do filtro</button>
+  <button class="b" id="sv" style="width:auto;background:#047857">💾 Salvar arquivo completo</button>
+  <button class="b" id="ud" style="width:auto;background:#64748b">↩ Desfazer tudo</button></div>
+ <div id="zst" style="font-weight:600;color:#9a3412">Nada zerado ainda</div>
+ <div class="info warn">Vale para o CFOP e o período escolhidos acima. As demais linhas do arquivo ficam intactas. Nas NF-e (C100) o total de base/ICMS do cabeçalho é reduzido junto. O bloco E (apuração, E110) <b>não</b> é recalculado: ajuste e valide no PVA.</div></div>
+<div id="out"></div>
+</main>
+<script>
+//PURE
+const num=s=>{s=(s||'').trim();return s?parseFloat(s.replace(/\./g,'').replace(',','.'))||0:0};
+const fm=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pp=l=>(l.charCodeAt(0)===0xEF?l.slice(3):l).split('|');
+function ler(L){const m=new Map();let cur=null;
+ for(let i=0;i<L.length;i++){const l=L[i],p=pp(l),r=p[1];
+  if(r==='C100')cur={t:'NF-e',n:p[8],d:p[10],c:p[4],h:i};else if(r==='C800')cur={t:'CF-e',n:p[4],d:p[5],c:''};else if(r==='C500')cur={t:'Energia',n:p[9],d:p[10],c:p[4]};else if(r==='D100')cur={t:'CT-e',n:p[9],d:p[11],c:p[4]};
+  else if((r==='C190'||r==='C590'||r==='D190'||r==='C850')&&cur&&p[3]){const k=cur.t+'|'+cur.n+'|'+cur.d+'|'+cur.c+'|'+p[3];let x=m.get(k);if(!x)m.set(k,x={doc:cur,cfop:p[3],opr:0,bc:0,ic:0,ln:[]});x.ln.push(i);x.opr+=num(p[5]);x.bc+=num(p[6]);x.ic+=num(p[7])}}
+ return [...m.values()]}
+function achar(items,campo,alvo,tol,max=60){
+ const T=Math.round(alvo*100),tl=Math.round(tol*100);
+ const it=items.map(x=>({x,v:Math.round(x[campo]*100)})).filter(o=>o.v>0&&o.v<=T+tl);
+ const unicos=it.filter(o=>Math.abs(o.v-T)<=tl).map(o=>o.x);const n=it.length;let sols=[],modo='',erro='';
+ if(n<=36){modo='todas as combinações possíveis';const h=n>>1,A=it.slice(0,h),B=it.slice(h);
+  const sm=a=>{const s=new Float64Array(1<<a.length);for(let m=1;m<s.length;m++)s[m]=s[m&(m-1)]+a[31-Math.clz32(m&-m)].v;return s};
+  const sa=sm(A),sb=sm(B),mp=new Map();for(let m=0;m<sb.length;m++){let a=mp.get(sb[m]);if(!a)mp.set(sb[m],a=[]);a.push(m)}
+  const pc=m=>{let c=0;while(m){m&=m-1;c++}return c};
+  for(let m=0;m<sa.length&&sols.length<max;m++)for(let d=-tl;d<=tl&&sols.length<max;d++){const l=mp.get(T-sa[m]+d);if(!l)continue;
+   for(const q of l){if(pc(m)+pc(q)<2)continue;sols.push([...A.filter((_,i)=>m>>i&1),...B.filter((_,i)=>q>>i&1)].map(o=>o.x));if(sols.length>=max)break}}}
+ else if(n*T>3e9){erro='Muitas notas para este valor. Restrinja por CFOP ou período.'}
+ else{modo='uma combinação (muitas notas; pode existir mais de uma)';const par=new Int32Array(T+tl+1).fill(-1);par[0]=-2;
+  for(let i=0;i<n;i++){const v=it[i].v;for(let s=T+tl;s>=v;s--)if(par[s]===-1&&par[s-v]!==-1)par[s]=i}
+  for(let s=T-tl;s<=T+tl;s++){if(s>0&&par[s]!==-1){const c=[];let q=s;while(q>0){const i=par[q];c.push(it[i].x);q-=it[i].v}if(c.length>=2){sols.push(c);break}}}}
+ return {unicos,sols,modo,erro,n}}
+const sn=n=>n.toFixed(2).replace('.',',');
+function zerar(raw,B,co,cb,ci){const out=raw.slice(),hd={};
+ for(const x of B)for(const i of x.ln){const p=pp(out[i]),bom=out[i].charCodeAt(0)===0xEF?out[i].slice(0,3):'',ob=num(p[6]),oi=num(p[7]);
+  if(co)p[5]='0,00';if(cb)p[6]='0,00';if(ci)p[7]='0,00';
+  if(x.doc.t==='NF-e'){const h=hd[x.doc.h]||(hd[x.doc.h]=[0,0]);if(cb)h[0]+=ob;if(ci)h[1]+=oi}
+  out[i]=bom+p.join('|')}
+ for(const h in hd){const p=pp(out[h]);p[21]=sn(Math.max(0,num(p[21])-hd[h][0]));p[22]=sn(Math.max(0,num(p[22])-hd[h][1]));out[h]=p.join('|')}
+ return out}
+function recontar(a){const c={},bl={};a.forEach(l=>{const r=pp(l)[1]||'';c[r]=(c[r]||0)+1;bl[r[0]]=(bl[r[0]]||0)+1});
+ return a.map(l=>{const bom=l.charCodeAt(0)===0xEF?l.slice(0,3):'',p=pp(l),r=p[1];
+  if(r==='9900')p[3]=String(c[p[2]]||0);else if(r==='9999')p[2]=String(a.length);else if(/^[0-9A-Z]990$/.test(r))p[2]=String(bl[r[0]]||0);else return l;
+  return bom+p.join('|')})}
+function enc(s){const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u}
+//ENDPURE
+const $=id=>document.getElementById(id);let items=[],W=[],ZN=0,RAW=[],EOL='\n',FN='sped.txt';
+$('f').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=x=>{const u=new Uint8Array(x.target.result);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+ RAW=s.split(/\r?\n/);if(RAW[RAW.length-1]==='')RAW.pop();EOL=s.includes('\r\n')?'\r\n':'\n';FN=f.name;W=RAW.slice();ZN=0;items=ler(W);st();$('fn').textContent='✓ '+f.name+' — '+items.length+' lançamentos nota×CFOP';
+ $('cf').innerHTML='<option value="">Todos</option>'+[...new Set(items.map(x=>x.cfop))].sort().map(c=>`<option>${c}</option>`).join('');ctx()};r.readAsArrayBuffer(f)};
+const dk=d=>(d||'').length===8?d.slice(4)+d.slice(2,4)+d.slice(0,2):'';
+const fd=d=>(d||'').replace(/^(\d{2})(\d{2})(\d{4})$/,'$1/$2/$3');
+function base(){const c=$('cf').value,a=$('d1').value.replace(/-/g,''),b=$('d2').value.replace(/-/g,'');
+ return items.filter(x=>(!c||x.cfop===c)&&(!a||dk(x.doc.d)>=a)&&(!b||dk(x.doc.d)<=b))}
+function ctx(){const B=base(),k=$('cp').value,t=B.reduce((s,x)=>s+x[k],0);
+ $('ctx').innerHTML=items.length?`<div class="info">No filtro atual há <b>${B.length}</b> lançamento(s) somando <b>R$ ${fm(t)}</b> neste campo.</div>`:''}
+['cf','cp','d1','d2'].forEach(i=>$(i).onchange=ctx);
+function tab(l){return `<table><thead><tr><th>Tipo</th><th>Nº</th><th>Emissão</th><th>CNPJ/Part.</th><th>CFOP</th><th>Operação</th><th>Base ICMS</th><th>ICMS</th></tr></thead><tbody>${l.map(x=>`<tr><td>${x.doc.t}</td><td><b>${x.doc.n}</b></td><td>${fd(x.doc.d)}</td><td>${x.doc.c}</td><td>${x.cfop}</td><td class="n">${fm(x.opr)}</td><td class="n">${fm(x.bc)}</td><td class="n">${fm(x.ic)}</td></tr>`).join('')}</tbody></table>`}
+let ULT=[];
+function csv(){const k=$('cp').value;const r=['CFOP;Tipo;Numero;Emissao;CNPJ/Part;Operacao;Base ICMS;ICMS'].concat(ULT.map(x=>[x.cfop,x.doc.t,x.doc.n,fd(x.doc.d),x.doc.c,fm(x.opr),fm(x.bc),fm(x.ic)].join(';')));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+r.join('\n')],{type:'text/csv;charset=utf-8'}));a.download='composicao_cfop.csv';a.click()}
+let SEL=new Set(),VIEW='';
+const key=x=>x.ln[0];
+function st(){const e=$('zst');if(e)e.textContent=ZN?`${ZN} lançamento(s) zerado(s) na memória — ainda não salvo`:'Nada zerado ainda'}
+function tabSel(l){return `<table><thead><tr><th><input type="checkbox" class="ca" ${l.every(x=>SEL.has(key(x)))?'checked':''}></th><th>Tipo</th><th>Nº</th><th>Emissão</th><th>CNPJ/Part.</th><th>CFOP</th><th>Operação</th><th>Base ICMS</th><th>ICMS</th></tr></thead><tbody>${l.map(x=>`<tr><td><input type="checkbox" class="cs" data-i="${key(x)}" ${SEL.has(key(x))?'checked':''}></td><td>${x.doc.t}</td><td><b>${x.doc.n}</b></td><td>${fd(x.doc.d)}</td><td>${x.doc.c}</td><td>${x.cfop}</td><td class="n">${fm(x.opr)}</td><td class="n">${fm(x.bc)}</td><td class="n">${fm(x.ic)}</td></tr>`).join('')}</tbody></table>`}
+function selInfo(){const k=$('cp').value,m=items.filter(x=>SEL.has(key(x))&&x[k]>0);const e=$('sel');if(e)e.textContent=`${m.length} marcado(s) · R$ ${fm(m.reduce((s,x)=>s+x[k],0))}`}
+function compor(fresh){VIEW='cmp';const k=$('cp').value,B=base().filter(x=>x[k]>0),g={},nm={opr:'Valor da operação',bc:'Base ICMS',ic:'Valor ICMS'}[k];
+ B.forEach(x=>(g[x.cfop]=g[x.cfop]||[]).push(x));ULT=B.slice().sort((a,b)=>a.cfop.localeCompare(b.cfop)||b[k]-a[k]);
+ const cs=Object.keys(g).sort(),sh={};cs.forEach(c=>sh[c]=g[c].sort((a,b)=>b[k]-a[k]).slice(0,1500));
+ const vis=new Set();cs.forEach(c=>sh[c].forEach(x=>vis.add(key(x))));
+ SEL=fresh?new Set(vis):new Set([...SEL].filter(i=>vis.has(i)));
+ $('out').innerHTML=`<div class="info ok">Lançamentos que compõem <b>${nm}</b> (apenas com valor maior que zero, no CFOP e período escolhidos). Marque as linhas e clique em <b>Zerar marcados</b>. <b id="sel" style="margin-left:8px"></b> <button class="b" style="width:auto;padding:5px 12px;margin-left:10px" onclick="csv()">↓ CSV</button></div>`+cs.map(c=>{const l=sh[c],t=g[c].reduce((s,x)=>s+x[k],0);
+  return `<details class="combo" open><summary style="cursor:pointer;padding:10px 14px;background:#fff7ed;display:flex;justify-content:space-between"><b>CFOP ${c} · ${g[c].length} lançamento(s)</b><b>R$ ${fm(t)}</b></summary>${tabSel(l)}${g[c].length>1500?'<div class="info warn">Mostrando os 1.500 maiores; o CSV traz todos.</div>':''}</details>`}).join('')||'<div class="info warn">Nenhum lançamento com valor neste filtro.</div>';
+ $('out').querySelectorAll('.cs').forEach(c=>c.onchange=()=>{c.checked?SEL.add(+c.dataset.i):SEL.delete(+c.dataset.i);selInfo()});
+ $('out').querySelectorAll('.ca').forEach(c=>c.onchange=()=>{c.closest('table').querySelectorAll('.cs').forEach(x=>{x.checked=c.checked;c.checked?SEL.add(+x.dataset.i):SEL.delete(+x.dataset.i)});selInfo()});
+ selInfo()}
+$('cmp').onclick=()=>{if(!items.length){alert('Carregue o arquivo SPED.');return}compor(true)};
+$('go').onclick=()=>{if(!items.length){alert('Carregue o arquivo SPED.');return}
+ const al=num($('al').value);if(!al){alert('Informe o valor procurado.');return}
+ const B=base(),k=$('cp').value,tot=B.reduce((s,x)=>s+x[k],0);let h='';
+ if(al>tot+0.005)h+=`<div class="info warn">⚠ O valor procurado (R$ ${fm(al)}) é maior que a soma de tudo que existe neste filtro (R$ ${fm(tot)}). Nenhuma combinação deste arquivo pode chegar a ele, então o valor vem de outro período, unidade ou base.</div>`;
+ const R=achar(B,k,al,num($('tl').value));
+ if(R.unicos.length)h+=`<div class="card"><b>✅ Nota(s) com exatamente esse valor (${R.unicos.length})</b>${tab(R.unicos)}</div>`;
+ if(R.erro)h+=`<div class="info warn">${R.erro}</div>`;
+ else if(R.sols.length)h+=`<div class="info ok">${R.sols.length>=60?'Mostrando as primeiras 60 combinações':R.sols.length+' combinação(ões) encontrada(s)'} — método: ${R.modo}.</div>`+R.sols.map((c,i)=>`<div class="combo"><h4><span>Combinação ${i+1} · ${c.length} lançamentos</span><span>R$ ${fm(c.reduce((s,x)=>s+x[k],0))}</span></h4>${tab(c)}</div>`).join('');
+ else if(!R.unicos.length&&!(al>tot+0.005))h+=`<div class="info warn">Nenhuma combinação de lançamentos soma R$ ${fm(al)} neste filtro (${R.n} candidatos analisados). Tente ampliar o CFOP/período ou usar uma tolerância.</div>`;
+ $('out').innerHTML=h}
+$('cp').addEventListener('change',()=>{const k=$('cp').value;$('zo').checked=k==='opr';$('zb').checked=k==='bc';$('zi').checked=k==='ic'});
+function aplicar(B){const co=$('zo').checked,cb=$('zb').checked,ci=$('zi').checked;
+ if(!(co||cb||ci)){alert('Marque o que zerar.');return}
+ B=B.filter(x=>(co&&x.opr>0)||(cb&&x.bc>0)||(ci&&x.ic>0));if(!B.length){alert('Nenhum lançamento com valor para zerar.');return}
+ const t=B.reduce((s,x)=>s+(co?x.opr:0)+(cb?x.bc:0)+(ci?x.ic:0),0),d=[co&&'Valor da operação',cb&&'Base ICMS',ci&&'Valor ICMS'].filter(Boolean).join(' + ');
+ if(!confirm(`Zerar ${d} de ${B.length} lançamento(s), somando R$ ${fm(t)}?\n\nO arquivo só é gravado quando você clicar em “Salvar arquivo completo”.`))return;
+ W=zerar(W,B,co,cb,ci);ZN+=B.length;items=ler(W);st();
+ if(VIEW==='cmp')compor(false);else{ctx();$('out').innerHTML=`<div class="info ok">✓ ${B.length} lançamento(s) zerado(s) na memória (R$ ${fm(t)}). Clique em “Salvar arquivo completo” quando terminar.</div>`}}
+$('zm').onclick=()=>{if(!items.length){alert('Carregue o arquivo SPED.');return}if(!SEL.size){alert('Nenhum lançamento marcado. Use “Mostrar o que compõe o campo” e marque as linhas.');return}aplicar(items.filter(x=>SEL.has(key(x))))};
+$('zr').onclick=()=>{if(!items.length){alert('Carregue o arquivo SPED.');return}aplicar(base())};
+$('ud').onclick=()=>{if(!ZN||!confirm('Desfazer todos os zeramentos e voltar ao arquivo original?'))return;W=RAW.slice();ZN=0;items=ler(W);st();VIEW==='cmp'?compor(true):ctx()};
+const LINHA_REMOVER='|0150||JULIANO|1058||||3124500||ROD FERNAO DIAS KM 880|||ESPRAIADO|';
+$('sv').onclick=()=>{if(!items.length){alert('Carregue o arquivo SPED.');return}let out=W.filter(l=>l.trim()!==LINHA_REMOVER);const REM=W.length-out.length;if($('zc').checked)out=recontar(out);
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([enc(out.join(EOL)+EOL)],{type:'text/plain'}));a.download=FN.replace(/\.txt$/i,'')+'_replaced.txt';a.click();
+ st();$('zst').textContent=`✓ Arquivo salvo com ${ZN} lançamento(s) zerado(s) · ${out.length} linhas`+(REM?` · ${REM} linha(s) do participante JULIANO removida(s)`:'')};
+</script></body></html>
