@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Dom Pedro — Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--e900:#062b1b;--e700:#0f5232;--e500:#16a34a;--e400:#4ade80;--bg:#f0f4f1;--s1:#fff;--tp:#0f1f12;--ts:#3d6b47;--tm:#7a9e82;--bd:rgba(22,101,52,.15)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tp);display:flex;flex-direction:column;overflow:hidden}
+/* barra do posto */
+.top{background:linear-gradient(90deg,var(--e900),var(--e700));color:#fff;display:flex;align-items:center;gap:16px;padding:8px 20px;flex-shrink:0}
+.logo{width:44px;height:44px;border-radius:10px;object-fit:contain;background:#fff;padding:3px;border:1px solid rgba(255,255,255,.3)}
+.brand b{font-size:15px;display:block;line-height:1.1}.brand small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--e400)}
+.sp{flex:1}
+.posto{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:6px 12px}
+.posto select{background:#fff;color:var(--tp);border:0;border-radius:6px;padding:6px 8px;font:600 12px 'DM Sans',sans-serif;max-width:260px}
+.chip{font:500 11px 'DM Mono',monospace;line-height:1.5}.chip span{color:var(--e400);display:block;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.uf{background:var(--e500);border-radius:6px;padding:4px 10px;font:700 12px 'DM Mono',monospace}
+/* menu horizontal */
+nav{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 20px;display:flex;gap:4px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.grp{position:relative}
+.grp>button,.lnk{background:none;border:0;padding:13px 16px;font:500 13.5px 'DM Sans',sans-serif;color:var(--tp);cursor:pointer;border-bottom:3px solid transparent}
+.grp>button:hover,.lnk:hover,.grp.on>button,.lnk.on{color:var(--e700);border-bottom-color:var(--e500)}
+.drop{display:none;position:absolute;top:100%;left:0;min-width:300px;background:var(--s1);border:1px solid var(--bd);border-radius:0 0 12px 12px;box-shadow:0 14px 30px rgba(0,0,0,.14);padding:8px;z-index:50}
+.grp:hover .drop,.grp:focus-within .drop{display:block}
+.it{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border-radius:8px;cursor:pointer}
+.it:hover,.it.on{background:#e9f5ed}
+.it i{font-style:normal;font-size:18px}.it b{font-size:13px;display:block}.it small{font-size:11px;color:var(--tm)}
+/* conteúdo */
+main{flex:1;position:relative;background:#fff}
+iframe{width:100%;height:100%;border:0;display:block}
+.ld{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:var(--bg);color:var(--tm);font:12px 'DM Mono',monospace}
+.hello{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--tm);background:var(--bg)}
+.hello img{width:130px;opacity:.25}.hello h2{font-weight:500;color:var(--ts)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img class="logo" id="logo" alt="Logo">
+  <div class="brand"><b id="pNome">Dom Pedro</b><small>Sistema de Gestão</small></div>
+  <div class="sp"></div>
+  <div class="posto">
+    <select id="sel" onchange="setPosto(this.value)"></select>
+    <div class="chip"><span>CNPJ</span><b id="pCnpj">—</b></div>
+    <div class="chip"><span>Razão social</span><b id="pRazao">—</b></div>
+    <div class="uf" id="pUf">—</div>
+  </div>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+  <div class="hello" id="hello"><img id="helloLogo" alt=""><h2>Selecione um módulo no menu acima</h2></div>
+  <div class="ld" id="ld">Carregando...</div>
+  <iframe id="frame" title="Módulo" style="display:none"></iframe>
+</main>
+
+<script>
+/* ═══ CONFIGURAÇÃO — edite aqui ═══════════════════════════════ */
+const LOGO_PADRAO = 'pedro.png';  // logo da rede (fica na mesma pasta); cada posto pode ter o seu em "logo"
+const POSTOS = [
+  { nome:'Dom Pedro Betim 1', cnpj:'20.415.295/0012-27', razao:'Rede Dom Pedro de Postos Ltda', uf:'MG', logo:'' },
+  { nome:'Dom Pedro Betim 2', cnpj:'20.415.295/0052-14', razao:'Rede Dom Pedro de Postos Ltda', uf:'MG', logo:'' },
+  { nome:'Dom Pedro Bragança Rodovia', cnpj:'20.415.295/0064-58', razao:'Rede Dom Pedro de Postos Ltda', uf:'SP', logo:'' },
+  // adicione os demais postos nesse formato
+];
+const MENU = [
+  { grupo:'Apuração ICMS', itens:[
+    { icon:'🧮', titulo:'Ajusta Bases ICMS', desc:'Ajuste das bases de ICMS', url:'ajustabasesICMS.html' },
+    { icon:'📋', titulo:'E110 — SP', desc:'E110 + E111 + E116 a partir do P9', url:'E110-SP.html' },
+  ]},
+  // { grupo:'Outro grupo', itens:[ ... ] },
+];
+/* ═════════════════════════════════════════════════════════════ */
+
+let posto = POSTOS[0], atual = null;
+const $ = id => document.getElementById(id);
+const store = { get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
+
+function logoDe(p){ return p.logo || LOGO_PADRAO; }
+function setPosto(cnpj){
+  posto = POSTOS.find(p=>p.cnpj===cnpj) || POSTOS[0];
+  store.set('posto', posto.cnpj);
+  $('sel').value = posto.cnpj;
+  $('pNome').textContent = posto.nome; $('pCnpj').textContent = posto.cnpj;
+  $('pRazao').textContent = posto.razao || '—'; $('pUf').textContent = posto.uf;
+  $('logo').src = logoDe(posto); $('helloLogo').src = logoDe(posto);
+  if(atual) carregar(atual);          // recarrega o módulo aberto com o novo posto
+}
+function urlComPosto(u){
+  const q = new URLSearchParams({cnpj:posto.cnpj, uf:posto.uf, posto:posto.nome});
+  return u + (u.includes('?')?'&':'?') + q;
+}
+function carregar(item){
+  atual = item;
+  $('hello').style.display='none'; $('ld').style.display='flex'; $('frame').style.display='block';
+  const f = $('frame');
+  f.onload = () => {
+    $('ld').style.display='none';
+    try{ f.contentWindow.postMessage({type:'posto', ...posto}, '*'); }catch(e){}
+  };
+  f.src = urlComPosto(item.url);
+  document.querySelectorAll('.it').forEach(e=>e.classList.toggle('on', e.dataset.url===item.url));
+  document.querySelectorAll('.grp').forEach(g=>g.classList.toggle('on', !!g.querySelector('.it.on')));
+}
+function montar(){
+  $('sel').innerHTML = POSTOS.map(p=>`<option value="${p.cnpj}">${p.nome}</option>`).join('');
+  $('nav').innerHTML = MENU.map((g,i)=>`
+    <div class="grp"><button type="button">${g.grupo} ▾</button>
+      <div class="drop">${g.itens.map((it,j)=>`
+        <div class="it" data-url="${it.url}" onclick="carregar(MENU[${i}].itens[${j}])">
+          <i>${it.icon}</i><div><b>${it.titulo}</b><small>${it.desc||''}</small></div></div>`).join('')}
+      </div></div>`).join('');
+  $('logo').onerror = function(){ this.onerror=null; this.src='https://rededompedro.com/wp-content/uploads/2023/08/logo-dom-pedro.png'; };
+  $('helloLogo').onerror = $('logo').onerror;
+  setPosto(store.get('posto') || POSTOS[0].cnpj);
+}
+montar();
+</script>
+</body>
+</html>
