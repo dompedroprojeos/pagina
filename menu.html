@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema Dom Pedro — Dashboard</title>
+<style>
+:root{box-sizing:border-box;color-scheme:light;--acc:#ea580c;--acc2:#c2410c;--soft:#ffedd5;--txt:#2b1a0e;--mut:#8a6a52;--line:#fed7aa;--bg:#fff7ed;--card:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--txt);background:var(--bg);overflow:hidden;
+background-image:radial-gradient(90% 50% at 0 0,#ffedd5,transparent 60%),radial-gradient(80% 50% at 100% 100%,#fed7aa,transparent 60%)}
+.app{height:100%;display:flex;gap:14px;padding:14px}
+.slot{position:relative;flex:none;width:290px;transition:width .3s}
+.sb{position:absolute;inset:0 auto 0 0;width:290px;z-index:5;transition:width .3s}
+.col .slot,.col .sb{width:76px}
+.panel{height:100%;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(194,65,12,.12);overflow:hidden;display:flex;flex-direction:column}
+.head{height:72px;flex:none;display:flex;align-items:center;gap:12px;padding-left:18px;white-space:nowrap}
+.logo{flex:none;width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#fb923c,var(--acc2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;position:relative;overflow:hidden}
+.logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--card)}
+.brand b{display:block;font-size:18px}.brand small{color:var(--acc2);font-size:11px}
+.tog{position:absolute;z-index:6;top:78px;right:-15px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--acc2);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 10px rgba(194,65,12,.25)}
+.tog svg{transition:transform .3s}.col .tog svg{transform:rotate(180deg)}
+hr{border:0;height:1px;margin:0 20px;background:var(--line);flex:none}
+.user{display:flex;align-items:center;height:68px;flex:none;padding-left:18px;gap:12px;white-space:nowrap}
+.av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--acc2);border:2px solid var(--acc);display:grid;place-items:center;font-weight:700;font-size:13px}
+.user small{display:block;color:var(--acc2);font-size:11px}
+
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent;padding-bottom:10px}
+.search{display:flex;align-items:center;height:56px;padding:0 16px 0 21px;gap:12px}
+.search input{flex:1;min-width:0;height:38px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--txt);padding:0 16px;font-size:13px;outline:none}
+.search input:focus{border-color:var(--acc)}
+.sec{font-size:11px;letter-spacing:1.3px;color:var(--acc2);font-weight:700;padding:12px 0 6px 22px;white-space:nowrap;text-transform:uppercase}
+.grp{height:0}
+.item{display:flex;align-items:center;width:100%;min-height:46px;border:0;background:none;color:var(--txt);font:inherit;font-size:14px;padding:0 14px 0 21px;gap:12px;cursor:pointer;text-align:left;position:relative}
+.item:hover{background:var(--soft)}
+.item.open .ic{background:#fdba74}
+.item.on{background:var(--acc);color:#fff}.item.on .ic{background:rgba(255,255,255,.25)}
+.ic{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:var(--soft);font-size:15px}
+.lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot{padding:10px 0 14px;text-align:center;font-size:10.5px;color:var(--mut);line-height:1.6;white-space:nowrap;flex:none}
+.col .lab,.col .sec,.col .foot,.col .search input,.col .brand,.col .user .txt,.col .out{display:none}
+.col .scroll .grp{border-top:1px solid var(--line);margin:6px 22px 0}
+.main{flex:1;min-width:0;position:relative}
+.top{height:58px;flex:none;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid var(--line);gap:12px}
+.ttl{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sp{flex:1}
+.clock{text-align:right;line-height:1.25;white-space:nowrap}
+.clock b{display:block;font-size:14px;font-variant-numeric:tabular-nums;color:var(--acc2)}.clock span{font-size:11px;color:var(--mut)}
+.btn{border:1px solid var(--line);background:var(--bg);color:var(--acc2);border-radius:99px;height:34px;padding:0 14px;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap}
+.btn:hover{background:var(--soft)}
+/* área de janelas */
+.desk{flex:1;min-height:0;position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#fffaf5,#fffaf5 12px,#fff7ed 12px,#fff7ed 24px)}
+.welcome{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;color:var(--mut);padding:24px}
+.welcome h1{margin:0;font-size:26px;font-weight:600;color:var(--acc2)}.welcome p{margin:0}
+.win{position:absolute;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--acc);border-radius:12px;box-shadow:0 8px 28px rgba(194,65,12,.3);overflow:hidden;min-width:280px;min-height:160px}
+.win.bg{box-shadow:0 4px 14px rgba(194,65,12,.15);border-color:var(--line)}
+.win.min{display:none}
+.win.max{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0;border:0}
+.wt{height:36px;flex:none;display:flex;align-items:center;gap:10px;padding:0 12px;background:linear-gradient(#ffedd5,#fed7aa);cursor:move;user-select:none;touch-action:none}
+.win.bg .wt{background:var(--soft)}
+.wb{display:flex;gap:6px}.wb i{width:24px;height:24px;border-radius:7px;cursor:pointer;display:grid;place-items:center;color:#fff;font:700 13px/1 Arial,sans-serif;font-style:normal;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.wb .c{background:#ef4444}.wb .m{background:#f59e0b}.wb .x{background:#22c55e}.wb i:hover{filter:brightness(.85);box-shadow:0 0 0 2px rgba(0,0,0,.12)}
+.wn{font-size:13px;font-weight:600;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win iframe{flex:1;width:100%;border:0;background:var(--card);min-height:0}
+.cv{position:absolute;inset:36px 0 0 0;display:none}.win.bg .cv{display:block}
+.drag iframe{pointer-events:none}
+.rz{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,var(--acc) 50%);z-index:2;touch-action:none}
+.max .rz{display:none}
+.ldg{position:absolute;inset:36px 0 0 0;display:grid;place-items:center;background:var(--card);z-index:1}
+.ldg i{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--acc);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tb{flex:none;display:none;gap:8px;padding:6px 12px;border-top:1px solid var(--line);background:var(--bg);overflow-x:auto}
+.tb.has{display:flex}
+.chip{flex:none;max-width:200px;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:8px;height:30px;padding:0 12px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.act{background:var(--acc);color:#fff;border-color:var(--acc)}.chip.mn{opacity:.6;font-style:italic}
+/* login */
+#lg{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);background-image:radial-gradient(90% 60% at 50% 0,#fed7aa,transparent 70%)}
+#lg form{width:min(340px,90vw);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 14px 40px rgba(194,65,12,.2);display:grid;gap:12px}
+#lg h2{margin:0;color:var(--acc2);text-align:center}#lg p{margin:0;text-align:center;color:var(--mut);font-size:13px}
+#lg input{height:42px;border-radius:10px;border:1px solid var(--line);padding:0 12px;font:inherit;outline:none}#lg input:focus{border-color:var(--acc)}
+#lg button{height:42px;border:0;border-radius:10px;background:var(--acc);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+#lg button:hover{background:var(--acc2)}#er{color:#dc2626;font-size:13px;text-align:center;min-height:16px}
+.backdrop{display:none}
+@media(max-width:700px){
+ .app{gap:10px;padding:10px}.slot,.col .slot{width:76px}
+ .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:4;opacity:0;pointer-events:none;transition:opacity .3s;display:block}
+ .app:not(.col) .backdrop{opacity:1;pointer-events:auto}
+ .top{padding:0 12px}.clock span,.btn span{display:none}
+}
+
+.out{margin-left:auto;margin-right:14px;display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--soft);color:var(--acc2);font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+.out:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.item.ad{min-height:34px;font-size:13px}.ad .ic{width:24px;height:24px;font-size:12px}
+#one{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;z-index:1}
+.nt{flex:1;display:flex;flex-direction:column;min-height:0}.ntb{display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--line);background:var(--soft)}
+.ntb button{border:1px solid var(--line);background:var(--card);color:var(--acc2);border-radius:8px;height:30px;padding:0 12px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.ntb button:hover{background:var(--acc);color:#fff}
+.nt textarea{flex:1;resize:none;border:0;outline:0;padding:12px;font:13px/1.5 Consolas,monospace;background:var(--card);color:var(--txt)}
+[data-theme=dark]{color-scheme:dark;--acc:#f97316;--acc2:#fb923c;--soft:#3a2615;--txt:#fde8d8;--mut:#c9a78c;--line:#5a3a24;--bg:#1a120c;--card:#271a11}
+[data-theme=dark] body{background-image:radial-gradient(90% 50% at 0 0,#3a2615,transparent 60%),radial-gradient(80% 50% at 100% 100%,#2e1b0e,transparent 60%)}
+[data-theme=dark] .desk{background:repeating-linear-gradient(45deg,#1f150e,#1f150e 12px,#231810 12px,#231810 24px)}
+[data-theme=dark] .wt{background:linear-gradient(#4a2c14,#3a2210)}[data-theme=dark] .win.bg .wt{background:var(--soft)}
+[data-theme=dark] #lg{background-image:radial-gradient(90% 60% at 50% 0,#3a2615,transparent 70%)}
+
+.ic{background:color-mix(in srgb,var(--c,#ea580c) 20%,var(--card));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,#ea580c) 35%,transparent);transition:transform .2s}
+.item:hover .ic{transform:scale(1.12) rotate(-6deg)}.item.on .ic{background:rgba(255,255,255,.28)}
+#lg{overflow:hidden}
+#lg .o{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:fl 14s ease-in-out infinite alternate}
+.o1{width:380px;height:380px;background:#fb923c;left:-80px;top:-60px}.o2{width:320px;height:320px;background:#f59e0b;right:-60px;bottom:-40px;animation-delay:-5s}
+.o3{width:240px;height:240px;background:#ef4444;left:55%;top:20%;opacity:.3!important;animation-delay:-9s}
+@keyframes fl{to{transform:translate(60px,40px) scale(1.15)}}
+#lg form{position:relative;border-radius:32px;padding:34px 30px;background:color-mix(in srgb,var(--card) 84%,transparent);backdrop-filter:blur(16px);animation:up .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{opacity:0;transform:translateY(24px) scale(.96)}}
+.em{width:84px;height:84px;margin:-66px auto 2px;border-radius:50%;background:linear-gradient(135deg,#fdba74,var(--acc2));display:grid;place-items:center;font-size:38px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(194,65,12,.45),0 0 0 6px var(--card);animation:pl 2.4s ease-in-out infinite}
+.em img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--card)}
+@keyframes pl{50%{box-shadow:0 8px 24px rgba(194,65,12,.45),0 0 0 14px rgba(251,146,60,.25)}}
+#lg input{height:46px;border-radius:99px;padding:0 18px;background:var(--card);color:var(--txt)}
+#lg button[type=submit]{height:46px;border-radius:99px;background:linear-gradient(90deg,var(--acc),#f59e0b,var(--acc));background-size:200% 100%;transition:background-position .5s,transform .2s;box-shadow:0 6px 16px rgba(234,88,12,.4)}
+#lg button[type=submit]:hover{background-position:100% 0;transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){#lg *{animation:none!important}}
+.out{height:36px;padding:0 14px 0 10px;border:0;border-radius:12px;gap:7px;background:linear-gradient(135deg,#fee2e2,#fecaca);color:#b91c1c;box-shadow:0 2px 6px rgba(185,28,28,.2)}
+.out svg{width:18px;height:18px;flex:none}
+.out:hover{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;transform:translateY(-1px)}
+[data-theme=dark] .out{background:#4a1d1d;color:#fca5a5}[data-theme=dark] .out:hover{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}
+</style>
+</head>
+<body>
+<div id="lg"><i class="o o1"></i><i class="o o2"></i><i class="o o3"></i><form id="lf">
+ <div class="em"><span>⛽</span><img src="pedrinho.png" alt="" onerror="this.remove()"></div>
+ <h2>Dom Pedro</h2><p>Sistema de Gestão — acesso restrito</p>
+ <input id="lu" placeholder="Usuário" autocomplete="username" autocapitalize="none" required>
+ <input id="lp" type="password" placeholder="Senha" autocomplete="current-password" required>
+ <div id="er"></div><button type="submit">Entrar</button><a href="#" id="cx" style="display:none;text-align:center;color:var(--mut);font-size:13px">Cancelar</a>
+</form></div>
+<div class="app" id="app">
+ <div class="slot"><aside class="sb" aria-label="Menu principal">
+  <button class="tog" id="tog" aria-label="Encolher menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <div class="panel">
+   <div class="head"><div class="logo">D<img src="pedrinho.png" alt="" onerror="this.remove()"></div><div class="brand"><b>Dom Pedro</b><small>Sistema de Gestão</small></div></div>
+   <hr>
+   <div class="user"><div class="av" id="av"></div><div class="txt"><span id="un"></span><small id="ur"></small></div><button class="out" id="out" title="Sair" aria-label="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sair</span></button></div>
+   <hr>
+   <div class="scroll" id="nav"><div class="search"><span class="ic" id="sbtn" role="button" tabindex="0" aria-label="Buscar">🔎</span><input id="q" placeholder="Buscar módulo..." aria-label="Buscar módulo"></div><button class="item" id="end" title="Lista de arquivos — acesso restrito"><span class="ic">📂</span><span class="lab">Endereços</span></button></div>
+   <div class="foot">© 2026 Sistema Dom Pedro<br>@waldeciramos</div>
+  </div>
+ </aside></div>
+ <div class="backdrop" id="bd"></div>
+ <main class="panel main">
+  <div class="top">
+   <div class="ttl" id="title">Sistema Dom Pedro</div><div class="sp"></div>
+   <button class="btn" id="th" title="Modo claro/escuro" aria-label="Alternar tema">🌙</button>
+   <button class="btn" id="rl" aria-label="Recarregar janela ativa">⟳ <span>Recarregar</span></button>
+   <div class="clock"><b id="ct"></b><span id="cd"></span></div>
+  </div>
+  <div class="desk" id="desk"><div class="welcome" id="welcome"><h1>Sistema Dom Pedro</h1><p>Selecione um módulo no menu para abrir uma janela</p></div></div>
+  <div class="tb" id="tb"></div>
+ </main>
+</div>
+<script>
+var BASE='https://dompedroprojeos.github.io/pagina/';
+/* g=categoria, u=arquivo, l=nome curto, t=título da janela, d=texto ao passar o mouse, i=ícone, a=1 só Aline */
+var ITEMS=[
+{g:'Controles',u:'scanearspeds.html',l:'Transmissão SPEDs (Localizador)',t:'Transmissão de SPEDs Fiscais — Localizador',i:'🛰️',d:'Dados buscados do programa SPED: entradas, saídas e PDF da apuração. Defina a pasta (ano/mês) para ver apurações e o que já foi transmitido, geral ou por estado.'},
+{g:'Controles',u:'errosestoque.html',l:'Estoque Negativo – Erros',t:'Erros de Estoque Negativo',i:'🛢️',d:'Importa o SPED TXT; se houver estoque negativo, informa por e-mail o setor de combustíveis.'},
+{g:'Controles',u:'captura.html',l:'Apur. + Entradas + Saídas',t:'Apuração + Entradas + Saídas',i:'📥',d:'Dados buscados do programa SPED: entradas, saídas e PDF da apuração.'},
+{g:'Apuração E110',u:'e110.html',l:'E110 por Estado',t:'E110 — Importador de Apuração',i:'📑',d:'Importa o PDF da apuração e monta os dados que serão lançados no SPED, por estado.'},
+{g:'Apuração E110',u:'E110-SP.html',l:'E110 – São Paulo',t:'E110 — Estado de São Paulo',i:'🌆',d:'Estado de São Paulo: importa o PDF da apuração para os lançamentos.'},
+{g:'Apuração E110',u:'ajustabasesICMS.html',l:'Ajusta Bases ICMS',t:'Ajusta Bases ICMS',i:'🎯',d:'Importa o SPED TXT: localiza CFOP, bases a zerar e suas notas, ou cada lançamento por CFOP (análise completa).'},
+{g:'Notas Fiscais',u:'analisandocfop.html',l:'Analisando CFOP',t:'Analisando CFOP',i:'🔬',d:'Análise dos CFOP de lançamento.'},
+{g:'Notas Fiscais',u:'xml_diego.html',l:'XML Diego',t:'XML Diego',i:'🗂️',d:'Ao subir a NF-e, mostra os CFOP dos lançamentos.'},
+{g:'Notas Fiscais',u:'leitorcfop.html',l:'Converter CFOP – Códigos',t:'Converter CFOP',i:'🔁',d:'Converte e consulta códigos de CFOP.'},
+{g:'Notas Fiscais',u:'uniaocupons.html',l:'União de Cupons',t:'União de Cupons',i:'🧩',d:'Une cupons fiscais.'},
+{g:'Notas Fiscais',u:'comparador_cupons_v01.html',l:'Comparador de Cupons',t:'Comparador de Cupons',i:'⚖️',d:'Compara cupons fiscais.'},
+{g:'Dados dos Postos',u:'postos.html',l:'Unidades Rede Dom Pedro',t:'Unidades Rede Dom Pedro',i:'🏪',d:'Postos da rede com CNPJ e dados das empresas.'},
+{g:'Dados dos Postos',u:'bombas.html',l:'Bombas',t:'Bombas e Tanques',i:'⛽',d:'Pesquisa por bomba e por tanques de cada unidade.'},
+{g:'Aline',a:1,u:'sped-auditor.html',l:'SPED Auditor',t:'SPED Auditor',i:'🛡️',d:'Auditoria de SPED.'},
+{g:'Aline',a:1,u:'spedXamaral.html',l:'SPED x Amaral',t:'SPED x Amaral',i:'📈',d:'Compara SPED com a apuração Amaral.'},
+{g:'Aline',a:1,u:'spedeamaral.html',l:'SPED e Amaral',t:'SPED e Amaral',i:'🧮',d:'Compara SPED com a apuração Amaral.'}
+];
+var COL={'Controles':'#ea580c','Apuração E110':'#d97706','Notas Fiscais':'#16a34a','Dados dos Postos':'#0891b2','Aline':'#db2777','Ferramentas':'#7c3aed'},GI={'Controles':'🎛️','Apuração E110':'🧾','Notas Fiscais':'📄','Dados dos Postos':'🏢','Aline':'⭐','Ferramentas':'🧰'};
+var USERS={fiscal:{p:'DP@123456',n:'Fiscal',r:'Setor Fiscal',a:0},aline:{p:'DP@123456',n:'Aline',r:'Acesso completo',a:1},waldeci:{p:'DP@789123',n:'Waldeci',r:'Administrador',a:1,w:1}};
+var $=function(i){return document.getElementById(i)},app=$('app'),nav=$('nav'),desk=$('desk'),tb=$('tb'),tog=$('tog'),q=$('q'),
+ btns=[],wins={},zi=10,act=null,me=null,curA=null;
+/* ---- login ---- */
+function login(k){me=USERS[k];try{sessionStorage.setItem('dpu',k)}catch(e){}
+ $('lg').style.display='none';$('lu').readOnly=false;$('cx').style.display='none';$('lp').value='';reset();$('un').textContent=me.n;$('ur').textContent=me.r;$('av').textContent=me.n.slice(0,2).toUpperCase();build()}
+$('lf').onsubmit=function(e){e.preventDefault();var k=$('lu').value.trim().toLowerCase(),u=USERS[k];
+ if(u&&u.p===$('lp').value)login(k);else{$('er').textContent='Usuário ou senha inválidos';$('lp').value=''}};
+$('out').onclick=function(){try{sessionStorage.removeItem('dpu')}catch(e){}location.reload()};
+/* ---- menu ---- */
+function build(){if(me.w)return buildW();var last=null;
+ ITEMS.forEach(function(it){if(me.a?!it.a:it.a)return;
+  if(it.g!==last){last=it.g;nav.insertAdjacentHTML('beforeend','<div class="grp"></div><div class="sec" data-g="'+it.g+'">'+(GI[it.g]||'')+' '+it.g+'</div>')}
+  var b=document.createElement('button');b.className='item';b.title=it.d||it.l;b.style.setProperty('--c',COL[it.g]||'#ea580c');
+  b.innerHTML='<span class="ic">'+it.i+'</span><span class="lab">'+it.l+'</span>';
+  b.onclick=function(){openItem(it)};nav.appendChild(b);btns.push({b:b,it:it})})}
+q.oninput=function(){var v=q.value.toLowerCase().trim(),vis={};
+ btns.forEach(function(x){var ok=x.it.l.toLowerCase().indexOf(v)>-1;x.b.style.display=ok?'':'none';if(ok)vis[x.it.g]=1});
+ nav.querySelectorAll('.sec').forEach(function(s){var ok=!!vis[s.dataset.g];s.style.display=ok?'':'none';s.previousElementSibling.style.display=ok?'':'none'})};
+function setCol(c){app.classList.toggle('col',c);tog.setAttribute('aria-label',c?'Expandir menu':'Encolher menu')}
+tog.onclick=function(){setCol(!app.classList.contains('col'))};
+$('bd').onclick=function(){setCol(true)};
+function openSearch(){if(app.classList.contains('col')){setCol(false);setTimeout(function(){q.focus()},320)}else q.focus()}
+$('sbtn').onclick=openSearch;$('sbtn').onkeydown=function(e){if(e.key==='Enter')openSearch()};
+/* ---- janelas ---- */
+function src(u){return BASE+u+'?v='+Date.now()}
+function openItem(it){
+ $('welcome').style.display='none';
+ var w=wins[it.u]||mk(it);
+ w.el.classList.remove('min');focus(w);
+ if(innerWidth<=700)setCol(true)}
+function mk(it){
+ var n=Object.keys(wins).length%8,W=desk.clientWidth,H=desk.clientHeight,
+  el=document.createElement('div'),w={it:it,el:el};
+ el.className='win';
+ el.style.cssText='left:'+(14+n*28)+'px;top:'+(10+n*28)+'px;width:'+Math.min(W-20,Math.max(520,W*.72))+'px;height:'+Math.min(H-20,Math.max(340,H*.78))+'px';
+ el.innerHTML='<div class="wt"><span class="wb"><i class="c" title="Fechar">✕</i><i class="m" title="Minimizar">–</i><i class="x" title="Maximizar">▢</i></span><span class="wn"></span></div><div class="ldg"><i></i></div><iframe></iframe><div class="cv"></div><div class="rz"></div>';
+ el.querySelector('.wn').textContent=(it.i||'')+' '+(it.t||it.l);
+ var f=el.querySelector('iframe');
+ if(it.note){f.outerHTML=NOTE;el.querySelector('.ldg').remove();noteInit(el)}
+ else{f.title=it.l;f.onload=function(){var l=el.querySelector('.ldg');if(l)l.remove();hook(f)};f.src=src(it.u)}
+ var wt=el.querySelector('.wt');
+ el.querySelector('.c').onclick=function(){closeW(w)};
+ el.querySelector('.m').onclick=function(){minW(w)};
+ el.querySelector('.x').onclick=function(){el.classList.toggle('max');focus(w)};
+ wt.ondblclick=function(e){if(e.target===wt||e.target.className==='wn'){el.classList.toggle('max')}};
+ el.querySelector('.cv').onclick=function(){focus(w)};
+ el.onpointerdown=function(){if(act!==w)focus(w)};
+ drag(wt,el,function(o,dx,dy){el.style.left=Math.max(0,o.l+dx)+'px';el.style.top=Math.max(0,o.t+dy)+'px'});
+ drag(el.querySelector('.rz'),el,function(o,dx,dy){el.style.width=Math.max(280,o.w+dx)+'px';el.style.height=Math.max(160,o.h+dy)+'px'});
+ var c=document.createElement('button');c.className='chip';c.textContent=it.l;c.onclick=function(){
+  if(el.classList.contains('min')||act!==w){el.classList.remove('min');focus(w)}else minW(w)};
+ tb.appendChild(c);tb.classList.add('has');w.chip=c;
+ if(innerWidth<=700)el.classList.add('max');
+ if(it.note){el.style.width='420px';el.style.height='380px';el.style.left=Math.max(0,W-440)+'px';el.style.top='20px'}
+ desk.appendChild(el);wins[it.u]=w;return w}
+function drag(h,el,fn){
+ h.onpointerdown=function(e){if(e.target.tagName==='I'||el.classList.contains('max')||e.button>0)return;
+  var x=e.clientX,y=e.clientY,o={l:el.offsetLeft,t:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight};
+  h.setPointerCapture(e.pointerId);desk.classList.add('drag');
+  h.onpointermove=function(m){fn(o,m.clientX-x,m.clientY-y)};
+  h.onpointerup=function(){desk.classList.remove('drag');h.onpointermove=h.onpointerup=null}}}
+function focus(w){act=w;w.el.style.zIndex=++zi;
+ Object.keys(wins).forEach(function(k){var x=wins[k],on=x===w;x.el.classList.toggle('bg',!on);x.chip.classList.toggle('act',on&&!x.el.classList.contains('min'))});
+ sync();if(!(curA&&w.it.note))$('title').textContent=w.it.t||w.it.l}
+function minW(w){w.el.classList.add('min');if(act===w){act=null;var top=null;
+ Object.keys(wins).forEach(function(k){var x=wins[k];if(!x.el.classList.contains('min')&&(!top||+x.el.style.zIndex>+top.el.style.zIndex))top=x});
+ if(top)focus(top);else{ttl()}}sync()}
+function closeW(w){w.el.remove();w.chip.remove();delete wins[w.it.u];
+ if(act===w)act=null;var ks=Object.keys(wins);
+ if(!ks.length){tb.classList.remove('has');$('welcome').style.display='';ttl()}
+ else if(!act){var top=wins[ks[ks.length-1]];if(top.el.classList.contains('min'))sync();else focus(top)}sync()}
+function sync(){btns.forEach(function(x){var w=wins[x.it.u];x.b.classList.toggle('open',!!w);x.b.classList.toggle('on',(!!w&&w===act)||x.it===curA)});
+ Object.keys(wins).forEach(function(k){var x=wins[k];x.chip.classList.toggle('mn',x.el.classList.contains('min'));if(x.el.classList.contains('min'))x.chip.classList.remove('act')})}
+$('rl').onclick=function(){var f=act&&act.el.querySelector('iframe'),it=act&&act.it;if(!f&&curA){f=$('one');it=curA}if(f)f.src=src(it.u)};
+/* ---- Waldeci: endereços, bloco de notas, tema, bloqueios ---- */
+var FILES="E110-SP SPEED_LOCALIZA achanf ajustabasesICMS ajusteprecos amaral amaral_v2 amaral_v5 anaisador_filtro2 analisador3 analisadornf analisandocfop analisedevendas analisevendas analisevendas_v01 auditorio2 ausencia autoriza autorizacao autorizapreco.html bombas-conversor bombas captura carta_dompedro cartadompedro cfop.html cfopXlancamento checklist2 clinica combustiveis comparador_cupons01 comparador_cupons_v01 comparadortxtamaral comparar_saldocredor comparativo comparativos conciliacao confereapuracao conferencia-cfopDPxProdac confronto conversoautoXprodac consultacfop.html controlaemail controle conversor data demissao demissao_ok diferenca diferenca_prodac_autosystem diferenca_prodac_autosystem_Atual diferenca_prodac_autosystem_Atual3 dompedro_dashboard e110 errosetoque estoque-dashboard estoques funcionarios3 geraprotocolo grupordp inclusao_nfe_sped_v5 leiaTXTSped leitorescfop leitortxtsped liberacaodepostos local localizadorcfoptxt localizarecibos menu_dompedro meuponto negociar nf nfe nfexml olimpia painel pesquisasped piscofins postoapuracao postos postosliberados procuragerados.html procuraspeed prodac prodacXxml programas protesto ramal ranking registro1200 relatorio_neg saldocredor scanearspeds scanner_icms_pdfs sistemaPisCofins sistema_libera spark sped-auditor spedXamaral spedeamaral tanques-conversor tarefas uniaocupons validador_icms vela vendas vendas0002 vendas_0002 verificaSped verificaSpeed verificaliberados xml xml_diego xml_diego2 xmlentradas19082026_v2 xmlentradas21072025";
+var NOTE='<div class="nt"><div class="ntb"><button data-a="p">📋 Colar</button><button data-a="c">⎘ Copiar tudo</button><button data-a="x">🗑 Apagar</button></div><textarea spellcheck="false" placeholder="Cole aqui os endereços que quer ajustar e anote o que é cada um (não é salvo)..."></textarea></div>';
+function ttl(){$('title').textContent=curA?'📄 Aberto: '+curA.l:'Sistema Dom Pedro'}
+function btn(it,fn){var b=document.createElement('button');b.className='item'+(it.addr?' ad':'');b.title=it.d||it.l;
+ b.innerHTML='<span class="ic">'+it.i+'</span><span class="lab">'+it.l+'</span>';
+ b.onclick=function(){fn(it)};nav.appendChild(b);btns.push({b:b,it:it})}
+function buildW(){var last=null;
+ nav.insertAdjacentHTML('beforeend','<div class="grp"></div><div class="sec" data-g="Ferramentas">🧰 Ferramentas</div>');
+ btn({g:'Ferramentas',u:'__nota',l:'Bloco de Notas',t:'Bloco de Notas',i:'📝',d:'Anotações rápidas (não salva)',note:1},openItem);
+ FILES.split(' ').sort(function(a,b){return a.toLowerCase().localeCompare(b.toLowerCase(),'pt')}).forEach(function(n){
+  var f=n+'.html',g=f[0].toUpperCase();
+  if(g!==last){last=g;nav.insertAdjacentHTML('beforeend','<div class="grp"></div><div class="sec" data-g="'+g+'">'+g+'</div>')}
+  btn({g:g,u:f,l:f,i:'📄',d:BASE+f,addr:1},openAddr)})}
+function openAddr(it){
+ $('welcome').style.display='none';var o=$('one');
+ if(!o){o=document.createElement('iframe');o.id='one';desk.appendChild(o)}
+ o.onload=function(){hook(o)};o.title=it.l;o.src=src(it.u);curA=it;ttl();sync();
+ if(innerWidth<=700)setCol(true)}
+function reset(){Object.keys(wins).forEach(function(k){closeW(wins[k])});btns=[];
+ while(nav.children.length>2)nav.lastChild.remove();var o=$('one');if(o)o.remove();
+ curA=null;q.value='';$('end').style.display=me.w?'none':'';ttl()}
+function noteInit(el){var t=el.querySelector('textarea');
+ el.querySelectorAll('.ntb button').forEach(function(b){b.onclick=function(){var a=b.dataset.a;
+  if(a==='x'){t.value='';t.focus()}
+  else if(a==='c'){t.select();try{navigator.clipboard.writeText(t.value)}catch(e){document.execCommand('copy')}}
+  else{t.focus();(navigator.clipboard&&navigator.clipboard.readText?navigator.clipboard.readText():Promise.reject()).then(function(s){t.setRangeText(s,t.selectionStart,t.selectionEnd,'end')}).catch(function(){alert('Use Ctrl+V para colar')})}}})}
+$('end').onclick=function(){$('lu').value='waldeci';$('lu').readOnly=true;$('lp').value='';$('er').textContent='';$('cx').style.display='block';$('lg').style.display='grid';$('lp').focus()};
+$('cx').onclick=function(e){e.preventDefault();$('lg').style.display='none';$('lu').readOnly=false;$('lu').value='';$('cx').style.display='none'};
+function theme(d){document.documentElement.dataset.theme=d?'dark':'light';$('th').textContent=d?'☀️':'🌙';try{localStorage.setItem('dpt',d?'d':'l')}catch(e){}}
+$('th').onclick=function(){theme(document.documentElement.dataset.theme!=='dark')};
+try{theme(localStorage.getItem('dpt')==='d')}catch(e){theme(false)}
+function nb(e){if(e.target.tagName!=='TEXTAREA')e.preventDefault()}
+function nk(e){var k=(e.key||'').toLowerCase();if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&'ijc'.indexOf(k)>-1&&k)||(e.ctrlKey&&k==='u')||(e.ctrlKey&&k==='s'&&me&&!me.w)||(e.metaKey&&e.altKey&&'iju'.indexOf(k)>-1&&k)){e.preventDefault();e.stopPropagation()}}
+function hook(f){try{var d=f.contentDocument;d.addEventListener('contextmenu',nb);d.addEventListener('keydown',nk,true)}catch(e){}}
+document.addEventListener('contextmenu',nb);document.addEventListener('keydown',nk,true);
+/* ---- relógio ---- */
+var WD=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],MA=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function tick(){var n=new Date(),p=function(v){return String(v).padStart(2,'0')};
+ $('ct').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+ $('cd').textContent=WD[n.getDay()]+', '+n.getDate()+' '+MA[n.getMonth()]+' '+n.getFullYear()}
+tick();setInterval(tick,1000);
+if(innerWidth<=700)setCol(true);
+try{var sv=sessionStorage.getItem('dpu');if(sv&&USERS[sv])login(sv)}catch(e){}
+</script>
+</body>
+</html>
