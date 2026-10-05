@@ -123,6 +123,24 @@ hr{border:0;height:1px;margin:0 20px;background:var(--line);flex:none}
 .out svg{width:18px;height:18px;flex:none}
 .out:hover{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;transform:translateY(-1px)}
 [data-theme=dark] .out{background:#4a1d1d;color:#fca5a5}[data-theme=dark] .out:hover{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}
+
+/* ver senha + salvar senha */
+.pw{position:relative}
+#lg .pw input{width:100%;padding-right:48px}
+#lg #eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;border-radius:50%;background:transparent;color:var(--acc2);box-shadow:none;font-size:16px}
+#lg #eye:hover{background:var(--soft)}
+.sv{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);cursor:pointer;padding-left:6px;user-select:none}
+#lg .sv input{width:16px;height:16px;padding:0;accent-color:var(--acc)}
+/* barra de carregamento do login */
+#ld{display:none;gap:6px}
+#ld.on{display:grid}
+#ld .tr{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+#ld .tr i{display:block;height:100%;width:0;border-radius:99px;transition:width .15s linear;background:linear-gradient(90deg,var(--acc),#f59e0b,var(--acc));background-size:200% 100%;animation:sh 1s linear infinite}
+#ld small{text-align:center;color:var(--mut);font-size:12px}
+@keyframes sh{to{background-position:-200% 0}}
+/* barrinha no carregamento das janelas */
+.ldg i{width:160px;height:6px;border:0;border-radius:99px;animation:bar 1s ease-in-out infinite;background:linear-gradient(90deg,transparent,var(--acc),transparent) no-repeat -50% 0/50% 100%,var(--line)}
+@keyframes bar{to{background-position:200% 0,0 0}}
 </style>
 </head>
 <body>
@@ -130,8 +148,11 @@ hr{border:0;height:1px;margin:0 20px;background:var(--line);flex:none}
  <div class="em"><span>⛽</span><img src="pedrinho.png" alt="" onerror="this.remove()"></div>
  <h2>Dom Pedro</h2><p>Sistema de Gestão — acesso restrito</p>
  <input id="lu" placeholder="Usuário" autocomplete="username" autocapitalize="none" required>
- <input id="lp" type="password" placeholder="Senha" autocomplete="current-password" required>
- <div id="er"></div><button type="submit">Entrar</button><a href="#" id="cx" style="display:none;text-align:center;color:var(--mut);font-size:13px">Cancelar</a>
+ <div class="pw"><input id="lp" type="password" placeholder="Senha" autocomplete="current-password" required><button type="button" id="eye" aria-label="Mostrar senha">👁️</button></div>
+ <label class="sv"><input type="checkbox" id="sv"> Salvar senha neste computador</label>
+ <div id="er"></div>
+ <div id="ld"><div class="tr"><i></i></div><small>Carregando sistema…</small></div>
+ <button type="submit">Entrar</button><a href="#" id="cx" style="display:none;text-align:center;color:var(--mut);font-size:13px">Cancelar</a>
 </form></div>
 <div class="app" id="app">
  <div class="slot"><aside class="sb" aria-label="Menu principal">
@@ -183,10 +204,26 @@ var USERS={fiscal:{p:'DP@123456',n:'Fiscal',r:'Setor Fiscal',a:0},aline:{p:'DP@1
 var $=function(i){return document.getElementById(i)},app=$('app'),nav=$('nav'),desk=$('desk'),tb=$('tb'),tog=$('tog'),q=$('q'),
  btns=[],wins={},zi=10,act=null,me=null,curA=null;
 /* ---- login ---- */
+function getCred(){try{var c=JSON.parse(localStorage.getItem('dpcred')||'null');return c?{u:c.u,p:atob(c.p)}:null}catch(e){return null}}
 function login(k){me=USERS[k];try{sessionStorage.setItem('dpu',k)}catch(e){}
- $('lg').style.display='none';$('lu').readOnly=false;$('cx').style.display='none';$('lp').value='';reset();$('un').textContent=me.n;$('ur').textContent=me.r;$('av').textContent=me.n.slice(0,2).toUpperCase();build()}
-$('lf').onsubmit=function(e){e.preventDefault();var k=$('lu').value.trim().toLowerCase(),u=USERS[k];
- if(u&&u.p===$('lp').value)login(k);else{$('er').textContent='Usuário ou senha inválidos';$('lp').value=''}};
+ $('lg').style.display='none';$('lu').readOnly=false;$('cx').style.display='none';
+ if(!$('sv').checked)$('lp').value='';$('lp').type='password';$('eye').textContent='👁️';
+ reset();$('un').textContent=me.n;$('ur').textContent=me.r;$('av').textContent=me.n.slice(0,2).toUpperCase();build()}
+function enter(k){var ld=$('ld'),bar=ld.querySelector('i'),b=$('lf').querySelector('button[type=submit]'),p=0;
+ ld.classList.add('on');b.disabled=true;
+ var t=setInterval(function(){p+=Math.random()*16+6;
+  if(p>=100){clearInterval(t);bar.style.width='100%';
+   setTimeout(function(){ld.classList.remove('on');bar.style.width='0';b.disabled=false;login(k)},300)}
+  else bar.style.width=p+'%'},90)}
+$('lf').onsubmit=function(e){e.preventDefault();var k=$('lu').value.trim().toLowerCase(),u=USERS[k],pw=$('lp').value;
+ if(u&&u.p===pw){
+  try{if($('sv').checked)localStorage.setItem('dpcred',JSON.stringify({u:k,p:btoa(pw)}));else localStorage.removeItem('dpcred')}catch(x){}
+  $('er').textContent='';enter(k)}
+ else{$('er').textContent='Usuário ou senha inválidos';$('lp').value=''}};
+$('eye').onclick=function(){var s=$('lp').type==='password';$('lp').type=s?'text':'password';
+ this.textContent=s?'🙈':'👁️';this.setAttribute('aria-label',s?'Ocultar senha':'Mostrar senha')};
+$('lu').addEventListener('change',function(){var c=getCred();if(c&&c.u===$('lu').value.trim().toLowerCase()){$('lp').value=c.p;$('sv').checked=true}});
+(function(){var c=getCred();if(c){$('lu').value=c.u;$('lp').value=c.p;$('sv').checked=true}})();
 $('out').onclick=function(){try{sessionStorage.removeItem('dpu')}catch(e){}location.reload()};
 /* ---- menu ---- */
 function build(){if(me.w)return buildW();var last=null;
@@ -281,8 +318,8 @@ function noteInit(el){var t=el.querySelector('textarea');
   if(a==='x'){t.value='';t.focus()}
   else if(a==='c'){t.select();try{navigator.clipboard.writeText(t.value)}catch(e){document.execCommand('copy')}}
   else{t.focus();(navigator.clipboard&&navigator.clipboard.readText?navigator.clipboard.readText():Promise.reject()).then(function(s){t.setRangeText(s,t.selectionStart,t.selectionEnd,'end')}).catch(function(){alert('Use Ctrl+V para colar')})}}})}
-$('end').onclick=function(){$('lu').value='waldeci';$('lu').readOnly=true;$('lp').value='';$('er').textContent='';$('cx').style.display='block';$('lg').style.display='grid';$('lp').focus()};
-$('cx').onclick=function(e){e.preventDefault();$('lg').style.display='none';$('lu').readOnly=false;$('lu').value='';$('cx').style.display='none'};
+$('end').onclick=function(){var c=getCred();$('lu').value='waldeci';$('lu').readOnly=true;$('lp').value=(c&&c.u==='waldeci')?c.p:'';$('sv').checked=!!(c&&c.u==='waldeci');$('er').textContent='';$('cx').style.display='block';$('lg').style.display='grid';$('lp').focus()};
+$('cx').onclick=function(e){e.preventDefault();var c=getCred();$('lg').style.display='none';$('lu').readOnly=false;$('lu').value=c?c.u:'';$('lp').value=c?c.p:'';$('sv').checked=!!c;$('cx').style.display='none'};
 function theme(d){document.documentElement.dataset.theme=d?'dark':'light';$('th').textContent=d?'☀️':'🌙';try{localStorage.setItem('dpt',d?'d':'l')}catch(e){}}
 $('th').onclick=function(){theme(document.documentElement.dataset.theme!=='dark')};
 try{theme(localStorage.getItem('dpt')==='d')}catch(e){theme(false)}
