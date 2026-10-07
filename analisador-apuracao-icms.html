@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisador NF-e Pro · Waldeci Ramos</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+[data-theme=light]{--bg:#f4f4f4;--sf:#fff;--sf2:#efefef;--bd:#d9d9d9;--ac:#ff6f00;--ac2:#c75300;--tx:#2b2b2b;--mu:#6b6b6b;--ok:#1f8f4e;--er:#d32f2f;--wa:#b7791f;--okb:rgba(31,143,78,.12);--erb:rgba(211,47,47,.10);--wab:rgba(255,160,0,.16)}
+[data-theme=dark]{--bg:#1a1a1a;--sf:#262626;--sf2:#323232;--bd:#434343;--ac:#ff7a1a;--ac2:#d9600a;--tx:#f1f1f1;--mu:#a3a3a3;--ok:#34c27a;--er:#ff6b5e;--wa:#e0a030;--okb:rgba(52,194,122,.16);--erb:rgba(255,107,94,.16);--wab:rgba(224,160,48,.18)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Outfit,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;user-select:none}
+textarea,input,select{user-select:text}
+.wrap{max-width:1800px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.lay{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;align-items:start}.mn{min-width:0}
+@media(min-width:1180px){.lay{grid-template-columns:minmax(0,1fr) 420px}.sd .card{position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow:auto}}
+.btn.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}.sd table{font-size:.7rem}.sd td,.sd th{padding:.3rem .4rem}.sd tr.hl td{background:var(--okb);font-weight:600}.sd .ob td{font-size:.66rem;color:var(--mu);font-style:italic}
+.hd{display:flex;justify-content:space-between;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:.9rem 1.25rem;margin-bottom:1rem}
+.hd h1{font-size:1.25rem;font-weight:800;letter-spacing:-.4px}.hd small{color:var(--mu);font-family:'JetBrains Mono',monospace;font-size:.7rem}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:1.25rem;margin-bottom:1rem}
+.card h2{font-size:.95rem;font-weight:700;margin-bottom:.75rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:.75rem}
+textarea{width:100%;height:150px;background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:.8rem;color:var(--tx);font:.78rem/1.5 'JetBrains Mono',monospace;resize:vertical}
+textarea:focus,select:focus{outline:2px solid var(--ac);outline-offset:1px}
+select{background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:.45rem .6rem;font:600 .82rem Outfit,sans-serif}
+.btn{border:0;border-radius:10px;padding:.65rem 1.2rem;font:600 .85rem Outfit,sans-serif;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2))}
+.btn:hover{filter:brightness(1.1)}.btn.g{background:var(--sf2);color:var(--mu);border:1px solid var(--bd)}.btn.s{background:var(--ok)}
+.drop{border:2px dashed var(--bd);border-radius:12px;padding:.9rem;text-align:center;color:var(--mu);font-size:.85rem;cursor:pointer;margin-bottom:.75rem}
+.drop.on{border-color:var(--ac);background:var(--sf2)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:.9rem}
+.meta div{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.55rem .75rem;font-size:.85rem;font-weight:600}
+.meta span{display:block;font-size:.65rem;color:var(--mu);font-weight:500}
+.sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem}
+.pill{padding:.3rem .8rem;border-radius:99px;font-size:.78rem;font-weight:600}
+.pill.ok{background:var(--okb);color:var(--ok)}.pill.err{background:var(--erb);color:var(--er)}.pill.warn{background:var(--wab);color:var(--wa)}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.76rem}
+th{background:var(--ac2);color:#fff;text-align:left;padding:.5rem .6rem;white-space:nowrap;position:sticky;top:0}
+td{padding:.45rem .6rem;border-top:1px solid var(--bd);vertical-align:top}
+td.m{font-family:'JetBrains Mono',monospace;white-space:nowrap}
+tr.ok td{background:var(--okb);font-weight:600}tr.err td{background:var(--erb)}tr.warn td,tr.none td{background:var(--wab)}tr.ok td:first-child{box-shadow:inset 5px 0 0 var(--ok)}tr.err td:first-child{box-shadow:inset 5px 0 0 var(--er)}.ck{color:var(--ok);font-weight:800}.xk{color:var(--er);font-weight:800}h3{font-size:.85rem;margin:1rem 0 .5rem}
+input[type=text]{width:100%;background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font:600 .82rem Outfit,sans-serif;margin:.25rem 0 .6rem}
+input[type=text]:focus{outline:2px solid var(--ac)}
+.pb{border:1px solid var(--bd);border-radius:12px;padding:1rem;margin-top:1rem}.pb.pr{border-left:6px solid var(--ac2)}.pb.as{border-left:6px solid var(--wa)}
+.okbox{background:var(--okb);color:var(--ok);border-radius:10px;padding:.7rem 1rem;font-weight:600;margin-top:.6rem}
+.cfi{border:1px solid var(--bd);border-radius:10px;padding:.6rem .9rem;margin:.5rem 0;font-size:.85rem;line-height:1.7}.cfi span{display:inline-block;width:80px;color:var(--mu)}
+.cft{font-size:.74rem}.cft th{background:var(--sf2);color:var(--tx);text-align:center;font-weight:600;border:1px solid var(--bd);position:static}.cft td{border:1px solid var(--bd);text-align:right;padding:.3rem .5rem}.cft td:first-child,.cft td:nth-child(2){text-align:center}
+.cft .rd{color:var(--er);font-weight:700}.cft .chg{background:var(--wab);box-shadow:inset 0 0 0 1px var(--wa)}.cft tr.sb td{background:var(--sf2)}
+.dn{background:#fff;color:#111;border:1px solid #222;font:11px Arial,sans-serif;min-width:900px;padding:6px;user-select:text}
+.dg12{display:grid;grid-template-columns:repeat(12,1fr)}.dc{border:1px solid #222;margin:-1px 0 0 -1px;padding:2px 5px 3px;min-height:30px;overflow:hidden;font-size:11px;line-height:1.35}
+.dc b{display:block;font:600 7.5px Arial,sans-serif;color:#555;text-transform:uppercase}.dt{font:700 11px Arial,sans-serif;margin:7px 0 2px;text-transform:uppercase}
+.bar{height:30px;margin:4px 0;background:repeating-linear-gradient(90deg,#111 0 1px,#fff 1px 3px,#111 3px 4px,#fff 4px 5px,#111 5px 8px,#fff 8px 9px)}
+.dn table{font-size:9.5px;width:100%;border-collapse:collapse}.dn th{background:#f0f0f0;color:#111;border:1px solid #222;font:700 7.5px Arial,sans-serif;padding:3px;position:static;text-align:center}
+.dn td{border:1px solid #999;padding:3px 4px;color:#111}.dn td.r{text-align:right}.dn th.lh{background:#d9f2e3}.dn td.l{background:#eaf8ef;font-weight:700;text-align:center}.dn td.l.ok{background:#bfe9cf;color:#065f46}.dn td.l.er{background:#fbd0d0;color:#991b1b}
+.lbl{font-size:.72rem;color:var(--mu);font-weight:600}.dg{font-size:.86rem;line-height:1.6;margin:.4rem 0}
+.lanc{font-weight:700;color:var(--ac)}.al{color:var(--wa);font-weight:600}
+.msg{margin-top:.75rem;padding:.7rem 1rem;border-radius:10px;font-size:.84rem}
+.msg.err{background:var(--erb);color:var(--er)}.msg.info{background:var(--sf2);color:var(--mu)}
+.hint{font-size:.78rem;color:var(--mu);margin-bottom:.6rem;line-height:1.5}
+@media(max-width:640px){.wrap{padding:.75rem .5rem 2rem}}
+
+/* ===== design system: laranja, cards cinza, botões cheios/contornados, inputs com linha, acordeão e stepper ===== */
+body{font-family:Montserrat,Outfit,sans-serif}
+.btn,input[type=text],select,.opt,.stp a{font-family:Montserrat,sans-serif}
+.hd{background:var(--sf);border:1px solid var(--bd);border-left:8px solid var(--ac);border-radius:8px;box-shadow:none;padding:.8rem 1.25rem}
+.hd h1{font-size:1.1rem;font-weight:700;background:none;color:var(--tx);-webkit-text-fill-color:var(--tx)}
+.stp{display:flex;align-items:center;gap:.5rem;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.7rem 1.1rem;margin-bottom:1rem;flex-wrap:wrap}
+.stp a{display:flex;align-items:center;gap:.45rem;font-size:.78rem;font-weight:600;color:var(--mu);text-decoration:none;cursor:pointer}
+.stp a i{font-style:normal;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ac);color:var(--ac);display:inline-flex;align-items:center;justify-content:center;font-size:.72rem}
+.stp a.on{color:var(--tx)}.stp a.on i{background:var(--ac);color:#fff}
+.stp span{flex:1;min-width:20px;height:1.5px;background:var(--bd)}.stp span.on{background:var(--ac)}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;box-shadow:none;padding:0 1.25rem 1.25rem;overflow:hidden}
+.card h2{display:flex;align-items:center;margin:0 -1.25rem 1rem;padding:.9rem 1.25rem;border-bottom:1px solid var(--bd);font-size:.9rem;font-weight:700;cursor:pointer;user-select:none}
+.card h2::before{content:'';width:12px;height:12px;border:2.5px solid var(--ac);border-radius:3px;margin-right:.7rem;flex:none}
+.card h2::after{content:'−';margin-left:auto;color:var(--ac);font-size:1.4rem;font-weight:400;line-height:1}
+.card.fechado{padding-bottom:0}.card.fechado h2{margin-bottom:0;border-bottom:0}.card.fechado h2::after{content:'+'}
+.card.fechado>:not(h2){display:none!important}
+.sd .card h2{cursor:default}.sd .card h2::after{content:none}
+textarea,input[type=text],select{background:var(--sf2);color:var(--tx);border:0;border-bottom:2px solid var(--bd);border-radius:4px 4px 0 0}
+textarea:focus,input[type=text]:focus,select:focus{outline:0;border-bottom-color:var(--ac)}
+.lbl{color:var(--ac);font-weight:600}
+.btn{background:var(--ac);color:#fff;border:2px solid var(--ac);border-radius:4px;font-weight:600;box-shadow:none;filter:none}
+.btn:hover{background:#d95b00;border-color:#d95b00;filter:none;transform:none}.btn:active{background:#a84600;border-color:#a84600}
+.btn.g{background:transparent;color:var(--ac);border:2px solid var(--ac)}.btn.g:hover{background:rgba(255,111,0,.1)}
+.btn.s{background:var(--ac)}.btn.on{background:var(--ac);color:#fff}.btn:disabled{background:#c9c9c9;border-color:#c9c9c9;color:#fff;cursor:not-allowed}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{display:inline-flex;align-items:center;gap:.5rem;background:var(--sf);color:var(--tx);border:1.5px solid var(--bd);border-radius:6px;padding:.5rem .9rem;font-size:.8rem;font-weight:500;cursor:pointer}
+.opt::before{content:'';width:12px;height:12px;border-radius:50%;border:1.5px solid var(--mu)}
+.opt.on{border-color:var(--ac);color:var(--ac);font-weight:700}.opt.on::before{border-color:var(--ac);background:radial-gradient(var(--ac) 45%,transparent 50%)}
+.drop{border:2px dashed var(--ac);color:var(--ac);border-radius:6px;background:transparent;font-weight:500}.drop.on{background:rgba(255,111,0,.08)}
+.meta div{background:var(--sf2);border:0;border-left:5px solid var(--ac);border-radius:4px}
+.pill{border-radius:4px}
+th{background:#3a3a3a}
+.pb.pr{border-left-color:var(--ac2)}.pb.as{border-left-color:var(--ac)}
+.cft th{background:var(--sf2)}
+.nf-ta,textarea{font-size:.78rem}
+.rsm{display:none;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;background:var(--sf2);border-left:5px solid var(--ac);border-radius:4px;padding:.6rem .9rem;margin-bottom:.9rem;font-size:.82rem}
+#cNota.compacto .rsm{display:flex}#cNota.compacto #drop,#cNota.compacto #nfTa{display:none}
+@media(min-width:1180px){.lay{grid-template-columns:minmax(0,1fr) 540px}.sd table{font-size:.76rem}}
+@media(min-width:1600px){.lay{grid-template-columns:minmax(0,1fr) 620px}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>window.addEventListener('load',function(){if(!window.XLSX){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s)}})</script>
+</head>
+<body>
+<div class="wrap">
+<div class="hd"><div><h1>Analisador NF-e Pro</h1><small>by Waldeci Ramos · CFOP de lançamento por item</small></div>
+<button class="btn g" id="tb" title="Alternar tema">Tema</button></div>
+<nav class="stp" id="stp"><a data-t="cNota" class="on"><i>1</i>NF-e</a><span></span><a data-t="cAs"><i>2</i>AutoSystem</a><span></span><a data-t="cPr"><i>3</i>PRODAC</a><span></span><a data-t="cPl"><i>4</i>Plano de acertos</a></nav>
+<div class="lay"><div class="mn">
+
+<div class="card" id="cNota">
+<h2>1. Nota fiscal</h2>
+<div class="rsm" id="rsm"></div>
+<div class="drop" id="drop">Arraste o XML da NF-e aqui ou clique para escolher<input type="file" id="fi" accept=".xml" hidden></div>
+<textarea id="nfTa" placeholder="Ou cole aqui o XML / o texto do DANFE..."></textarea>
+<div class="row">
+<label for="fin" style="font-size:.85rem;font-weight:600">Finalidade da nota:</label>
+<div class="opts" id="opts"><button type="button" class="opt on" data-v="CONSUMO">Uso e consumo</button><button type="button" class="opt" data-v="REVENDA">Revenda</button><button type="button" class="opt" data-v="ATIVO">Ativo imobilizado</button></div>
+<select id="fin" style="display:none"><option value="CONSUMO">Uso e consumo</option><option value="REVENDA">Revenda</option><option value="ATIVO">Ativo imobilizado</option></select>
+<button class="btn" onclick="analisar()">Analisar nota</button>
+<button class="btn g" onclick="limpar()">Limpar</button>
+<button class="btn s" id="bcsv" onclick="exportar()" style="display:none">Exportar CSV</button>
+</div>
+<div id="msg"></div>
+</div>
+
+<div class="card" id="cDf" style="display:none">
+<h2>NF-e importada — no formato DANFE, com o lançamento ao lado de cada item</h2>
+<div class="tw" id="df"></div>
+</div>
+
+<div class="card" id="cRes" style="display:none">
+<h2>2. Lançamento correto por item</h2>
+<div id="res"></div>
+</div>
+
+<div class="card" id="cAs" style="display:none">
+<h2>3. Conferir lançamentos do AutoSystem</h2>
+<p class="hint">Cole a lista de cada CFOP de lançamento (ex.: a tela "CFOP: 1.407" e a "CFOP: 1.556"), incluindo a linha do título com o CFOP. Só as linhas desta NF são comparadas.</p>
+<textarea id="asTa" placeholder="DP ... - CFOP: 1.407 / Periodo: ...&#10;04/10/2024  KFC ALIMENTOS LTDA  33707  09012100  060  CAFE PILAO ... 114,00 ..."></textarea>
+<div class="row"><button class="btn" onclick="conferir()">Conferir lançamentos</button><button class="btn g" onclick="limparAS()">Limpar conferência</button></div>
+<div id="msg2"></div>
+</div>
+
+<div class="card" id="cPr" style="display:none">
+<h2>4. Conferir PRODAC (planilha de entradas)</h2>
+<p class="hint">Carregue a planilha exportada do PRODAC (.xls ou .xlsx). A aba "Itens de Mercadoria" é comparada item a item e a aba "Notas" fornece os totais por CFOP. Pode ser feito junto ou separado da conferência do AutoSystem.</p>
+<div class="drop" id="drop2">Arraste a planilha do PRODAC aqui ou clique para escolher<input type="file" id="fi2" accept=".xls,.xlsx" hidden></div>
+<div class="row"><button class="btn g" onclick="limparPR()">Limpar PRODAC</button></div>
+<div id="msg3"></div>
+</div>
+
+<div class="card" id="cPl" style="display:none">
+<h2>5. Plano de acertos — o que ajustar e onde</h2>
+<span class="lbl">Posto (vai no assunto e no corpo do e-mail; edite se precisar)</span>
+<input type="text" id="posto" oninput="this.dataset.m=1;renderPl()">
+<div id="pl"></div>
+</div>
+</div>
+<aside class="sd"><div class="card">
+<h2>Consulta de CFOP — como lançar</h2>
+<input type="text" id="q" placeholder="Digite o CFOP (ex.: 5405) ou uma palavra" oninput="consulta()">
+<div class="row" style="margin:0 0 .6rem"><button class="btn g" data-t="C" onclick="aba('C')">Consumo</button><button class="btn g" data-t="R" onclick="aba('R')">Revenda</button><button class="btn g" data-t="D" onclick="aba('D')">Descrição CFOP</button></div>
+<div id="cs"></div>
+<p class="hint" style="margin-top:.6rem">Linhas em verde = CFOPs presentes na NF aberta.</p>
+</div></aside>
+</div>
+</div>
+
+<script>
+// ───────── mostra qualquer erro da página na tela (para facilitar o ajuste)
+function erroTela(m,l){const b=document.getElementById('msg');if(b)b.innerHTML='<div class="msg err">Erro na página: '+String(m).replace(/[<>&]/g,'')+(l?' (linha '+l+')':'')+'. Envie esta mensagem para correção.</div>'}
+window.addEventListener('error',e=>erroTela(e.message,e.lineno));
+window.addEventListener('unhandledrejection',e=>erroTela(e.reason&&e.reason.message||e.reason));
+// ───────── proteções (mantidas do original)
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase();if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&'ijc'.includes(k))||(e.ctrlKey&&k==='u'))e.preventDefault()});
+
+// ───────── utilidades
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=v=>(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=s=>parseFloat(String(s).replace(/\./g,'').replace(',','.'))||0;
+const fcf=c=>c.length===4?c[0]+'.'+c.slice(1):c;
+const norm=s=>String(s).toUpperCase().replace(/[^A-Z0-9]/g,'');
+const FIN={CONSUMO:'Uso e consumo',REVENDA:'Revenda',ATIVO:'Ativo'};
+let NF=null,itens=[],ASROWS=[],ASNF=[],PR=null,ASP='',ASMES='',CONF=null,conferido=false;
+
+// ───────── tema
+$('tb').onclick=()=>{const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'};
+
+// ───────── regras (tabelas Uso/Consumo e Revenda)
+const isST=(c,sn)=>sn?['201','202','203','500'].includes(c):['10','30','60','70'].includes(c.slice(-2));
+
+function regra(it,fin){
+  const cf=it.cfop,b=cf.slice(1),p=cf[0]==='6'?'2':'1',f=n=>p+'.'+n,c=it.cst,st=isST(c,it.sn),k=c.slice(-2);
+  const R=(lanc,cstL,o)=>({lanc:[].concat(lanc),cstL,csosn:'',pis:'',semCP:false,obs:'',alerta:'',...o});
+  const semRegra=R([],'—',{alerta:'Sem regra nas tabelas para o CFOP '+fcf(cf)+' — conferir manualmente'});
+  let r=null;
+  if(fin==='REVENDA'){
+    if(['101','102'].includes(b)){
+      if(k==='00')r=R(f('102'),'000');
+      else if(k==='20')r=R(f('102'),'020',{obs:'CST 020 mantém o 020 no lançamento'});
+      else r=R(f('102'),'000',{alerta:'CST '+c+' não previsto para revenda — conferir'});
+    }else if(b==='405')r=R(f('403'),'060',{alerta:st?'':'CFOP 5.405 com CST sem ST — conferir'});
+    else if(['655','656'].includes(b)){
+      const m={'10':'010','30':'030','60':'060'}[k];
+      r=R(f('652'),m||'VERIFICAR',{obs:m?'CST '+c+' → usar '+m+' no lançamento':'',alerta:m?'':'Verificar a nota'});
+    }
+    else if(b==='949')r=R(f('102'),'090',{obs:'Notas RV'});
+    else if(b==='152')r=R(f('152'),'000',{obs:'Transferência ARLA'});
+    else if(b==='659')r=R(f('659'),'060',{obs:'Transferência lubrificante'});
+    if(!r)return semRegra;
+    r.pis='Não mudar';return r;
+  }
+  // CONSUMO e ATIVO partem da mesma tabela
+  const N=()=>R(f('556'),'090',{csosn:'0101/0102'}),S=()=>R(f('407'),'060',{csosn:'0500'});
+  if(['101','102','108'].includes(b)){r=st?S():N();if(st)r.alerta='CST de ST em CFOP de operação própria — conferir'}
+  else if(['403','404','405'].includes(b)){r=st?S():N();if(!st)r.alerta='CFOP de ST com CST sem ST — conferir'}
+  else if(b==='929'&&k==='61')r=R(f('653'),'061',{obs:'Consumo de combustível'});
+  else if(b==='656')r=R(f('653'),'061',{obs:'Consumo de combustível'});
+  else if(['929','117'].includes(b)){r=st?S():N();if(b==='117'){r.semCP=true;r.obs='Sem pagamento, mas registrar o contas a pagar no AutoSystem'}}
+  else if(b==='949'){r=R(f('949'),st?'060':'090',{semCP:true,obs:'CST do lançamento segue o CST de origem (090 / 060)'})}
+  else if(['908','910','916','922'].includes(b)){
+    r=R(f(b),'090',{csosn:'0101/0102',semCP:true,pis:'—'});
+    if(b==='922')r.obs='Registrar o contas a pagar para validar a nota e depois excluir';
+  }
+  if(!r)return semRegra;
+  if(!r.pis)r.pis='70/70';
+  if(fin==='ATIVO'&&['556','407'].includes(r.lanc[0].slice(2))){
+    r.lanc=st?[f('551'),f('406')]:[f('551'),f('406')];
+    r.cstL=st?'060':'000 / 090';
+    r.obs='Ativo: '+f('551')+' (com crédito, CST 000) ou '+f('406')+' (sem crédito, CST 090)';
+  }
+  return r;
+}
+function aplicar(i){i.r=regra(i,i.fin)}
+
+// ───────── leitura da nota
+function lerXML(txt){
+  const d=new DOMParser().parseFromString(txt,'application/xml');
+  if(d.getElementsByTagName('parsererror').length||!d.getElementsByTagName('infNFe').length)return null;
+  const g=(el,t)=>{const n=el&&el.getElementsByTagName(t)[0];return n?n.textContent.trim():''};
+  const first=t=>d.getElementsByTagName(t)[0];
+  const emit=first('emit'),dest=first('dest'),ide=first('ide');
+  const nf={fonte:'XML',numero:g(ide,'nNF'),emitente:g(emit,'xNome'),dest:g(dest,'xNome'),cnpjDest:g(dest,'CNPJ'),
+    data:g(ide,'dhEmi').slice(0,10).split('-').reverse().join('/'),total:parseFloat(g(first('ICMSTot'),'vNF'))||0};
+  const its=[...d.getElementsByTagName('det')].map(det=>{
+    const p=det.getElementsByTagName('prod')[0];
+    const ic=det.getElementsByTagName('ICMS')[0]?.firstElementChild;
+    const csosn=g(ic,'CSOSN'),cst=g(ic,'CST');
+    const vProd=parseFloat(g(p,'vProd'))||0,vDesc=parseFloat(g(p,'vDesc'))||0;
+    return{n:det.getAttribute('nItem'),cod:g(p,'cProd'),desc:g(p,'xProd'),ncm:g(p,'NCM'),cfop:g(p,'CFOP'),
+      cst:csosn||((g(ic,'orig')||'0')+cst.padStart(2,'0')),sn:!!csosn,qtd:parseFloat(g(p,'qCom'))||0,
+      vUn:parseFloat(g(p,'vUnCom'))||0,vProd,vLiq:vProd-vDesc,un:g(p,'uCom'),bc:parseFloat(g(ic,'vBC'))||0,vi:parseFloat(g(ic,'vICMS'))||0,pi:parseFloat(g(ic,'pICMS'))||0,vip:parseFloat(g(det.getElementsByTagName('IPI')[0],'vIPI'))||0,pip:0};
+  });
+  nf.d=dadosXML(d);
+  return{nf,its};
+}
+function lerTexto(txt){
+  const m=re=>{const r=txt.match(re);return r?r[1].trim():''};
+  const nf={fonte:'Texto (DANFE)',numero:m(/N[ºo°]\.?\s*([\d.]+)/i).replace(/\./g,'').replace(/^0+/,''),
+    emitente:m(/RECEBEMOS DE\s+(.+?)\s+OS PRODUTOS/i),dest:m(/RAZ[ÃA]O SOCIAL:\s*(.+)/i),
+    data:m(/EMISS[ÃA]O:\s*(\d{2}\/\d{2}\/\d{4})/i),total:num(m(/VALOR TOTAL DA NOTA:\s*([\d.,]+)/i))};
+  nf.d=dadosTexto(txt);nf.cnpjDest=(nf.d.destDoc||'').replace(/\D/g,'');
+  const its=[];let on=false;
+  txt.split(/\r?\n/).map(s=>s.trim()).forEach(l=>{
+    if(/DADOS DOS PRODUTOS/i.test(l)){on=true;return}
+    if(/DADOS ADICIONAIS|C[ÁA]LCULO DO IMPOSTO/i.test(l))on=false;
+    if(!on)return;
+    const mm=l.match(/^(\S+)\s+(.+?)\s+(\d{8})\s+(?:(\d{2,3})\s+)?([56])\.?(\d{3})\s+(.*)$/);
+    if(!mm)return;
+    const ns=mm[7].split(/\s+/).filter(x=>/^[\d.]*\d(,\d+)?$/.test(x)).map(num);
+    its.push({n:String(its.length+1),cod:mm[1],desc:mm[2].replace(/\s+\d$/,''),ncm:mm[3],cfop:mm[5]+mm[6],
+      cst:mm[4]?mm[4].padStart(3,'0'):'000',sn:false,cstAss:!mm[4],qtd:ns[0]||1,vUn:ns[1]||0,vProd:ns[2]||0,vLiq:ns[2]||0,un:(mm[7].split(/\s+/).find(x=>x&&!/^[\d.,]+$/.test(x))||'').replace(/C[ÓO]D.*/i,''),bc:ns[3]||0,vi:ns[4]||0,vip:ns[5]||0,pi:ns[6]||0,pip:ns[7]||0});
+  });
+  return{nf,its};
+}
+
+// ───────── análise
+function analisar(){
+  const txt=$('nfTa').value.trim();
+  if(!txt)return aviso('msg','Cole a NF-e ou carregue o XML.','err');
+  if(/\uFFFD{5}/.test(txt))return aviso('msg','O conteúdo parece binário (como uma planilha). Aqui entra o XML da NF; a planilha do PRODAC vai no bloco 4.','err');
+  let r=/^\s*</.test(txt)?lerXML(txt):lerTexto(txt);
+  if(!r||!r.its.length)return aviso('msg',r?'Nenhum item encontrado. No texto, use a seção "DADOS DOS PRODUTOS / SERVIÇOS" ou envie o XML.':'XML inválido ou sem infNFe.','err');
+  NF=r.nf;itens=r.its;conferido=false;ASROWS=[];ASNF=[];PR=null;ASP='';ASMES='';CONF=null;$('posto').dataset.m='';
+  itens.forEach(i=>{i.fin=$('fin').value;aplicar(i);i.as=null;i.pr=null});
+  aviso('msg',(r.nf.fonte==='XML'||!r.its.some(i=>i.cstAss))?'':'Leitura por texto: o CST pode não vir na colagem (assumido 000). Para precisão total, use o XML.','info');
+  $('cDf').style.display=$('cRes').style.display=$('cAs').style.display=$('cPr').style.display=$('cPl').style.display='block';$('bcsv').style.display='inline-block';
+  $('msg2').innerHTML=$('msg3').innerHTML='';render();compactar();
+}
+function aviso(id,t,k){$(id).innerHTML=t?`<div class="msg ${k}">${esc(t)}</div>`:''}
+function compactar(){
+  $('rsm').innerHTML=`<span><b>NF ${esc(NF.numero)}</b> · ${esc(NF.emitente)} · ${itens.length} item(ns) · ${esc(NF.fonte)}</span><button type="button" class="btn g" onclick="expandirNf()">Trocar nota</button>`;
+  $('cNota').classList.add('compacto');
+}
+function expandirNf(){$('cNota').classList.remove('compacto');$('nfTa').focus()}
+function mudar(ix,v){itens[ix].fin=v;aplicar(itens[ix]);render()}
+$('fin').onchange=()=>{if(!itens.length)return;itens.forEach(i=>{i.fin=$('fin').value;aplicar(i)});render()};
+function limpar(){setTimeout(passos,0);$('cNota').classList.remove('compacto');$('nfTa').value='';itens=[];NF=null;conferido=false;ASROWS=[];ASNF=[];PR=null;$('res').innerHTML='';$('msg').innerHTML='';$('msg3').innerHTML='';
+  $('cDf').style.display=$('cRes').style.display=$('cAs').style.display=$('cPr').style.display=$('cPl').style.display='none';$('bcsv').style.display='none';limparAS()}
+function limparAS(){$('asTa').value='';$('msg2').innerHTML='';conferido=false;itens.forEach(i=>i.as=null);if(itens.length)render()}
+
+// ───────── conferência AutoSystem
+function parseAS(txt){
+  const rows=[];let cfop='';
+  const em=txt.match(/Empresa:\s*\n\s*(.+)/i);if(em)ASP=em[1].trim();
+  const ma=txt.match(/M[êe]s\/Ano:\s*\n?\s*(\d{2}\/\d{4})/i);if(ma)ASMES=ma[1];
+  txt.split(/\r?\n/).forEach(l=>{
+    const h=l.match(/CFOP:\s*(\d\.\d{3})/i);if(h){cfop=h[1];const t=l.match(/^\s*(.+?)\s+-\s+CFOP:/i);if(t)ASP=t[1].trim();return}
+    const m=l.match(/^\s*(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d{1,9})\s+(\d{6,8})\s+(\d{3})\s+(.+?)\s+(-?[\d.]*\d,\d{2})((?:\s+-?[\d.]*\d,\d{2}){5})\s*$/);
+    if(m)rows.push({cfop,emit:m[2],nf:String(+m[3]),ncm:String(+m[4]),cst:m[5],desc:m[6],valor:num(m[7])});
+  });
+  return rows;
+}
+function conferir(){
+  if(!itens.length)return;
+  const todas=parseAS($('asTa').value);CONF=parseConf($('asTa').value);
+  if(!todas.length)return aviso('msg2','Nenhuma linha de lançamento reconhecida. Cole a tabela copiada do AutoSystem (com Data, Emitente, NF, NCM, CST...).','err');
+  const rows=todas.filter(r=>r.nf===String(+NF.numero));
+  ASNF=rows;
+  itens.forEach(i=>i.as=null);
+  const usadas=new Set();
+  itens.forEach(it=>{
+    let best=-1,bs=0;
+    rows.forEach((r,ri)=>{
+      if(usadas.has(ri))return;
+      let s=0;
+      if(+r.ncm===+it.ncm)s+=4;
+      if(Math.abs(r.valor-it.vLiq)<.015||Math.abs(r.valor-it.vProd)<.015)s+=3;
+      if(norm(r.desc)===norm(it.desc))s+=3;else if(norm(r.desc).slice(0,12)===norm(it.desc).slice(0,12))s+=1;
+      if(s>bs){bs=s;best=ri}
+    });
+    if(best>=0&&bs>=6){it.as=rows[best];usadas.add(best)}
+  });
+  conferido=true;
+  const sobra=rows.filter((_,ri)=>!usadas.has(ri));
+  let t=`${rows.length} linha(s) da NF ${NF.numero} encontradas em ${todas.length} coladas.`;
+  if(!rows.length)t=`Nenhuma linha da NF ${NF.numero} nas ${todas.length} coladas — confira o número da NF.`;
+  if(sobra.length)t+=' Sem item correspondente na NF: '+sobra.map(r=>`${r.desc} (${fmt(r.valor)} em ${r.cfop||'CFOP ?'})`).join('; ')+'.';
+  aviso('msg2',t,rows.length?'info':'err');
+  render();
+}
+function stat(i){
+  if(!conferido)return null;
+  if(!i.as)return{k:'none',t:'Sem lançamento nas listas coladas'};
+  const l=i.r.lanc;
+  if(!i.as.cfop)return{k:'warn',t:'Bloco sem "CFOP:" no título — cole incluindo essa linha'};
+  if(!l.length)return{k:'warn',t:'Sem regra — conferir manualmente'};
+  const cs=i.r.cstL.match(/\d{3}/g)||[];
+  const okC=l.includes(i.as.cfop),okS=!cs.length||cs.includes(i.as.cst),p=[];
+  if(okC&&okS)return{k:'ok',t:'OK'};
+  if(!okC)p.push('CFOP lançado '+i.as.cfop+', esperado '+l.join(' ou '));
+  if(!okS)p.push('CST lançado '+i.as.cst+', esperado '+i.r.cstL);
+  return{k:'err',t:p.join(' · ')};
+}
+
+// ───────── PRODAC (planilha)
+const toN=v=>typeof v==='number'?v:(parseFloat(String(v).replace(',','.'))||0);
+const cf4=v=>{const t=String(v).replace(/\D/g,'');return t.length===4?fcf(t):t};
+const nfn=v=>String(parseInt(String(v).replace(/\D/g,''),10)||'');
+function tabela(ws){
+  const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
+  const hi=a.findIndex(r=>String(r[0]).trim()==='Número Nota');
+  if(hi<0)return[];
+  const H=a[hi].map(x=>String(x).trim());
+  return a.slice(hi+1).filter(r=>String(r[0]).trim()).map(r=>{const o={};H.forEach((h,j)=>{if(h&&!(h in o))o[h]=r[j]});return o});
+}
+async function lerPR(f){
+  if(!f)return;
+  if(/\.xml$/i.test(f.name))return aviso('msg3','Este arquivo é o XML da NF — ele vai no bloco 1. Aqui entra a planilha do PRODAC.','err');
+  if(!window.XLSX)return aviso('msg3','A biblioteca de planilhas não carregou. Abra a página com internet para ler o .xls.','err');
+  if(!itens.length)return aviso('msg3','Analise a NF primeiro.','err');
+  let wb;try{wb=XLSX.read(await f.arrayBuffer(),{type:'array'})}catch(e){return aviso('msg3','Não consegui abrir a planilha: '+e.message,'err')}
+  const sh=re=>wb.SheetNames.find(n=>re.test(n));
+  const sI=sh(/iten/i)||wb.SheetNames[1],sN=sh(/nota/i)||wb.SheetNames[0],k=nfn(NF.numero);
+  const its=tabela(wb.Sheets[sI]).filter(o=>nfn(o['Número Nota'])===k).map(o=>({n:String(parseInt(o['Número Item'])||''),cfop:cf4(o['CFOP']),
+    cst:String(o['S.T.']).trim().padStart(3,'0'),desc:String(o['Descrição do Produto']||''),ncm:String(o['NCM']||'').replace(/\D/g,''),
+    vLiq:toN(o['Valor Líquido']),pis:String(o['CST Pis']).trim(),cof:String(o['CST Cofins']).trim()}));
+  const nts=tabela(wb.Sheets[sN]).filter(o=>nfn(o['Número Nota'])===k).map(o=>({cfop:cf4(o['CFOP']),contabil:toN(o['Valor Contábil'])}));
+  if(!its.length)return aviso('msg3',`NF ${NF.numero} não encontrada na aba de itens da planilha.`,'err');
+  PR={arq:f.name,its,notas:nts,multi:new Set(nts.map(n=>n.cfop)).size>1};
+  const em=XLSX.utils.sheet_to_json(wb.Sheets[sI],{header:1,defval:''}).slice(0,3).map(r=>String(r[0]).match(/^Empresa:\s*(.+)/i)).find(Boolean);PR.empresa=em?em[1].trim():'';
+  itens.forEach(i=>i.pr=null);const used=new Set();
+  itens.forEach(it=>{
+    let best=-1,bs=0;
+    its.forEach((r,ri)=>{
+      if(used.has(ri))return;let s=0;
+      if(r.n===String(+it.n))s+=3;
+      if(Math.abs(r.vLiq-it.vLiq)<.015||Math.abs(r.vLiq-it.vProd)<.015)s+=3;
+      if(norm(r.desc).slice(0,12)===norm(it.desc).slice(0,12))s+=3;
+      if(r.ncm&&+r.ncm===+it.ncm)s+=2;
+      if(s>bs){bs=s;best=ri}
+    });
+    if(best>=0&&bs>=6){it.pr=its[best];used.add(best)}
+  });
+  const sobra=its.filter((_,ri)=>!used.has(ri));
+  let t=`${f.name}: ${its.length} item(ns) da NF ${NF.numero}; CFOP na aba Notas: ${nts.map(n=>n.cfop).join(', ')||'—'}.`;
+  if(PR.multi)t+=' A aba de itens mostra o mesmo CFOP em todas as linhas, então o CFOP é conferido pelos totais abaixo e o CST item a item.';
+  if(sobra.length)t+=' Sem item correspondente na NF: '+sobra.map(r=>r.desc).join('; ')+'.';
+  aviso('msg3',t,'info');render();
+}
+function limparPR(){PR=null;itens.forEach(i=>i.pr=null);$('msg3').innerHTML='';if(itens.length)render()}
+function statP(i){
+  if(!PR)return null;
+  if(!i.pr)return{k:'none',t:'Item não encontrado na planilha'};
+  const l=i.r.lanc,cs=i.r.cstL.match(/\d{3}/g)||[];
+  if(!l.length)return{k:'warn',t:'Sem regra — conferir manualmente'};
+  const p=[];
+  if(!PR.multi&&!l.includes(i.pr.cfop))p.push('CFOP '+i.pr.cfop+', esperado '+l.join(' ou '));
+  if(cs.length&&!cs.includes(i.pr.cst))p.push('CST '+i.pr.cst+', esperado '+i.r.cstL);
+  const pc=i.r.pis.match(/^(\d\d)\/(\d\d)$/);
+  if(pc&&(i.pr.pis!==pc[1]||i.pr.cof!==pc[2]))p.push('PIS/COFINS '+i.pr.pis+'/'+i.pr.cof+', esperado '+i.r.pis);
+  if(p.length)return{k:'err',t:p.join(' · ')};
+  return{k:'ok',t:PR.multi?'OK (CST) — CFOP pelos totais':'OK'};
+}
+
+// ───────── tela
+function rowk(a,p){const k=[a,p].filter(Boolean).map(s=>s.k);if(!k.length)return'';if(k.includes('err'))return'err';
+  if(k.includes('none')||k.includes('warn'))return k.includes('ok')?'warn':'none';return'ok'}
+const cn=(ss,k)=>ss.filter(s=>s&&s.k===k).length;
+function pills(n,ss){return`<div class="sum"><span class="pill ok">${n}: ${cn(ss,'ok')} conferem</span><span class="pill err">${cn(ss,'err')} divergente(s)</span><span class="pill warn">${cn(ss,'none')+cn(ss,'warn')} sem registro / verificar</span></div>`}
+function totais(){
+  const ex={},as={},pr={};
+  itens.forEach(i=>{const c=i.r.lanc[0];if(c)ex[c]=(ex[c]||0)+i.vLiq});
+  if(conferido)ASNF.forEach(r=>{const c=r.cfop||'?';as[c]=(as[c]||0)+r.valor});
+  if(PR)PR.notas.forEach(n=>{pr[n.cfop]=(pr[n.cfop]||0)+n.contabil});
+  const ks=[...new Set([...Object.keys(ex),...Object.keys(as),...Object.keys(pr)])].sort();
+  const dif=(v,e)=>v===undefined?null:v-(e||0);
+  let h=`<h3>Totais por CFOP de lançamento</h3><div class="tw"><table><thead><tr><th>CFOP</th><th>Esperado (NF + regra)</th>${conferido?'<th>AutoSystem</th>':''}${PR?'<th>PRODAC (aba Notas)</th>':''}<th>Situação</th></tr></thead><tbody>`;
+  ks.forEach(c=>{
+    const p=[];let bad=false;
+    if(conferido){const d=dif(as[c],ex[c]);if(d!==null&&Math.abs(d)>=.02){bad=true;p.push('AutoSystem '+(d>0?'+':'')+fmt(d))}}
+    if(PR){const d=dif(pr[c],ex[c]);if(d!==null&&Math.abs(d)>=.02){bad=true;p.push('PRODAC '+(d>0?'+':'')+fmt(d))}}
+    if(ex[c]===undefined&&!bad){bad=true;p.push('CFOP sem itens esperados')}
+    h+=`<tr class="${bad?'err':'ok'}"><td class="m">${esc(c)}</td><td class="m">${ex[c]===undefined?'—':fmt(ex[c])}</td>${conferido?`<td class="m">${as[c]===undefined?'—':fmt(as[c])}</td>`:''}${PR?`<td class="m">${pr[c]===undefined?'—':fmt(pr[c])}</td>`:''}<td>${bad?esc(p.join(' · ')):'Confere'}</td></tr>`;
+  });
+  return h+'</tbody></table></div>';
+}
+function render(){
+  const sa=itens.map(stat),sp=itens.map(statP);
+  let h=`<div class="meta"><div><span>NF</span>${esc(NF.numero)}</div><div><span>Emitente</span>${esc(NF.emitente)}</div><div><span>Destinatário</span>${esc(NF.dest)}</div><div><span>Emissão</span>${esc(NF.data)}</div><div><span>Total da nota</span>R$ ${fmt(NF.total)}</div><div><span>Itens · origem</span>${itens.length} · ${NF.fonte}</div></div>`;
+  if(conferido)h+=pills('AutoSystem',sa);
+  if(PR)h+=pills('PRODAC',sp);
+  if(conferido||PR)h+=`<p class="hint"><span class="ck">✔</span> linha frisada em verde = item colado/lido que está de acordo com a NF; <span class="xk">✖</span> = divergência.</p>`;
+  h+=`<div class="tw"><table><thead><tr><th>#</th><th>Produto</th><th>NCM</th><th>CFOP orig.</th><th>CST orig.</th><th>Valor</th><th>Finalidade</th><th>CFOP lanç.</th><th>CST lanç.</th><th>CSOSN</th><th>PIS/COFINS</th><th>Observação</th>`;
+  if(conferido)h+=`<th>AutoSystem</th><th>Situação AutoSystem</th>`;
+  if(PR)h+=`<th>PRODAC</th><th>Situação PRODAC</th>`;
+  h+=`</tr></thead><tbody>`;
+  itens.forEach((i,ix)=>{
+    const r=i.r,k=rowk(sa[ix],sp[ix]);
+    const mk=k==='ok'?'<span class="ck">✔</span> ':k==='err'?'<span class="xk">✖</span> ':'';
+    const ob=[r.obs,r.semCP?'Sem contas a pagar':'',i.cstAss?'CST assumido 000':''].filter(Boolean).map(esc).join(' · ');
+    h+=`<tr class="${k}"><td class="m">${mk}${esc(i.n)}</td><td>${esc(i.desc)}</td><td class="m">${esc(i.ncm)}</td><td class="m">${fcf(i.cfop)}</td><td class="m">${esc(i.cst)}</td><td class="m">${fmt(i.vProd)}</td>
+<td><select onchange="mudar(${ix},this.value)">${Object.entries(FIN).map(([kk,v])=>`<option value="${kk}"${kk===i.fin?' selected':''}>${v}</option>`).join('')}</select></td>
+<td class="m lanc">${r.lanc.join(' ou ')||'—'}</td><td class="m">${esc(r.cstL)}</td><td class="m">${esc(r.csosn||'—')}</td><td class="m">${esc(r.pis||'—')}</td>
+<td>${ob}${r.alerta?`<div class="al">${esc(r.alerta)}</div>`:''}</td>`;
+    if(conferido)h+=`<td class="m">${i.as?esc(i.as.cfop||'?')+' / '+esc(i.as.cst):'—'}</td><td>${esc(sa[ix].t)}</td>`;
+    if(PR)h+=`<td class="m">${i.pr?(PR.multi?'n/d':esc(i.pr.cfop))+' / '+esc(i.pr.cst):'—'}</td><td>${esc(sp[ix].t)}</td>`;
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  if(conferido||PR)h+=totais();
+  $('res').innerHTML=h;$('df').innerHTML=danfe();renderPl();consulta();passos();
+}
+
+
+// ───────── plano de acertos + e-mail
+const MAIL={pr:'fiscal.rdp@amaralcontabilidade.net',as:'julliana.alves@rededompedro.com'};
+const NOME={pr:'PRODAC',as:'AutoSystem'};
+const ano=()=>ASMES?ASMES.slice(3):(String(NF.data).match(/\d{4}$/)||[new Date().getFullYear()])[0];
+const posto=()=>($('posto').value.trim()||ASP||(PR&&PR.empresa)||NF.dest||'');
+const fcnpj=c=>c&&c.length===14?c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'):(c||'');
+const saud=()=>{const h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite'};
+const motivo=i=>`NF-e: CFOP ${fcf(i.cfop)} / CST ${i.cst}, finalidade ${FIN[i.fin]} → lançar ${i.r.lanc.join(' ou ')} com CST ${i.r.cstL}${i.r.obs?' ('+i.r.obs+')':''}`;
+function somaEsp(){const e={};itens.forEach(i=>{const c=i.r.lanc[0];if(c)e[c]=(e[c]||0)+i.vLiq});return e}
+function levantar(){
+  const o={pr:[],as:[],verif:[],tpr:[],tas:[]};
+  itens.forEach(i=>{
+    const b={n:i.n,desc:i.desc,ncm:i.ncm,valor:i.vProd,correto:(i.r.lanc.join(' ou ')||'—')+' / CST '+i.r.cstL,motivo:motivo(i),orig:fcf(i.cfop)+' / CST '+i.cst,regra:`${FIN[i.fin]} → lançar ${i.r.lanc.join(' ou ')||'—'} com CST ${i.r.cstL}${i.r.obs?' ('+i.r.obs+')':''}`};
+    const a=stat(i),p=statP(i);
+    if(a&&a.k==='err')o.as.push({...b,hoje:i.as.cfop+' / CST '+i.as.cst,prob:a.t});
+    if(a&&a.k==='none')o.as.push({...b,hoje:'não localizado nas listas coladas',prob:a.t,nl:1});
+    if(p&&p.k==='err')o.pr.push({...b,hoje:PR.multi?'CST '+i.pr.cst+' (CFOP conferido pelos totais da nota)':i.pr.cfop+' / CST '+i.pr.cst,prob:p.t});
+    if(p&&p.k==='none')o.pr.push({...b,hoje:'não localizado na planilha',prob:p.t,nl:1});
+    if((a&&a.k==='warn')||(p&&p.k==='warn'))o.verif.push(b);
+  });
+  const ex=somaEsp();
+  if(PR){const m={};PR.notas.forEach(n=>m[n.cfop]=(m[n.cfop]||0)+n.contabil);
+    Object.keys({...ex,...m}).sort().forEach(c=>{const d=(m[c]||0)-(ex[c]||0);if(Math.abs(d)>=.02)o.tpr.push(`CFOP ${c}: esperado ${fmt(ex[c]||0)} × PRODAC ${fmt(m[c]||0)} (${d>0?'+':''}${fmt(d)})`)})}
+  if(conferido&&itens.every(i=>i.as)){const m={};ASNF.forEach(r=>m[r.cfop]=(m[r.cfop]||0)+r.valor);
+    Object.keys({...ex,...m}).sort().forEach(c=>{const d=(m[c]||0)-(ex[c]||0);if(Math.abs(d)>=.02)o.tas.push(`CFOP ${c}: esperado ${fmt(ex[c]||0)} × AutoSystem ${fmt(m[c]||0)} (${d>0?'+':''}${fmt(d)})`)})}
+  return o;
+}
+function resumo(l,tot){
+  const c=l.filter(x=>!x.nl),n=re=>c.filter(x=>re.test(x.prob)).length,p=[];
+  if(n(/CFOP/))p.push(`CFOP incorreto (${n(/CFOP/)} item(ns))`);
+  if(n(/CST/))p.push(`CST incorreto (${n(/CST/)} item(ns))`);
+  if(n(/PIS/))p.push(`PIS/COFINS incorreto (${n(/PIS/)} item(ns))`);
+  if(l.length-c.length)p.push(`${l.length-c.length} item(ns) não localizado(s)`);
+  if(!p.length&&tot.length)p.push('total por CFOP divergente');
+  return p.join(' e ');
+}
+function corpo(w,l,tot,sm){
+  const L=[saud()+',','',`Ao conferir a NF ${NF.numero} (${NF.emitente}, emissão ${NF.data}) do posto ${posto()}${NF.cnpjDest?' (CNPJ '+fcnpj(NF.cnpjDest)+')':''}, referente à competência ${ASMES||ano()}, identificamos divergência no lançamento ${w==='pr'?'no PRODAC':'no AutoSystem'} em relação ao XML da NF-e e à tabela de classificação de CFOP/CST.`,''];
+  const e=l.filter(x=>!x.nl),nl=l.filter(x=>x.nl);
+  const grupo=(arr,tit)=>{const g={};arr.forEach(x=>{const k=x.hoje+'|'+x.correto+'|'+x.regra;(g[k]=g[k]||[]).push(x)});
+    L.push(tit);Object.values(g).forEach((it,k)=>{const x=it[0];L.push('',`Grupo ${k+1} — ${it.length} item(ns):`);
+      it.forEach(y=>L.push(`- Item ${y.n} – ${y.desc} (NCM ${y.ncm||'—'}, R$ ${fmt(y.valor)}) [NF-e: ${y.orig}]`));
+      L.push(`  Está: ${x.hoje}`,`  Correto: ${x.correto}`,`  Regra aplicada: ${x.regra}`)})};
+  if(e.length)grupo(e,'Ajustes necessários:');
+  if(nl.length){if(e.length)L.push('');grupo(nl,'Itens não localizados (favor verificar se estão lançados):')}
+  if(tot.length)L.push('','Reflexo nos totais por CFOP da nota:',...tot.map(t=>'- '+t));
+  if(sm){const cf=confLinhas(w,sm);
+    if(cf.length)L.push('','Confronto de ICMS (PRODAC × DP) — antes e depois do ajuste:',...cf.map(t=>'- '+t));
+    else if(w==='pr'&&!tot.length)L.push('','Obs.: os totais por CFOP do PRODAC conferem com a NF; o ajuste é de CST e não altera os valores do Confronto de ICMS.')}
+  L.push('','Pedimos o ajuste e o retorno quando concluído.','','Atenciosamente,','Waldeci Ramos','Rede Dom Pedro de Postos');
+  return L.join('\n');
+}
+function bloco(w,l,tot){
+  const rows=l.map(x=>`<tr class="${x.nl?'warn':'err'}"><td class="m">${esc(x.n)}</td><td>${esc(x.desc)}</td><td class="m">${esc(x.ncm)}</td><td class="m">${fmt(x.valor)}</td><td class="m">${esc(x.hoje)}</td><td class="m lanc">${esc(x.correto)}</td><td>${esc(x.prob)}</td><td>${esc(x.motivo)}</td></tr>`).join('');
+  return `<div class="pb ${w}"><h3 style="margin-top:0">Ajustar no ${NOME[w]} — ${l.length} item(ns)</h3>
+<div class="tw"><table><thead><tr><th>Item</th><th>Produto</th><th>NCM</th><th>Valor</th><th>Está</th><th>Correto</th><th>Problema</th><th>Por quê</th></tr></thead><tbody>${rows}</tbody></table></div>
+${tot.length?`<p class="dg"><b>Reflexo nos totais:</b> ${tot.map(esc).join(' · ')}</p>`:''}
+<span class="lbl">Para: ${MAIL[w]}</span><input type="text" id="as_${w}">
+<textarea id="tx_${w}" style="height:280px;user-select:text"></textarea>
+<div class="row"><button class="btn g" onclick="copiar('${w}')">Copiar texto</button><button class="btn s" onclick="mail('${w}')">Abrir no e-mail</button><span id="mm_${w}" class="lbl"></span></div></div>`;
+}
+function renderPl(){
+  if(!NF)return;
+  const pm=$('posto');if(!pm.dataset.m)pm.value=ASP||(PR&&PR.empresa)||NF.dest||'';
+  const box=$('pl');
+  if(!conferido&&!PR){box.innerHTML='<p class="hint">Cole as listas do AutoSystem e/ou carregue a planilha do PRODAC para gerar o plano de acertos.</p>';return}
+  const o=levantar(),sm=simular();let h='';
+  const linha=(w,ok,l,tot)=>!ok?`<p class="dg">⏳ <b>${NOME[w]}:</b> ainda não conferido.</p>`:(l.length||tot.length)?`<p class="dg">✖ <b>${NOME[w]}:</b> ${l.length} item(ns) para ajustar — ${esc(resumo(l,tot))}.</p>`:`<div class="okbox">✔ ${NOME[w]}: todos os itens conferem com a NF e com a tabela.</div>`;
+  h+=linha('pr',!!PR,o.pr,o.tpr)+linha('as',conferido,o.as,o.tas);
+  if(o.verif.length)h+=`<p class="dg">⚠ ${o.verif.length} item(ns) sem regra nas tabelas (conferir manualmente): ${o.verif.map(x=>esc(x.desc)).join('; ')}.</p>`;
+  h+=sm?tabConf(sm):(conferido?'<p class="hint">Para simular o Confronto antes × depois, cole junto com a lista do AutoSystem a tabela ENTRADAS da tela "Confronto Apuração do ICMS".</p>':'');
+  const mostra={pr:PR&&(o.pr.length||o.tpr.length),as:conferido&&(o.as.length||o.tas.length)};
+  if(mostra.pr)h+=bloco('pr',o.pr,o.tpr);
+  if(mostra.as)h+=bloco('as',o.as,o.tas);
+  const keep={};['pr','as'].forEach(w=>{if($('tx_'+w))keep[w]=[$('as_'+w).value,$('tx_'+w).value]});
+  box.innerHTML=h;
+  [['pr',o.pr,o.tpr],['as',o.as,o.tas]].forEach(([w,l,t])=>{
+    if(!mostra[w])return;
+    $('as_'+w).value=`${NOME[w]} – Ajuste de lançamento – ${ano()} – ${posto()} – NF ${NF.numero}: ${resumo(l,t)}`;
+    $('tx_'+w).value=corpo(w,l,t,sm);
+  });
+}
+function copiar(w){
+  const t=`Para: ${MAIL[w]}\nAssunto: ${$('as_'+w).value}\n\n${$('tx_'+w).value}`;
+  const ok=()=>{$('mm_'+w).textContent='Copiado!'};
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>falha());
+  else falha();
+  function falha(){const x=$('tx_'+w);x.select();document.execCommand('copy');ok()}
+}
+function mail(w){
+  let b=$('tx_'+w).value.replace(/^(Bom dia|Boa tarde|Boa noite),/,saud()+',');
+  const sub=$('as_'+w).value,mk=t=>'mailto:'+MAIL[w]+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(t.replace(/\n/g,'\r\n'));
+  let u=mk(b),cut=false;
+  while(u.length>6000&&b.length>300){cut=true;const n=b.lastIndexOf('\n',Math.floor(b.length*.8));b=b.slice(0,n>0?n:Math.floor(b.length*.8));u=mk(b+'\n\n[texto encurtado — cole aqui a lista completa copiada]')}
+  $('mm_'+w).textContent=cut?'O e-mail abriu com texto encurtado (limite do link). Use "Copiar texto" e cole a lista completa.':'Abrindo seu gerenciador de e-mail...';
+  location.href=u;
+}
+
+// ───────── Confronto de ICMS: antes × depois
+const IGN=['1.933','2.933'];
+function parseConf(txt){
+  const seen={},r=[];
+  txt.split(/\r?\n/).forEach(l=>{
+    const x=l.match(/^\s*([123]\d{3})((?:\s+-?[\d.]*\d,\d{2}){10})\s*$/);
+    if(!x||seen[x[1]])return;seen[x[1]]=1;
+    const n=x[2].trim().split(/\s+/).map(num);
+    r.push({c:fcf(x[1]),pp:n[0],pd:n[1],n});
+  });
+  return r;
+}
+function simular(){
+  if(!CONF||!CONF.length)return null;
+  const ex=somaEsp(),dP={},dA={};
+  const dl=m=>{const d={};Object.keys({...ex,...m}).forEach(c=>{const v=(ex[c]||0)-(m[c]||0);if(Math.abs(v)>=.02)d[c]=v});return d};
+  if(PR){const m={};PR.notas.forEach(n=>m[n.cfop]=(m[n.cfop]||0)+n.contabil);Object.assign(dP,dl(m))}
+  if(conferido&&itens.every(i=>i.as)){const m={};ASNF.forEach(r=>m[r.cfop]=(m[r.cfop]||0)+r.valor);Object.assign(dA,dl(m))}
+  const rows=CONF.map(r=>{const n2=r.n.slice(),a=dP[r.c]||0,b=dA[r.c]||0;n2[0]+=a;n2[8]+=a;n2[1]+=b;n2[9]+=b;return{...r,n2,pp2:n2[0],pd2:n2[1],ign:IGN.includes(r.c)}});
+  return{rows,dP,dA};
+}
+function confLinhas(w,sm){
+  const d=w==='pr'?sm.dP:sm.dA,L=[];
+  sm.rows.forEach(r=>{if(!(r.c in d))return;const f=r.pp2-r.pd2;
+    L.push(`CFOP ${r.c}: antes PRODAC ${fmt(r.pp)} × DP ${fmt(r.pd)} (dif. ${fmt(r.pp-r.pd)}) → depois PRODAC ${fmt(r.pp2)} × DP ${fmt(r.pd2)} (${Math.abs(f)<.02?'contábil bate':'dif. '+fmt(f)})${Math.abs(r.n2[8]-r.n2[9])>=.02?' · coluna Outras ainda difere: PRODAC '+fmt(r.n2[8])+' × DP '+fmt(r.n2[9]):''}`)});
+  return L;
+}
+function telaConf(sm,dep){
+  const rows=sm.rows.map(r=>({c:r.c,ign:r.ign,n:dep?r.n2:r.n,o:r.n}));
+  const par=(n,i)=>{const q=i-i%2;return Math.abs(n[q]-n[q+1])>=.02};
+  const cel=(n,i,o,ign)=>`<td class="m${!ign&&par(n,i)?' rd':''}${dep&&o&&Math.abs(n[i]-o[i])>.001?' chg':''}">${fmt(n[i])}</td>`;
+  const linha=(lab,n,o,ign,cls)=>`<tr class="${cls||''}">${lab}${[0,1,2,3,4,5,6,7,8,9].map(i=>cel(n,i,o,ign)).join('')}</tr>`;
+  const soma=f=>rows.filter(f).reduce((a,r)=>a.map((v,i)=>v+r.n[i]),Array(10).fill(0));
+  let h=`<div class="cfi"><div><span>Empresa:</span>${esc(ASP||(PR&&PR.empresa)||NF.dest)}</div><div><span>CNPJ:</span>${esc(fcnpj(NF.cnpjDest))}</div><div><span>Mês/Ano:</span>${esc(ASMES||'')}</div></div>`;
+  h+=`<div class="tw"><table class="cft"><thead><tr><th rowspan="4">Contábil</th><th rowspan="4">Fiscal</th><th colspan="2" rowspan="3">Valores Contábeis</th><th colspan="8">ICMS - Valores Fiscais</th></tr><tr><th colspan="4">Operação c/ Crédito do Imposto</th><th colspan="4">Operação s/ Crédito do Imposto</th></tr><tr><th colspan="2">Base de Cálculo</th><th colspan="2">Imposto Creditado</th><th colspan="2">Isento / N. Tributado</th><th colspan="2">Outras</th></tr><tr>${'<th>PRODAC</th><th>DP</th>'.repeat(5)}</tr></thead><tbody>`;
+  rows.forEach(r=>{h+=linha(`<td></td><td class="m">${r.c.replace('.','')}</td>`,r.n,r.o,r.ign)});
+  h+=`<tr class="sb"><td colspan="12" style="text-align:center"><b>SUB-TOTAIS</b></td></tr>`;
+  [['1','1.000 Do Estado'],['2','2.000 De Outros Estados'],['3','3.000 Do Exterior']].forEach(([d,t])=>{
+    const n=soma(r=>r.c[0]===d),o=dep?rows.reduce((a,r)=>a,null):null,oo=dep?[...Array(10)].map((_,i)=>rows.filter(r=>r.c[0]===d).reduce((a,r)=>a+r.o[i],0)):null;
+    h+=linha(`<td colspan="2" style="text-align:left">${t}</td>`,n,oo,false);
+  });
+  const nt=soma(()=>true),ot=dep?[...Array(10)].map((_,i)=>rows.reduce((a,r)=>a+r.o[i],0)):null;
+  h+=linha(`<td colspan="2"><b>TOTAIS</b></td>`,nt,ot,false,'sb');
+  return h+`</tbody></table></div>`;
+}
+function tabConf(sm){
+  const nm=['Contábil','Base de cálculo','Imposto creditado','Isento/N. trib.','Outras'];
+  const f=k=>{const L=[];sm.rows.forEach(r=>{if(r.ign)return;const n=k?r.n2:r.n;for(let p=0;p<10;p+=2)if(Math.abs(n[p]-n[p+1])>=.02)L.push(`${r.c} – ${nm[p/2]}: PRODAC ${fmt(n[p])} × DP ${fmt(n[p+1])}`)});return L};
+  const a=f(0),d=f(1);
+  let h=`<h3>Confronto de ICMS — como está hoje (ANTES do ajuste)</h3>`+telaConf(sm,0)+(a.length?`<p class="dg">✖ Divergem (em vermelho): ${a.map(esc).join(' · ')}</p>`:`<div class="okbox">✔ Tudo batendo</div>`);
+  h+=`<h3>Confronto de ICMS — APÓS o ajuste (simulado)</h3>`+telaConf(sm,1);
+  h+=d.length?`<p class="dg">✖ Mesmo após ajustar esta NF, ainda divergem: <b>${d.map(esc).join(' · ')}</b>.${d.some(x=>/Outras/.test(x))?' Diferença em "Outras" que não é de CFOP/CST costuma ser frete ou despesas acessórias tratados de forma diferente entre os sistemas — confira nas notas desse CFOP.':''}</p>`:`<div class="okbox">✔ Após os ajustes, todos os CFOPs que precisam bater estão batendo (${IGN.join(' e ')} não precisam).</div>`;
+  return h+`<p class="hint">Vermelho = PRODAC diferente de DP (AutoSystem). Fundo amarelo = valor que muda com o ajuste. ${IGN.join(' e ')} só existem no DP e não precisam bater. O ajuste move os valores desta NF para o CFOP correto no sistema que errou.</p>`;
+}
+
+// ───────── dados completos da NF (para o DANFE)
+function dadosXML(d){
+  const f=t=>d.getElementsByTagName(t)[0],g=(e,t)=>{const n=e&&e.getElementsByTagName(t)[0];return n?n.textContent.trim():''};
+  const em=f('emit'),de=f('dest'),ee=f('enderEmit'),ed=f('enderDest'),T=f('ICMSTot'),ide=f('ide'),tp=f('transporta'),ve=f('veicTransp'),vo=f('vol'),fa=f('fat'),du=f('dup'),pr=f('infProt'),inf=f('infAdic');
+  const ch=((f('infNFe').getAttribute('Id'))||'').replace(/\D/g,'');
+  const dt=v=>{const m=String(v).match(/(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}:\d{2}:\d{2}))?/);return m?m[3]+'/'+m[2]+'/'+m[1]+(m[4]?' '+m[4]:''):''};
+  const v=x=>x===''?'':fmt(parseFloat(x)||0);
+  const ender=e=>[(g(e,'xLgr')+', '+g(e,'nro')).replace(/, $/,''),g(e,'xBairro'),'CEP: '+g(e,'CEP')+' - '+g(e,'xMun')+' - '+g(e,'UF'),g(e,'fone')].filter(Boolean);
+  const sai=dt(g(ide,'dhSaiEnt'));
+  return{emitNome:g(em,'xNome'),emitEnd:ender(ee),emitCnpj:fcnpj(g(em,'CNPJ')),emitIE:g(em,'IE'),emitIEST:g(em,'IEST'),chave:ch.replace(/(\d{4})(?=\d)/g,'$1 '),natOp:g(ide,'natOp'),prot:(g(pr,'nProt')+' '+dt(g(pr,'dhRecbto'))).trim(),serie:g(ide,'serie'),tp:g(ide,'tpNF'),
+    destNome:g(de,'xNome'),destDoc:fcnpj(g(de,'CNPJ'))||g(de,'CPF'),destEnd:(g(ed,'xLgr')+', '+g(ed,'nro')).replace(/, $/,''),destBairro:g(ed,'xBairro'),destCep:g(ed,'CEP').replace(/(\d{5})(\d{3})/,'$1-$2'),destMun:g(ed,'xMun'),destFone:g(ed,'fone'),destUF:g(ed,'UF'),destIE:g(de,'IE'),
+    dhEmi:dt(g(ide,'dhEmi')),dhSai:sai.slice(0,10),hSai:sai.slice(11),
+    fDoc:g(fa,'nFat'),fBruto:v(g(fa,'vOrig')),fDesc:v(g(fa,'vDesc')),fLiq:v(g(fa,'vLiq')),fVenc:dt(g(du,'dVenc')),
+    vBC:v(g(T,'vBC')),vICMS:v(g(T,'vICMS')),vBCST:v(g(T,'vBCST')),vST:v(g(T,'vST')),vProd:v(g(T,'vProd')),vFrete:v(g(T,'vFrete')),vSeg:v(g(T,'vSeg')),vDesc:v(g(T,'vDesc')),vOutro:v(g(T,'vOutro')),vIPI:v(g(T,'vIPI')),vNF:v(g(T,'vNF')),
+    trNome:g(tp,'xNome'),frete:({0:'0 - EMITENTE',1:'1 - DESTINATÁRIO',2:'2 - TERCEIROS',9:'9 - SEM FRETE'})[g(f('transp'),'modFrete')]||'',placa:g(ve,'placa'),trUFv:g(ve,'UF'),trDoc:fcnpj(g(tp,'CNPJ'))||g(tp,'CPF'),trEnd:g(tp,'xEnder'),trMun:g(tp,'xMun'),trUF:g(tp,'UF'),trIE:g(tp,'IE'),
+    qVol:g(vo,'qVol'),esp:g(vo,'esp'),marca:g(vo,'marca'),nVol:g(vo,'nVol'),pesoB:g(vo,'pesoB'),pesoL:g(vo,'pesoL'),inf:g(inf,'infCpl')};
+}
+function dadosTexto(t){
+  const ex=(lab,n)=>{const re=new RegExp('(?:^|\\n)[ \\t]*'+lab+':[ \\t]*\\n?[ \\t]*([^\\n]*)','gi');const m=[...t.matchAll(re)][n||0];const v=m?m[1].trim():'';return /:$/.test(v)?'':v};
+  const em=((t.match(/S[ÉE]RIE\s*\d+\s*\n([\s\S]*?)\nDANFE/i)||[,''])[1]).split('\n').map(x=>x.trim()).filter(Boolean);
+  return{emitNome:em[0]||'',emitEnd:em.slice(1),emitCnpj:(t.match(/CNPJ:\s*\n?\s*(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i)||[,''])[1],emitIE:ex('INSCRI[ÇC][ÃA]O ESTADUAL',0),emitIEST:'',
+    chave:(t.match(/(?:\d{4}\s){10}\d{4}/)||[''])[0],natOp:ex('NATUREZA DA OPERA[ÇC][ÃA]O'),prot:ex('PROTOCOLO DE AUTORIZA[ÇC][ÃA]O DE USO'),serie:(t.match(/S[ÉE]RIE\s*(\d+)/i)||[,''])[1],tp:'1',
+    destNome:ex('NOME/RAZ[ÃA]O SOCIAL'),destDoc:ex('CNPJ/CPF',0),destEnd:ex('ENDERE[ÇC]O',0),destBairro:ex('BAIRRO/DISTRITO'),destCep:ex('CEP',1),destMun:ex('MUNIC[ÍI]PIO',0),destFone:ex('FONE/FAX'),destUF:ex('UF',0),destIE:ex('INSCRI[ÇC][ÃA]O ESTADUAL',1),
+    dhEmi:ex('DATA DE EMISS[ÃA]O'),dhSai:ex('DATA DE SA[ÍI]DA/ENTRADA'),hSai:ex('HORA DE SA[ÍI]DA'),
+    fDoc:ex('DOCUMENTO'),fBruto:ex('VALOR BRUTO'),fDesc:ex('VALOR DESCONTO'),fLiq:ex('VALOR L[ÍI]QUIDO'),fVenc:ex('DATA VENCIMENTO'),
+    vBC:ex('BASE DE C[ÁA]LCULO DO ICMS'),vICMS:ex('VALOR DO ICMS'),vBCST:ex('BASE DE C[ÁA]LCULO DO ICMS SUBST\\.'),vST:ex('VALOR DO ICMS SUBSTITUI[ÇC][ÃA]O'),vProd:ex('VALOR TOTAL DOS PRODUTOS'),vFrete:ex('VALOR DO FRETE'),vSeg:ex('VALOR DO SEGURO'),vDesc:ex('DESCONTO'),vOutro:ex('OUT\\. DESP\\. ACESS[ÓO]RIAS'),vIPI:ex('VALOR DO IPI'),vNF:ex('VALOR TOTAL DA NOTA'),
+    trNome:ex('RAZ[ÃA]O SOCIAL'),frete:ex('FRETE POR CONTA'),placa:(t.match(/PLACA DO VE[ÍI]CULO:\s*\n?\s*(\S+)/i)||[,''])[1],trUFv:ex('UF',1),trDoc:ex('CNPJ/CPF',1),trEnd:ex('ENDERE[ÇC]O',1),trMun:ex('MUNIC[ÍI]PIO',1),trUF:ex('UF',2),trIE:ex('INSCRI[ÇC][ÃA]O ESTADUAL',2),
+    qVol:ex('QUANTIDADE'),esp:ex('ESP[ÉE]CIE'),marca:ex('MARCA'),nVol:ex('NUMERA[ÇC][ÃA]O'),pesoB:ex('PESO BRUTO'),pesoL:ex('PESO L[ÍI]QUIDO'),
+    inf:((t.match(/INFORMA[ÇC][ÕO]ES COMPLEMENTARES:\s*([\s\S]*?)(?:RESERVADO AO FISCO|$)/i)||[,''])[1]).replace(/\s*\n\s*/g,' ').trim()};
+}
+
+// ───────── DANFE (réplica da NF com o lançamento ao lado)
+const nn=v=>String(+(+v).toFixed(4)).replace('.',',');
+function danfe(){
+  const d=NF.d||{},c=(l,v,s,x)=>`<div class="dc" style="grid-column:span ${s}"${x?` ${x}`:''}><b>${l}</b>${esc(v||'')}</div>`;
+  const n9=String(NF.numero).padStart(9,'0').replace(/(\d{3})(\d{3})(\d{3})/,'$1.$2.$3');
+  const G=(...a)=>`<div class="dg12">${a.join('')}</div>`,T=t=>`<div class="dt">${t}</div>`;
+  let h=`<div class="dn">`+G(`<div class="dc" style="grid-column:span 10">RECEBEMOS DE ${esc(d.emitNome||NF.emitente)} OS PRODUTOS CONSTANTES DA NOTA FISCAL INDICADA AO LADO.</div>`,`<div class="dc" style="grid-column:span 2;text-align:center"><b>NF-e</b>Nº ${n9}<br>SÉRIE ${esc(d.serie||'1')}</div>`);
+  h+=`<div style="height:6px"></div>`+G(
+    `<div class="dc" style="grid-column:span 4;text-align:center;min-height:120px"><b style="font-size:12px;color:#111">${esc(d.emitNome||NF.emitente)}</b>${(d.emitEnd||[]).map(esc).join('<br>')}</div>`,
+    `<div class="dc" style="grid-column:span 3;text-align:center"><b style="font-size:18px;color:#111">DANFE</b>Documento auxiliar da nota fiscal eletrônica<br>0 - ENTRADA<br>1 - SAÍDA &nbsp;<span style="border:1px solid #222;padding:0 5px">${esc(d.tp||'1')}</span><br><b style="font-size:11px;color:#111">Nº ${n9}<br>SÉRIE ${esc(d.serie||'1')}</b></div>`,
+    `<div class="dc" style="grid-column:span 5"><b>Controle do fisco</b><div class="bar"></div><b>Chave de acesso</b><span style="font-size:12px">${esc(d.chave)}</span><br><span style="font-size:9px;color:#444">Consulta de autenticidade no portal nacional da NF-e (www.nfe.fazenda.gov.br/portal) ou no site da Sefaz Autorizadora.</span></div>`);
+  h+=G(c('Natureza da operação',d.natOp,7),c('Protocolo de autorização de uso',d.prot,5))+G(c('Inscrição estadual',d.emitIE,4),c('Insc. est. do subst. trib.',d.emitIEST,4),c('CNPJ',d.emitCnpj,4));
+  h+=T('Destinatário / Remetente')+G(c('Nome/Razão social',d.destNome||NF.dest,7),c('CNPJ/CPF',d.destDoc,3),c('Data de emissão',d.dhEmi||NF.data,2))
+    +G(c('Endereço',d.destEnd,5),c('Bairro/Distrito',d.destBairro,3),c('CEP',d.destCep,2),c('Data de saída/entrada',d.dhSai,2))
+    +G(c('Município',d.destMun,5),c('Fone/Fax',d.destFone,2),c('UF',d.destUF,1),c('Inscrição estadual',d.destIE,2),c('Hora de saída',d.hSai,2));
+  h+=T('Fatura')+G(c('Documento',d.fDoc,3),c('Valor bruto',d.fBruto,2),c('Valor desconto',d.fDesc,2),c('Valor líquido',d.fLiq,2),c('Data vencimento',d.fVenc,3));
+  h+=T('Cálculo do imposto')+G(c('Base de cálculo do ICMS',d.vBC,2),c('Valor do ICMS',d.vICMS,2),c('Base de cálc. do ICMS subst.',d.vBCST,3),c('Valor do ICMS substituição',d.vST,2),c('Valor total dos produtos',d.vProd,3))
+    +G(c('Valor do frete',d.vFrete,2),c('Valor do seguro',d.vSeg,2),c('Desconto',d.vDesc,2),c('Out. desp. acessórias',d.vOutro,2),c('Valor do IPI',d.vIPI,2),c('Valor total da nota',d.vNF||fmt(NF.total),2));
+  h+=T('Transportador / Volumes transportados')+G(c('Razão social',d.trNome,5),c('Frete por conta',d.frete,2),c('Placa do veículo',d.placa,2),c('UF',d.trUFv,1),c('CNPJ/CPF',d.trDoc,2))
+    +G(c('Endereço',d.trEnd,5),c('Município',d.trMun,4),c('UF',d.trUF,1),c('Inscrição estadual',d.trIE,2))
+    +G(c('Quantidade',d.qVol,2),c('Espécie',d.esp,2),c('Marca',d.marca,2),c('Numeração',d.nVol,2),c('Peso bruto',d.pesoB,2),c('Peso líquido',d.pesoL,2));
+  h+=T('Dados dos produtos / serviços')+`<table><thead><tr><th>CÓD. PROD.</th><th>DESCRIÇÃO DO PRODUTO/SERVIÇO</th><th>CÓD. NCM</th><th>CST</th><th>CFOP</th><th>UND</th><th>QUANT.</th><th>V. UNIT.</th><th>V. TOTAL</th><th>BC ICMS</th><th>V. ICMS</th><th>V. IPI</th><th>ALIQ. ICMS</th><th>ALIQ. IPI</th><th class="lh">LANÇ. CFOP</th><th class="lh">LANÇ. CST</th><th class="lh">PIS/COFINS</th></tr></thead><tbody>`;
+  itens.forEach(i=>{
+    const k=rowk(stat(i),statP(i)),r=i.r,x=k==='err'?' er':k==='ok'?' ok':'';
+    h+=`<tr><td>${esc(i.cod)}</td><td>${esc(i.desc)}</td><td>${esc(i.ncm)}</td><td>${esc(i.sn?i.cst:i.cst.slice(-2))}</td><td>${fcf(i.cfop)}</td><td>${esc(i.un||'')}</td><td class="r">${nn(i.qtd)}</td><td class="r">${nn(i.vUn)}</td><td class="r">${nn(i.vProd)}</td><td class="r">${fmt(i.bc)}</td><td class="r">${fmt(i.vi)}</td><td class="r">${fmt(i.vip)}</td><td class="r">${nn(i.pi)}</td><td class="r">${nn(i.pip)}</td><td class="l${x}">${esc(r.lanc.join(' ou ')||'—')}</td><td class="l${x}">${esc(r.cstL)}</td><td class="l${x}">${esc(r.pis||'—')}</td></tr>`;
+  });
+  h+=`</tbody></table>`+T('Dados adicionais')+G(c('Informações complementares',d.inf,12));
+  return h+`</div>`;
+}
+
+// ───────── consulta de CFOP (painel lateral)
+const N5='000 – 020 – 040 – 041 – 090 …',S5='010 – 060 – 110 – 160 – 510 – 560',S6='060 – 110 – 160 – 560 …',TC=[],TR=[];
+const addT=(T,bs,cst,l,cl,cs,pis,obs)=>bs.forEach(b=>['5','6'].forEach(u=>T.push([u+b,cst,(u==='5'?'1':'2')+l,cl,cs,pis,obs||''])));
+const ATV='Verificar se será ATIVO: lançar 1.551 / 2.551 ou 1.406 / 2.406';
+addT(TC,['101','102','108'],N5,'556','090','0101/0102','70/70',ATV);
+addT(TC,['403','404','405'],S5,'407','060','0500','70/70',ATV);
+addT(TC,['929'],N5,'556','090','','70/70');addT(TC,['929'],S6,'407','060','','70/70');
+addT(TC,['117'],N5,'556','090','','70/70','Sem pagamento, mas registrar o contas a pagar no AutoSystem');addT(TC,['117'],S6,'407','060','','70/70','Sem pagamento, mas registrar o contas a pagar no AutoSystem');
+addT(TC,['949'],N5,'949','090','','70/70','Não tem contas a pagar');addT(TC,['949'],S6,'949','060','','70/70','Não tem contas a pagar');
+addT(TC,['908'],'040 / 041','908','090','0101/0102','—','Não tem contas a pagar');
+addT(TC,['910'],N5,'910','090','0101/0102','—','Não tem contas a pagar');addT(TC,['916'],N5,'916','090','0101/0102','—','Não tem contas a pagar');
+addT(TC,['922'],N5,'922','090','0101/0102','—','Não tem contas a pagar: registrar para validar a nota e depois excluir');
+addT(TC,['656','929'],'061 – 060 (notas XP Transportes – Angélica)','653','061','','70/70','Consumo de combustível');
+addT(TR,['101','102'],'000','102','000','','Não mudar','Se o CST vier 020, usar 020 no lançamento');
+addT(TR,['405'],'060 – 160 – 360 – 560 …','403','060','','Não mudar');
+addT(TR,['655','656'],'VERIFICAR NOTA','652','VERIFICAR','','Não mudar','CST 010/110/510 → usar 010 · 030/130/530 → 030 · 060/160/560 → 060');
+addT(TR,['949'],'090','102','090','','Não mudar','Notas RV');addT(TR,['152'],'000','152','000','','Não mudar','Transferência ARLA');addT(TR,['659'],'060','659','060','','Não mudar','Transferência lubrificante');
+const DS={101:'Venda de produção do estabelecimento',102:'Venda de mercadoria adquirida ou recebida de terceiros',117:'Venda de mercadoria adquirida ou recebida de terceiros, originada de encomenda para entrega futura',152:'Transferência de mercadoria adquirida ou recebida de terceiros',403:'Venda de mercadoria adquirida de terceiros com ST, na condição de contribuinte substituto',404:'Venda de mercadoria sujeita a ST, cujo imposto já tenha sido retido anteriormente',405:'Venda de mercadoria adquirida de terceiros com ST, na condição de contribuinte substituído',655:'Venda de combustível ou lubrificante adquirido ou recebido de terceiros',656:'Venda de combustível ou lubrificante adquirido de terceiros, destinado a consumidor ou usuário final',659:'Transferência de combustível e lubrificante adquirido ou recebido de terceiros',908:'Remessa de bem por conta de contrato de comodato',910:'Remessa em bonificação, doação ou brinde',916:'Retorno de mercadoria ou bem recebido para conserto ou reparo',922:'Lançamento a título de simples faturamento decorrente de venda para entrega futura',929:'Lançamento em decorrência de documento fiscal relativo a operação também registrada em ECF',949:'Outra saída de mercadoria ou prestação de serviço não especificada'};
+const DE={102:'Compra para comercialização',152:'Transferência para comercialização',403:'Compra para comercialização com ST, na condição de contribuinte substituído',406:'Compra de bem para o ativo imobilizado sujeito a ST',407:'Compra de mercadoria para uso ou consumo sujeita a ST',551:'Compra de bem para o ativo imobilizado',556:'Compra de material para uso ou consumo',652:'Compra de combustível ou lubrificante para comercialização',653:'Compra de combustível ou lubrificante por consumidor ou usuário final',659:'Transferência de combustível e lubrificante adquirido de terceiros',908:'Entrada de bem por conta de contrato de comodato',910:'Entrada em bonificação, doação ou brinde',916:'Retorno de mercadoria ou bem remetido para conserto ou reparo',922:'Lançamento a título de simples faturamento decorrente de compra para recebimento futuro',949:'Outra entrada de mercadoria ou prestação de serviço não especificada'};
+const DESC={};
+Object.entries(DS).forEach(([k,v])=>{DESC['5'+k]=v;DESC['6'+k]=v+' (interestadual)'});Object.entries(DE).forEach(([k,v])=>{DESC['1'+k]=v;DESC['2'+k]=v+' (interestadual)'});
+let TAB='C';
+function aba(t){TAB=t;consulta()}
+function consulta(){
+  const qe=$('q');if(!qe)return;
+  const q=qe.value.trim(),qd=q.replace(/\D/g,''),ql=q.toLowerCase(),cfs=itens.map(i=>i.cfop);
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));
+  let h=qd.length===4&&DESC[qd]?`<p class="dg"><b>${fcf(qd)}</b> — ${esc(DESC[qd])}</p>`:'';
+  if(TAB==='D'){
+    const L=Object.entries(DESC).filter(([k,v])=>!q||(qd&&k.includes(qd))||v.toLowerCase().includes(ql));
+    h+=L.length?`<div class="tw"><table><thead><tr><th>CFOP</th><th>Descrição</th></tr></thead><tbody>${L.map(([k,v])=>`<tr class="${cfs.includes(k)?'hl':''}"><td class="m">${fcf(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="hint">Nada encontrado.</p>';
+  }else{
+    const T=(TAB==='C'?TC:TR).filter(r=>!q||(qd&&(r[0].includes(qd)||r[2].includes(qd)))||r.join(' ').toLowerCase().includes(ql));
+    h+=T.length?`<div class="tw"><table><thead><tr><th>CFOP orig.</th><th>CST origem</th><th>CFOP lanç.</th><th>CST</th><th>CSOSN</th><th>PIS/COF.</th></tr></thead><tbody>${T.map(r=>`<tr class="${cfs.includes(r[0])?'hl':''}"><td class="m">${fcf(r[0])}</td><td>${esc(r[1])}</td><td class="m lanc">${fcf(r[2])}</td><td class="m">${esc(r[3])}</td><td class="m">${esc(r[4]||'—')}</td><td class="m">${esc(r[5])}</td></tr>${r[6]?`<tr class="ob"><td colspan="6">${esc(r[6])}</td></tr>`:''}`).join('')}</tbody></table></div>`:'<p class="hint">Nada encontrado nesta tabela. Tente a outra aba.</p>';
+  }
+  $('cs').innerHTML=h;
+}
+
+// ───────── exportar CSV
+function exportar(){
+  if(!itens.length)return;
+  const c=['Item','Cód.','Produto','NCM','CFOP origem','CST origem','Qtd','Vl. unit.','Vl. total','Finalidade','CFOP lançamento','CST lançamento','CSOSN lançamento','PIS/COFINS','Gera contas a pagar','Observação'];
+  if(conferido)c.push('CFOP AutoSystem','CST AutoSystem','Situação AutoSystem');
+  if(PR)c.push('CFOP PRODAC','CST PRODAC','Situação PRODAC');
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',n=v=>String(v).replace('.',',');
+  const L=[c.map(q).join(';')];
+  itens.forEach(i=>{
+    const r=i.r;
+    const row=[i.n,i.cod,i.desc,i.ncm,fcf(i.cfop),i.cst,n(i.qtd),n(i.vUn.toFixed(2)),n(i.vProd.toFixed(2)),FIN[i.fin],r.lanc.join(' ou '),r.cstL,r.csosn,r.pis,r.semCP?'Não':'Sim',[r.obs,r.alerta].filter(Boolean).join(' | ')];
+    if(conferido)row.push(i.as?i.as.cfop:'',i.as?i.as.cst:'',stat(i).t);
+    if(PR)row.push(i.pr?(PR.multi?'n/d':i.pr.cfop):'',i.pr?i.pr.cst:'',statP(i).t);
+    L.push(row.map(q).join(';'));
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+L.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='NF_'+NF.numero+'_lancamentos.csv';document.body.appendChild(a);a.click();a.remove();
+}
+
+// ───────── XML: arrastar / escolher arquivo
+const drop=$('drop'),fi=$('fi');
+async function abrir(f){
+  if(!f)return;
+  if(/\.xlsx?$/i.test(f.name)){
+    if(itens.length)return lerPR(f);
+    return aviso('msg','Este arquivo é a planilha do PRODAC, não o XML da NF. Carregue primeiro o XML aqui; depois use o bloco 4 para a planilha.','err');
+  }
+  $('nfTa').value=await f.text();analisar();
+}
+drop.onclick=()=>fi.click();
+fi.onchange=()=>{abrir(fi.files[0]);fi.value=''};
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',ev=>abrir(ev.dataTransfer.files[0]));
+const drop2=$('drop2'),fi2=$('fi2');
+drop2.onclick=()=>fi2.click();
+fi2.onchange=()=>{lerPR(fi2.files[0]);fi2.value=''};
+['dragenter','dragover'].forEach(e=>drop2.addEventListener(e,ev=>{ev.preventDefault();drop2.classList.add('on')}));
+['dragleave','drop'].forEach(e=>drop2.addEventListener(e,ev=>{ev.preventDefault();drop2.classList.remove('on')}));
+drop2.addEventListener('drop',ev=>lerPR(ev.dataTransfer.files[0]));
+function passos(){
+  const on=[true,!!itens.length&&conferido,!!itens.length&&!!PR,!!itens.length&&(conferido||!!PR)];
+  const L=[...document.querySelectorAll('#stp a')],S=[...document.querySelectorAll('#stp span')];
+  L.forEach((a,k)=>a.classList.toggle('on',on[k]));
+  S.forEach((x,k)=>x.classList.toggle('on',on[k+1]));
+}
+document.querySelectorAll('.mn .card>h2').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('fechado')));
+document.querySelectorAll('#opts .opt').forEach(b=>b.onclick=()=>{$('fin').value=b.dataset.v;document.querySelectorAll('#opts .opt').forEach(x=>x.classList.toggle('on',x===b));$('fin').onchange&&$('fin').onchange()});
+document.querySelectorAll('#stp a').forEach(a=>a.onclick=()=>{const t=$(a.dataset.t);if(t&&t.style.display!=='none'){t.classList.remove('fechado');t.scrollIntoView({behavior:'smooth',block:'start'})}});
+consulta();passos();
+</script>
+</body>
+</html>
