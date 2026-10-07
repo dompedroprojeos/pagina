@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Visual Completo - Rotina SPEDD</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --window-bg: #ffffff;
+            --header-bg: #e4e6eb;
+            --border-color: #ccc;
+            --text-color: #1c1e21;
+            --accent-color: #2c3e50;
+            --blue-folder: #f7d47c;
+            --pdf-red: #e74c3c;
+            --csv-green: #27ae60;
+            --excel-green: #217346;
+            --highlight: #fff3cd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .step-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .step-header {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .step-content {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .step-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .step-text ul, .step-text ol {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .step-text li {
+            margin-bottom: 10px;
+        }
+
+        /* --- Estilos de Simulação de Janelas --- */
+        .window-sim {
+            flex: 1;
+            min-width: 450px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--window-bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 0.85em;
+        }
+
+        .window-header {
+            background-color: var(--header-bg);
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .window-title {
+            font-weight: bold;
+            margin-left: 10px;
+            color: #333;
+        }
+
+        .window-address-bar {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 5px 10px;
+            display: flex;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .window-body {
+            display: flex;
+            flex: 1;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 180px;
+            background: #f9f9f9;
+            border-right: 1px solid var(--border-color);
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .sidebar-item.active {
+            background: #e0e0e0;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .file-list {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 8px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+        }
+
+        .file-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .file-item.selected {
+            background-color: #cce8ff;
+            border: 1px solid #99d1ff;
+        }
+
+        .icon-folder { color: #f1c40f; margin-right: 8px; font-size: 1.2em; }
+        .icon-pdf { color: #e74c3c; margin-right: 8px; font-size: 1.2em; }
+        .icon-csv { color: #27ae60; margin-right: 8px; font-size: 1.2em; }
+        .icon-excel { color: #217346; margin-right: 8px; font-size: 1.2em; }
+        .icon-file { color: #7f8c8d; margin-right: 8px; font-size: 1.2em; }
+
+        .file-details {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        /* --- Estilos Específicos para as Telas --- */
+        .web-app-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            height: 100%;
+            box-sizing: border-box;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .web-app-container {
+            background: #fff;
+            border-radius: 8px;
+            width: 100%;
+            padding: 15px;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .web-app-title {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 1.3em;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .web-app-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-weight: bold;
+            font-size: 0.85em;
+            cursor: default;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-green { background-color: #27ae60; }
+        .btn-orange { background-color: #e67e22; }
+        .btn-gray { background-color: #7f8c8d; }
+        .btn-blue { background-color: #2980b9; }
+
+        .web-app-textarea {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            height: 60px;
+            font-family: monospace;
+            font-size: 0.8em;
+            color: #999;
+            background: #fafafa;
+            resize: none;
+        }
+
+        .excel-grid {
+            display: grid;
+            grid-template-columns: 30px 1fr 1fr 1fr 1fr;
+            font-size: 0.75em;
+            border: 1px solid #ccc;
+        }
+
+        .excel-cell {
+            border: 1px solid #e0e0e0;
+            padding: 4px;
+            background: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .excel-header {
+            background: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .excel-highlight {
+            background-color: #fff3cd; /* Amarelo claro para destaque */
+        }
+
+        .excel-red {
+            background-color: #fce4e4;
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .excel-green {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .tag-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #856404;
+            font-size: 0.85em;
+        }
+
+        .tag-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #721c24;
+            font-size: 0.85em;
+        }
+
+        .video-highlight {
+            background-color: #e8f4f8;
+            border: 2px dashed #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #0b4f6c;
+            font-weight: bold;
+        }
+
+        .video-highlight span {
+            font-size: 1.5em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Ajustes Responsivos */
+        @media (max-width: 900px) {
+            .step-content {
+                flex-direction: column;
+            }
+            .window-sim {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Manual Visual Completo - Rotina SPEDD</h1>
+    <p style="text-align: center; color: #555;">Guia passo a passo com simulação das telas do sistema.</p>
+
+    <!-- PASSO 1 -->
+    <div class="step-container">
+        <div class="step-header">1. Acesso ao Importador Fiscal (Spped_PDF2)</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Abra o navegador e acesse o sistema de importação:</p>
+                <div class="window-address-bar" style="margin: 10px 0;">
+                    <span style="color:#666; margin-right:5px;">🔒</span> file:///Z:/programas/spedd/Spped_PDF2.html
+                </div>
+                <p>Você verá a tela <strong>"Importador Fiscal - PIS/COFINS"</strong> com o campo para colar os dados.</p>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>📄</span>
+                    <span class="window-title">Importador Fiscal - PIS/COFINS</span>
+                </div>
+                <div class="web-app-bg">
+                    <div class="web-app-container">
+                        <div class="web-app-title">Importador Fiscal - PIS/COFINS</div>
+                        <div style="font-size:0.8em; text-align:center; color:#666; margin-bottom:15px;">Consolidação por CST - Versão Texto</div>
+                        <div class="web-app-buttons">
+                            <button class="btn btn-green">⚡ Processar Dados</button>
+                            <button class="btn btn-green">📋 Exportar CSV Detalhado</button>
+                            <button class="btn btn-gray">🗑️ Limpar</button>
+                            <button class="btn btn-green">📊 Exportar CSV Consolidado</button>
+                            <button class="btn btn-orange">🖨️ Imprimir Consolidado</button>
+                            <button class="btn btn-gray">🔄 Novo Processamento</button>
+                        </div>
+                        <div style="text-align:center; font-weight:bold; color:#2c3e50; margin-bottom:10px; font-size:0.9em;">Cole os dados do PDF abaixo</div>
+                        <div class="web-app-textarea">Cole aqui o texto copiado do PDF...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSO 2 -->
+    <div class="step-container">
+        <div class="step-header">2. Localizar o PDF e Copiar os Dados</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Navegue até a pasta do mês desejado no Windows Explorer:</p>
+                <div class="window-address-bar" style="margin: 10px 0;">
+                    Y:\SPED CONTRIBUIÇÕES\2026\08. AGOSTO\4. REDE DP MATRIZ E FILIAIS\1. Arquivo Unificado
+                </div>
+                <ol>
+                    <li>Localize o arquivo <strong>SPED CONSOLIDADO</strong> (PDF).</li>
+                    <li>Abra o PDF, pressione <strong>Ctrl + A</strong> para selecionar tudo e <strong>Ctrl + C</strong> para copiar.</li>
+                    <li>Volte à tela do navegador e cole os dados no campo indicado.</li>
+                    <li>Clique no botão <span class="btn-sim" style="background:#27ae60; padding:2px 8px; border-radius:4px; color:white; font-size:0.8em;">⚡ Processar Dados</span>.</li>
+                </ol>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>📁</span>
+                    <span class="window-title">1. Arquivo Unificado</span>
+                </div>
+                <div class="window-address-bar">
+                    <span style="color:#666; margin-right:5px;">📁</span> Este Computador > fiscal (\\172.16.3.151\Setor) (Y:) > SPED CONTRIBUIÇÕES > 2026 > 08. AGOSTO > 4. REDE DP MATRIZ
+                </div>
+                <div class="window-body">
+                    <div class="sidebar">
+                        <div class="sidebar-item active">🏠 Início</div>
+                        <div class="sidebar-item">🖼️ Galeria</div>
+                        <div class="sidebar-item">☁️ OneDrive</div>
+                        <div style="height:10px;"></div>
+                        <div class="sidebar-item">💻 Área de Trabalho</div>
+                        <div class="sidebar-item">⬇️ Downloads</div>
+                        <div class="sidebar-item">📄 Documentos</div>
+                        <div class="sidebar-item">🖼️ Imagens</div>
+                        <div class="sidebar-item">🎵 Músicas</div>
+                        <div class="sidebar-item">🎬 Vídeos</div>
+                        <div class="sidebar-item">💽 SPEED</div>
+                    </div>
+                    <div class="file-list">
+                        <div class="file-item"><span class="icon-folder">📁</span> Ajustes no Sped <span class="file-details">06/10/2026 16:46</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> Arquivos para Unificar <span class="file-details">06/10/2026 11:02</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> CONFERÊNCIA CSV <span class="file-details">07/10/2026 08:17</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> Copia do arquivo unificado <span class="file-details">06/10/2026 11:04</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> Planilha Consolidada <span class="file-details">07/10/2026 08:18</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> REGISTROS 1100 E 1500 <span class="file-details">10/03/2026 17:53</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> TELAS DO SPED <span class="file-details">20/12/2021 09:48</span></div>
+                        <div class="file-item selected"><span class="icon-pdf">📕</span> SPED CONSOLIDADO <span class="file-details">07/10/2026 11:15</span></div>
+                        <div class="file-item"><span class="icon-file">📄</span> Sped_PisCofins_Unificado <span class="file-details">06/10/2026 11:02</span></div>
+                        <div class="file-item"><span class="icon-file">🖼️</span> resultado dos erros <span class="file-details">07/10/2026 11:35</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSO 3 -->
+    <div class="step-container">
+        <div class="step-header">3. Exportar o CSV Detalhado</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Após processar os dados no navegador, clique no botão:</p>
+                <p><span class="btn-sim" style="background:#27ae60; padding:8px 15px; border-radius:20px; color:white; font-size:0.9em; font-weight:bold;">📋 Exportar CSV Detalhado</span></p>
+                <p>Salve o arquivo gerado (ex: <code>detalhes_pis_cofins_2026-10-07.csv</code>) e abra-o. Ele será aberto no LibreOffice Calc.</p>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>📊</span>
+                    <span class="window-title">detalhes_pis_cofins_2026-10-07.csv — LibreOffice Calc</span>
+                </div>
+                <div style="padding: 10px; background: #f8f9fa; flex:1; overflow:hidden;">
+                    <div class="excel-grid">
+                        <div class="excel-cell excel-header">A</div>
+                        <div class="excel-cell excel-header">B</div>
+                        <div class="excel-cell excel-header">C</div>
+                        <div class="excel-cell excel-header">D</div>
+                        <div class="excel-cell excel-header">E</div>
+                        
+                        <div class="excel-cell">CNPJ</div>
+                        <div class="excel-cell">Estabelecimento</div>
+                        <div class="excel-cell">CST</div>
+                        <div class="excel-cell">Tipo</div>
+                        <div class="excel-cell">Valor Total</div>
+                        
+                        <div class="excel-cell">20.415.295.0002-70</div>
+                        <div class="excel-cell">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell">1</div>
+                        <div class="excel-cell">1RECEITAS/AIDAS</div>
+                        <div class="excel-cell">9346,78</div>
+
+                        <div class="excel-cell">20.415.295.0002-70</div>
+                        <div class="excel-cell">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell">2</div>
+                        <div class="excel-cell">2RECEITAS/AIDAS</div>
+                        <div class="excel-cell">1181,18</div>
+
+                        <div class="excel-cell">20.415.295.0002-70</div>
+                        <div class="excel-cell">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell">4</div>
+                        <div class="excel-cell">4RECEITAS/AIDAS</div>
+                        <div class="excel-cell">4560028,4</div>
+
+                        <div class="excel-cell">20.415.295.0002-70</div>
+                        <div class="excel-cell">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell">49</div>
+                        <div class="excel-cell">49RECEITAS/AIDAS</div>
+                        <div class="excel-cell">202,9</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSO 4 -->
+    <div class="step-container">
+        <div class="step-header">4. Atualizar a Planilha Consolidada e Colar os Dados</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Abra a planilha <strong>SPEED_X_CONSOLIDADA_2026_manual</strong> em <code>Z:\programas\spedd</code>.</p>
+                <ol>
+                    <li>Vá até a aba <strong>"dados"</strong>.</li>
+                    <li>Selecione todos os campos <strong>APENAS DE VALORES</strong> e <strong>APAGUE-OS</strong>.</li>
+                </ol>
+                <div class="tag-danger" style="display:block; margin: 10px 0; padding: 10px;">
+                    ⚠️ CUIDADO: NÃO APAGUE A SOMA NO FINAL DA PLANILHA!
+                </div>
+                <ol start="3">
+                    <li>Com a planilha <strong>Consolidada</strong> aberta, role até o final.</li>
+                    <li><strong>ATUALIZE</strong> a planilha antes de copiar (pressione F9).</li>
+                    <li>Copie os dados do final, <strong>SOMENTE DOS POSTOS</strong>.</li>
+                    <li>Cole esses dados no local onde você apagou os valores na aba <strong>"dados"</strong>.</li>
+                </ol>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>📊</span>
+                    <span class="window-title">SPEED_X_CONSOLIDADA_2026_manual — LibreOffice Calc</span>
+                </div>
+                <div style="padding: 10px; background: #f8f9fa; flex:1; overflow:hidden;">
+                    <div style="font-size:0.8em; font-weight:bold; margin-bottom:5px; color:#333;">Aba: dados</div>
+                    <div class="excel-grid">
+                        <div class="excel-cell excel-header">A</div>
+                        <div class="excel-cell excel-header">B</div>
+                        <div class="excel-cell excel-header">C</div>
+                        <div class="excel-cell excel-header">D</div>
+                        <div class="excel-cell excel-header">E</div>
+                        
+                        <div class="excel-cell" style="background:#e0e0e0;">CNPJ</div>
+                        <div class="excel-cell" style="background:#e0e0e0;">Estabelecimento</div>
+                        <div class="excel-cell" style="background:#e0e0e0;">CST</div>
+                        <div class="excel-cell" style="background:#e0e0e0;">Tipo</div>
+                        <div class="excel-cell" style="background:#e0e0e0;">Valor Total</div>
+                        
+                        <div class="excel-cell excel-highlight">20.415.295.0002-70</div>
+                        <div class="excel-cell excel-highlight">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell excel-highlight">1</div>
+                        <div class="excel-cell excel-highlight">1RECEITAS/AIDAS</div>
+                        <div class="excel-cell excel-highlight">9346,78</div>
+
+                        <div class="excel-cell excel-highlight">20.415.295.0002-70</div>
+                        <div class="excel-cell excel-highlight">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell excel-highlight">2</div>
+                        <div class="excel-cell excel-highlight">2RECEITAS/AIDAS</div>
+                        <div class="excel-cell excel-highlight">1181,18</div>
+
+                        <div class="excel-cell excel-highlight">20.415.295.0002-70</div>
+                        <div class="excel-cell excel-highlight">REDE DOM PEDRO DE POSTOS LTDA</div>
+                        <div class="excel-cell excel-highlight">4</div>
+                        <div class="excel-cell excel-highlight">4RECEITAS/AIDAS</div>
+                        <div class="excel-cell excel-highlight">4560028,4</div>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.75em; color:#c0392b; font-weight:bold; border:1px dashed #e74c3c; padding:5px; text-align:center;">
+                        ⬆️ Apague APENAS estes valores selecionados (em amarelo). NÃO apague a linha de SOMA abaixo.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSO 5: NOVO PASSO DETALHADO SOBRE OS ERROS -->
+    <div class="step-container" style="border: 2px solid #e74c3c;">
+        <div class="step-header" style="background-color: #e74c3c;">5. Verificação e Conferência Final (Onde estão os erros)</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Vá para a aba <strong>"relatório"</strong> (conforme imagem "RELATÓRIO DE EMPRESAS COM DIFERENÇAS").</p>
+                <p>Aqui você verá onde estão os problemas. A planilha destaca os erros:</p>
+                <ul>
+                    <li><span style="background:#fce4e4; color:#c0392b; padding:2px 5px; border-radius:3px; font-weight:bold;">Células em Vermelho (Negativo):</span> Indicam que o valor da "Total Consolidada" é <strong>menor</strong> que o valor do "Speed". Ex: Cst 02 (-R$ 59.463,07).</li>
+                    <li><span style="background:#d4edda; color:#155724; padding:2px 5px; border-radius:3px; font-weight:bold;">Células em Verde (Positivo):</span> Indicam que o valor da "Total Consolidada" é <strong>maior</strong> que o valor do "Speed". Ex: Cst 53 (R$ 0,01).</li>
+                </ul>
+                <p><strong>Como corrigir:</strong> Os ajustes devem ser feitos na origem, ou seja, nas Notas Fiscais (NF) dos postos específicos que apresentam erro. Por exemplo, no print, o erro do "São Jorge" (Cst 50 e 53) deve ser ajustado diretamente na NF de Compra ou Devolução do São Jorge.</p>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>📊</span>
+                    <span class="window-title">SPEED_X_CONSOLIDADA_2026_manual — Aba: relatório</span>
+                </div>
+                <div style="padding: 10px; background: #f8f9fa; flex:1; overflow:auto; font-size: 0.65em;">
+                    <div style="font-weight:bold; background:#f1c40f; padding:5px; text-align:center; border:1px solid #ccc;">RELATÓRIO DE EMPRESAS COM DIFERENÇAS</div>
+                    <div style="display:grid; grid-template-columns: 30px 1fr 1fr 1fr 1fr 1fr 1fr; gap:1px; background:#ccc; margin-top:5px;">
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Ord</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Empresas / CST</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 01</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 02</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 04</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 49</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 50</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Cst 53</div>
+
+                        <div style="background:#fff; padding:3px;">4</div>
+                        <div style="background:#fff; padding:3px;">Conselheiro Lafaiete/71-87</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-30.764,21</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+
+                        <div style="background:#fff; padding:3px;">8</div>
+                        <div style="background:#fff; padding:3px;">Itaguara/06-89</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-24.511,18</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+
+                        <div style="background:#fff; padding:3px;">15</div>
+                        <div style="background:#fff; padding:3px;">Santa Luzia (Fumaça)/08-40</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-0,01</div>
+                        <div style="background:#fff; padding:3px;"></div>
+
+                        <div style="background:#fff; padding:3px;">16</div>
+                        <div style="background:#fff; padding:3px;">São Cristóvão/90-40</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-4.191,64</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+
+                        <div style="background:#fff; padding:3px;">17</div>
+                        <div style="background:#fff; padding:3px;">São Jorge/60-24</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-5.496,30</div>
+                        <div style="background:#fce4e4; color:#c0392b; padding:3px; font-weight:bold;">-5.496,33</div>
+
+                        <div style="background:#fff; padding:3px;">18</div>
+                        <div style="background:#fff; padding:3px;">Vargem/97-16</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#d4edda; color:#155724; padding:3px; font-weight:bold;">3,96</div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+                        <div style="background:#fff; padding:3px;"></div>
+
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">Total</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">0,00</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">-59.463,07</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">0,00</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">-5.496,29</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">-5.496,33</div>
+                        <div style="background:#e0e0e0; padding:3px; font-weight:bold;">0,01</div>
+                    </div>
+
+                    <div style="margin-top:15px; border: 1px solid #ccc; padding:5px; font-size:0.9em; background:#fff;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; background:#e8f4f8; padding:5px; font-weight:bold; text-align:center;">
+                            <div>CST</div>
+                            <div>SPED</div>
+                            <div>DIFERENÇA</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; padding:2px; text-align:center;">
+                            <div>CST 01</div>
+                            <div>4.845.287,80</div>
+                            <div>0,00</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; padding:2px; background:#fce4e4; text-align:center;">
+                            <div>CST 02</div>
+                            <div>295.424,26</div>
+                            <div style="color:#c0392b; font-weight:bold;">-59.463,07</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; padding:2px; text-align:center;">
+                            <div>CST 04</div>
+                            <div>320.673.284,02</div>
+                            <div>0,00</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; padding:2px; background:#fce4e4; text-align:center;">
+                            <div>CST 49</div>
+                            <div>49.569,14</div>
+                            <div style="color:#c0392b; font-weight:bold;">-5.496,29</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSO 6: ONDE ESTÁ O VÍDEO -->
+    <div class="step-container" style="border: 2px solid #f1c40f;">
+        <div class="step-header" style="background-color: #f1c40f; color: #333;">6. Onde encontrar o Vídeo de Ajuda</div>
+        <div class="step-content">
+            <div class="step-text">
+                <p>Se você tiver dúvidas sobre como corrigir as diferenças ou realizar algum passo, assista ao vídeo tutorial.</p>
+                <p>O arquivo de vídeo está salvo na mesma pasta dos programas, no seguinte caminho:</p>
+                <div class="window-address-bar" style="margin: 10px 0; background: #fff3cd; border-color: #ffc107;">
+                    Z:\programas\spedd
+                </div>
+                <p>Procure pelo arquivo de vídeo dentro desta pasta. Ele contém a explicação detalhada de todo o processo.</p>
+            </div>
+            <div class="window-sim">
+                <div class="window-header">
+                    <span>🎥</span>
+                    <span class="window-title">Z:\programas\spedd</span>
+                </div>
+                <div class="window-body" style="height: auto; min-height: 200px;">
+                    <div class="file-list" style="padding: 20px;">
+                        <div class="file-item"><span class="icon-folder">📁</span> AP <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> 102_ok <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> busca <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> capames <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> config <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> cst <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> erros <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> index4 <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> pedro <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-folder">📁</span> speed_localizador <span class="file-details">Pasta de arquivos</span></div>
+                        <div class="file-item"><span class="icon-excel">📊</span> SPEED_X_CONSOLIDADA_2025 <span class="file-details">Documento do Excel</span></div>
+                        <div class="file-item"><span class="icon-excel">📊</span> SPEED_X_CONSOLIDADA_2026_automatico <span class="file-details">Documento do Excel</span></div>
+                        <div class="file-item selected"><span class="icon-excel">📊</span> SPEED_X_CONSOLIDADA_2026_manual - Copia <span class="file-details">Documento do Excel</span></div>
+                        <div class="file-item"><span class="icon-excel">📊</span> SPEED_X_CONSOLIDADA_2026_manual <span class="file-details">Documento do Excel</span></div>
+                        <div class="file-item"><span class="icon-pdf">📕</span> Spped_PDF2 <span class="file-details">Documento PDF</span></div>
+                        <div class="file-item" style="background: #fff3cd; border: 1px solid #ffc107;"><span>🎥</span> <strong>Video_Ajuda_SPEDD.mp4</strong> <span class="file-details">Arquivo de Vídeo</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; font-size: 0.9em; color: #7f8c8d; border-top: 1px solid #ddd; padding-top: 20px;">
+        <p>Guia visual gerado para facilitar a rotina operacional. Máquina: WALDECI.</p>
+        <p>Mantenha este arquivo acessível para consultas rápidas.</p>
+    </div>
+
+</body>
+</html>
