@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -35,7 +36,7 @@ th:first-child,td:first-child,td.l,th.l{text-align:left}
 th{background:var(--bg);color:var(--muted);font-size:11px;text-transform:none;font-weight:700}
 tr.err td{background:var(--badbg);color:var(--bad);font-weight:700}tr.ok td{background:var(--okbg)}tr.ign td{color:var(--muted)}
 .tag{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700}
-.tag.ok{background:var(--okbg);color:var(--ok)}.tag.warn{background:var(--warnbg);color:var(--warn)}
+.tag.bad{background:var(--badbg);color:var(--bad)}.tag.ok{background:var(--okbg);color:var(--ok)}.tag.warn{background:var(--warnbg);color:var(--warn)}
 .swap{display:flex;align-items:center;gap:8px;font-weight:700}
 .cf{padding:3px 9px;border-radius:6px;border:1.5px solid var(--border)}.cf.de{border-color:var(--bad);color:var(--bad)}.cf.para{border-color:var(--ok);color:var(--ok)}
 .dest label{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer}
@@ -123,7 +124,7 @@ th .ic{margin-right:6px}
       <div id="trocas"></div>
     </div>
     <div class="card">
-      <h2>Itens com CFOP divergente (planilha Apuração Prodac × DP × PRODAC)</h2>
+      <h2>Análise linha a linha — quem resolve (planilha Apuração Prodac × DP × PRODAC)</h2>
       <div id="divs"></div>
     </div>
     <div class="card">
@@ -235,8 +236,8 @@ function lerPlanilha(ev){
       const h=raw[hi].map(c=>String(c).trim());
       const ix=re=>h.findIndex(c=>re.test(c));
       const iN=ix(/N.*mero Nota/i),iC=ix(/^CFOP$/),iD=ix(/Descri/i),iV=ix(/Valor L.quido/i),iI=ix(/N.*mero Item/i);
-      const iNcm=ix(/^NCM$/);
-      xls=raw.slice(hi+1).filter(r=>r[iC]!==''&&r[iC]!=null).map(r=>({nf:nfKey(r[iN]),nfRaw:String(r[iN]).trim().replace(/^0+/,''),cfop:normCfop(r[iC]),desc:r[iD],valor:toNum(r[iV]),item:r[iI],ncm:iNcm>=0?r[iNcm]:''}));
+      const iNcm=ix(/^NCM$/),iS=ix(/^S\.T\.$/);
+      xls=raw.slice(hi+1).filter(r=>r[iC]!==''&&r[iC]!=null).map(r=>({nf:nfKey(r[iN]),nfRaw:String(r[iN]).trim().replace(/^0+/,''),cfop:normCfop(r[iC]),desc:r[iD],valor:toNum(r[iV]),item:r[iI],ncm:iNcm>=0?r[iNcm]:'',cst:iS>=0?String(r[iS]).trim():''}));
       $('msgXls').innerHTML=`<div class="msg ok">Aba <b>${esc(nome)}</b>: ${xls.length} itens lidos.</div>`;
       if($('paste').value.trim())analisar();
     }catch(err){
@@ -297,7 +298,7 @@ function inferirDoXls(e,dest,alvo){
     const k=x.nf+'|'+cents(x.valor);
     if(pool[k]>0){pool[k]--;return}      /* o DP já lançou esse item em outro CFOP */
     if(nfs&&!nfs.has(x.nf))return;        /* só notas que aparecem no CFOP de destino */
-    cand.push({nf:x.nf,nfRaw:x.nfRaw||x.nf,emitente:emit[x.nf]||'',desc:x.desc,valor:x.valor,ncm:x.ncm||'',cfop:e.cfop,inferido:true});
+    cand.push({nf:x.nf,nfRaw:x.nfRaw||x.nf,emitente:emit[x.nf]||'',desc:x.desc,valor:x.valor,ncm:x.ncm||'',cfop:e.cfop,cst:x.cst||'',inferido:true});
   });
   return combos(cand,alvo);
 }
@@ -387,6 +388,7 @@ function renderCfop(){
   $('noteA').innerHTML=`Muda só no <b>DP</b>: ${esc(mv)}. O CFOP que está certo (PRODAC) não é mexido; o que estava errado cede o valor e o outro apenas recebe. ${ok(A)?'Todos os CFOPs batem.':'Ainda há diferença.'}`;
 }
 /* itens da planilha x colado (DP) x PRODAC */
+let regraCst={};
 function divergencias(){
   if(!xls.length)return [];
   xls.forEach(x=>x.u=false);
@@ -399,21 +401,37 @@ function divergencias(){
     const m=l.find(x=>normDesc(x.desc)===d)||l.find(x=>x.cfop===it.cfop)||l[0];
     if(!m)return;m.u=true;
     const corr=alvo.get(it)||it.cfop;
-    if(m.cfop!==corr||it.cfop!==corr)out.push({it,plan:m.cfop,dp:it.cfop,corr});
+    if(m.cfop!==corr||it.cfop!==corr)out.push({it,plan:m.cfop,dp:it.cfop,corr,plCst:m.cst||'',dpCst:it.cst||''});
   });
-  trocas.filter(t=>t.inferido).forEach(t=>t.itens.forEach(i=>out.push({it:i,plan:i.cfop,dp:t.de,corr:t.para})));
+  trocas.filter(t=>t.inferido).forEach(t=>t.itens.forEach(i=>out.push({it:i,plan:i.cfop,dp:t.de,corr:t.para,plCst:i.cst||'',dpCst:''})));
+  /* regra CST -> CFOP aprendida só dos itens que o DP já lançou certo */
+  const cm={};
+  Object.values(blocos).flat().forEach(i=>{if(alvo.has(i)||!i.cst)return;(cm[i.cst]=cm[i.cst]||new Set()).add(i.cfop)});
+  regraCst={};Object.keys(cm).sort().forEach(k=>regraCst[k]=[...cm[k]].sort());
+  out.forEach(x=>{
+    const ref=x.plCst||x.dpCst,exp=ref&&regraCst[ref]&&regraCst[ref].length===1?regraCst[ref][0]:null;
+    const cstDif=x.plCst&&x.dpCst&&x.plCst!==x.dpCst;
+    if(x.dp===x.corr){
+      x.quem='—';
+      x.motivo=`DP e PRODAC já estão no CFOP ${x.corr}. A planilha de origem lançou a nota inteira no CFOP ${x.plan}.`+(cstDif?` CST difere (planilha ${x.plCst} × DP ${x.dpCst}): vale conferir no XML da nota, mas não altera a apuração.`:'');
+    }else if(exp&&exp===x.dp&&exp!==x.corr){
+      x.quem='PRODAC';
+      x.motivo=`Pela regra CST ${ref} → CFOP ${exp}, o DP está certo (${x.dp}); o PRODAC está em ${x.corr}.`;
+    }else{
+      x.quem='DP';
+      x.motivo=`DP lançou em ${x.dp}${x.dpCst?' (CST '+x.dpCst+')':''}; PRODAC em ${x.corr}.`+(exp===x.corr?` Pela regra, CST ${ref} → CFOP ${exp}.`:'')+(cstDif?` O CST na planilha é ${x.plCst}: corrigir também o CST no DP.`:'');
+    }
+  });
   return out;
 }
 const ICON_XLS='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="2" width="18" height="20" rx="3" fill="#1d6f42"/><path d="M8 7.5l8 9M16 7.5l-8 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>';
 const ICON_DP='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="18.5" rx="3.2" fill="#10325e" stroke="#8fb0e6" stroke-width=".8"/><rect x="8.3" y="1.6" width="7.4" height="4.2" rx="1.6" fill="#10325e" stroke="#8fb0e6" stroke-width=".8"/><circle cx="8.4" cy="10.8" r="1.1" fill="#fff"/><rect x="11" y="9.9" width="6" height="1.9" rx=".95" fill="#fff"/><circle cx="8.4" cy="14.6" r="1.1" fill="#fff"/><rect x="11" y="13.7" width="6" height="1.9" rx=".95" fill="#fff"/><circle cx="8.4" cy="18.4" r="1.1" fill="#fff"/><rect x="11" y="17.5" width="6" height="1.9" rx=".95" fill="#fff"/></svg>';
-function divTable(lista){
+function quemTag(q){return q==='DP'?'<span class="tag bad">DP corrige</span>':q==='PRODAC'?'<span class="tag warn">PRODAC corrige</span>':'<span class="tag ok">Ninguém — já bate</span>'}
+function divTable(lista,curto){
   lista=lista||divs;
-  let h='<div class="tw"><table><thead><tr><th>NF</th><th class="l">Item</th><th>Valor</th><th>'+ICON_XLS+'Planilha (Apuração Prodac)</th><th>'+ICON_DP+'DP (colado)</th><th>Correto (PRODAC)</th><th class="l">Ajuste</th></tr></thead><tbody>';
+  let h='<div class="tw"><table><thead><tr><th>NF</th><th class="l">Item</th><th>Valor</th><th>'+ICON_XLS+'Planilha<div class="det">CFOP · CST</div></th><th>'+ICON_DP+'DP (colado)<div class="det">CFOP · CST</div></th><th>PRODAC<div class="det">CFOP</div></th><th>Quem resolve</th>'+(curto?'':'<th class="l">Por quê</th>')+'</tr></thead><tbody>';
   lista.forEach(x=>{
-    const a=[];
-    if(x.plan!==x.corr)a.push(`Planilha: ${x.plan} → ${x.corr}`);
-    if(x.dp!==x.corr)a.push(`DP: ${x.dp} → ${x.corr}`);
-    h+=`<tr><td>${esc(x.it.nfRaw)}</td><td class="l">${esc(x.it.desc)}</td><td>${fmt(x.it.valor)}</td><td><span class="cf ${x.plan!==x.corr?'de':'para'}">${x.plan}</span></td><td><span class="cf ${x.dp!==x.corr?'de':'para'}">${x.dp}</span></td><td><span class="cf para">${x.corr}</span></td><td class="l">${esc(a.join(' · '))}</td></tr>`;
+    h+=`<tr><td>${esc(x.it.nfRaw)}</td><td class="l">${esc(x.it.desc)}</td><td>${fmt(x.it.valor)}</td><td><span class="cf ${x.plan!==x.corr?'de':'para'}">${x.plan}</span> <span class="det">${esc(x.plCst||'—')}</span></td><td><span class="cf ${x.dp!==x.corr?'de':'para'}">${x.dp}</span> <span class="det">${esc(x.dpCst||'—')}</span></td><td><span class="cf para">${x.corr}</span></td><td>${quemTag(x.quem)}</td>${curto?'':`<td class="l" style="min-width:260px;white-space:normal">${esc(x.motivo)}</td>`}</tr>`;
   });
   return h+'</tbody></table></div>';
 }
@@ -421,20 +439,29 @@ function renderDiv(){
   const el=$('divs');
   if(!xls.length){el.innerHTML='<div class="msg warn">Importe a planilha de Apuração de Entrada (card 2) para listar os itens com CFOP divergente item a item.</div>';return}
   if(!divs.length){el.innerHTML='<div class="msg ok">Nenhum item com CFOP divergente entre planilha, DP e PRODAC.</div>';return}
-  const dpl=divs.filter(x=>x.dp!==x.corr),so=divs.filter(x=>x.dp===x.corr&&x.plan!==x.corr);
-  let h='';
-  if(dpl.length)h+=`<div class="msg warn" style="font-size:14px"><b>${dpl.length} item(ns) a ajustar no DP</b> — R$ ${fmt(r2(dpl.reduce((a,x)=>a+x.it.valor,0)))}</div>`+divTable(dpl);
-  else h+='<div class="msg ok">Nenhum item para ajustar no DP.</div>';
-  if(so.length)h+=`<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">${so.length} item(ns) só diferem na planilha de Apuração (R$ ${fmt(r2(so.reduce((a,x)=>a+x.it.valor,0)))}) — o DP já está correto, nada a fazer no DP</summary><div class="det" style="margin:6px 0">Na planilha esses itens estão no CFOP ${[...new Set(so.map(x=>x.plan))].join('/')}, mas o DP já os lançou no CFOP ${[...new Set(so.map(x=>x.corr))].join('/')} e bate com o PRODAC. Não fazem parte do ajuste e não vão no e-mail.</div>${divTable(so)}</details>`;
+  const dpl=divs.filter(x=>x.quem==='DP'),prl=divs.filter(x=>x.quem==='PRODAC'),so=divs.filter(x=>x.quem==='—');
+  const vt=l=>fmt(r2(l.reduce((a,x)=>a+x.it.valor,0)));
+  const dif=linhas.filter(l=>l.err&&l.d>0).reduce((a,l)=>a+l.d,0);
+  const pl=n=>n>1?'ns':'';
+  let resp=`<b>Resposta:</b> a apuração (PRODAC × DP) diverge só em <b>R$ ${fmt(r2(dif))}</b>. `;
+  if(dpl.length)resp+=`Quem resolve é o <b>DP</b>: ${dpl.length} item${pl(dpl.length)} (R$ ${vt(dpl)}). `;
+  if(prl.length)resp+=`Quem resolve é o <b>PRODAC</b>: ${prl.length} item${pl(prl.length)} (R$ ${vt(prl)}). `;
+  if(so.length)resp+=`Os outros <b>${so.length} itens (R$ ${vt(so)}) não são divergência da apuração</b>: DP e PRODAC já estão iguais; eles só aparecem porque a planilha de origem lançou a nota toda no CFOP da nota (${[...new Set(so.map(x=>x.plan))].join('/')}), qualquer que seja o CST.`;
+  let h=`<div class="msg warn" style="font-size:14px;line-height:1.55">${resp}</div>`;
+  const rg=Object.keys(regraCst).map(k=>`CST ${k} → CFOP ${regraCst[k].join('/')}`).join(' · ');
+  if(rg)h+=`<div class="det" style="margin:8px 0">Regra lida dos itens que o DP já lançou certo (o CFOP da escrituração depende do CFOP da nota + CST): ${rg}.</div>`;
+  h+=divTable(dpl.concat(prl,so));
   const g={};divs.filter(x=>x.plan!==x.corr).forEach(x=>{const k=x.plan+'>'+x.corr;(g[k]=g[k]||{de:x.plan,para:x.corr,n:0,v:0});g[k].n++;g[k].v=r2(g[k].v+x.it.valor)});
   const soma=c=>r2(xls.filter(x=>x.cfop===c).reduce((s,x)=>s+x.valor,0));
+  let conf='';
   Object.values(g).forEach(q=>{
     const pDe=tabela[q.de]&&tabela[q.de].pro,pPara=tabela[q.para]&&tabela[q.para].pro;
     const fr=r2((blocos[q.para]||[]).reduce((s,i)=>s+(i.frete||0)-(i.vdesc||0),0));
     const e1=r2(soma(q.de)-q.v),e2=r2(soma(q.para)+q.v+fr);
-    h+=`<div class="msg ${pDe!=null&&cents(e1)===cents(pDe)?'ok':'warn'}">Origem ${q.de}: planilha R$ ${fmt(soma(q.de))} − ${q.n} item(ns) R$ ${fmt(q.v)} = R$ ${fmt(e1)} · PRODAC R$ ${fmt(pDe)}</div>`;
-    h+=`<div class="msg ${pPara!=null&&cents(e2)===cents(pPara)?'ok':'warn'}">Destino ${q.para}: planilha R$ ${fmt(soma(q.para))} + R$ ${fmt(q.v)} + frete − desconto R$ ${fmt(fr)} = R$ ${fmt(e2)} · PRODAC R$ ${fmt(pPara)}</div>`;
+    conf+=`<div class="msg ${pDe!=null&&cents(e1)===cents(pDe)?'ok':'warn'}">Origem ${q.de}: planilha R$ ${fmt(soma(q.de))} − ${q.n} item(ns) R$ ${fmt(q.v)} = R$ ${fmt(e1)} · PRODAC R$ ${fmt(pDe)}</div>`;
+    conf+=`<div class="msg ${pPara!=null&&cents(e2)===cents(pPara)?'ok':'warn'}">Destino ${q.para}: planilha R$ ${fmt(soma(q.para))} + R$ ${fmt(q.v)} + frete − desconto R$ ${fmt(fr)} = R$ ${fmt(e2)} · PRODAC R$ ${fmt(pPara)}</div>`;
   });
+  h+=`<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">Conferência de valores (planilha × PRODAC)</summary>${conf}<div class="det">Mostra que PRODAC já considera todos esses itens no CFOP de destino — por isso o único resíduo entre PRODAC e DP é o item do DP.</div></details>`;
   el.innerHTML=h;
 }
 
@@ -473,8 +500,8 @@ async function gerarImagens(){
   if(!linhas.length){if(msg)msg.innerHTML='<div class="msg warn">Faça a análise primeiro (card 1).</div>';return}
   if(typeof html2canvas==='undefined'){alert('Biblioteca de imagem não carregou (precisa de internet). Recarregue a página e tente de novo.');return}
   const partes=[{t:'Confronto por CFOP (PRODAC × DP)',h:repHtml()}];
-  const dplImg=divs.filter(x=>x.dp!==x.corr);
-  if(dplImg.length)partes.push({t:'Itens a ajustar no DP',h:divTable(dplImg)});
+  const dplImg=divs.filter(x=>x.quem!=='—');
+  if(dplImg.length)partes.push({t:'Itens a ajustar',h:divTable(dplImg,true)});
   else if(trocas.length)partes.push({t:'Itens com CFOP trocado',h:trocasTable()});
   const host=$('shotHost');
   host.innerHTML=partes.map((x,i)=>`<div class="shotpad rep" id="shot${i}" style="width:${i?'max-content':'920px'};max-width:none">${i?`<div class="rp-tit">${esc(x.t)} — ${esc(meta.emp||'')}${meta.mes?' · '+esc(meta.mes):''}</div>`:''}${x.h}</div>`).join('');
@@ -505,6 +532,7 @@ function baixarImg(i){
 }
 
 /* ---------- e-mail ---------- */
+function cstPlan(it){const l=xls.filter(x=>x.nf===it.nf&&cents(x.valor)===cents(it.valor));const m=l.find(x=>normDesc(x.desc)===normDesc(it.desc))||l[0];return m?m.cst||'':''}
 function montarEmail(){
   if(!linhas.length)return;
   const cab=[meta.emp,meta.cnpj&&'CNPJ '+meta.cnpj,meta.mes&&'Período '+meta.mes].filter(Boolean).join(' · ');
@@ -515,7 +543,9 @@ function montarEmail(){
     L.push('Item(ns) com CFOP trocado:');
     trocas.forEach(t=>t.itens.forEach(it=>{
       L.push(`• NF ${it.nfRaw} — ${it.emitente} — ${it.desc} — R$ ${fmt(it.valor)}`);
-      L.push(`  Lançado no DP: CFOP ${t.de} | Correto (PRODAC): CFOP ${t.para}`);
+      const plc=it.inferido?it.cst:cstPlan(it),dpc=it.inferido?'':(it.cst||'');
+      L.push(`  Lançado no DP: CFOP ${t.de}${dpc?' (CST '+dpc+')':''} | Correto (PRODAC): CFOP ${t.para}${plc?' (CST '+plc+' na planilha)':''}`);
+      if(plc&&dpc&&plc!==dpc)L.push(`  Ajustar também o CST: ${dpc} → ${plc}.`);
     }));
     L.push('');
   }
