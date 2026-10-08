@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPED Fiscal — Apuração ICMS · Waldeci Ramos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4f9; --surface: #ffffff; --surface2: #f5f7fb; --surface3: #eef2f8;
+  --border: #dde3ed; --border2: #c4cede;
+  --accent: #1a4db7; --accent-light: #e8f0fe; --accent2: #0a3a9c;
+  --green: #157a4a; --green-light: #e6f5ee;
+  --red: #c5212f; --red-light: #fdeaea;
+  --orange: #c46a00; --orange-light: #fff4e0;
+  --gold: #9a7000; --gold-light: #fef9e2;
+  --text: #1a2233; --text2: #3d4f6a; --text3: #7a8fa8;
+  --shadow: 0 2px 10px rgba(0,0,0,0.06);
+  --radius: 14px; --radius-sm: 9px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; user-select: none; }
+
+.topbar { background: linear-gradient(90deg, #0f1e3a 0%, #1a3468 100%); padding: 0 28px; display: flex; align-items: center; gap: 16px; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 14px rgba(0,0,0,0.22); }
+.topbar-fuel { font-size: 1.6rem; filter: drop-shadow(0 0 6px rgba(255,200,50,0.4)); }
+.topbar-brand { display: flex; flex-direction: column; }
+.topbar-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; letter-spacing: -0.3px; line-height: 1.1; }
+.topbar-sub { font-size: 0.62rem; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.3px; }
+.tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.13); }
+.topbar-badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); font-size: 0.62rem; font-weight: 700; padding: 3px 11px; border-radius: 20px; letter-spacing: 0.8px; }
+.topbar-posto { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; }
+.topbar-posto-nome { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; color: #fff; }
+.topbar-posto-sub { font-size: 0.65rem; color: rgba(255,255,255,0.45); font-family: 'DM Mono', monospace; }
+.topbar-credit { font-size: 0.6rem; color: rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.1); padding-left: 14px; line-height: 1.6; text-align: right; }
+
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: calc(100vh - 60px - 38px); }
+
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.sb-title { font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 800; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+
+.uf-selector { display: flex; flex-direction: column; gap: 8px; }
+.uf-selector label { font-size: 0.62rem; font-weight: 800; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; }
+.uf-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.uf-btn { padding: 10px 6px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.8rem; color: var(--text3); cursor: pointer; transition: all 0.18s; text-align: center; }
+.uf-btn:hover { border-color: var(--accent); color: var(--accent); }
+.uf-btn.active { background: linear-gradient(135deg, #1a3468, #1e4db7); color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(26,77,183,0.3); }
+.uf-btn.active[data-uf="SP"] { background: linear-gradient(135deg, #8a1a1a, #b71a1a); box-shadow: 0 3px 10px rgba(183,26,26,0.3); }
+.uf-btn.active[data-uf="BA"] { background: linear-gradient(135deg, #b76a1a, #d4882a); box-shadow: 0 3px 10px rgba(183,106,26,0.3); }
+.uf-btn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.uf-hint { font-size: 0.62rem; color: var(--text3); background: var(--surface2); border-left: 3px solid var(--accent); padding: 6px 9px; border-radius: 5px; line-height: 1.5; }
+
+.drop-zone { border: 2px dashed var(--border2); border-radius: var(--radius); padding: 22px 14px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--surface2); }
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drop-zone .dz-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.drop-zone h3 { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.drop-zone p { font-size: 0.68rem; color: var(--text2); line-height: 1.5; }
+.drop-zone input { display: none; }
+
+.file-chip { display: none; align-items: center; gap: 8px; background: var(--accent-light); border: 1px solid rgba(26,77,183,0.2); border-radius: var(--radius-sm); padding: 8px 11px; }
+.file-chip .fc-name { font-size: 0.7rem; font-family: 'DM Mono', monospace; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip .fc-x { cursor: pointer; color: var(--text3); font-size: 0.9rem; transition: color 0.15s; }
+.file-chip .fc-x:hover { color: var(--red); }
+
+.btn-process { width: 100%; padding: 12px; background: linear-gradient(135deg, #1a3468, #1e4db7); color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 3px 12px rgba(26,77,183,0.25); }
+.btn-process:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-process:disabled { background: var(--border2); color: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+.status-bar { display: flex; align-items: flex-start; gap: 8px; padding: 9px 11px; background: var(--surface2); border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.7rem; color: var(--text2); line-height: 1.5; }
+.sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; margin-top: 4px; }
+.sdot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(21,122,74,0.12); }
+.sdot.err { background: var(--red); box-shadow: 0 0 0 3px rgba(197,33,47,0.12); }
+.sdot.spin { background: var(--orange); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.val-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; display: none; }
+.vchip { border-radius: 8px; padding: 8px 10px; border: 1px solid var(--border); background: var(--surface2); }
+.vchip label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); display: block; margin-bottom: 3px; }
+.vchip span { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 700; }
+.vchip.red { background: var(--red-light); border-color: rgba(197,33,47,0.18); }
+.vchip.red span { color: var(--red); }
+.vchip.green { background: var(--green-light); border-color: rgba(21,122,74,0.18); }
+.vchip.green span { color: var(--green); }
+.vchip.blue { background: var(--accent-light); border-color: rgba(26,77,183,0.18); }
+.vchip.blue span { color: var(--accent); }
+.vchip.gold { background: var(--gold-light); border-color: rgba(154,112,0,0.18); }
+.vchip.gold span { color: var(--gold); }
+
+.btn-sm { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 0.7rem; font-weight: 600; transition: all 0.14s; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+.main { padding: 22px 26px; overflow-y: auto; background: var(--bg); }
+
+.contrib-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; margin-bottom: 20px; display: grid; grid-template-columns: auto 1fr auto auto; gap: 18px; align-items: center; box-shadow: var(--shadow); }
+.contrib-ico { font-size: 2rem; }
+.cc-f label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); font-weight: 800; display: block; margin-bottom: 3px; }
+.cc-nome { font-family: 'Syne', sans-serif; font-size: 0.98rem; font-weight: 800; color: var(--text); }
+.cc-f span { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text2); }
+.period-pill { display: inline-block; background: var(--gold-light); border: 1px solid rgba(154,112,0,0.22); color: var(--gold); font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700; padding: 3px 11px; border-radius: 20px; }
+.uf-box { padding: 7px 16px; border-radius: 9px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; background: linear-gradient(135deg, #1a3468, #1e4db7); color: #fff; text-align: center; box-shadow: 0 2px 10px rgba(26,77,183,0.28); min-width: 60px; }
+.uf-box.sp { background: linear-gradient(135deg, #b71a1a, #d42a2a); }
+.uf-box.ba { background: linear-gradient(135deg, #b76a1a, #d4882a); }
+
+.sec-lbl { font-family: 'Syne', sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* TELA DE CONFERÊNCIA E110 (MESMA ORDEM E NOMES DO PVA) */
+.e110-conferencia {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 26px;
+  box-shadow: var(--shadow);
+}
+.e110-conf-hdr {
+  background: linear-gradient(90deg, #0f1e3a, #1a3468);
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.e110-conf-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.e110-conf-htag { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.e110-conf-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.38); }
+
+.e110-conf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.e110-conf-table th {
+  background: var(--surface2);
+  color: var(--text2);
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+.e110-conf-table th:last-child {
+  text-align: right;
+  width: 240px;
+}
+.cpbtn {
+  margin-left: 10px; padding: 3px 9px; border: 1px solid var(--border2); border-radius: 6px;
+  background: var(--surface2); color: var(--text2); font-size: 0.68rem; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; cursor: pointer; vertical-align: middle; transition: all .15s;
+}
+.cpbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cpbtn.ok { background: #157a4a; color: #fff; border-color: #157a4a; }
+.cpval { cursor: pointer; }
+.e110-conf-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.e110-conf-table td:last-child {
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+.e110-conf-table tr:hover td {
+  background: var(--surface2);
+}
+.e110-conf-table .row-calc td {
+  background: #fff7e0;
+  color: #8a6000;
+  font-weight: 700;
+}
+.e110-conf-table .row-calc td:last-child {
+  color: #8a6000;
+  font-weight: 800;
+}
+.e110-conf-table .row-debito td:last-child {
+  color: var(--red);
+}
+.e110-conf-table .row-credito td:last-child {
+  color: var(--green);
+}
+.e110-conf-table .row-recolher td:last-child {
+  color: var(--red);
+  font-weight: 800;
+}
+.e110-conf-table .row-saldo-credor td:last-child {
+  color: var(--accent);
+  font-weight: 800;
+}
+.e110-conf-table td.orig { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--text3); font-weight: 400; }
+.e110-conf-table th.orig { width: 270px; }
+
+.e111-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 26px; box-shadow: var(--shadow); }
+.e111-hdr { background: linear-gradient(90deg, #6a0f0f, #b71a1a); padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+.e111-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.e111-htag { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.85); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.e111-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.45); }
+
+.e111-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
+.e111-cod { width: 110px; padding: 12px 10px; font-family: 'DM Mono', monospace; font-weight: 700; font-size: 0.75rem; color: #fff; background: #b71a1a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; letter-spacing: 0.5px; }
+.e111-cod.cred { background: var(--green); }
+.e111-cod.deb { background: var(--red); }
+.e111-info { flex: 1; padding: 11px 16px; }
+.e111-info .tit { font-size: 0.78rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.e111-info .desc { font-size: 0.68rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+.e111-val { width: 200px; padding: 11px 12px; border-left: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; }
+.e111-inp { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px; font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--text); text-align: right; }
+.e111-inp.deb { background: var(--red-light); border-color: rgba(197,33,47,0.22); color: var(--red); }
+.e111-inp.cred { background: var(--green-light); border-color: rgba(21,122,74,0.22); color: var(--green); }
+
+.e116-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 26px; box-shadow: var(--shadow); }
+.e116-hdr { background: linear-gradient(90deg, #0f2a4a, #1a4d8a); padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+.e116-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.e116-htag { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.85); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.e116-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.45); }
+
+.no-data { text-align: center; padding: 60px 20px; }
+.no-data .nd-ico { font-size: 4rem; margin-bottom: 14px; display: block; opacity: 0.65; }
+.no-data h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 8px; color: var(--text2); font-size: 1.05rem; }
+.no-data p { font-size: 0.8rem; line-height: 1.7; color: var(--text3); }
+
+.debug-c { background: #1a2233; border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; margin-top: 16px; display: none; max-height: 260px; overflow-y: auto; }
+.debug-c pre { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: #6688aa; white-space: pre-wrap; line-height: 1.7; }
+
+.footer { background: var(--surface); border-top: 1px solid var(--border); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 0.63rem; color: var(--text3); }
+.footer strong { color: var(--text2); }
+.footer-ico { font-size: 1rem; }
+
+.fade-in { animation: fi 0.3s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ============================================================
+   MELHORIAS DE DESIGN (acabamento geral)
+   ============================================================ */
+body { background: radial-gradient(1200px 500px at 85% -10%, #e3ecfb 0%, transparent 60%), var(--bg); }
+html { scroll-behavior: smooth; }
+.contrib-card, .e110-conferencia, .e111-card, .e116-card { transition: box-shadow .2s, transform .2s; }
+.contrib-card:hover, .e110-conferencia:hover, .e111-card:hover, .e116-card:hover { box-shadow: 0 6px 22px rgba(15,30,58,0.10); }
+.contrib-card { border-left: 5px solid var(--accent); }
+.e110-conf-table tbody tr:nth-child(even) td:not(.orig) { background-image: linear-gradient(rgba(26,77,183,0.015), rgba(26,77,183,0.015)); }
+.btn-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.btn-sm:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(26,77,183,0.14); }
+.btn-side-cod { width: 100%; padding: 10px 12px; border: 1px solid rgba(154,112,0,0.28); border-radius: var(--radius-sm); background: linear-gradient(135deg, #fffbe9, #fef3c4); color: var(--gold); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .18s; }
+.btn-side-cod:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(154,112,0,0.2); }
+
+/* ============================================================
+   TABELA DE CÓDIGOS DE AJUSTE (caderno)
+   ============================================================ */
+.cod-sec { margin-top: 10px; margin-bottom: 26px; scroll-margin-top: 76px; }
+.cod-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.cod-hdr { background: linear-gradient(90deg, #3a2a08, #8a6410 70%, #b8860b); padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cod-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.98rem; color: #fff; }
+.cod-htag { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.24); color: rgba(255,255,255,0.9); font-size: 0.62rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; }
+.cod-hsub { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.55); }
+.cod-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.cod-chip { padding: 6px 14px; border: 1px solid var(--border2); border-radius: 20px; background: var(--surface); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.7rem; color: var(--text3); cursor: pointer; transition: all .15s; letter-spacing: 0.4px; }
+.cod-chip:hover { border-color: var(--accent); color: var(--accent); }
+.cod-chip.active { background: linear-gradient(135deg, #1a3468, #1e4db7); border-color: transparent; color: #fff; box-shadow: 0 2px 8px rgba(26,77,183,0.25); }
+.cod-chip.active[data-f="SP"] { background: linear-gradient(135deg, #8a1a1a, #b71a1a); box-shadow: 0 2px 8px rgba(183,26,26,0.25); }
+.cod-search { flex: 1; min-width: 180px; max-width: 320px; margin-left: auto; border: 1px solid var(--border2); border-radius: 20px; padding: 7px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: var(--text); background: var(--surface); user-select: text; outline: none; transition: border-color .15s, box-shadow .15s; }
+.cod-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,77,183,0.12); }
+.cod-count { font-size: 0.66rem; color: var(--text3); font-family: 'DM Mono', monospace; padding-left: 6px; }
+.cod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; padding: 16px 20px 18px; }
+.cod-card { --c: var(--text3); --cl: var(--surface3); position: relative; background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--c); border-radius: 11px; padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 8px; transition: transform .16s, box-shadow .16s, border-color .16s; animation: fi .25s ease both; }
+.cod-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,30,58,0.10); border-color: var(--c); }
+.cod-card.t-debito  { --c: var(--red);    --cl: var(--red-light); }
+.cod-card.t-credito { --c: var(--green);  --cl: var(--green-light); }
+.cod-card.t-estorno { --c: var(--orange); --cl: var(--orange-light); }
+.cod-card.t-item    { --c: var(--accent); --cl: var(--accent-light); }
+.cod-card.t-reg     { --c: var(--gold);   --cl: var(--gold-light); }
+.cod-card.t-ciap    { --c: #6b3fb5;       --cl: #f1eafc; }
+.cod-card.t-generico{ --c: var(--text3);  --cl: var(--surface3); }
+.cod-top { display: flex; align-items: center; gap: 8px; }
+.cod-code { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 1.02rem; letter-spacing: 0.6px; color: var(--c); background: var(--cl); padding: 3px 10px; border-radius: 7px; user-select: text; }
+.cod-uf { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.6rem; padding: 3px 8px; border-radius: 12px; color: #fff; letter-spacing: 0.8px; background: #1a3468; }
+.cod-uf.SP { background: #b71a1a; }
+.cod-uf.BA { background: #c9822a; }
+.cod-copy { margin-left: auto; }
+.cod-name { font-size: 0.8rem; font-weight: 600; color: var(--text); line-height: 1.5; user-select: text; }
+.cod-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cod-tipo { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--c); background: var(--cl); padding: 2px 9px; border-radius: 10px; }
+.cod-warn { font-size: 0.6rem; font-weight: 700; color: var(--orange); background: var(--orange-light); border: 1px solid rgba(196,106,0,0.25); padding: 2px 9px; border-radius: 10px; cursor: help; }
+.cod-empty { grid-column: 1 / -1; text-align: center; padding: 28px 10px; color: var(--text3); font-size: 0.8rem; }
+.cod-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 11px 20px; border-top: 1px solid var(--border); background: var(--surface2); font-size: 0.64rem; color: var(--text2); }
+.cod-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-fuel">⛽</div>
+  <div class="topbar-brand">
+    <div class="topbar-title">SPED Fiscal — Apuração ICMS</div>
+    <div class="topbar-sub">E110 · E111 · E116 · REG 1200 · REG 1210</div>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="topbar-badge">MG · SP · BA</div>
+  <div class="topbar-posto" id="topbarPosto" style="display:none;">
+    <div class="topbar-posto-nome" id="topbarNome"></div>
+    <div class="topbar-posto-sub" id="topbarSub"></div>
+  </div>
+  <div class="topbar-credit">
+    Criação <strong style="color:rgba(255,255,255,0.55);">Waldeci Ramos</strong><br>
+    Desenvolvimento &amp; Estudo da Ferramenta
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-title">🗺️ Estado da Apuração</div>
+
+    <div class="uf-selector">
+      <label>Selecione a UF antes de importar</label>
+      <div class="uf-buttons">
+        <button class="uf-btn active" data-uf="MG" onclick="setUF('MG')">MG</button>
+        <button class="uf-btn" data-uf="SP" onclick="setUF('SP')">SP</button>
+        <button class="uf-btn disabled" data-uf="BA" onclick="setUF('BA')">BA</button>
+      </div>
+      <div class="uf-hint" id="ufHint">
+        <strong>MG</strong> — MG091004, MG091012, MG03 (REG 1200/1210)
+      </div>
+    </div>
+
+    <div class="sb-title">🛢️ Importar Apuração</div>
+
+    <div class="drop-zone" id="dropzone">
+      <span class="dz-icon">🛢️</span>
+      <h3>PDF Modelo P9</h3>
+      <p>Arraste ou clique para selecionar<br>Extrai dados da 2ª página — Resumo</p>
+      <input type="file" id="fileInput" accept="application/pdf">
+    </div>
+
+    <div class="file-chip" id="fileChip">
+      <span>📄</span>
+      <span class="fc-name" id="fileName"></span>
+      <span class="fc-x" id="clearFile" title="Remover">✕</span>
+    </div>
+
+    <button class="btn-process" id="processBtn" onclick="processPDF()" disabled>
+      🔍 Processar e Preencher
+    </button>
+
+    <div class="sb-title" style="margin-top:4px;">📊 Resultado da Extração</div>
+    <div class="status-bar">
+      <div class="sdot" id="sdot"></div>
+      <span id="stxt">Aguardando PDF do Modelo P9</span>
+    </div>
+    <div class="val-chips" id="valChips">
+      <div class="vchip red"><label>Estorno créditos</label><span id="vc003">—</span></div>
+      <div class="vchip green"><label>Créditos do imposto</label><span id="vc005">—</span></div>
+      <div class="vchip gold"><label>ICMS a recolher</label><span id="vc013">—</span></div>
+      <div class="vchip blue"><label>Saldo credor ICMS</label><span id="vc014">—</span></div>
+    </div>
+
+    <button class="btn-side-cod" style="margin-top:auto;" onclick="document.getElementById('codSec').scrollIntoView({behavior:'smooth'})">📒 Códigos de Ajuste</button>
+    <button class="btn-sm" onclick="toggleDebug()">🐛 Debug PDF</button>
+  </aside>
+
+  <main class="main">
+
+    <div class="contrib-card">
+      <div class="contrib-ico">🏪</div>
+      <div class="cc-f">
+        <label>Estabelecimento</label>
+        <div class="cc-nome" id="cc-nome">Aguardando importação...</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="cc-f"><label>CNPJ</label><span id="cc-cnpj">—</span></div>
+        <div class="cc-f"><label>Período</label><span id="cc-periodo"><span class="period-pill">—</span></span></div>
+      </div>
+      <div class="uf-box" id="cc-uf">—</div>
+    </div>
+
+    <div class="no-data fade-in" id="noData">
+      <span class="nd-ico">⛽</span>
+      <h3>Nenhuma apuração carregada</h3>
+      <p>Selecione a UF (MG / SP) e importe um PDF Modelo P9.<br>
+      MG → E110 + REG 1200/1210 · SP → E110 + E111 + E116</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- REGISTRO E110 — MESMA ORDEM E NOMES DA TELA DO PVA           -->
+    <!-- ============================================================ -->
+    <div id="e110W" style="display:none;" class="fade-in">
+      <div class="sec-lbl">⚡ Registro E110 — Valores de Apuração</div>
+      <div class="e110-conferencia">
+        <div class="e110-conf-hdr">
+          <span style="font-size:1.2rem;">📊</span>
+          <h2>REGISTRO - E110 · Valores de Apuração</h2>
+          <div class="e110-conf-htag">SPED EFD ICMS/IPI</div>
+          <div class="e110-conf-hsub">MESMA ORDEM DA TELA DO PVA</div>
+        </div>
+        <table class="e110-conf-table">
+          <thead>
+            <tr>
+              <th>Campo do PVA</th>
+              <th class="orig">Lido do P9</th>
+              <th>Valor (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-debito">
+              <td>Valor total dos débitos do imposto</td>
+              <td class="orig">001 · Por saídas/prestações com débito</td>
+              <td id="e_001">—</td>
+            </tr>
+            <tr>
+              <td>Valor total ajustes a débito (doc fiscal)</td>
+              <td class="orig">não existe no P9 (vem de C197/D197...)</td>
+              <td id="e_aj_deb_doc">—</td>
+            </tr>
+            <tr class="row-calc">
+              <td>Valor total dos ajustes a débito</td>
+              <td class="orig">002 · Total Outros Débitos</td>
+              <td id="e_002">—</td>
+            </tr>
+            <tr>
+              <td>Valor total dos estornos de créditos</td>
+              <td class="orig">003 · Total Estornos Créditos</td>
+              <td id="e_003">—</td>
+            </tr>
+            <tr class="row-credito">
+              <td>Valor total dos créditos do imposto</td>
+              <td class="orig">005 · Por entradas/aquisições com crédito</td>
+              <td id="e_005">—</td>
+            </tr>
+            <tr>
+              <td>Valor total ajustes a crédito (doc fiscal)</td>
+              <td class="orig">não existe no P9 (vem de C197/D197...)</td>
+              <td id="e_aj_cred_doc">—</td>
+            </tr>
+            <tr class="row-calc">
+              <td>Valor total dos ajustes a crédito</td>
+              <td class="orig">006 · Total Outros Créditos</td>
+              <td id="e_006">—</td>
+            </tr>
+            <tr>
+              <td>Valor total dos estornos de débitos</td>
+              <td class="orig">007 · Total Estornos Débitos</td>
+              <td id="e_007">—</td>
+            </tr>
+            <tr>
+              <td>Saldo credor do período anterior</td>
+              <td class="orig">009 · Saldo credor do período anterior</td>
+              <td id="e_009">—</td>
+            </tr>
+            <tr>
+              <td>Valor do saldo devedor</td>
+              <td class="orig">011 · Saldo devedor (débito menos crédito)</td>
+              <td id="e_011">—</td>
+            </tr>
+            <tr>
+              <td>Valor total das deduções</td>
+              <td class="orig">012 · Total Deduções</td>
+              <td id="e_012">—</td>
+            </tr>
+            <tr class="row-recolher">
+              <td>Valor total do ICMS a recolher</td>
+              <td class="orig">013 · Imposto a recolher</td>
+              <td id="e_013">—</td>
+            </tr>
+            <tr class="row-saldo-credor">
+              <td>Valor do saldo credor do ICMS</td>
+              <td class="orig">014 · Saldo credor a transportar</td>
+              <td id="e_014">—</td>
+            </tr>
+            <tr>
+              <td>Valores recolhidos ou a recolher, extra-apuração</td>
+              <td class="orig">não existe no P9</td>
+              <td id="e_extra">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div id="e110Check" style="padding:11px 16px;font-size:0.74rem;line-height:1.7;border-top:1px solid var(--border);"></div>
+
+        <div style="padding:12px 16px 14px;border-top:1px solid var(--border);background:var(--surface2);">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📄 Linha E110 para o TXT (SPED)</div>
+          <pre id="e110Linha" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.72rem;white-space:pre-wrap;word-break:break-all;user-select:text;">—</pre>
+          <button type="button" class="cpbtn" style="margin-left:0;margin-top:8px;" onclick="copiar(this, document.getElementById('e110Linha').textContent)">📋 Copiar linha</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- E111 - AJUSTES (SP)                                          -->
+    <!-- ============================================================ -->
+    <div id="e116Aviso" style="display:none;margin:14px 0;padding:12px 16px;border-radius:10px;background:var(--gold-light);border-left:4px solid var(--gold);font-size:0.78rem;color:var(--text2);"></div>
+
+    <div id="e111W" style="display:none;" class="fade-in">
+      <div class="sec-lbl">📋 Registro E111 — Ajustes da Apuração · SP</div>
+      <div class="e111-card">
+        <div class="e111-hdr">
+          <span style="font-size:1.2rem;">🔧</span>
+          <h2>E111 — Ajustes / Benefício / Incentivo</h2>
+          <div class="e111-htag">SP010302 · SP000207 · SP020718</div>
+          <div class="e111-hsub">CÓDIGOS DE SÃO PAULO</div>
+        </div>
+
+        <div class="e111-row">
+          <div class="e111-cod deb">SP010302</div>
+          <div class="e111-info">
+            <div class="tit">Estorno de imposto creditado quando o serviço tomado ou a mercadoria adquirida</div>
+            <div class="desc" id="e111a_desc">ESTORNO DE CRÉDITO ICMS TRANSPORTE</div>
+          </div>
+          <div class="e111-val"><input class="e111-inp deb" id="e111a_val" readonly placeholder="R$ 0,00"></div>
+        </div>
+
+        <div class="e111-row">
+          <div class="e111-cod deb">SP000207</div>
+          <div class="e111-info">
+            <div class="tit">Entrada de mercadoria, oriunda de outro Estado, destinada a uso, consumo ou imobilizado</div>
+            <div class="desc" id="e111b_desc">DÉBITO ICMS DIFAL REF. NF 2570 / NF 2649</div>
+          </div>
+          <div class="e111-val"><input class="e111-inp deb" id="e111b_val" readonly placeholder="R$ 0,00"></div>
+        </div>
+
+        <div class="e111-row">
+          <div class="e111-cod cred">SP020718</div>
+          <div class="e111-info">
+            <div class="tit">Crédito outorgado / apropriado — SP020718</div>
+            <div class="desc" id="e111c_desc">SP020718 — valor da frente da apuração</div>
+          </div>
+          <div class="e111-val"><input class="e111-inp cred" id="e111c_val" readonly placeholder="R$ 0,00"></div>
+        </div>
+
+        <div style="padding:16px 20px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência E111 × E110</div>
+          <table class="ctbl" style="width:100%;border-collapse:collapse;font-size:0.76rem;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">Código E111</th><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">Descrição</th><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:right;border-bottom:1px solid var(--border);font-weight:600;">Valor</th><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">Bate com E110</th></tr>
+            <tr><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);"><strong>SP000207</strong></td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);">Outros débitos (4º caractere 0) → E110 «Valor total dos ajustes a débito»</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);" id="r_e111b">R$ 0,00</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);" id="c_e111b">—</td></tr>
+            <tr><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);"><strong>SP010302</strong></td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);">Estorno de crédito (4º caractere 1) → E110 «Valor total dos estornos de créditos»</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);" id="r_e111a">R$ 0,00</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);" id="c_e111a">—</td></tr>
+            <tr><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);"><strong>SP020718</strong></td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);">Outros créditos (4º caractere 2) → E110 «Valor total dos ajustes a crédito»</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);" id="r_e111c">R$ 0,00</td><td style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);" id="c_e111c">—</td></tr>
+            <tr class="rtot"><th colspan="2" style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);"><strong>Total ajustes SP</strong></th><td style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--gold);" id="r_e111tot"><strong>R$ 0,00</strong></td><td style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);"></td></tr>
+          </table>
+          <div class="fnote" style="font-size:0.7rem;color:var(--green);background:var(--green-light);border-left:3px solid var(--green);padding:7px 11px;border-radius:5px;">✅ Regras: «ajustes a débito (doc fiscal)» = 0 (só doc. fiscal C197...). «Valor total dos ajustes a débito» = soma dos E111 de outros débitos. «Valor total dos estornos de créditos» = soma dos E111 de estorno de crédito. Não somar um no outro.</div>
+        <div style="padding:0 20px 18px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">🧪 Prova: P9 → código E111 → campo E110</div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.76rem;border:1px solid var(--border);">
+            <tr style="background:var(--surface2);"><th style="padding:7px 10px;text-align:left;">Linha do P9</th><th style="padding:7px 10px;text-align:left;">Código certo</th><th style="padding:7px 10px;text-align:left;">4º caractere</th><th style="padding:7px 10px;text-align:left;">Vai em qual campo do E110</th><th style="padding:7px 10px;text-align:right;">Valor</th></tr>
+            <tr><td style="padding:7px 10px;border-top:1px solid var(--border);">002 - Outros débitos</td><td style="padding:7px 10px;border-top:1px solid var(--border);"><strong>SP000207</strong></td><td style="padding:7px 10px;border-top:1px solid var(--border);">SP0<b>0</b>0207 = 0 → outros débitos</td><td style="padding:7px 10px;border-top:1px solid var(--border);">Valor total dos ajustes a débito</td><td style="padding:7px 10px;border-top:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;" id="pv_002">—</td></tr>
+            <tr><td style="padding:7px 10px;border-top:1px solid var(--border);">003 - Estorno de créditos</td><td style="padding:7px 10px;border-top:1px solid var(--border);"><strong>SP010302</strong></td><td style="padding:7px 10px;border-top:1px solid var(--border);">SP0<b>1</b>0302 = 1 → estorno de crédito</td><td style="padding:7px 10px;border-top:1px solid var(--border);">Valor total dos estornos de créditos</td><td style="padding:7px 10px;border-top:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;" id="pv_003">—</td></tr>
+            <tr><td style="padding:7px 10px;border-top:1px solid var(--border);">006 - Outros créditos</td><td style="padding:7px 10px;border-top:1px solid var(--border);"><strong>SP020718</strong></td><td style="padding:7px 10px;border-top:1px solid var(--border);">SP0<b>2</b>0718 = 2 → outros créditos</td><td style="padding:7px 10px;border-top:1px solid var(--border);">Valor total dos ajustes a crédito</td><td style="padding:7px 10px;border-top:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;" id="pv_006">—</td></tr>
+          </table>
+
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin:16px 0 9px;">🔎 Conferir o que está lançado no PVA (E111)</div>
+          <div style="font-size:0.7rem;color:var(--text3);margin-bottom:8px;">Digite o código e o valor exatamente como estão na tela do PVA. A ferramenta diz se está trocado.</div>
+          <div id="pvaRows"></div>
+          <button type="button" class="btn-sm" onclick="validarPVA()" style="margin-top:8px;">✅ Conferir lançamentos do PVA</button>
+          <div id="pvaResult" style="margin-top:10px;font-size:0.78rem;"></div>
+
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin:16px 0 9px;">📄 Linhas E111 para o TXT (SPED)</div>
+          <pre id="e111Linhas" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.72rem;white-space:pre-wrap;user-select:text;">—</pre>
+          <button type="button" class="cpbtn" onclick="copiar(this, document.getElementById('e111Linhas').textContent)">📋 Copiar linhas</button>
+        </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- E116 - GUIA DE RECOLHIMENTO (SP)                             -->
+    <!-- ============================================================ -->
+    <div id="e116W" style="display:none;" class="fade-in">
+      <div class="sec-lbl">💰 Registro E116 — Guia de Recolhimento · SP</div>
+      <div class="e116-card">
+        <div class="e116-hdr">
+          <span style="font-size:1.2rem;">💳</span>
+          <h2>E116 — Obrigações do ICMS a Recolher</h2>
+          <div class="e116-htag">Código receita 046-2</div>
+          <div class="e116-hsub">Vencimento dia 20</div>
+        </div>
+        <div class="rform" style="padding:16px 20px;">
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Código do ICMS a recolher</span>
+            <input class="rinp ed" id="e116_cod" value="000" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;font-weight:800;color:var(--accent2);max-width:80px;">
+            <input class="rinp ed" value="ICMS a recolher" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;" readonly>
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Data de vencimento do ICMS</span>
+            <input class="rinp ed" id="e116_venc" placeholder="DD/MM/AAAA" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:160px;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Código de receita</span>
+            <input class="rinp ed" id="e116_receita" value="046-2" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;font-weight:700;max-width:110px;">
+            <input class="rinp ed" value="Regime Período de Apuração" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;" readonly>
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--red);flex-shrink:0;text-align:right;font-weight:700;">Valor do ICMS a recolher <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">P9 013</small></span>
+            <input class="rinp calc" id="e116_valor" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--green-light);border:1px solid rgba(21,122,74,0.22);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--green);text-align:right;font-weight:700;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Mês de referência</span>
+            <input class="rinp ed" id="e116_mes" placeholder="MM/AAAA" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:130px;">
+          </div>
+        </div>
+        <div class="orow" style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px;background:var(--surface2);border-top:1px solid var(--border);">
+          <span class="olbl" style="font-size:0.74rem;font-weight:600;color:var(--text2);">📌 Obrigatoriedade E116 — guia de recolhimento SP:</span>
+          <span class="obadge sim" id="e116_obrig" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.72rem;padding:4px 16px;border-radius:20px;letter-spacing:1px;background:var(--green-light);color:var(--green);border:1px solid rgba(21,122,74,0.28);">SIM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- REG 1200 / 1210 (MG)                                         -->
+    <!-- ============================================================ -->
+    <div id="regW" style="display:none;" class="fade-in">
+      <div class="sec-lbl">📁 Registros de Crédito — Bloco 1 (MG)</div>
+      <div class="reg-tabs" style="display:flex;gap:3px;flex-wrap:wrap;">
+        <div class="rtab active" onclick="showReg('ra')" style="padding:8px 17px;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;background:var(--surface2);color:var(--text3);transition:all 0.15s;">📋 REG 1200 — MG091004</div>
+        <div class="rtab" onclick="showReg('rb')" style="padding:8px 17px;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;background:var(--surface2);color:var(--text3);transition:all 0.15s;">📤 REG 1210</div>
+        <div class="rtab" onclick="showReg('rc')" style="padding:8px 17px;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;background:var(--surface2);color:var(--text3);transition:all 0.15s;">🚛 REG 1200 — MG091012</div>
+      </div>
+
+      <div class="rbody active" id="ra" style="background:var(--surface);border:1px solid var(--border2);border-radius:0 var(--radius) var(--radius) var(--radius);overflow:hidden;box-shadow:var(--shadow);">
+        <div class="rhdr" style="background:linear-gradient(90deg, #0f1e3a, #1a3468);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">⛽ Registro 1200 — Controle de Créditos Fiscais</h3>
+          <span class="rcode" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:20px;">MG091004</span>
+        </div>
+        <div class="rform" style="padding:16px 20px;">
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Código de Ajuste</span>
+            <input class="rinp ed" id="a_cod" value="MG091004" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="a_desc" value="Apropriação de crédito por saída com alíquota inferior à entrada" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">1. Saldo credor anterior <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">P9 009</small></span>
+            <input class="rinp" id="a_sant" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">2. Crédito apropriado no mês <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">P9 005 — Entradas</small></span>
+            <input class="rinp" id="a_cmes" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">3. Créditos recebidos por transferência <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">Informe se houver</small></span>
+            <input class="rinp ed" id="a_transf" value="R$ 0,00" placeholder="R$ 0,00" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">4. Créditos utilizados no período <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">P9 001 — Débito saídas</small></span>
+            <input class="rinp" id="a_util" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--green);flex-shrink:0;text-align:right;font-weight:700;">5. Saldo de crédito fiscal <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">1 + 2 + 3 − 4</small></span>
+            <input class="rinp calc" id="a_sfin" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--green-light);border:1px solid rgba(21,122,74,0.22);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--green);text-align:right;font-weight:700;">
+          </div>
+        </div>
+        <div class="alert-ng" id="alertNG" style="margin:0 20px 16px;background:var(--red-light);border:1px solid rgba(197,33,47,0.22);border-left:4px solid var(--red);border-radius:var(--radius-sm);padding:13px 16px;display:none;">
+          <div class="at" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.86rem;color:var(--red);display:flex;align-items:center;gap:7px;margin-bottom:8px;"><span style="font-size:1.2rem;">🚫</span> NÃO GERAR REGISTRO 1200</div>
+          <div class="msg-content">
+            <p style="font-size:0.74rem;color:#8a1020;line-height:1.65;margin:6px 0;padding-left:12px;border-left:2px solid rgba(197,33,47,0.3);"><strong>Saldo de crédito fiscal negativo ou zerado</strong> → ICMS a pagar ou sem saldo credor. Conforme regra, o Registro 1200 <strong>não deve ser preenchido</strong>.</p>
+            <p style="font-size:0.74rem;color:#8a1020;line-height:1.65;margin:6px 0;padding-left:12px;border-left:2px solid rgba(197,33,47,0.3);">✔️ Ação obrigatória no SPED: marque <strong>"NÃO"</strong> para o REG 1200 no Registro 1010 (Bloco 1).</p>
+            <ul class="checklist" style="margin:12px 0 6px 0;padding-left:24px;list-style:none;">
+              <li style="font-size:0.73rem;margin-bottom:8px;position:relative;padding-left:20px;color:#8a1020;"><strong>📄 E116 – Guia de Recolhimento:</strong> Verifique se a guia de ICMS (DAR/DARE) foi emitida com o valor do campo 013 (imposto a recolher).</li>
+              <li style="font-size:0.73rem;margin-bottom:8px;position:relative;padding-left:20px;color:#8a1020;"><strong>🧾 Entrada de NF – Zerar Base 2949 / 1949:</strong> Na Nota Fiscal de entrada (combustível), localize o valor referente a 2949/1949 e <strong>zere a base de cálculo</strong> (C170).</li>
+              <li style="font-size:0.73rem;margin-bottom:8px;position:relative;padding-left:20px;color:#8a1020;"><strong>⚙️ C190 – Alíquota, Base e Valor ICMS:</strong> Após zerar na C170, confirme que o <strong>C190</strong> (totais por CFOP) também reflete base zerada e valor ICMS zerado para os itens ajustados.</li>
+              <li style="font-size:0.73rem;margin-bottom:8px;position:relative;padding-left:20px;color:#8a1020;"><strong>🔄 Retorno à capa:</strong> Após os ajustes, volte ao cabeçalho do SPED e <strong>zere base de cálculo e valor ICMS</strong> nas entradas que utilizavam crédito indevido.</li>
+            </ul>
+            <p style="font-size:0.74rem;color:#8a1020;line-height:1.65;margin:6px 0;padding-left:12px;border-left:2px solid rgba(197,33,47,0.3);"><em>📌 Lembrete automático gerado pelo sistema – verifique os registros antes de validar o arquivo EFD.</em></p>
+          </div>
+        </div>
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">📊 Conferência — Resumo da Apuração (Fórmula: 1 + 2 + 3 − 4)</div>
+          <table class="ctbl" style="width:100%;border-collapse:collapse;font-size:0.76rem;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">1. Saldo credor período anterior (P9 009)</th><td class="val" id="r009" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">—</td></tr>
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">2. Crédito apropriado / Entradas (P9 005)</th><td class="val" id="rcred" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">—</td></tr>
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">3. ➕ Créditos por Transferência</th><td class="val" id="rtransf" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">R$ 0,00</td></tr>
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">4. ➖ Créditos Utilizados (P9 001)</th><td class="val" id="rdeb" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">—</td></tr>
+            <tr class="rtot"><th style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);"><strong>= 5. Saldo de crédito fiscal</strong></th><td class="val" id="rsld" style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--gold);">—</td></tr>
+          </table>
+          <div class="fnote" style="font-size:0.7rem;color:var(--green);background:var(--green-light);border-left:3px solid var(--green);padding:7px 11px;border-radius:5px;">✅ Fórmula correta: Saldo Anterior (1) + Crédito Apropriado (2) + Transferências (3) − Utilizado (4) = Saldo Final (5)</div>
+        </div>
+        <div class="orow" style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px;background:var(--surface2);border-top:1px solid var(--border);">
+          <span class="olbl" style="font-size:0.74rem;font-weight:600;color:var(--text2);">📌 Obrigatoriedade Bloco 1 — Registro 1010 — REG.1200:</span>
+          <span class="obadge sim" id="obrig" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.72rem;padding:4px 16px;border-radius:20px;letter-spacing:1px;background:var(--green-light);color:var(--green);border:1px solid rgba(21,122,74,0.28);">SIM</span>
+        </div>
+      </div>
+
+      <div class="rbody" id="rb" style="background:var(--surface);border:1px solid var(--border2);border-radius:0 var(--radius) var(--radius) var(--radius);overflow:hidden;box-shadow:var(--shadow);display:none;">
+        <div class="rhdr" style="background:linear-gradient(90deg, #0f1e3a, #1a3468);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">📤 Registro 1210 — Utilização de Créditos Fiscais</h3>
+          <span class="rcode" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:20px;">MG03</span>
+        </div>
+        <div class="sec1210" style="padding:6px 20px;font-size:0.6rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;background:var(--accent-light);color:var(--accent2);border-left:3px solid var(--accent);">Abatimento do Saldo Devedor na Apuração</div>
+        <div class="rform" style="padding:16px 20px;padding-top:14px;">
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Tipo de utilização</span>
+            <input class="rinp ed" id="b_tipo" value="MG03" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:85px;font-weight:800;color:var(--accent2);">
+            <input class="rinp ed" id="b_tdesc" value="Abatimento saldo devedor na apuração" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Número do documento</span>
+            <input class="rinp ed" id="b_doc" placeholder="Documento de referência" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:280px;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--green);flex-shrink:0;text-align:right;font-weight:700;">Total crédito utilizado <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">P9 001</small></span>
+            <input class="rinp calc" id="b_tcred" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--green-light);border:1px solid rgba(21,122,74,0.22);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--green);text-align:right;font-weight:700;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Chave documento eletrônico</span>
+            <input class="rinp ed" id="b_chave" placeholder="NF-e / CT-e — chave de acesso" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;">
+          </div>
+        </div>
+      </div>
+
+      <div class="rbody" id="rc" style="background:var(--surface);border:1px solid var(--border2);border-radius:0 var(--radius) var(--radius) var(--radius);overflow:hidden;box-shadow:var(--shadow);display:none;">
+        <div class="rhdr" style="background:linear-gradient(90deg, #0f1e3a, #1a3468);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">🚛 Registro 1200 — Controle de Créditos CT-e</h3>
+          <span class="rcode" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:20px;">MG091012</span>
+        </div>
+        <div class="rform" style="padding:16px 20px;">
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Código de Ajuste</span>
+            <input class="rinp ed" id="c_cod" value="MG091012" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;font-weight:800;color:var(--accent2);max-width:115px;">
+            <input class="rinp ed" id="c_desc" value="Apropriação de crédito por saída com diferimento" style="flex:1;max-width:205px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:left;max-width:none;flex:1;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Saldo de créditos anteriores</span>
+            <input class="rinp" id="c_sant" value="R$ 0,00" readonly style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Crédito apropriado no mês <small style="display:block;font-size:0.62rem;color:var(--text3);font-weight:400;">CT-e CFOP 2353</small></span>
+            <input class="rinp" id="c_cmes" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Créditos recebidos por transferência</span>
+            <input class="rinp" value="R$ 0,00" readonly style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--text2);flex-shrink:0;text-align:right;font-weight:500;">Créditos utilizados no período</span>
+            <input class="rinp" value="R$ 0,00" readonly style="flex:1;max-width:205px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text);text-align:right;">
+          </div>
+          <div class="rrow" style="display:flex;align-items:center;margin-bottom:11px;gap:12px;">
+            <span class="rlbl" style="width:250px;font-size:0.76rem;color:var(--green);flex-shrink:0;text-align:right;font-weight:700;">Saldo de crédito fiscal</span>
+            <input class="rinp calc" id="c_sfin" readonly placeholder="—" style="flex:1;max-width:205px;background:var(--green-light);border:1px solid rgba(21,122,74,0.22);border-radius:7px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--green);text-align:right;font-weight:700;">
+          </div>
+        </div>
+        <div style="padding:0 20px 16px;">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;">🚛 Créditos CT-e — CFOP 2.353</div>
+          <table class="ctbl" style="width:100%;border-collapse:collapse;font-size:0.76rem;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">Imposto creditado CFOP 2.353</th><td class="val" id="q2353" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">R$ 0,00</td></tr>
+            <tr class="rtot"><th style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);"><strong>Total crédito CT-e (MG091012)</strong></th><td class="val" id="qtot" style="background:var(--gold-light);padding:8px 13px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--gold);"><strong>—</strong></td></tr>
+            <tr><th style="background:var(--surface2);color:var(--text2);padding:8px 13px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;">Saldo final a transportar</th><td class="val" id="qtrp" style="padding:8px 13px;border-bottom:1px solid var(--border);background:var(--surface);text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">—</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CÓDIGOS DE AJUSTE (CADERNO) — sempre visível                  -->
+    <!-- ============================================================ -->
+    <div class="cod-sec fade-in" id="codSec">
+      <div class="sec-lbl">📒 Códigos de Ajuste — Caderno</div>
+      <div class="cod-panel">
+        <div class="cod-hdr">
+          <span style="font-size:1.2rem;">📒</span>
+          <h2>Códigos de Ajuste · MG e SP</h2>
+          <div class="cod-htag">E111 · REG 1200 · C197</div>
+          <div class="cod-hsub">MESMA SEQUÊNCIA DO CADERNO · clique em copiar</div>
+        </div>
+        <div class="cod-bar">
+          <button class="cod-chip active" data-f="TODOS" onclick="filtrarCod('TODOS')">TODOS</button>
+          <button class="cod-chip" data-f="MG" onclick="filtrarCod('MG')">MG</button>
+          <button class="cod-chip" data-f="SP" onclick="filtrarCod('SP')">SP</button>
+          <span class="cod-count" id="codCount"></span>
+          <input class="cod-search" id="codBusca" type="text" placeholder="🔎 Buscar código ou nome..." oninput="renderCodigos()">
+        </div>
+        <div class="cod-grid" id="codGrid"></div>
+        <div class="cod-legend">
+          <span><i style="background:var(--red)"></i>Débito</span>
+          <span><i style="background:var(--green)"></i>Crédito</span>
+          <span><i style="background:var(--orange)"></i>Estorno</span>
+          <span><i style="background:var(--accent)"></i>Documento fiscal (item)</span>
+          <span><i style="background:var(--gold)"></i>REG 1200</span>
+          <span><i style="background:#6b3fb5"></i>CIAP</span>
+          <span><i style="background:var(--text3)"></i>Genérico / outros</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug-c" id="debugC" style="background:#1a2233;border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-top:16px;display:none;max-height:260px;overflow-y:auto;"><pre id="debugT" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:#6688aa;white-space:pre-wrap;line-height:1.7;">Sem linhas carregadas.</pre></div>
+  </main>
+</div>
+
+<div class="footer" style="background:var(--surface);border-top:1px solid var(--border);padding:9px 28px;display:flex;align-items:center;justify-content:space-between;font-size:0.63rem;color:var(--text3);">
+  <span><span class="footer-ico" style="font-size:1rem;">⛽</span> <strong style="color:var(--text2);">SPED Fiscal — Apuração ICMS</strong> · E110 · E111 · E116 · REG 1200 · REG 1210</span>
+  <span>Criação <strong style="color:var(--text2);">Waldeci Ramos</strong> · Desenvolvimento &amp; Estudo da Ferramenta · Uso Interno</span>
+</div>
+
+<script>
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12') { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.shiftKey && ['I','J','C','K'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+  if (e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+});
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+const postos = [
+  { cnpj: '20.415.295/0012-27', nome: 'Dom Pedro Betim 1', uf: 'MG' },
+  { cnpj: '20.415.295/0052-14', nome: 'Dom Pedro Betim 2', uf: 'MG' },
+  { cnpj: '20.415.295/0064-58', nome: 'Rede Dom Pedro de Postos', uf: 'SP' },
+];
+
+function lookupPosto(cnpj) {
+  return postos.find(p => p.cnpj.replace(/\D/g,'') === cnpj.replace(/\D/g,''));
+}
+
+const UF_CONFIG = {
+  MG: { nome: 'Minas Gerais', hint: '<strong>MG</strong> — MG091004, MG091012, MG03 (REG 1200/1210)', cor: 'mg', temE111: false, temE116: false, temReg1200: true },
+  SP: { nome: 'São Paulo', hint: '<strong>SP</strong> — E111 (SP010302 · SP000207 · SP020718) + E116 (046-2)', cor: 'sp', temE111: true, temE116: true, temReg1200: false },
+  BA: { nome: 'Bahia', hint: '<strong>BA</strong> — mesmo modelo de SP, códigos BA (a definir)', cor: 'ba', temE111: true, temE116: true, temReg1200: false },
+};
+
+let ufAtual = 'MG';
+let e116Tem = true;   // só existe E116 se houver ICMS a recolher no P9 (linha 013 > 0)
+let e111Tem = true;   // só existe E111 se houver lançamento de ajuste no P9
+
+function setUF(uf) {
+  const cfg = UF_CONFIG[uf];
+  if (!cfg) return;
+  ufAtual = uf;
+  document.querySelectorAll('.uf-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.uf === uf);
+  });
+  document.getElementById('ufHint').innerHTML = cfg.hint;
+  document.getElementById('cc-uf').textContent = uf;
+  document.getElementById('cc-uf').className = 'uf-box ' + cfg.cor;
+
+  document.getElementById('e111W').style.display = 'none';
+  document.getElementById('e116W').style.display = 'none';
+  document.getElementById('regW').style.display = 'none';
+
+  if (document.getElementById('e110W').style.display !== 'none') {
+    aplicarUF(uf);
+  }
+}
+
+function aplicarUF(uf) {
+  const cfg = UF_CONFIG[uf];
+  if (!cfg) return;
+  document.getElementById('e111W').style.display = (cfg.temE111 && e111Tem) ? 'block' : 'none';
+  document.getElementById('e116W').style.display = (cfg.temE116 && e116Tem) ? 'block' : 'none';
+  const av = document.getElementById('e116Aviso');
+  if (av) av.style.display = (cfg.temE116 && !e116Tem) ? 'block' : 'none';
+  document.getElementById('regW').style.display  = cfg.temReg1200 ? 'block' : 'none';
+}
+
+function parseMoney(s) {
+  if (!s) return 0;
+  const n = parseFloat(String(s).replace(/R\$\s*/gi,'').replace(/\./g,'').replace(',','.').trim());
+  return isNaN(n) ? 0 : n;
+}
+function fmtBrl(v) { return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtShort(v) {
+  if (v >= 1000) return 'R$ ' + (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'k';
+  return fmtBrl(v);
+}
+function isMoney(s) { return /^\d{1,3}(\.\d{3})*,\d{2}$/.test(s.trim()) || /^\d+,\d{2}$/.test(s.trim()); }
+function normalize(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function setIn(id, v) { const e=document.getElementById(id); if(e){e.value=v;} }
+function setTxt(id, v) { const e=document.getElementById(id); if(e) e.textContent=v; }
+
+function showReg(id) {
+  document.querySelectorAll('.rbody').forEach(b=>b.style.display='none');
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  ['ra','rb','rc'].forEach((r,i) => { if(r===id) document.querySelectorAll('.rtab')[i].classList.add('active'); });
+}
+function toggleDebug() { const c=document.getElementById('debugC'); c.style.display=c.style.display==='none'?'block':'none'; }
+
+// ── CÓDIGOS DE AJUSTE (CADERNO) — mesma sequência e mesmos nomes do caderno ──
+// tipo: debito | credito | estorno | item | reg | ciap | generico
+// conf: true → leitura da letra manuscrita que vale conferir
+const CODIGOS_AJUSTE = [
+  { cod: 'MG039999',   uf: 'MG', tipo: 'estorno',  tipoTxt: 'Estorno',          nome: 'Estorno de ICMS (genérico)', conf: 'Leitura da letra do caderno: confira se é MG039999' },
+  { cod: 'MG70000001', uf: 'MG', tipo: 'item',     tipoTxt: 'Documento fiscal', nome: 'Diferença de alíquota dentro do item.', conf: 'Leitura da letra do caderno: confira a quantidade de zeros' },
+  { cod: 'MG009999',   uf: 'MG', tipo: 'debito',   tipoTxt: 'Débito',           nome: 'Outros débitos' },
+  { cod: 'MG029999',   uf: 'MG', tipo: 'credito',  tipoTxt: 'Crédito',          nome: 'Outros créditos' },
+  { cod: 'MG020004',   uf: 'MG', tipo: 'ciap',     tipoTxt: 'CIAP',             nome: 'Ciap', conf: 'Leitura da letra do caderno: confira se é MG020004' },
+  { cod: 'MG091004',   uf: 'MG', tipo: 'reg',      tipoTxt: 'REG 1200',         nome: 'Referente a crédito de produtos para revenda e saldo credor anterior ou incorporação (1200)' },
+  { cod: 'MG091012',   uf: 'MG', tipo: 'reg',      tipoTxt: 'REG 1200',         nome: 'Referente a crédito de ct-e (1200)' },
+  { cod: 'MG020005',   uf: 'MG', tipo: 'credito',  tipoTxt: 'Crédito',          nome: 'Crédito não aproveitado antes.' },
+  { cod: 'SP000207',   uf: 'SP', tipo: 'debito',   tipoTxt: 'Débito',           nome: 'Débito diferença de alíquota' },
+  { cod: 'SP020718',   uf: 'SP', tipo: 'credito',  tipoTxt: 'Crédito',          nome: 'Crédito diferença de alíquota.' },
+  { cod: 'SP000299',   uf: 'SP', tipo: 'generico', tipoTxt: 'Genérico débito',  nome: 'Ajuste genérico de débito' },
+  { cod: 'SP020799',   uf: 'SP', tipo: 'generico', tipoTxt: 'Genérico crédito', nome: 'Ajuste genérico de crédito' },
+  { cod: 'SP010302',   uf: 'SP', tipo: 'estorno',  tipoTxt: 'Estorno',          nome: 'Estorno cte' },
+  { cod: 'SP000299',   uf: 'SP', tipo: 'debito',   tipoTxt: 'Débito',           nome: 'Transferência de saldo quando incorpora - Débito.', conf: 'No caderno este código aparece repetido (igual ao de “Ajuste genérico de débito”): confira' },
+];
+let codFiltro = 'TODOS';
+
+function filtrarCod(f) {
+  codFiltro = f;
+  document.querySelectorAll('.cod-chip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+  renderCodigos();
+}
+
+function renderCodigos() {
+  const grid = document.getElementById('codGrid'); if (!grid) return;
+  const q = normalize(document.getElementById('codBusca').value || '');
+  const lista = CODIGOS_AJUSTE.filter(c =>
+    (codFiltro === 'TODOS' || c.uf === codFiltro) &&
+    (!q || normalize(c.cod + ' ' + c.nome + ' ' + c.tipoTxt).includes(q))
+  );
+  document.getElementById('codCount').textContent = lista.length + ' de ' + CODIGOS_AJUSTE.length + ' códigos';
+  if (!lista.length) { grid.innerHTML = '<div class="cod-empty">Nenhum código encontrado.</div>'; return; }
+  grid.innerHTML = lista.map((c, i) =>
+    '<div class="cod-card t-' + c.tipo + '" style="animation-delay:' + (i * 25) + 'ms">' +
+      '<div class="cod-top">' +
+        '<span class="cod-code">' + c.cod + '</span>' +
+        '<span class="cod-uf ' + c.uf + '">' + c.uf + '</span>' +
+        '<button type="button" class="cpbtn cod-copy" onclick="copiar(this, \'' + c.cod + '\')">📋 Copiar</button>' +
+      '</div>' +
+      '<div class="cod-name">' + c.nome + '</div>' +
+      '<div class="cod-meta">' +
+        '<span class="cod-tipo">' + c.tipoTxt + '</span>' +
+        (c.conf ? '<span class="cod-warn" title="' + c.conf + '">⚠ conferir</span>' : '') +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+// ── PDF ENGINE ────────────────────────────────────────────────
+async function getPageItems(file, pageNum) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const page = await pdf.getPage(Math.min(pageNum, pdf.numPages));
+  return (await page.getTextContent()).items;
+}
+
+async function getResumoItems(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  for (let p=2; p<=pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const j = content.items.map(i=>i.str).join(' ');
+    if (normalize(j).includes('resumo') && normalize(j).includes('apuracao')) return content.items;
+  }
+  return (await (await pdf.getPage(Math.min(2,pdf.numPages))).getTextContent()).items;
+}
+
+function buildLines(items) {
+  const rows = [];
+  for (const it of items) {
+    const s=it.str; if(!s||!s.trim()) continue;
+    const x=it.transform[4], y=it.transform[5];
+    let row=rows.find(r=>Math.abs(r.y-y)<3.5);
+    if(!row){row={y,cells:[]};rows.push(row);}
+    row.cells.push({s:s.trim(),x});
+  }
+  rows.sort((a,b)=>b.y-a.y);
+  rows.forEach(r=>r.cells.sort((a,b)=>a.x-b.x));
+  return rows;
+}
+
+function lineText(r) { return r.cells.map(c=>c.s).join(' '); }
+function lastMoney(r) {
+  const m=r.cells.filter(c=>isMoney(c.s));
+  return m.length?parseMoney(m[m.length-1].s):null;
+}
+
+// ── LEITURA DIRETA DO P9 ──────────────────────────────────────
+// Cada campo do E110 é lido da linha correspondente do P9:
+//   001 → Valor total dos débitos do imposto       009 → Saldo credor do período anterior
+//   002 → Total Outros Débitos (ajustes a débito)  011 → Saldo devedor
+//   003 → Total Estornos Créditos                  012 → Total Deduções
+//   005 → Créditos por entradas                    013 → Imposto a recolher
+//   006 → Total Outros Créditos (ajustes a crédito) 014 → Saldo credor a transportar
+//   007 → Total Estornos Débitos
+// 004, 008 e 010 (sub-totais do P9) também são lidos, só para conferir a conta.
+const CAMPOS_E110 = ['001','002','003','005','006','007','009','011','012','013','014'];
+const E110_ROT = {
+  '001':'Valor total dos débitos do imposto',
+  '002':'Valor total dos ajustes a débito',
+  '003':'Valor total dos estornos de créditos',
+  '004':'Sub-total dos débitos (P9 004)',
+  '005':'Valor total dos créditos do imposto',
+  '006':'Valor total dos ajustes a crédito',
+  '007':'Valor total dos estornos de débitos',
+  '008':'Sub-total dos créditos (P9 008)',
+  '009':'Saldo credor do período anterior',
+  '010':'Total de créditos (P9 010)',
+  '011':'Valor do saldo devedor',
+  '012':'Valor total das deduções',
+  '013':'Valor total do ICMS a recolher',
+  '014':'Valor do saldo credor do ICMS'
+};
+
+function extractValues(lines) {
+  const res = {'001':0,'002':0,'003':0,'004':0,'005':0,'006':0,'007':0,'008':0,'009':0,'010':0,'011':0,'012':0,'013':0,'014':0};
+  const falta = [];
+
+  let rs = -1;
+  for (let i=0;i<lines.length;i++) {
+    const t = normalize(lineText(lines[i]));
+    if (t.includes('resumo') && t.includes('apuracao')) { rs = i; break; }
+  }
+  const L = rs >= 0 ? lines.slice(rs) : lines;
+
+  function fL(kws) {
+    for (let i=0;i<L.length;i++) {
+      const t = normalize(lineText(L[i]));
+      if (kws.some(k => t.includes(normalize(k)))) return i;
+    }
+    return -1;
+  }
+  // linha que só tem um valor em dinheiro (usada se o valor caiu numa linha vizinha)
+  function soDinheiro(r) {
+    return (r && r.cells.length === 1 && isMoney(r.cells[0].s)) ? parseMoney(r.cells[0].s) : null;
+  }
+  // campo simples: o valor está na própria linha do campo (coluna "Somas")
+  function simples(k, kws) {
+    const idx = fL(kws);
+    if (idx === -1) { falta.push(k); return; }
+    let v = lastMoney(L[idx]);
+    if (v === null) v = soDinheiro(L[idx-1]);
+    if (v === null) v = soDinheiro(L[idx+1]);
+    if (v === null) { falta.push(k); return; }
+    res[k] = v;
+  }
+  // campo com lançamentos: o valor está na linha "Total ..." da seção,
+  // procurada entre o cabeçalho e o próximo campo numerado
+  function total(k, kwHead, kwTotal) {
+    const idx = fL(kwHead);
+    if (idx === -1) { falta.push(k); return; }
+    for (let j = idx + 1; j < L.length; j++) {
+      const t = normalize(lineText(L[j]));
+      if (/(^|\s)0\d\d - /.test(t)) break;
+      if (kwTotal.some(x => t.includes(normalize(x)))) {
+        let v = lastMoney(L[j]);
+        if (v === null) v = soDinheiro(L[j+1]);
+        if (v === null) v = soDinheiro(L[j-1]);
+        if (v !== null) { res[k] = v; return; }
+      }
+    }
+    falta.push(k);
+  }
+
+  simples('001', ['001 - por saidas']);
+  total  ('002', ['002 - outros debitos'], ['total outros debitos']);
+  total  ('003', ['003 - estorno de creditos'], ['total estornos creditos','total estorno de creditos']);
+  simples('004', ['004 - sub-total','004 - subtotal']);
+  simples('005', ['005 - por entradas']);
+  total  ('006', ['006 - outros creditos'], ['total outros creditos']);
+  total  ('007', ['007 - estorno de debitos'], ['total estornos debitos','total estorno de debitos']);
+  simples('008', ['008 - sub-total','008 - subtotal']);
+  simples('009', ['009 - saldo credor do periodo anterior']);
+  simples('010', ['010 - total']);
+  simples('011', ['011 - saldo devedor']);
+  total  ('012', ['012 - deducoes'], ['total deducoes']);
+  simples('013', ['013 - imposto a recolher']);
+  simples('014', ['014 - saldo credor']);
+
+  res._falta = falta;
+  return res;
+}
+
+// Confere se a conta do P9 fecha com os campos lidos
+function conferirE110(v) {
+  const cal = {};
+  cal['004'] = v['001'] + v['002'] + v['003'];
+  cal['008'] = v['005'] + v['006'] + v['007'];
+  cal['010'] = cal['008'] + v['009'];
+  cal['011'] = Math.max(0, cal['004'] - cal['010']);
+  cal['014'] = Math.max(0, cal['010'] - cal['004']);
+  cal['013'] = Math.max(0, v['011'] - v['012']);
+
+  const faltaTodos = v._falta || [];
+  const falta = faltaTodos.filter(k => CAMPOS_E110.includes(k));
+  const dif = ['004','008','010','011','013','014'].filter(k => !faltaTodos.includes(k) && Math.abs(v[k] - cal[k]) > 0.009);
+
+  const out = [];
+  if (falta.length) out.push('<div style="color:var(--orange);">⚠️ Não encontrei no PDF: <b>' + falta.map(k => E110_ROT[k]).join('</b>, <b>') + '</b>. Veja o Debug PDF.</div>');
+  dif.forEach(k => out.push('<div style="color:var(--red);">❌ ' + E110_ROT[k] + ': o P9 mostra <b>' + fmtBrl(v[k]) + '</b>, mas a soma dos campos dá <b>' + fmtBrl(cal[k]) + '</b>.</div>'));
+  if (v['007'] > 0 || v['012'] > 0) out.push('<div style="color:var(--orange);">⚠️ O P9 tem estorno de débitos e/ou deduções: esses valores também precisam de E111 próprio (esta ferramenta só monta SP000207, SP010302 e SP020718).</div>');
+  const ok = !falta.length && !dif.length;
+  if (ok) out.unshift('<div style="color:var(--green);font-weight:700;">✅ Todos os campos foram lidos do P9 e a conta fecha (débitos, créditos, saldo, recolher).</div>');
+  return { ok, html: out.join('') };
+}
+
+function extractSPValues(lines) {
+  // Lê os lançamentos detalhados do P9 pela SEÇÃO onde estão (002 outros débitos / 003 estorno de créditos / 006 outros créditos)
+  const res = {
+    'sp010302': 0, 'sp000207': 0, 'sp020718': 0,
+    'sp010302_desc': 'Sem lançamento no P9', 'sp000207_desc': 'Sem lançamento no P9', 'sp020718_desc': 'Sem lançamento no P9',
+  };
+  const map = { '002': 'sp000207', '003': 'sp010302', '006': 'sp020718' };
+  const descs = { sp000207: [], sp010302: [], sp020718: [] };
+  let sec = null;
+  for (const r of lines) {
+    const tn = normalize(lineText(r));
+    const mc = tn.match(/(?:^|\s)(0\d\d) - /);
+    if (mc) { sec = map[mc[1]] ? mc[1] : null; continue; }
+    if (!sec) continue;
+    if (tn.startsWith('total')) { sec = null; continue; }
+    const money = r.cells.filter(c => isMoney(c.s));
+    if (!money.length) continue;
+    const key = map[sec];
+    res[key] += parseMoney(money[money.length - 1].s);
+    const txt = r.cells.filter(c => !isMoney(c.s) && !/^\d{1,2}$/.test(c.s)).map(c => c.s).join(' ').trim();
+    if (txt) descs[key].push(txt);
+  }
+  for (const k of Object.keys(descs)) if (descs[k].length) res[k + '_desc'] = descs[k].join(' + ');
+  return res;
+}
+
+function extractMeta(items) {
+  const f=items.map(i=>i.str).join(' ');
+  const cM=f.match(/CNPJ[:\s]*([\d]{2}\.[\d]{3}\.[\d]{3}\/[\d]{4}-[\d]{2})/i);
+  const pM=f.match(/(?:Mês ou Período\/Ano:|Período\/Ano:)\s*([\d\/]+)/i)||f.match(/\b(\d{2}\/\d{4})\b/);
+  const nM=f.match(/Contribuinte[:\s]*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][^\n]{4,80}?)(?=\s{2,}|Inscr|CNPJ)/i);
+  return { cnpj:cM?cM[1]:'—', periodo:pM?pM[1]:'—', nome:nM?nM[1].trim():'—' };
+}
+
+function extractCTE(items) {
+  const f=items.map(i=>i.str).join(' ');
+  for(const p of [/2353\s+([\d\.]+,\d{2})/,/2\.353\s+([\d\.]+,\d{2})/]){const m=f.match(p);if(m)return parseMoney(m[1]);}
+  for(const r of buildLines(items)){const t=lineText(r);if(t.includes('2353')||t.includes('2.353')){const m=r.cells.filter(c=>isMoney(c.s));if(m.length)return parseMoney(m[m.length-1].s);}}
+  return 0;
+}
+
+// ── COPIAR VALORES (formato SPED: 26010,64 — sem R$ e sem ponto de milhar) ──
+function rawSped(v) { return (Math.round(v*100)/100).toFixed(2).replace('.', ','); }
+function copiar(btn, txt) {
+  const done = () => { const o = btn.dataset.lbl || btn.textContent; btn.dataset.lbl = o; btn.textContent = '✔ Copiado'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = o; btn.classList.remove('ok'); }, 1200); };
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done)); }
+  else fallbackCopy(txt, done);
+}
+function fallbackCopy(txt, done) {
+  const t = document.createElement('textarea'); t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0';
+  document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch(e) { prompt('Copie o valor:', txt); }
+  document.body.removeChild(t);
+}
+function setConf(id, v) {
+  const e = document.getElementById(id); if (!e) return;
+  const raw = rawSped(v);
+  e.innerHTML = '<span class="cpval" title="Clique para copiar ' + raw + '" onclick="copiar(this.nextElementSibling, \'' + raw + '\')">' + fmtBrl(v) + '</span>' +
+                '<button class="cpbtn" type="button" onclick="copiar(this, \'' + raw + '\')">📋 Copiar</button>';
+}
+function attachCopy(id, v) {
+  const el = document.getElementById(id); if (!el) return;
+  const old = el.parentNode.querySelector('.cpbtn[data-for="' + id + '"]'); if (old) old.remove();
+  const raw = rawSped(v);
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'cpbtn'; b.dataset.for = id; b.textContent = '📋 Copiar';
+  b.onclick = () => copiar(b, raw);
+  el.insertAdjacentElement('afterend', b);
+}
+
+// ── PROCESSO PRINCIPAL ────────────────────────────────────────
+let currentFile = null;
+
+async function processPDF() {
+  if (!currentFile) return;
+  setStatus('spin','⏳ Extraindo dados do PDF...');
+  document.getElementById('processBtn').disabled = true;
+
+  try {
+    const p1 = await getPageItems(currentFile, 1);
+    const meta = extractMeta(p1);
+    const cte = extractCTE(p1);
+    const ri = await getResumoItems(currentFile);
+    const lines = buildLines(ri);
+
+    // Cada campo do E110 vem direto da linha correspondente do P9
+    const v = extractValues(lines);
+    // Lançamentos detalhados das seções 002 / 003 / 006 (viram os E111)
+    const sp = extractSPValues(lines);
+
+    // Se o "Total ..." de uma seção não foi achado, usa a soma dos lançamentos detalhados
+    const rec = { '002': sp['sp000207'], '003': sp['sp010302'], '006': sp['sp020718'] };
+    v._falta = v._falta.filter(k => {
+      if (rec[k] !== undefined && rec[k] > 0) { v[k] = rec[k]; return false; }
+      return true;
+    });
+
+    const conf = conferirE110(v);
+    document.getElementById('e110Check').innerHTML = conf.html;
+
+    document.getElementById('debugT').textContent = lines.map((r,i)=>
+      `[${String(i).padStart(3,'0')}] Y=${Math.round(r.y).toString().padStart(4)} | ${r.cells.map(c=>`"${c.s}"@${Math.round(c.x)}`).join('  ')}`
+    ).join('\n') + '\n\n--- CAMPOS LIDOS DO P9 ---\n' +
+      Object.keys(E110_ROT).map(k => `${k} ${E110_ROT[k]}: ${rawSped(v[k])}`).join('\n') +
+      '\nNão encontrados: ' + ((v._falta || []).join(', ') || 'nenhum');
+
+    const posto = lookupPosto(meta.cnpj);
+    const nome = posto ? posto.nome : meta.nome;
+    const uf = ufAtual;
+
+    document.getElementById('topbarPosto').style.display = 'flex';
+    document.getElementById('topbarNome').textContent = nome;
+    document.getElementById('topbarSub').textContent = `${meta.cnpj} · ${meta.periodo} · ${uf}`;
+
+    document.getElementById('cc-nome').textContent = nome;
+    setTxt('cc-cnpj', meta.cnpj);
+    document.getElementById('cc-periodo').innerHTML = `<span class="period-pill">${meta.periodo}</span>`;
+    document.getElementById('cc-uf').textContent = uf;
+    document.getElementById('cc-uf').className = 'uf-box ' + (UF_CONFIG[uf]?.cor || '');
+
+    // ── E110: mesma ordem e nomes da tela do PVA ──
+    setConf('e_001', v['001']);          // Valor total dos débitos do imposto
+    setConf('e_aj_deb_doc', 0);          // ajustes a débito (doc fiscal): C197/D197, não vem do P9
+    setConf('e_002', v['002']);          // Valor total dos ajustes a débito (P9 002)
+    setConf('e_003', v['003']);          // Valor total dos estornos de créditos (P9 003)
+    setConf('e_005', v['005']);          // Valor total dos créditos do imposto
+    setConf('e_aj_cred_doc', 0);         // ajustes a crédito (doc fiscal): não vem do P9
+    setConf('e_006', v['006']);          // Valor total dos ajustes a crédito (P9 006)
+    setConf('e_007', v['007']);          // Valor total dos estornos de débitos (P9 007)
+    setConf('e_009', v['009']);          // Saldo credor do período anterior
+    setConf('e_011', v['011']);          // Valor do saldo devedor
+    setConf('e_012', v['012']);          // Valor total das deduções
+    setConf('e_013', v['013']);          // Valor total do ICMS a recolher
+    setConf('e_014', v['014']);          // Valor do saldo credor do ICMS
+    setConf('e_extra', 0);               // extra-apuração
+
+    // ── Linha |E110| (14 campos, na ordem do layout; sem R$ e sem ponto de milhar) ──
+    const e110 = [
+      rawSped(v['001']),   // VL_TOT_DEBITOS
+      '0,00',              // VL_AJ_DEBITOS (doc fiscal)
+      rawSped(v['002']),   // VL_TOT_AJ_DEBITOS
+      rawSped(v['003']),   // VL_ESTORNOS_CRED
+      rawSped(v['005']),   // VL_TOT_CREDITOS
+      '0,00',              // VL_AJ_CREDITOS (doc fiscal)
+      rawSped(v['006']),   // VL_TOT_AJ_CREDITOS
+      rawSped(v['007']),   // VL_ESTORNOS_DEB
+      rawSped(v['009']),   // VL_SLD_CREDOR_ANT
+      rawSped(v['011']),   // VL_SLD_APURADO
+      rawSped(v['012']),   // VL_TOT_DED
+      rawSped(v['013']),   // VL_ICMS_RECOLHER
+      rawSped(v['014']),   // VL_SLD_CREDOR_TRANSPORTAR
+      '0,00'               // DEB_ESP
+    ];
+    setTxt('e110Linha', '|E110|' + e110.join('|') + '|');
+
+    // ── E111 (SP) ──
+    setIn('e111a_val', fmtBrl(sp['sp010302']));
+    setIn('e111b_val', fmtBrl(sp['sp000207']));
+    setIn('e111c_val', fmtBrl(sp['sp020718']));
+    attachCopy('e111a_val', sp['sp010302']);
+    attachCopy('e111b_val', sp['sp000207']);
+    attachCopy('e111c_val', sp['sp020718']);
+    setTxt('e111a_desc', sp['sp010302_desc']);
+    setTxt('e111b_desc', sp['sp000207_desc']);
+    setTxt('e111c_desc', sp['sp020718_desc']);
+    setTxt('r_e111a', fmtBrl(sp['sp010302']));
+    setTxt('r_e111b', fmtBrl(sp['sp000207']));
+    setTxt('r_e111c', fmtBrl(sp['sp020718']));
+    const totSP = sp['sp010302'] + sp['sp000207'] + sp['sp020718'];
+    document.getElementById('r_e111tot').innerHTML = `<strong>${fmtBrl(totSP)}</strong>`;
+
+    // Mostra só o que existe no P9 (lançamento detalhado ou total da seção)
+    e111Tem = (totSP + v['002'] + v['003'] + v['006']) > 0;
+    [['e111a_val','r_e111a',sp['sp010302'],v['003']],['e111b_val','r_e111b',sp['sp000207'],v['002']],['e111c_val','r_e111c',sp['sp020718'],v['006']]].forEach(([iid,rid,val,p9]) => {
+      const mostrar = val > 0 || p9 > 0;
+      const row = document.getElementById(iid).closest('.e111-row'); if (row) row.style.display = mostrar ? '' : 'none';
+      const tr = document.getElementById(rid).closest('tr'); if (tr) tr.style.display = mostrar ? '' : 'none';
+    });
+
+    // Conferência: soma dos lançamentos E111 × total da seção no P9 (que é o campo do E110)
+    const chkE111 = (a, b) => (a < 0.005 && b < 0.005) ? ['—','var(--text3)']
+      : (Math.abs(a - b) < 0.01 ? ['✅ OK','var(--green)'] : ['⚠️ Dif','var(--orange)']);
+    [['c_e111a', sp['sp010302'], v['003']], ['c_e111b', sp['sp000207'], v['002']], ['c_e111c', sp['sp020718'], v['006']]].forEach(([id,a,b]) => {
+      const [txt,cor] = chkE111(a,b);
+      document.getElementById(id).innerHTML = `<span style="color:${cor};font-weight:700;">${txt}</span>`;
+    });
+    window._sp = sp; window._v = v; renderProvaE111();
+
+    // ── E116 (SP) — só se houver ICMS a recolher no P9 ──
+    e116Tem = v['013'] > 0;
+    const obrigE116 = document.getElementById('e116_obrig');
+    if (e116Tem) {
+      setIn('e116_valor', fmtBrl(v['013']));
+      attachCopy('e116_valor', v['013']);
+      const periodo = meta.periodo || '01/2025';
+      const parts = periodo.split('/');
+      if (parts.length === 2) {
+        let m = parseInt(parts[0], 10) + 1, a = parseInt(parts[1], 10);
+        if (m > 12) { m = 1; a++; }
+        setIn('e116_venc', `20/${String(m).padStart(2,'0')}/${a}`);
+        setIn('e116_mes', periodo);
+      }
+      obrigE116.textContent = 'SIM'; obrigE116.className = 'obadge sim';
+      document.getElementById('e116Aviso').innerHTML = '';
+    } else {
+      setIn('e116_valor', ''); setIn('e116_venc', ''); setIn('e116_mes', '');
+      const old = document.querySelector('.cpbtn[data-for="e116_valor"]'); if (old) old.remove();
+      obrigE116.textContent = 'NÃO'; obrigE116.className = 'obadge nao';
+      document.getElementById('e116Aviso').innerHTML = '📌 <strong>E116 não deve ser gerado:</strong> o P9 não tem ICMS a recolher (linha 013 = ' + fmtBrl(v['013']) + ')' + (v['014'] > 0 ? ' — saldo credor a transportar ' + fmtBrl(v['014']) + '.' : '.');
+    }
+
+    // ── REG 1200 (MG) ──
+    const transf = parseMoney(document.getElementById('a_transf').value);
+    const sf = v['009'] + v['005'] + transf - v['001'];
+    setIn('a_sant', fmtBrl(v['009']));
+    setIn('a_cmes', fmtBrl(v['005']));
+    setIn('a_util', fmtBrl(v['001']));
+    setIn('a_sfin', fmtBrl(sf));
+    setTxt('r009', fmtBrl(v['009']));
+    setTxt('rcred', fmtBrl(v['005']));
+    setTxt('rtransf', fmtBrl(transf));
+    setTxt('rdeb', fmtBrl(v['001']));
+    setTxt('rsld', fmtBrl(sf));
+
+    const transfInput = document.getElementById('a_transf');
+    const newTransfInput = transfInput.cloneNode(true);
+    transfInput.parentNode.replaceChild(newTransfInput, transfInput);
+    document.getElementById('a_transf').addEventListener('input', function() {
+        const val = parseMoney(this.value);
+        const newSf = v['009'] + v['005'] + val - v['001'];
+        setIn('a_sfin', fmtBrl(newSf));
+        setTxt('rsld', fmtBrl(newSf));
+        setTxt('rtransf', fmtBrl(val));
+        const ng = newSf <= 0;
+        document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
+        const ob = document.getElementById('obrig');
+        ob.textContent = ng ? 'NÃO' : 'SIM';
+        ob.className = 'obadge '+(ng?'nao':'sim');
+    });
+
+    setIn('b_tcred', fmtBrl(v['001']));
+    if(v['001']>0&&!document.getElementById('b_doc').value) document.getElementById('b_doc').value=`Apuração ICMS ${meta.periodo}`;
+
+    setIn('c_cmes', fmtBrl(cte));
+    setIn('c_sfin', fmtBrl(cte));
+    setTxt('q2353', fmtBrl(cte));
+    document.getElementById('qtot').innerHTML=`<strong>${fmtBrl(cte)}</strong>`;
+    setTxt('qtrp', fmtBrl(cte));
+
+    const ng = sf <= 0;
+    document.getElementById('alertNG').style.display = ng ? 'block' : 'none';
+    const ob = document.getElementById('obrig');
+    ob.textContent = ng ? 'NÃO' : 'SIM';
+    ob.className = 'obadge '+(ng?'nao':'sim');
+
+    document.getElementById('vc003').textContent = fmtShort(v['003']);
+    document.getElementById('vc005').textContent = fmtShort(v['005']);
+    document.getElementById('vc013').textContent = fmtShort(v['013']);
+    document.getElementById('vc014').textContent = fmtShort(v['014']);
+    document.getElementById('valChips').style.display = 'grid';
+
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('e110W').style.display = 'block';
+
+    aplicarUF(uf);
+
+    if (!conf.ok) setStatus('spin', `⚠️ Extração concluída com avisos — veja a conferência do E110 [${uf}]`);
+    else setStatus(ng?'spin':'ok', `✅ Extração concluída — ${nome} [${uf}]`);
+
+  } catch(err) {
+    console.error(err);
+    setStatus('err', `❌ Erro: ${err.message}`);
+  }
+  document.getElementById('processBtn').disabled = false;
+}
+
+
+// ── PROVA E VALIDADOR E111 × PVA ──────────────────────────────
+const E111_TIPOS = {'0':'outros débitos (E110 «ajustes a débito»)','1':'estorno de crédito (E110 «estornos de créditos»)','2':'outros créditos (E110 «ajustes a crédito»)','3':'estorno de débito (E110 «estornos de débitos»)','4':'deduções (E110 «deduções»)'};
+function initPvaRows() {
+  const box = document.getElementById('pvaRows'); if (!box || box.children.length) return;
+  for (let i = 1; i <= 3; i++) {
+    const d = document.createElement('div'); d.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;';
+    d.innerHTML = '<input id="pva_cod'+i+'" placeholder="Código (ex: SP010302)" style="flex:1;max-width:190px;border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:\'DM Mono\',monospace;font-size:0.82rem;text-transform:uppercase;user-select:text;">' +
+                  '<input id="pva_val'+i+'" placeholder="Valor (ex: 23.330,87)" style="flex:1;max-width:190px;border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:\'DM Mono\',monospace;font-size:0.82rem;text-align:right;user-select:text;">';
+    box.appendChild(d);
+  }
+}
+function renderProvaE111() {
+  const sp = window._sp, v = window._v; if (!sp || !v) return;
+  initPvaRows();
+  setTxt('pv_002', fmtBrl(sp['sp000207'])); setTxt('pv_003', fmtBrl(sp['sp010302'])); setTxt('pv_006', fmtBrl(sp['sp020718']));
+  const L = [];
+  const mk = (cod, key) => { if (sp[key] > 0) L.push('|E111|' + cod + '|' + normalize(sp[key+'_desc']).toUpperCase() + '|' + rawSped(sp[key]) + '|'); };
+  mk('SP000207','sp000207'); mk('SP010302','sp010302'); mk('SP020718','sp020718');
+  setTxt('e111Linhas', L.length ? L.join('\n') : 'Sem ajustes E111 neste P9');
+}
+function validarPVA() {
+  const sp = window._sp; const out = document.getElementById('pvaResult');
+  if (!sp) { out.innerHTML = '<span style="color:var(--orange);">Processe o PDF primeiro.</span>'; return; }
+  const certo = [['SP000207', sp['sp000207']], ['SP010302', sp['sp010302']], ['SP020718', sp['sp020718']]].filter(x => x[1] > 0);
+  const html = []; let erros = 0, lidas = 0;
+  for (let i = 1; i <= 3; i++) {
+    const cod = (document.getElementById('pva_cod'+i).value || '').trim().toUpperCase();
+    const vs = (document.getElementById('pva_val'+i).value || '').trim();
+    if (!cod && !vs) continue; lidas++;
+    const val = parseMoney(vs.replace(/^R\$\s*/, ''));
+    const tipo = cod.length >= 4 ? E111_TIPOS[cod[3]] || 'tipo desconhecido' : '—';
+    const esperado = certo.find(x => Math.abs(x[1] - val) < 0.01);
+    if (!esperado) { erros++; html.push('<div style="color:var(--orange);">⚠️ Linha '+i+': valor '+fmtBrl(val)+' não existe no P9.</div>'); continue; }
+    if (esperado[0] === cod) html.push('<div style="color:var(--green);">✅ Linha '+i+': '+cod+' com '+fmtBrl(val)+' está correto.</div>');
+    else { erros++; html.push('<div style="color:var(--red);">❌ Linha '+i+': você lançou <b>'+cod+'</b> (4º caractere → '+tipo+') com '+fmtBrl(val)+'. Esse valor é de <b>'+esperado[0]+'</b>. Troque o código.</div>'); }
+  }
+  if (!lidas) { out.innerHTML = '<span style="color:var(--text3);">Preencha ao menos uma linha.</span>'; return; }
+  if (!erros) html.push('<div style="margin-top:6px;color:var(--green);font-weight:700;">Tudo certo: o PVA deve validar sem esses 2 erros.</div>');
+  out.innerHTML = html.join('');
+}
+
+function setStatus(type, text) {
+  document.getElementById('stxt').textContent = text;
+  const d = document.getElementById('sdot');
+  d.className = 'sdot';
+  if(type==='ok') d.classList.add('ok');
+  if(type==='err') d.classList.add('err');
+  if(type==='spin') d.classList.add('spin');
+}
+
+// ── EVENTOS DE ARQUIVO ────────────────────────────────────────
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
+
+dz.addEventListener('click', () => fi.click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f?.type === 'application/pdf') setFile(f);
+});
+fi.addEventListener('change', () => { if(fi.files[0]) setFile(fi.files[0]); });
+document.getElementById('clearFile').addEventListener('click', () => {
+  currentFile=null; fi.value='';
+  document.getElementById('fileChip').style.display='none';
+  document.getElementById('processBtn').disabled=true;
+  document.getElementById('valChips').style.display='none';
+  setStatus('','Aguardando PDF do Modelo P9');
+});
+
+function setFile(f) {
+  currentFile = f;
+  document.getElementById('fileName').textContent = f.name;
+  document.getElementById('fileChip').style.display = 'flex';
+  document.getElementById('processBtn').disabled = false;
+  setStatus('','PDF carregado — clique em Processar');
+}
+
+setUF('MG');
+renderCodigos();
+</script>
+</body>
+</html>
