@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conferência CFOP × Planilha</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#fff;--card:#fff;--bd:#d5dae6;--tx:#1f2a44;--mut:#6b7590;--pri:#5b21d6;--soft:#f4f2fd;--row:#f7f8fb;--ground:#e6e9f2;--hole:#1a1f36;--inp:#fff;--panel:#e6e9fb;--sh:5px 5px 12px #c4c9ea,-5px -5px 12px #fff;--knob:#eef0fd;--ksh:4px 4px 9px #c4c9ea,-4px -4px 9px #fff;--man:#1d2542;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=dark]{--bg:#0e1120;--card:#161a2e;--bd:#2a3152;--tx:#e8ebf7;--mut:#98a2c4;--pri:#9b7bff;--soft:#1e2340;--row:#1a1f38;--ground:#252b4a;--hole:#04050b;--inp:#10142a;--panel:#1d2030;--sh:5px 5px 12px #0c0e18,-3px -3px 9px #2b3050;--knob:#232740;--ksh:3px 3px 8px #0c0e18,-2px -2px 6px #2e3354;--man:#fff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:clamp(13px,.75vw + 5px,17px)/1.45 "Segoe UI",Roboto,Arial,sans-serif;transition:background .6s,color .6s}
+.wrap{width:100%;max-width:none;margin:0 auto;padding:10px clamp(12px,2vw,40px) 30px}
+.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--bd);padding-bottom:6px;margin-bottom:14px}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--tx);padding:10px 12px;font:inherit;cursor:pointer}
+.tabs button.on{color:var(--pri);border-color:var(--pri)}
+.acts{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lnk{background:none;border:0;color:var(--tx);font:inherit;cursor:pointer}
+.lnk:hover{color:var(--pri)}
+#stageBtn{position:relative;width:240px;height:72px;border-radius:18px;cursor:pointer;background:var(--panel);box-shadow:var(--sh);line-height:0;transition:background .7s,box-shadow .7s}
+#stageBtn:focus-visible{outline:2px solid var(--pri)}
+#stageBtn svg{position:absolute;left:0;top:0;width:100%;height:100%}
+#knob{position:absolute;left:14px;top:12px;width:48px;height:48px;border-radius:50%;background:var(--knob);box-shadow:var(--ksh);display:grid;place-items:center;transition:background .7s,box-shadow .7s}
+#knob svg{position:static;width:26px;height:26px}
+.moon{display:none}
+:root[data-theme=dark] .sun{display:none}:root[data-theme=dark] .moon{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:3px;padding:14px 16px;transition:background .6s,border-color .6s}
+.card h3{margin:0 0 2px;font-size:13px}
+.sub{color:var(--mut);font-size:12px;margin-bottom:10px}
+.g{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+@media(max-width:820px){.g{grid-template-columns:1fr}}
+textarea{width:100%;height:170px;resize:vertical;background:var(--inp);color:var(--tx);border:1px solid var(--bd);border-radius:3px;padding:8px;font:12px Consolas,monospace;white-space:pre}
+input[type=text],input[type=number]{background:var(--inp);color:var(--tx);border:1px solid var(--bd);border-radius:3px;padding:5px 7px;width:90px;font:inherit}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:3px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer}
+:root[data-theme=dark] .btn{color:#10142a}
+.file{border:1px dashed var(--bd);border-radius:3px;padding:10px;background:var(--soft)}
+.mut{color:var(--mut)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.st b{display:block;font-size:24px;font-weight:400}
+.st span{font-size:12px;color:var(--mut)}
+.dn{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.leg{flex:1;min-width:160px;font-size:12px}
+.leg div{margin:5px 0}
+.leg i{display:block;height:5px;background:var(--row);margin-top:2px}
+.leg i u{display:block;height:5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:14px;padding:3px 10px;font:inherit;cursor:pointer}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+:root[data-theme=dark] .chip.on{color:#10142a}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:normal;overflow-wrap:anywhere}
+td:nth-child(1),td:nth-child(2),td:nth-child(4),td:nth-child(5),td.n{white-space:nowrap;overflow-wrap:normal}
+th{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.m{cursor:pointer}tr.m:hover{background:var(--row)}
+tr.d td{white-space:normal;background:var(--row)}
+.tag{display:inline-block;color:#fff;border-radius:3px;padding:1px 7px;font-size:11px;font-weight:600}
+.neg{color:#e5484d;font-weight:600}
+.pane{display:none}.pane.on{display:block}
+.help li{margin:6px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+ <div class="tabs"><button class="on" data-p="pc">Conferência</button><button data-p="ph">Como usar</button></div>
+ <div class="acts">
+  <button class="lnk" id="bCsv">⬇ Exportar CSV</button>
+  <button class="lnk" id="bClr">✕ Limpar</button>
+  <div id="stageBtn" role="button" tabindex="0" title="Clique: o homenzinho troca o tema" aria-label="Alternar modo claro e escuro">
+   <div id="knob"><svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#ffa31a"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="#ffa31a" stroke-width="2" stroke-linecap="round"/></svg><svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#4db8ff"/></svg></div>
+   <svg id="stage" viewBox="0 0 300 90"><defs><clipPath id="cl"><rect x="0" y="0" width="300" height="62"/></clipPath></defs>
+    <ellipse cx="172" cy="61" rx="9" ry="3.5" fill="var(--hole)"/>
+    <ellipse cx="246" cy="61" rx="18" ry="6.5" fill="var(--hole)"/>
+    <g clip-path="url(#cl)"><g id="man" stroke="var(--man)" stroke-width="2" stroke-linecap="round" fill="none">
+     <circle cx="0" cy="-24" r="4" fill="var(--man)"/>
+     <line x1="0" y1="-20" x2="0" y2="-9"/>
+     <line id="aL" x1="0" y1="-18"/><line id="aR" x1="0" y1="-18"/>
+     <line id="lL" x1="0" y1="-9"/><line id="lR" x1="0" y1="-9"/>
+    </g></g>
+   </svg>
+  </div>
+ </div>
+</div>
+
+<div id="pc" class="pane on">
+ <div class="g">
+  <div class="card">
+   <h3>Dados para conferir</h3>
+   <div class="sub">Cole a tabela do confronto (PRODAC × DP) e/ou os itens de cada CFOP, um bloco abaixo do outro (com a linha "DP 2 - CFOP: 1.652 / Periodo…"). A planilha é opcional.</div>
+   <textarea id="txt" placeholder="Cole aqui a lista copiada do sistema…" spellcheck="false"></textarea>
+   <div class="row">
+    <div class="file"><b>Planilha de NFs de entrada (opcional):</b> <input type="file" id="fil" accept=".xls,.xlsx,.xlsm"><div class="mut" id="fnm">Nenhuma planilha importada</div></div>
+   </div>
+   <div class="row">
+    <label>CFOP padrão <input type="text" id="cfd" placeholder="1407"></label>
+    <label>Tolerância R$ <input type="number" id="tol" value="0" step="0.01" min="0"></label>
+    <label><input type="checkbox" id="oF" checked> frete</label>
+    <label><input type="checkbox" id="oI" checked> IPI</label>
+    <label><input type="checkbox" id="oS" checked> ST</label>
+    <label><input type="checkbox" id="oC"> colunas fiscais</label>
+   </div>
+   <button class="btn" id="bGo">Comparar</button> <span id="msg" class="mut"></span>
+  </div>
+  <div>
+   <div class="stats">
+    <div class="card st"><b id="s1">0</b><span>Itens colados</span></div>
+    <div class="card st"><b id="s2">0</b><span>NFs conferidas</span></div>
+    <div class="card st"><b id="s3">0</b><span>Divergências</span></div>
+    <div class="card st"><b id="s4">0,00</b><span>Soma das diferenças de valor</span></div>
+   </div>
+   <div class="card">
+    <h3>Divergências por tipo</h3><div class="sub">Distribuição dos erros encontrados.</div>
+    <div class="dn"><svg id="don" viewBox="0 0 100 100" width="130" height="130"></svg><div class="leg" id="leg"></div></div>
+   </div>
+  </div>
+ </div>
+ <div class="card">
+  <h3>Somente o que está com erro</h3>
+  <div class="sub">Clique numa linha para ver os itens da lista daquela NF.</div>
+  <div class="chips" id="chips"></div>
+  <div class="tw"><table><thead><tr><th>Tipo</th><th>NF</th><th>Emitente</th><th>CFOP lista</th><th>CFOP planilha</th><th class="n">Lista</th><th class="n">Planilha</th><th class="n">Diferença</th><th>Observação</th></tr></thead><tbody id="tb"><tr><td colspan="9" class="mut">Sem resultados ainda.</td></tr></tbody></table></div>
+ </div>
+</div>
+
+<div id="ph" class="pane"><div class="card help"><h3>Como usar</h3><ol>
+<li>Cole a lista copiada do sistema. Pode colar vários CFOP, um bloco abaixo do outro; o CFOP é lido da linha "CFOP: x.xxx".</li>
+<li>Importe a planilha "Consulta de Notas Fiscais de Entrada" (1012.XLS). A conferência é por NF + CFOP.</li>
+<li>Valor da lista = Valor − Desconto + Frete + IPI + ST (dá para desmarcar frete, IPI e ST).</li>
+<li><b>Valor diferente</b>: a NF existe nos dois lados com o mesmo CFOP, mas os totais não batem (ex.: 0,01).</li>
+<li><b>CFOP diferente</b>: a NF está num CFOP na lista e em outro na planilha. Se uma NF tem diferenças que se anulam entre dois CFOPs, aparece como "possível item em CFOP trocado".</li>
+<li><b>CST misto</b>: a mesma NF, no mesmo CFOP, tem itens com CST diferentes.</li>
+<li><b>Só na lista / Só na planilha</b>: NF que não existe do outro lado (a planilha só é cobrada nos CFOP que você colou).</li>
+<li><b>Confronto PRODAC × DP</b>: se você colar também a tabela "CONFRONTO APURAÇÃO DO ICMS", cada CFOP com valor contábil diferente aparece (Lista = DP, Planilha = PRODAC) e o app mostra quanto da diferença é ST e em quais NFs. Os CFOP 1933 e 2933 são sempre ignorados. Marque "colunas fiscais" para ver também diferenças de base, imposto, isento e outras.</li><li>O homenzinho no topo troca o tema: ele pula o buraco pequeno, cai no grande (escuro) e sai de lá (claro).</li></ol></div></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const TIPOS={CONF:['Confronto PRODAC × DP','#d6336c'],VALOR:['Valor diferente','#e5484d'],CFOP:['CFOP diferente','#0a7cff'],CST:['CST misto','#d98a06'],SO_LISTA:['Só na lista','#12a594'],SO_PLAN:['Só na planilha','#7c4dff']};
+let planilha=null,achados=[],filtro='TODOS',stats={};
+const f2=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const R=x=>Math.round(x*100)/100;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{if(typeof v==='number')return v;if(v==null||v==='')return 0;let s=String(v).trim();if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');const n=parseFloat(s);return isNaN(n)?0:n};
+const nfk=v=>String(parseInt(String(v).replace(/\D/g,''),10)||'');
+const cf=v=>String(v??'').replace(/\D/g,'');
+
+/* ---------- leitura ---------- */
+function parseColado(txt,def){
+ let cfop=def||'';const out=[];
+ for(const raw of txt.split(/\r?\n/)){
+  const l=raw.trim();if(!l)continue;
+  const h=l.match(/CFOP:?\s*([\d.]{4,5})/i);if(h){cfop=cf(h[1]);continue}
+  if(!/^\d{2}\/\d{2}\/\d{4}/.test(l))continue;
+  const c=(raw.includes('\t')?raw.split('\t'):raw.split(/\s{2,}/)).map(s=>s.trim());
+  if(c.length<12)continue;
+  const n=c.slice(-6).map(num);
+  out.push({cfop,data:c[0],emit:c[1],nf:nfk(c[2]),ncm:c[3],cst:c[4],desc:c.slice(5,-6).join(' '),valor:n[0],dsc:n[1],frete:n[2],icms:n[3],ipi:n[4],st:n[5]});
+ }
+ return out;
+}
+function parseSheet(buf){
+ const wb=XLSX.read(buf,{type:'array'});
+ const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
+ const hi=aoa.findIndex(r=>r.some(c=>String(c).trim()==='Número Nota'));
+ if(hi<0)throw new Error('Cabeçalho "Número Nota" não encontrado');
+ const H=aoa[hi].map(s=>String(s).trim()),ix=n=>H.indexOf(n);
+ const iN=ix('Número Nota'),iS=ix('Série'),iC=ix('CFOP'),iT=ix('Terceiro'),iV=ix('Valor Contábil'),iX=ix('Cancel');
+ const out=[];
+ for(const r of aoa.slice(hi+1)){
+  const nf=nfk(r[iN]),cfop=cf(r[iC]);if(!nf||!cfop)continue;
+  if(iX>=0&&/^(s|sim|1|x)$/i.test(String(r[iX]).trim()))continue;
+  out.push({nf,cfop,serie:r[iS],terc:String(r[iT]),valor:num(r[iV])});
+ }
+ return out;
+}
+
+function parseConfronto(txt){
+ const out=[];
+ for(const raw of txt.split(/\r?\n/)){
+  const c=(raw.includes('\t')?raw.split('\t'):raw.trim().split(/\s+/)).map(x=>x.trim()).filter(x=>x!=='');
+  if(c.length<11||!/^\d{4}$/.test(c[0]))continue;
+  const v=c.slice(1,11);if(!v.every(x=>/^-?[\d.]*,\d{2}$/.test(x)))continue;
+  out.push({cfop:c[0],v:v.map(num)});
+ }
+ return out;
+}
+const itensHtml=g=>`<table style="min-width:0"><tr><th>CST</th><th>Descrição</th><th class="n">Valor</th><th class="n">Desc.</th><th class="n">Frete</th><th class="n">ST</th></tr>${g.itens.map(x=>`<tr><td>${esc(x.cst)}</td><td style="white-space:normal">${esc(x.desc)}</td><td class="n">${f2(x.valor)}</td><td class="n">${f2(x.dsc)}</td><td class="n">${f2(x.frete)}</td><td class="n">${f2(x.st)}</td></tr>`).join('')}</table>`;
+const nfsHtml=n=>`<table style="min-width:0"><tr><th>NF</th><th>Emitente</th><th class="n">Valor (sem ST)</th><th class="n">ST</th><th class="n">Com ST</th></tr>${n.map(x=>`<tr${x.st?' style="font-weight:700"':''}><td>${x.nf}</td><td>${esc(x.emit)}</td><td class="n">${f2(x.sem)}</td><td class="n">${f2(x.st)}</td><td class="n">${f2(R(x.sem+x.st))}</td></tr>`).join('')}</table>`;
+
+/* ---------- comparação ---------- */
+function comparar(){
+ const msg=$('#msg'),txt=$('#txt').value,IGN=['1933','2933'];
+ const itens=parseColado(txt,cf($('#cfd').value)).filter(i=>!IGN.includes(i.cfop));
+ const conf=parseConfronto(txt).filter(c=>!IGN.includes(c.cfop));
+ if(!itens.length&&!conf.length){msg.textContent='Nada reconhecido: cole a tabela do confronto e/ou a lista de itens.';return}
+ if(itens.some(i=>!i.cfop)){msg.textContent='Há itens sem CFOP: cole com a linha "CFOP: x.xxx" ou preencha o CFOP padrão.';return}
+ if(!planilha&&!conf.length){msg.textContent='Importe a planilha ou cole também a tabela do confronto (PRODAC × DP).';return}
+ msg.textContent=planilha?'':'Sem planilha: comparando só o confronto PRODAC × DP.';
+ const tol=num($('#tol').value),oF=$('#oF').checked,oI=$('#oI').checked,oS=$('#oS').checked,oC=$('#oC').checked;
+ const liq=i=>i.valor-i.dsc+(oF?i.frete:0)+(oI?i.ipi:0)+(oS?i.st:0);
+ const G={},PN={},P=new Set();
+ for(const i of itens){const k=i.nf+'|'+i.cfop;let g=G[k];
+  if(!g){g=G[k]={nf:i.nf,cfop:i.cfop,emit:i.emit,itens:[],tot:0,csts:new Set()};(PN[i.nf]=PN[i.nf]||[]).push(g)}
+  g.itens.push(i);g.tot+=liq(i);g.csts.add(i.cst);P.add(i.cfop)}
+ const S={},SN={};
+ for(const r of (planilha||[])){const k=r.nf+'|'+r.cfop;let s=S[k];
+  if(!s){s=S[k]={nf:r.nf,cfop:r.cfop,tot:0,terc:r.terc};(SN[r.nf]=SN[r.nf]||[]).push(s)}s.tot+=r.valor}
+ const out=[],cfopNf=new Set();
+ /* confronto PRODAC x DP */
+ const PAR=[['Contábil',0],['Base',2],['Imposto',4],['Isento',6],['Outras',8]];
+ for(const c of conf){
+  const dif=PAR.filter(([n,k])=>Math.abs(c.v[k]-c.v[k+1])>0.004&&(k===0||oC));
+  if(!dif.length)continue;
+  const dd=R(c.v[0]-c.v[1]);
+  let obs=dif.filter(x=>x[1]>0).map(([n,k])=>`${n}: PRODAC ${f2(c.v[k])} × DP ${f2(c.v[k+1])}`).join(' · '),det='';
+  const gs=Object.values(G).filter(g=>g.cfop===c.cfop);
+  if(Math.abs(dd)>0.004){
+   if(gs.length){
+    const nfs=gs.map(g=>({nf:g.nf,emit:g.emit,sem:R(g.itens.reduce((a,x)=>a+x.valor-x.dsc+x.frete+x.ipi,0)),st:R(g.itens.reduce((a,x)=>a+x.st,0))})).sort((a,b)=>b.st-a.st);
+    const sem=R(nfs.reduce((a,x)=>a+x.sem,0)),st=R(nfs.reduce((a,x)=>a+x.st,0)),cs=nfs.filter(x=>x.st>0);
+    const txtSt=cs.map(x=>`NF ${x.nf} (${f2(x.st)})`).join(', ');
+    obs=`PRODAC − DP = ${f2(dd)}. `+(Math.abs(dd-st)<0.015?`É exatamente o ST da lista: ${txtSt}.`:st>0?`ST da lista explica ${f2(st)} (${txtSt}); sobram ${f2(R(dd-st))}.`:`A lista não tem ST; a diferença está em outro lugar.`)+(Math.abs(sem-c.v[1])>0.015?` Atenção: a lista soma ${f2(sem)} e a coluna DP mostra ${f2(c.v[1])}.`:'')+(obs.includes('Base')||obs.includes('Imposto')?' · '+obs:'');
+    det=nfsHtml(nfs);
+   }else obs=`PRODAC − DP = ${f2(dd)}. Cole a lista do CFOP ${c.cfop} para achar a NF.`+(obs?' · '+obs:'');
+  }
+  out.push({t:'CONF',nf:'—',emit:'Tabela do confronto',cl:c.cfop,cp:c.cfop,vl:R(c.v[1]),vp:R(c.v[0]),d:R(c.v[1]-c.v[0]),obs,det});
+ }
+ /* itens x planilha */
+ for(const g of Object.values(G)){
+  if(!planilha)break;
+  const s=S[g.nf+'|'+g.cfop];
+  if(s){const d=R(g.tot-s.tot);if(Math.abs(d)>tol+0.004)out.push({t:'VALOR',nf:g.nf,emit:g.emit,cl:g.cfop,cp:s.cfop,vl:R(g.tot),vp:R(s.tot),d,g})}
+  else if(SN[g.nf]){const cs=SN[g.nf].map(x=>x.cfop);cfopNf.add(g.nf);
+   out.push({t:'CFOP',nf:g.nf,emit:g.emit,cl:g.cfop,cp:cs.join(', '),vl:R(g.tot),vp:R(SN[g.nf].reduce((a,x)=>a+x.tot,0)),d:null,g,obs:'NF está em outro CFOP na planilha'})}
+  else out.push({t:'SO_LISTA',nf:g.nf,emit:g.emit,cl:g.cfop,cp:'—',vl:R(g.tot),vp:null,d:null,g,obs:'NF não encontrada na planilha'});
+ }
+ for(const g of Object.values(G)){
+  if(g.csts.size>1){const s=S[g.nf+'|'+g.cfop];out.push({t:'CST',nf:g.nf,emit:g.emit,cl:g.cfop,cp:s?s.cfop:'—',vl:R(g.tot),vp:s?R(s.tot):null,d:null,g,obs:'CSTs na mesma NF/CFOP: '+[...g.csts].join(' / ')})}
+ }
+ for(const s of Object.values(S)){
+  if(G[s.nf+'|'+s.cfop]||!P.has(s.cfop))continue;
+  if(PN[s.nf]){if(cfopNf.has(s.nf))continue;
+   out.push({t:'CFOP',nf:s.nf,emit:s.terc,cl:PN[s.nf].map(x=>x.cfop).join(', '),cp:s.cfop,vl:null,vp:R(s.tot),d:null,obs:'Planilha tem valor neste CFOP que a lista não tem'})}
+  else out.push({t:'SO_PLAN',nf:s.nf,emit:s.terc,cl:'—',cp:s.cfop,vl:null,vp:R(s.tot),d:null,obs:'NF não encontrada na lista'});
+ }
+ const por={};out.filter(o=>o.t==='VALOR').forEach(o=>(por[o.nf]=por[o.nf]||[]).push(o));
+ for(const v of Object.values(por))if(v.length>1&&Math.abs(R(v.reduce((a,o)=>a+o.d,0)))<0.015)v.forEach(o=>o.obs='Possível item em CFOP trocado (diferenças se anulam)');
+ out.sort((a,b)=>(a.t==='CONF')!==(b.t==='CONF')?(a.t==='CONF'?-1:1):(a.t==='CONF'?+a.cl-+b.cl:+a.nf-+b.nf));
+ achados=out;
+ stats={itens:itens.length,nfs:Object.keys(PN).length,div:out.length,soma:R(out.filter(o=>o.t==='VALOR').reduce((a,o)=>a+o.d,0))};
+ filtro='TODOS';render();
+}
+
+/* ---------- tela ---------- */
+function render(){
+ $('#s1').textContent=stats.itens??0;$('#s2').textContent=stats.nfs??0;$('#s3').textContent=stats.div??0;$('#s4').textContent=f2(stats.soma??0);
+ const cont={};achados.forEach(o=>cont[o.t]=(cont[o.t]||0)+1);
+ const tot=achados.length,C=2*Math.PI*38;let acc=0,sv='<circle cx="50" cy="50" r="38" fill="none" stroke="var(--row)" stroke-width="14"/>',lg='';
+ for(const k in TIPOS){const n=cont[k]||0,len=tot?C*n/tot:0;
+  if(n)sv+=`<circle cx="50" cy="50" r="38" fill="none" stroke="${TIPOS[k][1]}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-acc}" transform="rotate(-90 50 50)"/>`;
+  acc+=len;lg+=`<div>${TIPOS[k][0]} <b style="float:right">${n}</b><i><u style="width:${tot?n/tot*100:0}%;background:${TIPOS[k][1]}"></u></i></div>`}
+ sv+=`<text x="50" y="55" text-anchor="middle" font-size="16" fill="var(--tx)">${tot}</text>`;
+ $('#don').innerHTML=sv;$('#leg').innerHTML=lg;
+ $('#chips').innerHTML=['TODOS',...Object.keys(TIPOS)].map(k=>`<button class="chip ${k===filtro?'on':''}" data-k="${k}">${k==='TODOS'?'Todos ('+tot+')':TIPOS[k][0]+' ('+(cont[k]||0)+')'}</button>`).join('');
+ const L=achados.filter(o=>filtro==='TODOS'||o.t===filtro);
+ $('#tb').innerHTML=L.length?L.map((o,i)=>{
+  const it=o.det||(o.g?itensHtml(o.g):'<span class="mut">Sem itens da lista.</span>');
+  return `<tr class="m" data-i="${i}"><td><span class="tag" style="background:${TIPOS[o.t][1]}">${TIPOS[o.t][0]}</span></td><td>${o.nf}</td><td>${esc(o.emit)}</td><td>${o.cl}</td><td>${o.cp}</td><td class="n">${o.vl==null?'—':f2(o.vl)}</td><td class="n">${o.vp==null?'—':f2(o.vp)}</td><td class="n ${o.d?'neg':''}">${o.d==null?'—':f2(o.d)}</td><td>${esc(o.obs||'')}</td></tr><tr class="d" id="d${i}" hidden><td colspan="9">${it}</td></tr>`}).join(''):`<tr><td colspan="9" class="mut">${achados.length||stats.itens?'Nenhuma divergência neste filtro. 🎉':'Sem resultados ainda.'}</td></tr>`;
+}
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b){filtro=b.dataset.k;render()}};
+$('#tb').onclick=e=>{const r=e.target.closest('tr.m');if(r){const d=$('#d'+r.dataset.i);d.hidden=!d.hidden}};
+$$('.tabs button').forEach(b=>b.onclick=()=>{$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.p))});
+$('#bGo').onclick=comparar;
+['oF','oI','oS','oC','tol'].forEach(id=>$('#'+id).onchange=()=>{if(stats.itens!==undefined)comparar()});
+$('#fil').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+ try{planilha=parseSheet(await f.arrayBuffer());$('#fnm').textContent=f.name+' — '+planilha.length+' linhas de NF';$('#msg').textContent=''}
+ catch(err){planilha=null;$('#fnm').textContent='Erro ao ler: '+err.message}};
+$('#bClr').onclick=()=>{$('#txt').value='';achados=[];stats={};render()};
+$('#bCsv').onclick=()=>{if(!achados.length)return;
+ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const rows=[['Tipo','NF','Emitente','CFOP lista','CFOP planilha','Lista','Planilha','Diferença','Observação'],...achados.map(o=>[TIPOS[o.t][0],o.nf,o.emit,o.cl,o.cp,o.vl??'',o.vp??'',o.d??'',o.obs||''])];
+ const blob=new Blob(['\ufeff'+rows.map(r=>r.map(q).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='divergencias-cfop.csv';a.click()};
+
+/* ---------- homenzinho / tema ---------- */
+const man=$('#man'),L=id=>$('#'+id);
+let X=108,Y=0,dir=1,ph=0,busy=false;
+const seg=(el,x2,y2)=>{el.setAttribute('x2',x2);el.setAttribute('y2',y2)};
+function draw(air){
+ const a=air?0.6:Math.sin(ph)*0.75;
+ seg(L('lL'),Math.sin(a)*9,-9+Math.cos(a)*9);seg(L('lR'),-Math.sin(a)*9,-9+Math.cos(a)*9);
+ if(air){seg(L('aL'),-6,-25);seg(L('aR'),6,-25)}else{seg(L('aL'),-Math.sin(a)*7,-18+Math.cos(a)*7);seg(L('aR'),Math.sin(a)*7,-18+Math.cos(a)*7)}
+ man.setAttribute('transform',`translate(${X} ${60+Y}) scale(${dir*1.2} 1.2)`);
+}
+const tween=(ms,fn)=>new Promise(res=>{const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/ms);fn(p);p<1?requestAnimationFrame(f):res()})(t0)});
+const walk=(to,ms)=>{const x0=X;dir=to>=X?1:-1;return tween(ms,p=>{X=x0+(to-x0)*p;ph+=0.35;draw()})};
+const jump=async(to,ms,h)=>{const x0=X;dir=to>=X?1:-1;await tween(ms,p=>{X=x0+(to-x0)*p;Y=-4*h*p*(1-p);draw(true)});Y=0;draw()};
+const setTema=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('tema',t)}catch(e){}};
+async function trocar(){
+ if(busy)return;busy=true;
+ if(document.documentElement.dataset.theme==='light'){
+  await walk(148,700);await jump(198,700,18);await walk(232,600);
+  const x0=X;dir=1;await tween(600,p=>{X=x0+(246-x0)*p;Y=44*p*p;draw(true)});
+  setTema('dark');
+ }else{
+  await tween(700,p=>{Y=44-44*p;draw(true)});Y=0;
+  await jump(282,450,14);
+  setTema('light');
+  await jump(214,800,20);await walk(198,300);await jump(148,700,16);await walk(108,500);dir=1;draw();
+ }
+ busy=false;
+}
+$('#stageBtn').onclick=trocar;
+$('#stageBtn').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();trocar()}};
+try{if(localStorage.getItem('tema')==='dark'){setTema('dark');X=246;Y=44}}catch(e){}
+draw(Y>0);
+render();
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),c=e.ctrlKey||e.metaKey;
+ if(e.key==='F12'||(c&&e.shiftKey&&'ijck'.includes(k)&&k.length===1)||(c&&k==='u')||(e.metaKey&&e.altKey&&'iju'.includes(k)&&k.length===1)){e.preventDefault();e.stopPropagation()}},true);
+</script>
+</body>
+</html>
