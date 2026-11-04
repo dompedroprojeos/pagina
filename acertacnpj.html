@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Padronização de CNPJ nas Chaves do SPED</title>
+<style>
+:root{--o:#e8601c;--ink:#1f2937;--mut:#6b7280;--line:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;background:#fbf1ea;color:var(--ink);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+header{background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,#e8601c;color:#fff;padding:20px 32px}
+header h1{margin:0;font-size:1.4rem}header p{margin:4px 0 0;color:#ffe7d6;font-size:.85rem}
+main{max-width:1300px;margin:auto;padding:20px}
+.card{background:#fff;border-top:3px solid var(--o);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.drop{border:2px dashed #fdba74;background:#fff7ed;border-radius:12px;padding:22px;text-align:center;position:relative;cursor:pointer}.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end}
+label{display:block;font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;margin-bottom:4px}
+input[type=text],select{width:100%;padding:9px 12px;border:2px solid #fdba74;border-radius:10px;font:inherit;background:#fff}
+button{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;color:#fff;background:var(--o);width:100%}
+button.s{background:#fff;color:var(--o);border:2px solid #fdba74}button:disabled{opacity:.4;cursor:not-allowed}
+.info{background:#fff7ed;border-left:4px solid var(--o);padding:9px 14px;border-radius:6px;margin-top:12px;font-size:.85rem}
+.ok{background:#d1fae5;border-left-color:#10b981}.warn{background:#fef3c7;border-left-color:#f59e0b}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:.85rem;margin-top:10px;text-transform:none;font-weight:400;color:var(--ink)}.chk input{margin-top:3px}
+.regs{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.regs .chk{margin:0;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:6px 10px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}th{text-align:left;padding:7px 10px;font-size:.7rem;text-transform:uppercase;color:#9a3412;background:#fff7ed}
+td{padding:6px 10px;border-top:1px solid var(--line);font-family:Consolas,monospace;word-break:break-all}td.n{text-align:right}
+.tw{max-height:360px;overflow:auto;border:1px solid #fdba74;border-radius:10px;margin-top:10px}
+.bad{color:#b91c1c;font-weight:700}.good{color:#047857;font-weight:700}h3{margin:0 0 8px;color:#9a3412}.sub{font-size:.8rem;color:var(--mut)}
+</style></head><body>
+<header><h1>Padronização de CNPJ nas Chaves do SPED</h1><p>Corrige "O CNPJ da chave da NF-e / CF-e não confere com o CNPJ do informante" nos registros com chave (C100, C116, C800 e demais), só nos registros que você escolher</p></header>
+<main>
+<div class="card"><div class="drop"><input type="file" id="f" accept=".txt,.sped"><b id="fn">📂 Selecione o arquivo SPED (.txt)</b><br><small>Lido no seu computador, nada é enviado · o arquivo é salvo na mesma codificação e quebras de linha</small></div><div id="hd"></div></div>
+
+<div class="card" id="c1" style="display:none"><h3>CNPJs encontrados nas chaves (todos os registros)</h3>
+<div class="tw" style="max-height:220px"><table><thead><tr><th>Registro</th><th>CNPJ na chave</th><th>Qtd</th><th>Situação</th></tr></thead><tbody id="t1"></tbody></table></div></div>
+
+<div class="card" id="c2" style="display:none"><h3>Como padronizar</h3>
+<label class="chk"><input type="radio" name="md" value="2" checked><span><b>Opção 1 — CNPJ antigo (o da chave) é o correto</b> <i>(recomendada)</i>: as chaves com o CNPJ antigo não mudam; o CNPJ do 0000 passa a ser o antigo (e eventuais chaves com o CNPJ do cabeçalho também voltam para o antigo).</span></label>
+<label class="chk"><input type="radio" name="md" value="1"><span><b>Opção 2 — Cabeçalho é o correto:</b> as chaves com o CNPJ antigo passam para o CNPJ do 0000 (<b id="h1"></b>). O cabeçalho não muda.</span></label>
+<div class="grid" style="margin-top:12px"><div><label>CNPJ antigo (incorporado)</label><input type="text" id="old" maxlength="18"></div></div>
+
+<div style="margin-top:14px"><label>Registros que serão ajustados</label>
+<div class="sub">Só as chaves destes registros são tocadas. Vêm marcados os registros que têm o CNPJ antigo na chave.</div>
+<div class="regs" id="regs"></div></div>
+
+<label class="chk"><input type="checkbox" id="z0" checked><span>Opção 1: trocar também o CNPJ do registro 0000 para o antigo</span></label>
+<label class="chk"><input type="checkbox" id="dv" checked><span>Recalcular o dígito verificador da chave quando alterar chave. Sem isso o PVA aponta chave inválida.</span></label>
+<label class="chk"><input type="checkbox" id="cp"><span>Trocar também o CNPJ no COD_PART do C100 quando ele for igual ao CNPJ trocado</span></label>
+<div class="info warn">Atenção: só são alteradas as chaves cujo CNPJ é exatamente o CNPJ trocado; chaves de terceiros (notas de entrada de outros fornecedores) não são tocadas. Mudar o CNPJ dentro da chave faz ela deixar de ser a autorizada na SEFAZ; na opção 1 a chave real é preservada, mas o 0000 passa a informar o CNPJ antigo. Confirme com a contabilidade antes de transmitir.</div>
+<div class="grid" style="margin-top:12px"><div><button id="go">Aplicar ajuste</button></div><div><button id="dl" disabled>⬇ Baixar TXT ajustado</button></div></div>
+<div id="rs"></div></div>
+</main>
+<script>
+let lines=[],eol='\r\n',fname='sped.txt',hdr='',out=null,regCnt={};
+const $=id=>document.getElementById(id),dg=s=>(s||'').replace(/\D/g,'');
+function dvOf(k){let p=2,s=0;for(let i=42;i>=0;i--){s+=(+k[i])*p;p=p===9?2:p+1}const r=s%11;return r<2?0:11-r}
+function dec(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return s}
+function enc(s){const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u}
+function fmt(c){return c.length===14?c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'):c}
+const isKey=v=>/^\d{44}$/.test(v);
+$('f').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fname=fl.name;$('fn').textContent='📄 '+fl.name;
+ const r=new FileReader();r.onload=()=>{const t=dec(r.result);eol=t.includes('\r\n')?'\r\n':'\n';lines=t.split(/\r?\n/);if(lines[lines.length-1]==='')lines.pop();load()};r.readAsArrayBuffer(fl)};
+// monta a lista de registros; pré-marca os que têm o CNPJ antigo informado na chave
+function buildRegs(){const old=dg($('old').value),keep={};document.querySelectorAll('#regs input').forEach(i=>keep[i.value]=i.checked);
+ const regs=Object.keys(regCnt).sort();
+ $('regs').innerHTML=regs.map(r=>{const q=regCnt[r][old]||0,tot=Object.values(regCnt[r]).reduce((a,b)=>a+b,0);
+  const on=(r in keep)?keep[r]:q>0;
+  return '<label class="chk"><input type="checkbox" value="'+r+'"'+(on?' checked':'')+'><span><b>'+r+'</b> · '+q+' com o CNPJ antigo · '+tot+' chave(s) no total</span></label>'}).join('')}
+function load(){out=null;$('dl').disabled=true;$('rs').innerHTML='';
+ const h=lines.find(l=>l.startsWith('|0000|'));if(!h){$('hd').innerHTML='<div class="info warn">Registro 0000 não encontrado.</div>';return}
+ const hf=h.split('|');hdr=dg(hf[7]);
+ $('hd').innerHTML='<div class="info">Cabeçalho (0000): <b>'+hf[6]+'</b> · CNPJ <b>'+fmt(hdr)+'</b> · período '+hf[4]+' a '+hf[5]+'</div>';$('h1').textContent=fmt(hdr);
+ const m={};regCnt={};lines.forEach(l=>{if(l.charAt(1)==='0'||l.charAt(1)==='9')return;const f=l.split('|');for(let i=2;i<f.length-1;i++)if(isKey(f[i])){const c=f[i].substr(6,14),k=f[1]+'|'+c;m[k]=(m[k]||0)+1;(regCnt[f[1]]=regCnt[f[1]]||{})[c]=(regCnt[f[1]][c]||0)+1}});
+ const rows=Object.entries(m).sort((a,b)=>b[1]-a[1]);
+ $('t1').innerHTML=rows.map(([k,q])=>{const[g,c]=k.split('|');return '<tr><td>'+g+'</td><td>'+fmt(c)+'</td><td class="n">'+q+'</td><td class="'+(c===hdr?'good">igual':'bad">diferente')+' do 0000</td></tr>'}).join('');
+ const tot={};rows.forEach(([k,q])=>{const c=k.split('|')[1];tot[c]=(tot[c]||0)+q});
+ const dif=Object.entries(tot).filter(r=>r[0]!==hdr).sort((a,b)=>b[1]-a[1]);
+ $('old').value=dif.length?dif[0][0]:'';
+ $('regs').innerHTML='';buildRegs();
+ $('c1').style.display=$('c2').style.display='block'}
+$('old').oninput=buildRegs;
+$('go').onclick=()=>{const old=dg($('old').value);if(old.length!==14){$('rs').innerHTML='<div class="info warn">Informe o CNPJ antigo com 14 dígitos.</div>';return}
+ const sel=new Set([...document.querySelectorAll('#regs input:checked')].map(i=>i.value));
+ const opt=document.querySelector('input[name=md]:checked').value,from=opt==='1'?old:hdr,to=opt==='1'?hdr:old,doDv=$('dv').checked,doCp=$('cp').checked,doZ=$('z0').checked;
+ if(!sel.size&&!(opt==='2'&&doZ)){$('rs').innerHTML='<div class="info warn">Marque pelo menos um registro para ajustar.</div>';return}
+ const res=lines.slice(),ch=[],cnt={};let h0='';
+ res.forEach((l,i)=>{if(l.startsWith('|0000|')){if(opt==='2'&&doZ){const f=l.split('|');f[7]=old;res[i]=f.join('|');h0='<div class="info ok">Registro 0000: CNPJ <b>'+fmt(hdr)+'</b> → <b>'+fmt(old)+'</b>.</div>'}return}
+  if(l.charAt(1)==='0'||l.charAt(1)==='9')return;const f=l.split('|');if(!sel.has(f[1]))return;let mod=false;
+  for(let i2=2;i2<f.length-1;i2++){const k=f[i2];if(!isKey(k)||k.substr(6,14)!==from)continue;
+   let nk=k.substr(0,6)+to+k.substr(20,24);if(doDv)nk=nk.substr(0,43)+dvOf(nk.substr(0,43));
+   f[i2]=nk;mod=true;cnt[f[1]]=(cnt[f[1]]||0)+1;ch.push({reg:f[1],nf:f[1]==='C800'?f[4]:f[1]==='C100'?f[8]:'',old:k,nk})}
+  if(mod){if(doCp&&f[1]==='C100'&&dg(f[4])===from)f[4]=to;res[i]=f.join('|')}});
+ out=res;const resumo=Object.entries(cnt).map(([r,q])=>r+': '+q).join(' · ');
+ const jaOk=(opt==='2'&&!ch.length&&h0)?'<div class="info">As chaves dos registros marcados ('+[...sel].join(', ')+') já estão com o CNPJ antigo; só o 0000 precisou mudar.</div>':'';
+ $('rs').innerHTML=h0+jaOk+'<div class="info '+(ch.length||h0?'ok':'warn')+'"><b>'+ch.length+'</b> chave(s) ajustada(s)'+(resumo?' ('+resumo+')':'')+'.</div>'+(ch.length?'<div class="tw"><table><thead><tr><th>Reg</th><th>Nº doc</th><th>Chave antes</th><th>Chave depois</th></tr></thead><tbody>'+ch.slice(0,300).map(c=>'<tr><td>'+c.reg+'</td><td>'+c.nf+'</td><td>'+c.old+'</td><td>'+c.nk+'</td></tr>').join('')+'</tbody></table></div>'+(ch.length>300?'<small>Mostrando as 300 primeiras.</small>':''):'');
+ $('dl').disabled=!(ch.length||h0)};
+$('dl').onclick=()=>{if(!out)return;const b=new Blob([enc(out.join(eol)+eol)],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname.replace(/\.txt$/i,'')+'_ajustado.txt';a.click()};
+</script></body></html>
