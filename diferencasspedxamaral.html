@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conferência CFOP por NF — SPED × Apuração × Itens</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--o:#e8601c;--od:#9a3412;--ink:#1f2937;--mut:#6b7280;--line:#e5e7eb;--g:#047857;--gl:#d1fae5;--r:#b91c1c;--rl:#fee2e2;--y:#92400e;--yl:#fef3c7}
+*{box-sizing:border-box}body{margin:0;background:#fbf1ea;color:var(--ink);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+header{background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/48px 48px,#e8601c;color:#fff;padding:20px 32px}
+header h1{margin:0;font-size:1.4rem}header p{margin:4px 0 0;color:#ffe7d6;font-size:.85rem}
+main{max-width:1200px;margin:auto;padding:20px}
+.card{background:#fff;border-top:3px solid var(--o);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.drops{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.drop{border:2px dashed #fdba74;background:#fff7ed;border-radius:12px;padding:20px;text-align:center;position:relative;cursor:pointer}.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop.ok{border-style:solid;border-color:#10b981;background:#ecfdf5}.drop small{color:var(--mut)}
+button{border:0;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;color:#fff;background:var(--o)}button:disabled{opacity:.4;cursor:not-allowed}
+button.s{background:#fff;color:var(--o);border:2px solid #fdba74;padding:6px 12px;font-size:.75rem}
+.info{background:#fff7ed;border-left:4px solid var(--o);padding:9px 14px;border-radius:6px;margin-top:12px;font-size:.85rem}.ok2{background:var(--gl);border-left-color:#10b981}.warn{background:var(--yl);border-left-color:#f59e0b}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:12px;padding:12px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--o)}.kpi b{display:block;font-size:1.5rem;line-height:1.2}.kpi span{font-size:.72rem;text-transform:uppercase;color:var(--mut);font-weight:700}
+.kpi.g{border-left-color:#10b981}.kpi.r{border-left-color:#ef4444}
+h2{margin:22px 0 10px;font-size:1.05rem;color:var(--od)}h3{margin:0 0 8px;color:var(--od)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}th{text-align:left;padding:7px 10px;font-size:.68rem;text-transform:uppercase;color:var(--od);background:#fff7ed}
+td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}td.n,th.n{text-align:right;font-family:Consolas,monospace;white-space:nowrap}
+.bad{color:var(--r);font-weight:700}.good{color:var(--g);font-weight:700}.sub{font-size:.78rem;color:var(--mut)}
+.nf{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:14px;overflow:hidden;border-left:5px solid var(--o)}
+.nf.done{opacity:.55;border-left-color:#10b981}
+.nfh{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 16px;background:#fff7ed}
+.nfh .num{font-size:1.25rem;font-weight:800}.nfh .meta{font-size:.8rem;color:var(--mut);flex:1;min-width:200px}
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.7rem;font-weight:700;background:var(--rl);color:var(--r)}.tag.y{background:var(--yl);color:var(--y)}
+.nfb{padding:4px 16px 14px}
+.act{display:inline-block;padding:3px 10px;border-radius:8px;font-weight:800;font-size:.78rem;white-space:nowrap}.act.up{background:var(--gl);color:var(--g)}.act.dn{background:var(--rl);color:var(--r)}
+.val{font-family:Consolas,monospace;font-weight:800;color:var(--g);font-size:.95rem}
+.prod{line-height:1.5}.prod i{font-style:normal;color:var(--mut)}
+details{margin-top:8px}summary{cursor:pointer;font-size:.78rem;color:var(--mut)}
+label.c{font-size:.85rem;margin-right:14px}.chk{display:flex;gap:6px;align-items:center;font-size:.8rem;font-weight:700;cursor:pointer}
+</style></head><body>
+<header><h1>Conferência CFOP por NF</h1><p>Cruza o SPED (CSV), a Apuração (Notas) e os Itens de Mercadoria (XLS) e mostra o que ajustar no programa do SPED, NF por NF</p></header>
+<main>
+<div class="card"><div class="drops">
+<div class="drop" id="d1"><input type="file" id="f1" accept=".csv,.txt" multiple><b>1) CSV(s) da diferença (composição do CFOP no SPED)</b><br><small id="s1">Pode selecionar vários de uma vez (ex.: 1407 e 1556)</small></div>
+<div class="drop" id="d2"><input type="file" id="f2" accept=".xls,.xlsx"><b>2) XLS com abas "Notas" e "Itens de Mercadoria"</b><br><small id="s2">Consulta de Notas Fiscais de Entrada (Prosoft)</small></div>
+</div>
+<div style="margin-top:14px"><label class="c"><input type="checkbox" id="onlyDiff" checked> Mostrar só NFs com diferença</label><button id="go" disabled>Conferir</button></div>
+<div id="msg"></div></div>
+<div id="out"></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const nfKey=s=>String(s==null?'':s).trim().replace(/^0+/,'');
+const cfKey=s=>String(s==null?'':s).trim();
+const num=v=>{if(typeof v==='number')return v;const s=String(v==null?'':v).trim();if(!s)return 0;const n=parseFloat(s.replace(/\./g,'').replace(',','.'));return isNaN(n)?0:n};
+const c100=x=>Math.round(x*100);
+const brl=x=>'R$ '+x.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let sped=null,book=null;
+
+function parseCsv(text){const L=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);const h=L[0].split(';').map(x=>x.trim().toLowerCase());
+ const iC=h.indexOf('cfop'),iN=h.indexOf('numero'),iV=h.indexOf('operacao');
+ if(iC<0||iN<0||iV<0)throw new Error('CSV sem as colunas CFOP;Numero;Operacao');
+ return L.slice(1).map(l=>{const p=l.split(';');return{cfop:cfKey(p[iC]),nf:nfKey(p[iN]),val:num(p[iV])}})}
+function sheetRows(ws,firstHeader){const A=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+ const hi=A.findIndex(r=>r&&String(r[0]||'').trim()===firstHeader);if(hi<0)return[];const h=A[hi].map(x=>String(x==null?'':x).trim());
+ return A.slice(hi+1).filter(r=>r&&r[0]!=null&&String(r[0]).trim()!=='').map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]);return o})}
+function parseBook(wb){const wn=wb.SheetNames,nN=wn.find(n=>/notas/i.test(n)),nI=wn.find(n=>/itens/i.test(n));
+ if(!nN)throw new Error('Aba "Notas" não encontrada');
+ const notas=sheetRows(wb.Sheets[nN],'Número Nota').map(r=>({nf:nfKey(r['Número Nota']),cfop:cfKey(r['CFOP']),val:num(r['Valor Contábil']),terc:r['Terceiro'],dt:r['Dt.Escritur.']}));
+ const itens=nI?sheetRows(wb.Sheets[nI],'Número Nota').map(r=>({nf:nfKey(r['Número Nota']),cfop:cfKey(r['CFOP']),item:r['Número Item'],desc:r['Descrição do Produto'],bc:num(r['Base de Calculo ICMS']),st:String(r['S.T.']==null?'':r['S.T.']).trim(),liq:num(r['Valor Líquido']),dsc:num(r['Desconto']),frete:num(r['Frete']),desp:num(r['Despesas'])})):[];
+ return{notas,itens}}
+function fmtData(v){if(v==null||v==='')return '';if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400000));return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear()}if(v instanceof Date)return v.toLocaleDateString('pt-BR');return String(v)}
+
+// combinações de itens cujo Valor Líquido (e, se preciso, + frete do grupo) soma o alvo
+function subsets(items,target,max=3){
+ const n=items.length;if(n>18||n<1)return null;const t=c100(target),vals=items.map(i=>c100(i.liq)),fr=items.map(i=>c100(i.frete)),res=[];
+ for(let m=1;m<(1<<n)&&res.length<max;m++){let s=0;const f=new Set(),ids=[];for(let i=0;i<n;i++)if(m&(1<<i)){s+=vals[i];if(fr[i])f.add(fr[i]);ids.push(items[i].item)}
+  let ft=0;f.forEach(x=>ft+=x);
+  if(s===t)res.push({ids,frete:false});else if(ft&&s+ft===t)res.push({ids,frete:true,ft:ft/100})}
+ return res}
+
+function conferir(){
+ const cfs=[...new Set(sped.map(r=>r.cfop))],S={},A={};
+ sped.forEach(r=>{const k=r.nf+'|'+r.cfop;S[k]=(S[k]||0)+r.val});
+ book.notas.filter(r=>cfs.includes(r.cfop)).forEach(r=>{const k=r.nf+'|'+r.cfop;A[k]=(A[k]||0)+r.val});
+ const rows=[...new Set([...Object.keys(S),...Object.keys(A)])].map(k=>{const[nf,cfop]=k.split('|');const s=S[k]||0,a=A[k]||0;return{nf,cfop,sped:s,apur:a,dif:s-a,so:(k in S)?((k in A)?'':'só no SPED'):'só na Apuração'}});
+ const byNf={};rows.forEach(r=>(byNf[r.nf]=byNf[r.nf]||[]).push(r));
+ return{cfs,rows,byNf}}
+
+function linhaAjuste(nf,r,it,role){
+ let prod='',cst='';
+ if(Math.abs(r.dif)<0.05&&!r.so)prod='<i>centavos de arredondamento</i>';
+ else if(r.so==='só no SPED')prod='<i>lançamento existe só no SPED; confira se deve constar na Apuração</i>';
+ else if(r.so==='só na Apuração')prod='<i>lançamento falta no SPED; incluir a nota com este CFOP</i>';
+ else{const s=r.apur>0?subsets(it,r.apur,1):null;
+  if(s&&s.length){const g=it.filter(i=>s[0].ids.indexOf(i.item)>=0);cst=[...new Set(g.map(i=>i.st))].join(' / ');
+   prod=g.map(i=>'<b>Item '+esc(i.item)+'</b> · '+esc(i.desc)).join('<br>')+(s[0].frete?'<br><i>(valor com o frete rateado desses itens)</i>':'');
+   const ft=s[0].frete?s[0].ft:0,sl=g.reduce((a,i)=>a+i.liq,0);
+   let acum=0;const shares=g.map((i,k)=>{let v=k===g.length-1?Math.round((ft-acum)*100)/100:Math.round(ft*i.liq/sl*100)/100;acum+=v;return v});
+   const xs=g.map(i=>Math.round((i.bc-i.liq)*100)/100);if(ft&&xs.every(x=>x>=0)&&Math.abs(xs.reduce((a,b)=>a+b,0)-ft)<0.005)xs.forEach((x,k)=>shares[k]=x);
+   if(role==='origem'){
+    prod='<span class="act up" style="margin-bottom:4px">👉 PRODUTO A AJUSTAR</span><br>'+g.map((i,k)=>'<b>Item '+esc(i.item)+'</b> · '+esc(i.desc)).join('<br>');
+    if(g.length===1&&ft)prod+='<br><span style="font-size:.8rem">Valor do item: '+brl(g[0].liq)+'<br>Frete rateado a este item: <b class="bad">'+brl(r.sped-g[0].liq)+'</b> no SPED → <b class="good">'+brl(ft)+'</b> correto (frete da contabilidade)</span>';
+    else prod+='<br><i>O frete rateado a estes itens está '+brl(Math.abs(r.dif))+' menor no SPED.</i>'}
+   else if(role==='contra'){
+    prod='<i>Sem produto específico: o frete total da nota é fixo, então os '+brl(Math.abs(r.dif))+' a mais aqui são o que faltou no outro CFOP. Frete rateado correto por item (contabilidade):</i><div style="font-size:.78rem;margin-top:3px">'+g.map((i,k)=>'Item '+esc(i.item)+' · '+esc(i.desc)+' — frete <b>'+brl(shares[k])+'</b> (valor com frete '+brl(i.liq+shares[k])+')').join('<br>')+'</div>'}}
+  else prod='<i>itens não identificados</i>'}
+ const up=r.apur>r.sped,ac=Math.abs(r.dif)<0.005?'':'<span class="act '+(up?'up':'dn')+'">'+(up?'▲ aumentar ':'▼ diminuir ')+brl(Math.abs(r.dif))+'</span>';
+ return '<tr><td><b>'+r.cfop+'</b></td><td>'+esc(cst)+'</td><td class="prod">'+prod+'</td><td class="n">'+brl(r.sped)+'</td><td class="n val">'+brl(r.apur)+'</td><td>'+ac+'</td></tr>'}
+
+function cardNf(nf,rs,idx){
+ const it=book.itens.filter(i=>i.nf===nf),nn=book.notas.filter(n=>n.nf===nf);
+ const difs=rs.filter(r=>Math.abs(r.dif)>=0.005||r.so);
+ const forn=nn[0]?nn[0].terc:'',dt=nn[0]?fmtData(nn[0].dt):'';
+ const pos=difs.filter(r=>r.dif>0.004),neg=difs.filter(r=>r.dif<-0.004);
+ let tag='<span class="tag">valor diferente</span>';
+ if(pos.length&&neg.length&&Math.abs(difs.reduce((a,r)=>a+r.dif,0))<0.02)tag='<span class="tag">valor trocado entre CFOPs</span>';
+ if(difs.some(r=>r.so))tag='<span class="tag y">lançamento em um lado só</span>';
+ if(difs.every(r=>Math.abs(r.dif)<0.05&&!r.so))tag='<span class="tag y">centavos</span>';
+ const roles={};
+ if(tag.indexOf('trocado')>=0){const gs=difs.map(r=>{const s=r.apur>0?subsets(it,r.apur,1):null;return{r,n:s&&s.length?s[0].ids.length:0}}).filter(x=>x.n);
+  if(gs.length===2&&gs[0].n!==gs[1].n){gs.sort((a,b)=>a.n-b.n);roles[gs[0].r.cfop]='origem';roles[gs[1].r.cfop]='contra'}}
+ const texto='NF '+nf+(forn?' ('+forn+')':'')+':\n'+difs.map(r=>'CFOP '+r.cfop+': de '+brl(r.sped)+' para '+brl(r.apur)).join('\n');
+ let o='<div class="nf" id="nf'+idx+'"><div class="nfh"><span class="num">NF '+nf+'</span>'+tag+'<span class="meta">'+(forn?'Fornecedor '+esc(forn):'')+(dt?' · escriturada em '+dt:'')+'</span>'+
+  '<button class="s" data-t="'+esc(texto).replace(/"/g,'&quot;')+'" onclick="copiar(this)">Copiar ajuste</button>'+
+  '<label class="chk"><input type="checkbox" onchange="document.getElementById(\'nf'+idx+'\').classList.toggle(\'done\',this.checked)"> Ajustado</label></div><div class="nfb">'+
+  '<table><tr><th>CFOP</th><th>CST</th><th>Produto(s) desse CFOP</th><th class="n">Está no SPED</th><th class="n">Lançar</th><th>Ajuste</th></tr>'+difs.sort((a,b)=>a.cfop.localeCompare(b.cfop)).map(r=>linhaAjuste(nf,r,it,roles[r.cfop])).join('')+'</table>';
+ if(it.length){
+  const soma=it.reduce((a,i)=>a+i.liq,0),totNf=nn.reduce((a,n)=>a+n.val,0);
+  o+='<details><summary>Ver itens da nota ('+it.length+')</summary><div class="sub" style="margin:6px 0">Valor Líquido somado '+brl(soma)+' · total da NF nas Notas '+brl(totNf)+(Math.abs(totNf-soma)>=0.005?' · diferença de '+brl(totNf-soma)+' é frete/despesas rateados':'')+'</div>'+
+   '<table><tr><th>Item</th><th>Produto</th><th>CST</th><th class="n">Valor Líquido</th><th class="n">Desconto</th><th class="n">Frete</th></tr>'+it.map(i=>'<tr><td>'+esc(i.item)+'</td><td>'+esc(i.desc)+'</td><td>'+esc(i.st)+'</td><td class="n">'+brl(i.liq)+'</td><td class="n">'+brl(i.dsc)+'</td><td class="n">'+brl(i.frete)+'</td></tr>').join('')+'</table></details>'}
+ return o+'</div></div>'}
+
+function render(){
+ const R=conferir(),only=$('onlyDiff').checked;
+ const tot={};R.rows.forEach(r=>{const t=tot[r.cfop]=tot[r.cfop]||{s:0,a:0};t.s+=r.sped;t.a+=r.apur});
+ const nfs=Object.keys(R.byNf).filter(nf=>R.byNf[nf].some(r=>Math.abs(r.dif)>=0.005||r.so));
+ const reais=nfs.filter(nf=>R.byNf[nf].some(r=>Math.abs(r.dif)>=0.05||r.so)),cent=nfs.filter(nf=>reais.indexOf(nf)<0);
+ let h='<div class="kpis"><div class="kpi '+(reais.length?'r':'g')+'"><b>'+reais.length+'</b><span>NF(s) a ajustar</span></div><div class="kpi"><b>'+cent.length+'</b><span>NF(s) só com centavos</span></div>'+
+  Object.keys(tot).sort().map(c=>{const d=tot[c].s-tot[c].a;return'<div class="kpi '+(Math.abs(d)>=0.005?'r':'g')+'"><b>'+brl(d)+'</b><span>CFOP '+c+' · SPED − Apuração</span></div>'}).join('')+'</div>';
+ if(!nfs.length)h+='<div class="info ok2">Nenhuma diferença por NF nos CFOPs importados.</div>';
+ if(reais.length){h+='<h2>Ajustes a fazer no programa do SPED (registro C190 · Valor da operação)</h2>';reais.sort((a,b)=>+a-+b).forEach((nf,i)=>h+=cardNf(nf,R.byNf[nf],'a'+i))}
+ if(cent.length){h+='<h2>Diferenças de centavos (arredondamento)</h2>';cent.sort((a,b)=>+a-+b).forEach((nf,i)=>h+=cardNf(nf,R.byNf[nf],'c'+i))}
+ if(!only){const ok=Object.keys(R.byNf).filter(nf=>nfs.indexOf(nf)<0);if(ok.length)h+='<h2>NFs sem diferença ('+ok.length+')</h2><div class="card sub">'+ok.sort((a,b)=>+a-+b).join(' · ')+'</div>'}
+ $('out').innerHTML=h}
+function copiar(b){navigator.clipboard.writeText(b.dataset.t).then(()=>{const t=b.textContent;b.textContent='✔ Copiado';setTimeout(()=>b.textContent=t,1400)})}
+
+function ready(){$('go').disabled=!(sped&&book)}
+$('f1').onchange=async e=>{try{let all=[];for(const f of e.target.files)all=all.concat(parseCsv(await f.text()));sped=all;$('d1').classList.add('ok');$('s1').textContent=e.target.files.length+' arquivo(s) · '+all.length+' linhas · CFOP '+[...new Set(all.map(r=>r.cfop))].join(', ');$('msg').innerHTML=''}catch(x){$('msg').innerHTML='<div class="info warn">'+esc(x.message)+'</div>';sped=null}ready()};
+$('f2').onchange=async e=>{try{const f=e.target.files[0];const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});book=parseBook(wb);$('d2').classList.add('ok');$('s2').textContent=f.name+' · '+book.notas.length+' notas · '+book.itens.length+' itens';$('msg').innerHTML=''}catch(x){$('msg').innerHTML='<div class="info warn">'+esc(x.message)+'</div>';book=null}ready()};
+$('go').onclick=render;$('onlyDiff').onchange=()=>{if(sped&&book)render()};
+</script></body></html>
