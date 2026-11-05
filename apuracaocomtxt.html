@@ -1,0 +1,1223 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador ICMS + Gerador de Apuração Fiscal - SPED</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    :root {
+      --cream:    #F5F0E8;
+      --cream2:   #EDE6D6;
+      --sand:     #D9CEBC;
+      --bark:     #A8967A;
+      --sage:     #6E8C72;
+      --sage-lt:  #C8D9C4;
+      --sage-dk:  #4A6B4E;
+      --terra:    #B06A4A;
+      --terra-lt: #F0DDD4;
+      --ink:      #2B2620;
+      --ink-mid:  #5C5044;
+      --ink-lt:   #8C7E70;
+      --white:    #FDFAF5;
+      --radius:   14px;
+      --shadow:   0 4px 24px rgba(43,38,32,.10);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+
+    body::before {
+      content:'';
+      position:fixed; inset:0; z-index:-1;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 10%, rgba(110,140,114,.10) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 80%, rgba(176,106,74,.08) 0%, transparent 60%),
+        var(--cream);
+    }
+
+    .wrap { max-width: 1340px; margin: 0 auto }
+
+    .hero {
+      background: var(--ink);
+      border-radius: 20px;
+      padding: 3rem 2.5rem 2.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content:'';
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 60% 80% at 20% 30%, rgba(110,140,114,.25) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(176,106,74,.18) 0%, transparent 55%);
+    }
+    .hero > * { position:relative; z-index:1 }
+    .badge-hero {
+      display: inline-block;
+      background: rgba(110,140,114,.25);
+      border: 1px solid rgba(110,140,114,.5);
+      border-radius: 30px;
+      padding: 5px 18px;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: var(--sage-lt);
+    }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      letter-spacing: .01em;
+      margin-bottom: .5rem;
+      line-height: 1.2;
+    }
+    .hero p {
+      font-size: .85rem;
+      color: rgba(255,255,255,.55);
+      font-weight: 300;
+    }
+
+    #toggle-wrap { display:none; text-align:center; margin-bottom:1.2rem }
+    .btn-toggle {
+      background: var(--white);
+      border: 1px solid var(--sand);
+      color: var(--ink-mid);
+      padding: 8px 24px;
+      border-radius: 30px;
+      font-size: .78rem;
+      font-family: 'Jost', sans-serif;
+      cursor: pointer;
+      letter-spacing:.04em;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-toggle:hover { background: var(--cream2); border-color: var(--bark) }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media(max-width:760px){ .input-grid{ grid-template-columns:1fr } }
+
+    .icard {
+      background: var(--white);
+      border: 1px solid var(--sand);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .icard-header {
+      padding: .8rem 1rem;
+      border-bottom: 1px solid var(--cream2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icard-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items:center; justify-content:center;
+      font-size: 15px; flex-shrink:0;
+    }
+    .icard-header h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .icard-header small { font-size:.7rem; color: var(--ink-lt) }
+    textarea {
+      width: 100%; height: 200px;
+      padding: 10px 12px;
+      border: none;
+      background: #FDFAF5;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      resize: vertical;
+      color: var(--ink);
+      outline: none;
+    }
+    textarea:focus { background: #fff }
+    textarea::placeholder { color: var(--bark); opacity:.5 }
+
+    .btn-validate {
+      width: 100%;
+      background: var(--ink);
+      color: var(--white);
+      border: none;
+      padding: 16px;
+      font-size: .95rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      letter-spacing: .06em;
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+      transition: background .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-validate::after {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(110,140,114,.2) 0%, transparent 60%);
+    }
+    .btn-validate:hover { background: var(--ink-mid) }
+
+    .spin { display:none; text-align:center; padding:2.5rem }
+    .spinner {
+      width: 34px; height: 34px;
+      border: 2px solid var(--sand);
+      border-top: 2px solid var(--sage);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    .spin p { color: var(--ink-lt); font-size:.82rem; font-weight:300 }
+
+    .rcard {
+      background: var(--white);
+      border: 1px solid var(--sand);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .rcard-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--cream2);
+      display: flex; align-items:center; justify-content:space-between;
+    }
+    .rcard-head h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 12px;
+      padding: 1.25rem;
+    }
+    @media(max-width:600px){ .summary-grid{ grid-template-columns: repeat(2,1fr) } }
+    .scard {
+      background: var(--cream);
+      border: 1px solid var(--cream2);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .scard .num { font-size: 1.8rem; font-weight: 600; font-family:'Cormorant Garamond',serif; margin:.2rem 0 }
+    .scard .lbl { font-size: .68rem; color: var(--ink-lt); text-transform:uppercase; letter-spacing:.06em }
+    .ok   { color: var(--sage-dk) }
+    .err  { color: var(--terra) }
+    .warn { color: var(--bark) }
+
+    .tbl-wrap { overflow-x: auto }
+    table { width:100%; border-collapse:collapse; font-size:12px }
+    th, td { border:1px solid var(--cream2); padding:8px 11px; text-align:right; white-space:nowrap }
+    th { background:var(--cream); font-weight:600; font-size:10.5px; color:var(--ink-lt); text-transform:uppercase; letter-spacing:.05em }
+    td:first-child, th:first-child { text-align:left }
+    .cfop-badge {
+      display:inline-block;
+      background: var(--cream2);
+      border: 1px solid var(--sand);
+      border-radius: 6px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-mid);
+    }
+    .cell-ok  { color: var(--sage-dk); font-weight: 600 }
+    .cell-err { color: var(--terra);   font-weight: 600 }
+    .total-row td { background: var(--cream2); font-weight: 700; color: var(--ink); border-top: 2px solid var(--sand); }
+    
+    .col-apuracao {
+      background-color: #E8F0E8;
+    }
+    th.col-apuracao {
+      background-color: #DCE8DC;
+    }
+
+    .div-block {
+      border-left: 3px solid var(--terra);
+      background: var(--terra-lt);
+      padding: 11px 14px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 8px;
+    }
+    .div-title { font-size:.78rem; font-weight:700; color:var(--terra) }
+    .div-body  { font-size:.75rem; color:var(--ink-mid) }
+
+    .total-bar {
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: .9rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: .82rem;
+    }
+
+    .tag {
+      display:inline-block; border-radius:20px;
+      padding:3px 14px; font-size:.69rem; font-weight:600; letter-spacing:.04em;
+    }
+    .tag-e  { background:var(--terra-lt); color:var(--terra) }
+    .tag-ok { background:rgba(110,140,114,.15); color:var(--sage-dk) }
+
+    .section-divider {
+      display:flex; align-items:center; gap:12px;
+      margin: 1.5rem 0 .9rem;
+    }
+    .section-divider span {
+      font-size:.68rem; font-weight:600; color:var(--bark);
+      text-transform:uppercase; letter-spacing:.14em; white-space:nowrap;
+    }
+    .section-divider::before, .section-divider::after {
+      content:''; flex:1; height:1px; background:var(--sand);
+    }
+
+    .form-apuracao {
+      background: var(--cream);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+    }
+    .form-coluna {
+      display: flex; flex-direction:column;
+      gap: .9rem;
+      margin-bottom: 1.5rem;
+    }
+    .campo-form { display:flex; flex-direction:column }
+    .campo-form label {
+      font-size: .67rem;
+      font-weight: 600;
+      color: var(--ink-lt);
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin-bottom: 5px;
+    }
+    .campo-form input {
+      background: var(--white);
+      border: 1px solid var(--sand);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .9rem;
+      font-weight: 500;
+      font-family: 'Jost', sans-serif;
+      color: var(--ink);
+      width: 100%;
+      transition: border-color .2s;
+    }
+    .campo-form input:focus { outline:none; border-color: var(--sage) }
+
+    .btn-gerar {
+      background: var(--sage-dk);
+      color: var(--white);
+      border: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing:.05em;
+      cursor: pointer;
+      margin-top: 10px;
+      align-self: flex-start;
+      transition: background .2s;
+    }
+    .btn-gerar:hover { background: var(--sage) }
+
+    .sucesso-badge {
+      background: rgba(110,140,114,.15);
+      border: 1px solid var(--sage);
+      color: var(--sage-dk);
+      padding: 5px 14px;
+      border-radius: 30px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing:.04em;
+    }
+
+    .warn-block {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--terra-lt);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--terra);
+      font-size: .84rem;
+      color: var(--ink-mid);
+    }
+    .btn-load-example {
+      background: var(--cream2);
+      border: 1px solid var(--sand);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: .7rem;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: background .2s;
+    }
+    .btn-load-example:hover { background: var(--sand); }
+    
+    .empresa-badge {
+      background: var(--sage);
+      color: white;
+      padding: 4px 16px;
+      border-radius: 30px;
+      font-size: .75rem;
+      font-weight: 500;
+    }
+    .input-grid.two{ grid-template-columns:repeat(2,1fr) }
+    @media(max-width:760px){ .input-grid.two{ grid-template-columns:1fr } }
+    .drop{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; height:150px; margin:12px; border:1.5px dashed var(--sand); border-radius:12px; background:var(--cream); cursor:pointer; text-align:center; padding:10px; transition:background .2s,border-color .2s }
+    .drop:hover,.drop.over{ background:var(--cream2); border-color:var(--sage) }
+    .drop.ok{ border-style:solid; border-color:var(--sage); background:rgba(110,140,114,.10) }
+    .drop.bad{ border-color:var(--terra); background:var(--terra-lt) }
+    .drop-ico{ font-size:1.6rem }
+    .drop-t{ font-size:.85rem; font-weight:500; color:var(--ink-mid) }
+    .drop-s{ font-size:.72rem; color:var(--ink-lt); word-break:break-all }
+    details.manual{ margin-bottom:1rem; font-size:.78rem; color:var(--ink-lt) }
+    details.manual summary{ cursor:pointer; padding:6px 2px }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="badge-hero">Fiscal · ICMS · SPED</div>
+    <h1>VERIFICA APURAÇÃO + ENTRADAS / SAÍDAS</h1>
+    <p>Valide a Apuração ICMS com SPED — gere o relatório oficial "Registros Fiscais da Apuração do ICMS"<br>
+    Busque o PDF da Apuração (Modelo P9) e o TXT do SPED — entradas e saídas por CFOP são lidas automaticamente.</p>
+  </div>
+
+  <div id="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleInputs()">▲ Expandir campos de entrada</button>
+  </div>
+
+  <div id="input-area">
+    <div class="input-grid two">
+      <div class="icard">
+        <div class="icard-header">
+          <div class="icard-icon" style="background:var(--cream2)">📋</div>
+          <div><h3>Apuração ICMS (Modelo P9)</h3><small>Busque o PDF da apuração (CNPJ, período e valores)</small></div>
+        </div>
+        <label class="drop" id="dropAp"><input type="file" id="fileApuracao" accept=".pdf,application/pdf" hidden>
+          <div class="drop-ico">📄</div><div class="drop-t">Clique ou arraste o PDF da apuração</div><div class="drop-s" id="stAp">Nenhum arquivo</div></label>
+      </div>
+      <div class="icard">
+        <div class="icard-header">
+          <div class="icard-icon" style="background:rgba(110,140,114,.15)">📥</div>
+          <div><h3>SPED — TXT gerado</h3><small>Entradas e saídas por CFOP são lidas do arquivo</small></div>
+        </div>
+        <label class="drop" id="dropSped"><input type="file" id="fileSped" accept=".txt,text/plain" hidden>
+          <div class="drop-ico">🗂️</div><div class="drop-t">Clique ou arraste o TXT do SPED</div><div class="drop-s" id="stSped">Nenhum arquivo</div></label>
+      </div>
+    </div>
+    <details class="manual"><summary>Colar texto manualmente (alternativa)</summary>
+      <div class="input-grid">
+        <div class="icard"><div class="icard-header"><div><h3>Apuração ICMS</h3></div></div><textarea id="apuracao" placeholder="Texto da Apuração ICMS..."></textarea></div>
+        <div class="icard"><div class="icard-header"><div><h3>SPED — Entradas</h3></div></div><textarea id="spedEntradas" placeholder="Resumo por CST/CFOP..."></textarea></div>
+        <div class="icard"><div class="icard-header"><div><h3>SPED — Saídas</h3></div></div><textarea id="spedSaidas" placeholder="Resumo por CST/CFOP..."></textarea></div>
+      </div>
+    </details>
+    <div style="display: flex; gap: 12px; margin-bottom: 1rem;">
+      <button class="btn-validate" onclick="validar()">🔍 Validar e comparar dados</button>
+      <button class="btn-load-example" onclick="carregarExemplo()">📋 Carregar exemplo do layout</button>
+    </div>
+  </div>
+
+  <div class="spin" id="spin"><div class="spinner"></div><p>Processando validação...</p></div>
+  <div id="results"></div>
+
+</div>
+<script>
+// ============================================================
+// CADASTRO DE ESTABELECIMENTOS (Nome Reduzido + CNPJ)
+// ============================================================
+const empresas = new Map();
+const listaEmpresas = [
+  ["DP 1", "20.415.295/0001-74"],
+  ["DP ITATIAIUCU", "20.415.295/0009-21"],
+  ["DP LEME", "44.740.967/0001-85"],
+  ["DP PINDA", "20.415.295/0083-10"],
+  ["DP 2", "20.415.295/0011-46"],
+  ["DP POUSO ALEGRE", "20.415.295/0013-08"],
+  ["DP ATIBAIA", "20.415.295/0029-75"],
+  ["DP ITAPEVA", "20.415.295/0017-31"],
+  ["DP CAETANOPOLIS", "20.415.295/0021-18"],
+  ["DP BETIM", "20.415.295/0015-70"],
+  ["DP TURIM", "20.415.295/0014-99"],
+  ["DP SANTA LUZIA", "20.415.295/0008-40"],
+  ["DP SALINAS", "20.415.295/0007-60"],
+  ["COMERCIO D PRODUTOS PARA VEI", "54.212.592/0001-34"],
+  ["DP APARECIDA", "20.415.295/0030-09"],
+  ["DP MURIAE", "20.415.295/0018-12"],
+  ["DP PARAOPEBA", "20.415.295/0020-37"],
+  ["DP CONTAGEM NORTE- MATRIZ", "20.415.295/0025-41"],
+  ["DP CONTAGEM SUL", "20.415.295/0023-80"],
+  ["DP CAMBUI", "20.415.295/0016-50"],
+  ["DP GUARATINGUETA", "20.415.295/0031-90"],
+  ["DP JOIA", "53.163.580/0001-02"],
+  ["DP MIRACATU ROTA NORTE", "20.415.295/0032-70"],
+  ["DP JK ESTIVA ROTA SUL", "20.415.295/0010-65"],
+  ["DP ALIANCA", "20.415.295/0012-27"],
+  ["DP OLIVEIRA", "20.415.295/0019-01"],
+  ["DP CAMBUI - URBANO", "20.415.295/0004-17"],
+  ["DP JAGUAQUARA", "20.415.295/0033-51"],
+  ["DP SAO GONCALO DO SAPUCAI", "20.415.295/0035-13"],
+  ["DP NOVA SERRANA", "20.415.295/0026-22"],
+  ["DP IGARATINGA", "20.415.295/0024-60"],
+  ["DP CARMOPOLIS", "20.415.295/0022-07"],
+  ["DP BETIM - 2", "20.415.295/0043-23"],
+  ["DP DIVISA ALEGRE 1", "20.415.295/0005-06"],
+  ["DP CAMBUI - URBANO 2", "20.415.295/0034-32"],
+  ["DP CONTAGEM FERNAO DIAS", "20.415.295/0036-02"],
+  ["DP CACHOEIRA DE PAJEU", "20.415.295/0038-66"],
+  ["DP PARAISO DE TOCANTINS", "20.415.295/0076-91"],
+  ["***CENTRAL ADMINISTRATIVA RE", "20.415.295/0037-85"],
+  ["DP SANTO ESTEVAO", "20.415.295/0041-61"],
+  ["DP SAO GONCALO URBANO 1", "09.047.306/0001-78"],
+  ["DP ITAGUARA", "20.415.295/0006-89"],
+  ["DP SENADOR AMARAL", "20.415.295/0045-95"],
+  ["DP SAO GONCALO URBANO 2", "20.415.295/0044-04"],
+  ["DP LORENA", "20.415.295/0042-42"],
+  ["DP DIVISA ALEGRE 2", "20.415.295/0040-80"],
+  ["DP INCONFIDENTES", "20.415.295/0055-67"],
+  ["DP JUIZ DE FORA URBANO", "20.415.295/0068-81"],
+  ["DP BUENO BRANDAO", "20.415.295/0054-86"],
+  ["DP POUSO ALEGRE URBANO", "20.415.295/0048-38"],
+  ["DP CAMANDUCAIA URBANO", "20.415.295/0053-03"],
+  ["DP OURO FINO URBANO", "20.415.295/0049-19"],
+  ["DP CAMANDUCAIA URBANO 2", "20.415.295/0052-14"],
+  ["DP GUARATINGUETA URBANO 2", "20.415.295/0046-76"],
+  ["DP GUARATINGUETA URBANO 3", "20.415.295/0047-57"],
+  ["DP BRAGANCA URBANO", "20.415.295/0070-04"],
+  ["DP JACAREI", "20.415.295/0078-53"],
+  ["DP ATIBAIA URBANO", "20.415.295/0077-72"],
+  ["DP POUSO ALEGRE URBANO 2", "20.415.295/0056-48"],
+  ["DP EXTREMA URBANO", "20.415.295/0050-52"],
+  ["DP ITATIBA URBANO 1", "20.415.295/0093-92"],
+  ["DP ITATIBA URBANO 2", "25.188.461/0001-60"],
+  ["DP POUSO ALEGRE URBANO 3", "20.415.295/0062-96"],
+  ["DP SALES OLIVEIRA", "10.230.467/0001-81"],
+  ["DP VITORIA DA CONQUISTA", "20.415.295/0058-00"],
+  ["DP JUIZ DE FORA RODOVIA", "20.415.295/0066-10"],
+  ["DP MONTES CLAROS", "20.415.295/0069-62"],
+  ["DP VARGEM", "03.522.545/0001-56"],
+  ["DP SAO JORGE", "20.415.295/0060-24"],
+  ["XP TRANSPORTES LTDA", "22.272.116/0001-12"],
+  ["DP SAO JOSE DOS CAMPOS URBAN", "20.415.295/0065-39"],
+  ["DP FREI INOCENCIO", "20.415.295/0059-90"],
+  ["DP BRAGANÇA RODOVIA", "20.415.295/0064-58"],
+  ["DP BARRA MANSA 1 NORTE", "20.415.295/0072-68"],
+  ["DP BARRA MANSA 2 SUL", "20.415.295/0067-09"],
+  ["DP LAFAIETE", "20.415.295/0071-87"],
+  ["DP PLANALTO", "20.415.295/0074-20"],
+  ["DP SANTO ESTEVÃO 2", "20.415.295/0080-78"],
+  ["DP SANTO ESTEVÃO 3", "20.415.295/0081-59"],
+  ["DP SAO CRISTOVAO", "20.415.295/0090-40"],
+  ["DP BARREIRAS", "20.415.295/0087-44"],
+  ["DP ITABERABA", "20.415.295/0086-63"],
+  ["DP VALENCA", "20.415.295/0085-82"],
+  ["DP SAO GONCALO RODOVIA 2", "20.415.295/0088-25"],
+  ["DP SAO GONCALO RODOVIA 3", "20.415.295/0089-06"],
+  ["SUL MINEIRA AGRONEGOCIOS", "45.373.433/0001-20"],
+  ["DP RUSSAS", "20.415.295/0091-20"],
+  ["DP INHAPIM", "20.415.295/0092-01"],
+  ["DP LUZ", "20.415.295/0094-73"],
+  ["DP MIRACATU SUL 3", "20.415.295/0095-54"],
+  ["ELETROPOSTOS DOM PEDRO LTDA.", "58.970.960/0001-64"],
+  ["DP IBO", "20.415.295/0096-35"],
+  ["PUMP GESTAO DE FROTAS LTDA.", "58.081.181/0001-08"],
+  ["DP CORDEIROPOLIS", "20.415.295/0098-05"],
+  ["RAPIDA REVENDA DE VEICULOS L", "46.599.543/0001-78"],
+  ["LOCADORA DE VEICULOS ESTIVA", "30.401.037/0001-92"],
+  ["SUL MINEIRA AGRONEGOCIOS 2 L", "52.550.247/0001-85"],
+  ["TRANSPORTADORA RDP", "14.099.141/0009-75"],
+  ["TRANSPORTADORA RDP LTDA", "14.099.141/0004-60"],
+  ["XP TRANSPORTES LTDA", "14.099.141/0003-80"],
+  ["XP TRANSPORTES LTDA", "14.099.141/0001-18"],
+  ["XP TRANSPORTES LTDA", "14.099.141/0002-07"],
+  ["CELESTIAL PARTICIPACOES LTDA", "10.650.470/0001-54"],
+  ["TURMALINA PARTICIPACOES LTDA", "14.469.475/0001-36"],
+  ["TURQUESA PARTICIPACOES LTDA", "14.469.411/0001-35"],
+  ["INFINITUS PARTICIPACOES LTDA", "14.341.789/0001-59"],
+  ["ALFA-GAMA PARTICIPACOES LTDA", "14.341.872/0001-28"],
+  ["ERRE PARTICIPACOES LTDA", "14.341.772/0001-00"],
+  ["ARARA AZUL PARTICIPACOES LTD", "29.877.546/0001-07"],
+  ["IMPERIAL PARTICIPACOES LTDA", "14.920.632/0001-88"],
+  ["DOM PEDRO PARTICIPACOES LTDA", "14.920.665/0001-28"],
+  ["EMPREENDIMENTO RECANTO DO LA", "22.193.988/0001-95"],
+  ["TOPAZIO AZUL PARTICIPACOES L", "14.469.452/0001-21"],
+  ["XP TRANSPORTES LTDA", "14.099.141/0011-90"],
+  ["XP TRANSPORTES LTDA", "14.099.141/0012-70"],
+  ["VIA TANQ TRANSPORTES LTDA.", "66.047.470/0001-19"]
+];
+
+listaEmpresas.forEach(([nome, cnpj]) => {
+  const cnpjLimpo = cnpj.replace(/[\.\-/]/g, '');
+  empresas.set(cnpjLimpo, nome);
+  empresas.set(cnpj, nome);
+});
+
+// ============================================================
+// FUNÇÕES DE EXTRAÇÃO DE CNPJ E PERÍODO
+// ============================================================
+function extrairCNPJdoTexto(texto) {
+  let regex = /CNPJ(?:\/CPF)?\s*:?\s*(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i;
+  let match = texto.match(regex);
+  if (match) return match[1];
+  regex = /CNPJ(?:\/CPF)?\s*:?\s*(\d{14})/i;
+  match = texto.match(regex);
+  if (match) {
+    let cnpjNumerico = match[1];
+    return cnpjNumerico.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  }
+  regex = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/;
+  match = texto.match(regex);
+  if (match) return match[1];
+  regex = /(\d{14})/;
+  match = texto.match(regex);
+  if (match) {
+    let cnpjNumerico = match[1];
+    return cnpjNumerico.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  }
+  return null;
+}
+
+function extrairPeriodo(texto) {
+  const regex = /Período(?:\s+da\s+Escrituração)?\s*:?\s*(\d{2}\/\d{2}\/\d{4})\s*[a\-]\s*(\d{2}\/\d{2}\/\d{4})/i;
+  let match = texto.match(regex);
+  if (match) return `${match[1]} a ${match[2]}`;
+  const regex2 = /(\d{2}\/\d{2}\/\d{4})\s*[a\-]\s*(\d{2}\/\d{2}\/\d{4})/i;
+  match = texto.match(regex2);
+  if (match) return `${match[1]} a ${match[2]}`;
+  const m3 = texto.match(/Per[ií]odo\s*\/\s*Ano\s*:?\s*(\d{2})\/(\d{4})/i);
+  if (m3) { const ult = new Date(+m3[2], +m3[1], 0).getDate(); return `01/${m3[1]}/${m3[2]} a ${ult}/${m3[1]}/${m3[2]}`; }
+  return null;
+}
+
+function extrairIE(t) {
+  const m = t.match(/Inscr(?:\.|i[çc][ãa]o)?\s*Estadual\s*:?\s*([\d.\-\/]+)/i);
+  return m ? m[1] : null;
+}
+
+function getNomeEmpresa(cnpj) {
+  if (!cnpj) return null;
+  let nome = empresas.get(cnpj);
+  if (nome) return nome;
+  const cnpjLimpo = cnpj.replace(/[\.\-/]/g, '');
+  return empresas.get(cnpjLimpo) || null;
+}
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+function converterBR(v){
+  if(!v || v==='' || v==='-') return 0;
+  let n = v.toString().trim().replace(/\./g,'').replace(',','.');
+  let r = parseFloat(n);
+  return isNaN(r) ? 0 : r;
+}
+function fmt(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+
+// ============================================================
+// EXTRAÇÃO DOS VALORES DA APURAÇÃO (DÉBITO, CRÉDITO, SALDOS)
+// ============================================================
+function extrairValoresApuração(texto) {
+  let valores = {
+    debito: 0, creditos: 0, ajustesDebito: 0, ajustesCredito: 0,
+    estornoCredito: 0, estornoDebito: 0, saldoCredorAnterior: 0,
+    saldoDevedor: 0, deducoes: 0, icmsRecolher: 0, saldoCredorFinal: 0, extraApuração: 0
+  };
+  const linhas = texto.split('\n');
+  for (let l of linhas) {
+    l = l.trim().replace(/^[A-ZÉÍÇ]\s+(?=\d{3}\s*[-–])/, '');
+    if (/^001\s*[-–]\s*Por saídas\/prestações/.test(l) || /SAÍDAS E PRESTAÇÕES COM DÉBITO/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.debito = converterBR(partes[partes.length-1]);
+    }
+    if (/^005\s*[-–]\s*Por entradas\/aquisições/.test(l) || /CRÉDITOS POR ENTRADAS/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.creditos = converterBR(partes[partes.length-1]);
+    }
+    if (/^009\s*[-–]\s*Saldo credor do período anterior/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.saldoCredorAnterior = converterBR(partes[partes.length-1]);
+    }
+    if (/^010\s*[-–]\s*Total/.test(l)) {
+      let partes = l.split(/\s+/);
+      let total = converterBR(partes[partes.length-1]);
+      if (valores.saldoCredorFinal === 0) valores.saldoCredorFinal = total;
+    }
+    if (/^011\s*[-–]\s*Saldo devedor/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.saldoDevedor = converterBR(partes[partes.length-1]);
+    }
+    if (/^012\s*[-–]\s*Deduções/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.deducoes = converterBR(partes[partes.length-1]);
+    }
+    if (/^013\s*[-–]\s*Imposto a recolher/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.icmsRecolher = converterBR(partes[partes.length-1]);
+    }
+    if (/^014\s*[-–]\s*Saldo credor/.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.saldoCredorFinal = converterBR(partes[partes.length-1]);
+    }
+    if (/Total Outros Débitos/i.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.ajustesDebito = converterBR(partes[partes.length-1]);
+    }
+    if (/Total Outros Créditos/i.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.ajustesCredito = converterBR(partes[partes.length-1]);
+    }
+    if (/Total Estornos Créditos/i.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.estornoCredito = converterBR(partes[partes.length-1]);
+    }
+    if (/Total Estornos Débitos/i.test(l)) {
+      let partes = l.split(/\s+/);
+      valores.estornoDebito = converterBR(partes[partes.length-1]);
+    }
+  }
+  return valores;
+}
+
+// ============================================================
+// EXTRAÇÃO POR CFOP (APURAÇÃO DETALHADA)
+// ============================================================
+function extrairApuracoesPorCFOP(texto){
+  const entradas={}, saidas={};
+  const money=/^\d{1,3}(?:\.\d{3})*,\d{2}$/;
+  let sec=null;
+  for(let l of texto.split('\n')){
+    l=l.trim();
+    if(!l) continue;
+    const compact=l.replace(/\s+/g,'').toUpperCase();
+    if(compact==='ENTRADAS'||(l.includes('ENTRADAS')&&!/\d/.test(l))){sec='e';continue}
+    if(compact==='SAÍDAS'||(l.includes('SAÍDAS')&&!/\d/.test(l))){sec='s';continue}
+    if(/RESUMO\s*DA\s*APURA/i.test(l)){sec=null;continue}
+    if(!sec||/TOTAIS/.test(l)) continue;
+    const t=l.split(/\s+/);
+    const i=t.findIndex((x,k)=>k<2&&/^\d{4}$/.test(x));
+    if(i<0) continue;
+    const v=t.slice(i+1).filter(x=>money.test(x));
+    if(v.length<3) continue;
+    const cfop=t[i];
+    if(sec==='e') entradas[cfop]={cfop,valor_contabil:converterBR(v[0]),base_calculo:converterBR(v[1]),imposto_creditado:converterBR(v[2])};
+    else saidas[cfop]={cfop,valor_contabil:converterBR(v[0]),base_calculo:converterBR(v[1]),imposto_debitado:converterBR(v[2])};
+  }
+  return{entradas,saidas};
+}
+
+// ============================================================
+// EXTRAÇÃO DO SPED (ENTRADAS E SAÍDAS)
+// ============================================================
+function extrairSped(texto){
+  const dados={};
+  const linhas=texto.split('\n');
+  for(let l of linhas){
+    l=l.trim();
+    if(!l||l.includes('TOTAL')||l.includes('RESUMO')||l.includes('Página'))continue;
+    const p=l.split(/\s+/);
+    for(let i=0;i<p.length-4;i++){
+      if(p[i]&&/^\d{3}$/.test(p[i])&&p[i+1]&&/^\d{4}$/.test(p[i+1])){
+        const cfop=p[i+1];
+        const vo=converterBR(p[i+3]), bc=converterBR(p[i+4]), vi=converterBR(p[i+5]);
+        if(!dados[cfop]) dados[cfop]={cfop,total_operacao:0,base_calculo_icms:0,total_icms:0,quantidade:0};
+        dados[cfop].total_operacao += vo;
+        dados[cfop].base_calculo_icms += bc;
+        dados[cfop].total_icms += vi;
+        dados[cfop].quantidade++;
+        break;
+      }
+    }
+  }
+  return dados;
+}
+
+// ============================================================
+// COMPARAÇÕES (ENTRADAS E SAÍDAS)
+// ============================================================
+function compararEntradas(aE,sE){
+  const divs=[];
+  const all=new Set([...Object.keys(aE),...Object.keys(sE)]);
+  for(const cfop of all){
+    const a=aE[cfop]||{valor_contabil:0,base_calculo:0,imposto_creditado:0};
+    const s=sE[cfop]||{total_operacao:0,base_calculo_icms:0,total_icms:0};
+    if(Math.abs(a.valor_contabil-s.total_operacao)>0.01) divs.push({cfop,campo:'Valor Contábil ↔ Total Operação',va:a.valor_contabil,vs:s.total_operacao,dif:Math.abs(a.valor_contabil-s.total_operacao)});
+    if(Math.abs(a.base_calculo-s.base_calculo_icms)>0.01) divs.push({cfop,campo:'Base de Cálculo ↔ Base ICMS',va:a.base_calculo,vs:s.base_calculo_icms,dif:Math.abs(a.base_calculo-s.base_calculo_icms)});
+    if(Math.abs(a.imposto_creditado-s.total_icms)>0.01) divs.push({cfop,campo:'Imposto Creditado ↔ Total ICMS',va:a.imposto_creditado,vs:s.total_icms,dif:Math.abs(a.imposto_creditado-s.total_icms)});
+  }
+  return divs;
+}
+
+function compararSaidas(aS,sS){
+  const divs=[];
+  const all=new Set([...Object.keys(aS),...Object.keys(sS)]);
+  for(const cfop of all){
+    const a=aS[cfop]||{valor_contabil:0,base_calculo:0,imposto_debitado:0};
+    const s=sS[cfop]||{total_operacao:0,base_calculo_icms:0,total_icms:0};
+    if(Math.abs(a.valor_contabil-s.total_operacao)>0.01) divs.push({cfop,campo:'Valor Contábil ↔ Total Operação',va:a.valor_contabil,vs:s.total_operacao,dif:Math.abs(a.valor_contabil-s.total_operacao)});
+    if(Math.abs(a.base_calculo-s.base_calculo_icms)>0.01) divs.push({cfop,campo:'Base de Cálculo ↔ Base ICMS',va:a.base_calculo,vs:s.base_calculo_icms,dif:Math.abs(a.base_calculo-s.base_calculo_icms)});
+    if(Math.abs(a.imposto_debitado-s.total_icms)>0.01) divs.push({cfop,campo:'Imposto Debitado ↔ Total ICMS',va:a.imposto_debitado,vs:s.total_icms,dif:Math.abs(a.imposto_debitado-s.total_icms)});
+  }
+  return divs;
+}
+
+// ============================================================
+// VALIDAÇÃO DE REGRAS FISCAIS
+// ============================================================
+function validarRegras(aE,aS,sE,sS){
+  const nt=[];
+  if(aE['1303'] && aE['1303'].base_calculo>0 && (!sE['1303'] || sE['1303'].base_calculo_icms===0))
+    nt.push({tipo:'warn',msg:'CFOP 1303 (Telecomunicação): possui base de cálculo na Apuração mas não encontrado no SPED de Entradas.'});
+  ['2949','1949'].forEach(c=>{
+    if(sE[c] && sE[c].total_icms>0) nt.push({tipo:'err',msg:`CFOP ${c}: possui ICMS no SPED de Entradas (R$ ${fmt(sE[c].total_icms)}). Este CFOP não pode ter ICMS.`});
+    if(aE[c] && aE[c].imposto_creditado>0) nt.push({tipo:'err',msg:`CFOP ${c}: possui imposto creditado na Apuração (R$ ${fmt(aE[c].imposto_creditado)}).`});
+  });
+  ['5929'].forEach(c=>{
+    if(sE[c] && (sE[c].total_operacao>0||sE[c].base_calculo_icms>0||sE[c].total_icms>0))
+      nt.push({tipo:'err',msg:`CFOP ${c}: possui valores no SPED de Entradas. Este CFOP não pode ter valores.`});
+    if(sS[c] && (sS[c].total_operacao>0||sS[c].base_calculo_icms>0||sS[c].total_icms>0))
+      nt.push({tipo:'err',msg:`CFOP ${c}: possui valores no SPED de Saídas.`});
+  });
+  return nt;
+}
+
+function somarDivs(divs){ return divs.reduce((acc,d)=>acc+d.dif,0) }
+
+// ============================================================
+// GERAÇÃO DA TABELA DE COMPARAÇÃO (COM TOTAIS E CORES)
+// ============================================================
+function gerarTabela(apuData, spData, tipo){
+  const all = new Set([...Object.keys(apuData), ...Object.keys(spData)]);
+  if(all.size === 0) return '<p style="padding:1rem;color:var(--ink-lt)">Nenhum dado encontrado.</p>';
+  const campoImp = tipo === 'E' ? 'imposto_creditado' : 'imposto_debitado';
+  const labelImp = tipo === 'E' ? 'Imposto Creditado' : 'Imposto Debitado';
+  
+  let t = `<div class="tbl-wrap"><table><thead><tr>
+    <th rowspan="2">CFOP</th>
+    <th colspan="2">Valor Contábil ↔ Total Operação</th>
+    <th colspan="2">Base de Cálculo ↔ Base ICMS</th>
+    <th colspan="2">${labelImp} ↔ Total ICMS</th>
+    <th rowspan="2">Qtd</th>
+    </tr>
+    <tr>
+      <th class="col-apuracao">Apuração</th><th>SPED</th>
+      <th class="col-apuracao">Apuração</th><th>SPED</th>
+      <th class="col-apuracao">Apuração</th><th>SPED</th>
+      <th></th>
+    </tr>
+    </thead><tbody>`;
+  
+  let somaApValor = 0, somaSpValor = 0;
+  let somaApBase = 0, somaSpBase = 0;
+  let somaApImp = 0, somaSpImp = 0;
+  let somaQtd = 0;
+
+  for(const cfop of Array.from(all).sort()){
+    const a = apuData[cfop] || {valor_contabil:0, base_calculo:0, [campoImp]:0};
+    const s = spData[cfop] || {total_operacao:0, base_calculo_icms:0, total_icms:0, quantidade:0};
+    const okV = Math.abs(a.valor_contabil - s.total_operacao) <= 0.01;
+    const okB = Math.abs(a.base_calculo - s.base_calculo_icms) <= 0.01;
+    const okI = Math.abs(a[campoImp] - s.total_icms) <= 0.01;
+    
+    somaApValor += a.valor_contabil;
+    somaSpValor += s.total_operacao;
+    somaApBase += a.base_calculo;
+    somaSpBase += s.base_calculo_icms;
+    somaApImp += a[campoImp];
+    somaSpImp += s.total_icms;
+    somaQtd += s.quantidade;
+
+    t += `<tr>
+      <td><span class="cfop-badge">${cfop}</span></td>
+      <td class="col-apuracao ${okV ? 'cell-ok' : 'cell-err'}">R$ ${fmt(a.valor_contabil)}</td>
+      <td class="${okV ? 'cell-ok' : 'cell-err'}">R$ ${fmt(s.total_operacao)}</td>
+      <td class="col-apuracao ${okB ? 'cell-ok' : 'cell-err'}">R$ ${fmt(a.base_calculo)}</td>
+      <td class="${okB ? 'cell-ok' : 'cell-err'}">R$ ${fmt(s.base_calculo_icms)}</td>
+      <td class="col-apuracao ${okI ? 'cell-ok' : 'cell-err'}">R$ ${fmt(a[campoImp])}</td>
+      <td class="${okI ? 'cell-ok' : 'cell-err'}">R$ ${fmt(s.total_icms)}</td>
+      <td style="text-align:center;">${s.quantidade || 0}</td>
+    </tr>`;
+  }
+  t += `<tr class="total-row">
+    <td><strong>TOTAL</strong></td>
+    <td><strong class="col-apuracao" style="background:inherit; display:block; padding:4px 0;">R$ ${fmt(somaApValor)}</strong></td>
+    <td><strong>R$ ${fmt(somaSpValor)}</strong></td>
+    <td><strong class="col-apuracao" style="background:inherit; display:block; padding:4px 0;">R$ ${fmt(somaApBase)}</strong></td>
+    <td><strong>R$ ${fmt(somaSpBase)}</strong></td>
+    <td><strong class="col-apuracao" style="background:inherit; display:block; padding:4px 0;">R$ ${fmt(somaApImp)}</strong></td>
+    <td><strong>R$ ${fmt(somaSpImp)}</strong></td>
+    <td style="text-align:center;"><strong>${somaQtd}</strong></td>
+  </tr>`;
+  
+  t += `</tbody></table></div>`;
+  return t;
+}
+
+function gerarDivs(divs){
+  if(!divs.length) return `<div style="padding:1rem;color:var(--sage-dk)">✅ Nenhuma divergência encontrada.</div>`;
+  let h = `<div style="padding:1rem;">`;
+  for(const d of divs){
+    h+=`<div class="div-block"><div class="div-title">CFOP ${d.cfop} — ${d.campo}</div><div class="div-body">Apuração: R$ ${fmt(d.va)} | SPED: R$ ${fmt(d.vs)} | Diferença: R$ ${fmt(d.dif)}</div></div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+// ============================================================
+// LEITURA DE ARQUIVOS (PDF DA APURAÇÃO + TXT DO SPED)
+// ============================================================
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const estado = { apTxt: '', sped: null };
+// Registros analíticos do SPED (CST, CFOP, ALIQ, VL_OPR, VL_BC_ICMS, VL_ICMS nas posições 2 a 7)
+const SPED_REGS = new Set(['C190','C320','C390','C490','C590','C690','C790','C850','C890','D190','D390','D590','D690','D696']);
+
+function fmtData(d){ return d && d.length===8 ? `${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}` : (d||''); }
+function fmtCnpj(c){ return (c||'').replace(/\D/g,'').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'); }
+
+async function pdfParaTexto(file){
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const out = [];
+  for(let n=1; n<=pdf.numPages; n++){
+    const tc = await (await pdf.getPage(n)).getTextContent();
+    const items = tc.items.filter(i=>i.str && i.str.trim()!=='').map(i=>({s:i.str.trim(), x:i.transform[4], y:i.transform[5]}));
+    items.sort((a,b)=> b.y-a.y || a.x-b.x);
+    const linhas = []; let cur = null;
+    for(const it of items){
+      if(cur && Math.abs(cur.y-it.y)<=3) cur.its.push(it);
+      else { cur = {y:it.y, its:[it]}; linhas.push(cur); }
+    }
+    for(const ln of linhas){ ln.its.sort((a,b)=>a.x-b.x); out.push(ln.its.map(i=>i.s).join(' ')); }
+    out.push('');
+  }
+  return out.join('\n');
+}
+
+function lerSpedTxt(txt){
+  const E={}, S={}, regs={};
+  let info={};
+  for(const raw of txt.split('\n')){
+    if(raw.charCodeAt(0)!==124) continue;
+    const p = raw.replace(/\r$/,'').split('|');
+    const reg = p[1];
+    if(reg==='0000'){ info = {ini:p[4], fim:p[5], nome:p[6], cnpj:p[7], uf:p[9], ie:p[10]}; continue; }
+    if(!SPED_REGS.has(reg)) continue;
+    const cfop = p[3];
+    if(!/^\d{4}$/.test(cfop)) continue;
+    const alvo = '123'.includes(cfop[0]) ? E : ('567'.includes(cfop[0]) ? S : null);
+    if(!alvo) continue;
+    const d = alvo[cfop] || (alvo[cfop] = {cfop, total_operacao:0, base_calculo_icms:0, total_icms:0, quantidade:0});
+    d.total_operacao += converterBR(p[5]);
+    d.base_calculo_icms += converterBR(p[6]);
+    d.total_icms += converterBR(p[7]);
+    d.quantidade++;
+    regs[reg] = (regs[reg]||0) + 1;
+  }
+  for(const g of [E,S]) for(const c in g){
+    g[c].total_operacao = Math.round(g[c].total_operacao*100)/100;
+    g[c].base_calculo_icms = Math.round(g[c].base_calculo_icms*100)/100;
+    g[c].total_icms = Math.round(g[c].total_icms*100)/100;
+  }
+  return {E, S, regs, info};
+}
+
+async function carregarApuracao(file){
+  if(!file) return;
+  const box = document.getElementById('dropAp'), st = document.getElementById('stAp');
+  box.className = 'drop'; st.textContent = 'Lendo ' + file.name + '...';
+  try{
+    if(!window.pdfjsLib) throw new Error('Biblioteca de PDF não carregou (verifique a internet).');
+    estado.apTxt = await pdfParaTexto(file);
+    if(estado.apTxt.trim().length < 50) throw new Error('PDF sem texto legível (escaneado?).');
+    const c = extrairCNPJdoTexto(estado.apTxt), per = extrairPeriodo(estado.apTxt);
+    box.className = 'drop ok';
+    st.textContent = '✅ ' + file.name + (c ? ' — ' + c : '') + (per ? ' — ' + per : '');
+  }catch(e){
+    estado.apTxt = ''; box.className = 'drop bad'; st.textContent = '❌ ' + e.message;
+    return;
+  }
+  tentarAuto();
+}
+
+async function carregarSped(file){
+  if(!file) return;
+  const box = document.getElementById('dropSped'), st = document.getElementById('stSped');
+  box.className = 'drop'; st.textContent = 'Lendo ' + file.name + '...';
+  try{
+    const txt = new TextDecoder('windows-1252').decode(await file.arrayBuffer());
+    const r = lerSpedTxt(txt);
+    if(!r.info.cnpj && !Object.keys(r.regs).length) throw new Error('Arquivo não parece um SPED Fiscal (registro 0000 não encontrado).');
+    r.nome = file.name;
+    estado.sped = r;
+    const n = Object.values(r.regs).reduce((a,b)=>a+b,0);
+    box.className = 'drop ok';
+    st.textContent = `✅ ${file.name} — ${r.info.uf||''} ${fmtData(r.info.ini)} a ${fmtData(r.info.fim)} — ${n.toLocaleString('pt-BR')} lançamentos analíticos`;
+  }catch(e){
+    estado.sped = null; box.className = 'drop bad'; st.textContent = '❌ ' + e.message;
+    return;
+  }
+  tentarAuto();
+}
+
+function tentarAuto(){ if(estado.apTxt && estado.sped) validar(); }
+
+[['fileApuracao','dropAp',carregarApuracao],['fileSped','dropSped',carregarSped]].forEach(([i,d,fn])=>{
+  const inp = document.getElementById(i), box = document.getElementById(d);
+  inp.addEventListener('change', ()=>fn(inp.files[0]));
+  ['dragover','dragenter'].forEach(ev=>box.addEventListener(ev, e=>{ e.preventDefault(); box.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev=>box.addEventListener(ev, e=>{ e.preventDefault(); box.classList.remove('over'); }));
+  box.addEventListener('drop', e=>{ if(e.dataTransfer.files[0]) fn(e.dataTransfer.files[0]); });
+});
+
+// ============================================================
+// FUNÇÕES DE CONTROLE DA INTERFACE
+// ============================================================
+function toggleInputs(){
+  document.getElementById('input-area').style.display = '';
+  document.getElementById('toggle-wrap').style.display = 'none';
+}
+
+function carregarExemplo(){
+  const exemplo = `CONTRIBUINTE: DP BUENO BRANDAO
+CNPJ: 20.415.295/0054-86
+INSCRIÇÃO ESTADUAL: 2450683034321
+PERÍODO DA ESCRITURAÇÃO: 01/11/2024 a 30/11/2024
+
+001 - Por saídas/prestações com débito do imposto 0,00
+005 - Por entradas/aquisições com crédito do imposto 1.288,22
+009 - Saldo credor do período anterior 51.642,50
+010 - Total 52.930,72
+011 - Saldo devedor (débito menos crédito) 0,00
+014 - Saldo credor (crédito menos débito) a transportar para o período seguinte 52.930,72
+Total Outros Débitos 0,00
+Total Outros Créditos 0,00
+Total Estornos Créditos 0,00
+Total Estornos Débitos 0,00`;
+  document.getElementById('apuracao').value = exemplo;
+  document.getElementById('spedEntradas').value = '';
+  document.getElementById('spedSaidas').value = '';
+  alert("Exemplo carregado! Clique em 'Validar' para testar.");
+}
+
+// ============================================================
+// FUNÇÃO PRINCIPAL DE VALIDAÇÃO
+// ============================================================
+function validar(){
+  const sp=document.getElementById('spin');
+  const re=document.getElementById('results');
+  sp.style.display='block';
+  re.innerHTML='';
+  setTimeout(()=>{
+    try{
+      const apTxt = estado.apTxt || document.getElementById('apuracao').value;
+      const seTxt = document.getElementById('spedEntradas').value;
+      const ssTxt = document.getElementById('spedSaidas').value;
+      if(!apTxt) throw new Error('Busque o PDF da Apuração ICMS antes de validar.');
+
+      const cnpjEncontrado = extrairCNPJdoTexto(apTxt);
+      const periodoEncontrado = extrairPeriodo(apTxt);
+      const nomeEmpresa = cnpjEncontrado ? getNomeEmpresa(cnpjEncontrado) : null;
+      
+      let empresaIdentificada = "";
+      if (nomeEmpresa) {
+        empresaIdentificada = `<div class="rcard-head" style="justify-content: center; gap: 12px; background: var(--cream2);">
+          <span class="empresa-badge">🏢 Empresa detectada: ${nomeEmpresa}</span>
+          <span class="empresa-badge" style="background: var(--ink-mid);">CNPJ: ${cnpjEncontrado}</span>
+        </div>`;
+      } else if (cnpjEncontrado) {
+        empresaIdentificada = `<div class="rcard-head" style="justify-content: center; background: var(--terra-lt); color: var(--terra);">
+          ⚠️ CNPJ ${cnpjEncontrado} não cadastrado na lista.
+        </div>`;
+      } else {
+        empresaIdentificada = `<div class="rcard-head" style="justify-content: center; background: var(--cream2);">
+          ℹ️ Nenhum CNPJ encontrado no texto da apuração.
+        </div>`;
+      }
+      
+      if (periodoEncontrado) {
+        empresaIdentificada += `<div class="rcard-head" style="justify-content: center; background: var(--sage-lt); color: var(--ink);">
+          📅 Período detectado: ${periodoEncontrado}
+        </div>`;
+      }
+
+      const valoresAp = extrairValoresApuração(apTxt);
+      const {entradas:aE, saidas:aS} = extrairApuracoesPorCFOP(apTxt);
+      const sE = estado.sped ? estado.sped.E : extrairSped(seTxt);
+      const sS = estado.sped ? estado.sped.S : extrairSped(ssTxt);
+      const dE = compararEntradas(aE,sE);
+      const dS = compararSaidas(aS,sS);
+      const nt = validarRegras(aE,aS,sE,sS);
+      let perSped = '', spedInfoHtml = '';
+      if(estado.sped){
+        const si = estado.sped.info;
+        perSped = `${fmtData(si.ini)} a ${fmtData(si.fim)}`;
+        const cS = (si.cnpj||'').replace(/\D/g,''), cA = (cnpjEncontrado||'').replace(/\D/g,'');
+        if(cA && cS && cA!==cS) nt.push({tipo:'err', msg:`CNPJ da Apuração (${cnpjEncontrado}) é diferente do CNPJ do SPED (${fmtCnpj(si.cnpj)}).`});
+        if(periodoEncontrado && perSped && periodoEncontrado!==perSped) nt.push({tipo:'err', msg:`Período da Apuração (${periodoEncontrado}) é diferente do período do SPED (${perSped}).`});
+        spedInfoHtml = `<div class="rcard-head" style="justify-content:center;flex-wrap:wrap;gap:10px;background:var(--cream2)"><span class="empresa-badge" style="background:var(--bark)">📂 SPED: ${estado.sped.nome} — ${si.uf||''} — ${perSped}</span><span class="empresa-badge" style="background:var(--ink-mid)">${Object.entries(estado.sped.regs).map(([r,n])=>r+': '+n.toLocaleString('pt-BR')).join(' · ')}</span></div>`;
+      }
+      const totalDivs = dE.length + dS.length;
+      const totalErrors = nt.filter(n=>n.tipo==='err').length;
+      const somaDifE = somarDivs(dE);
+      const somaDifS = somarDivs(dS);
+
+      if (valoresAp.debito === 0 && Object.keys(aS).length) {
+        for(let cfop in aS) valoresAp.debito += aS[cfop].imposto_debitado || 0;
+      }
+      if (valoresAp.creditos === 0 && Object.keys(aE).length) {
+        for(let cfop in aE) valoresAp.creditos += aE[cfop].imposto_creditado || 0;
+      }
+
+      window.valoresExtraidos = valoresAp;
+      window.nomeEmpresaAtual = nomeEmpresa || "REDE DOM PEDRO DE POSTOS LTDA";
+      window.cnpjAtual = cnpjEncontrado || "20.415.295/0012-27";
+      window.periodoAtual = periodoEncontrado || perSped || "01/11/2024 a 30/11/2024";
+      window.ieAtual = extrairIE(apTxt) || (estado.sped && estado.sped.info.ie) || "";
+
+      document.getElementById('input-area').style.display = 'none';
+      document.getElementById('toggle-wrap').style.display = 'block';
+
+      let html = empresaIdentificada + spedInfoHtml;
+
+      html+=`<div class="rcard"><div class="rcard-head"><h3>Resumo da Validação</h3>${totalDivs===0&&nt.length===0?`<span class="tag tag-ok">✅ Sem divergências</span>`:`<span class="tag tag-e">⚠️ ${totalDivs} divergência(s)</span>`}</div>
+        <div class="summary-grid">
+          <div class="scard"><div class="lbl">Divergências Entradas</div><div class="num ${dE.length===0?'ok':'err'}">${dE.length}</div></div>
+          <div class="scard"><div class="lbl">Divergências Saídas</div><div class="num ${dS.length===0?'ok':'err'}">${dS.length}</div></div>
+          <div class="scard"><div class="lbl">Erros de Regras</div><div class="num ${totalErrors===0?'ok':'err'}">${totalErrors}</div></div>
+          <div class="scard"><div class="lbl">Alertas</div><div class="num ${nt.filter(n=>n.tipo==='warn').length===0?'ok':'warn'}">${nt.filter(n=>n.tipo==='warn').length}</div></div>
+        </div></div>`;
+
+      html+=`<div class="section-divider"><span>Entradas</span></div>`;
+      html+=`<div class="rcard"><div class="rcard-head"><h3>📥 Comparação — Entradas</h3>${dE.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dE.length} divergência(s)</span>`}</div>${gerarTabela(aE,sE,'E')}</div>`;
+      if(dE.length>0) html+=`<div class="rcard"><div class="rcard-head"><h3>⚠️ Divergências nas Entradas</h3></div>${gerarDivs(dE)}<div class="total-bar"><div>Total diferenças Entradas</div><div>R$ ${fmt(somaDifE)}</div></div></div>`;
+
+      html+=`<div class="section-divider"><span>Saídas</span></div>`;
+      html+=`<div class="rcard"><div class="rcard-head"><h3>📤 Comparação — Saídas</h3>${dS.length===0?`<span class="tag tag-ok">OK</span>`:`<span class="tag tag-e">${dS.length} divergência(s)</span>`}</div>${gerarTabela(aS,sS,'S')}</div>`;
+      if(dS.length>0) html+=`<div class="rcard"><div class="rcard-head"><h3>⚠️ Divergências nas Saídas</h3></div>${gerarDivs(dS)}<div class="total-bar"><div>Total diferenças Saídas</div><div>R$ ${fmt(somaDifS)}</div></div></div>`;
+
+      if(nt.length>0){
+        html+=`<div class="section-divider"><span>Regras Fiscais</span></div>`;
+        html+=`<div class="rcard"><div class="rcard-head"><h3>🔔 Alertas e Erros de Regras</h3></div><div style="padding:1rem;">`;
+        for(const n of nt) html+=`<div class="div-block"><div class="div-title">${n.tipo==='err'?'❌ Erro':'⚠️ Atenção'}</div><div class="div-body">${n.msg}</div></div>`;
+        html+=`</div></div>`;
+      }
+
+      if(totalDivs===0 && nt.filter(n=>n.tipo==='err').length===0){
+        html+=`<div class="section-divider"><span>Registros Fiscais da Apuração do ICMS</span></div>`;
+        html+=`<div class="rcard" style="border:1px solid var(--sage)">`;
+        html+=`<div class="rcard-head" style="background:rgba(110,140,114,.07)"><h3>📄 Preenchimento da Apuração ICMS — Operações Próprias</h3><span class="sucesso-badge">✅ Validação OK</span></div>`;
+        html+=`<div class="form-apuracao"><div class="form-coluna">`;
+        const campos = [
+          ['campoDebito', 'Saídas e Prestações com Débito do Imposto (R$)', valoresAp.debito],
+          ['campoAjusteDebito', 'Valor Total dos Ajustes a Débito (decorrentes do documento fiscal) (R$)', valoresAp.ajustesDebito],
+          ['campoAjusteDebito2', 'Valor Total dos Ajustes a Débito do Imposto (R$)', valoresAp.ajustesDebito],
+          ['campoEstornoCred', 'Valor Total dos Estornos de Créditos (R$)', valoresAp.estornoCredito],
+          ['campoCredito', 'Valor Total dos Créditos por Entradas e Aquisições com Crédito do Imposto (R$)', valoresAp.creditos],
+          ['campoAjusteCredito', 'Valor Total dos Ajustes a Crédito (decorrentes do documento fiscal) (R$)', valoresAp.ajustesCredito],
+          ['campoAjusteCredito2', 'Valor Total dos Ajustes a Crédito do Imposto (R$)', valoresAp.ajustesCredito],
+          ['campoEstornoDeb', 'Valor Total dos Estornos de Débitos (R$)', valoresAp.estornoDebito],
+          ['campoSaldoAnterior', 'Valor Total do Saldo Credor do Período Anterior (R$)', valoresAp.saldoCredorAnterior],
+          ['campoSaldoDevedor', 'Valor do Saldo Devedor (R$)', valoresAp.saldoDevedor],
+          ['campoDeducoes', 'Valor Total das Deduções (R$)', valoresAp.deducoes],
+          ['campoRecolher', 'Valor Total do ICMS a Recolher (R$)', valoresAp.icmsRecolher],
+          ['campoSaldoFinal', 'Valor Total do Saldo Credor a Transportar para o Período Seguinte (R$)', valoresAp.saldoCredorFinal],
+          ['campoExtra', 'Valores Recolhidos ou a Recolher, Extra-Apuração (R$)', valoresAp.extraApuração],
+        ];
+        for(const [id,label,val] of campos){
+          html+=`<div class="campo-form"><label>${label}</label><input type="text" id="${id}" value="${fmt(val)}" placeholder="0,00"></div>`;
+        }
+        html+=`</div><div style="display:flex;justify-content:flex-end"><button class="btn-gerar" onclick="gerarRelatorioFinal()">📄 Gerar Relatório Padrão SPED</button></div></div></div>`;
+      } else {
+        html+=`<div class="warn-block"><strong>⚠️ Validação com divergências ou erros.</strong> Corrija os apontamentos acima para liberar a geração do relatório fiscal.</div>`;
+      }
+
+      re.innerHTML = html;
+    }catch(e){
+      re.innerHTML = `<div class="rcard"><div class="rcard-head"><h3>❌ Erro</h3></div><div style="padding:1rem;color:var(--terra)">${e.message}</div></div>`;
+    } finally { sp.style.display='none'; }
+  }, 120);
+}
+
+// ============================================================
+// GERAÇÃO DO RELATÓRIO FINAL
+// ============================================================
+function gerarRelatorioFinal(){
+  const g = id => document.getElementById(id)?.value || '0,00';
+  const nomeEmpresa = window.nomeEmpresaAtual || "REDE DOM PEDRO DE POSTOS LTDA";
+  const cnpjEmpresa = window.cnpjAtual || "20.415.295/0012-27";
+  const periodo = window.periodoAtual || "01/11/2024 a 30/11/2024";
+  
+  const relatorio = `REGISTROS FISCAIS DA APURAÇÃO DO ICMS - OPERAÇÕES PRÓPRIAS
+
+CONTRIBUINTE: ${nomeEmpresa}
+CNPJ/CPF: ${cnpjEmpresa}
+INSCRIÇÃO ESTADUAL: ${window.ieAtual || ''}
+PERÍODO DA ESCRITURAÇÃO: ${periodo}
+
+Descrição                                                                                 Valor R$
+Período de Apuração: ${periodo}
+
+SAÍDAS E PRESTAÇÕES COM DÉBITO DO IMPOSTO                                               ${g('campoDebito')}
+VALOR TOTAL DOS AJUSTES A DÉBITO (decorrentes do documento fiscal)                      ${g('campoAjusteDebito')}
+VALOR TOTAL DOS AJUSTES A DÉBITO DO IMPOSTO                                             ${g('campoAjusteDebito2')}
+VALOR TOTAL DOS ESTORNOS DE CRÉDITOS                                                    ${g('campoEstornoCred')}
+
+VALOR TOTAL DOS CRÉDITOS POR ENTRADAS E AQUISIÇÕES COM CRÉDITO DO IMPOSTO               ${g('campoCredito')}
+VALOR TOTAL DOS AJUSTES A CRÉDITO (decorrentes do documento fiscal)                     ${g('campoAjusteCredito')}
+VALOR TOTAL DOS AJUSTES A CRÉDITO DO IMPOSTO                                            ${g('campoAjusteCredito2')}
+VALOR TOTAL DOS ESTORNOS DE DÉBITOS                                                     ${g('campoEstornoDeb')}
+
+VALOR TOTAL DO SALDO CREDOR DO PERÍODO ANTERIOR                                        ${g('campoSaldoAnterior')}
+
+VALOR DO SALDO DEVEDOR                                                                  ${g('campoSaldoDevedor')}
+VALOR TOTAL DAS DEDUÇÕES                                                                ${g('campoDeducoes')}
+VALOR TOTAL DO ICMS A RECOLHER                                                          ${g('campoRecolher')}
+
+VALOR TOTAL DO SALDO CREDOR A TRANSPORTAR PARA O PERÍODO SEGUINTE                      ${g('campoSaldoFinal')}
+
+VALORES RECOLHIDOS OU A RECOLHER, EXTRA-APURAÇÃO                                        ${g('campoExtra')}
+
+INFORMAÇÃO DO ARQUIVO
+Dados do Assinante do arquivo
+Nome: 
+CPF: 
+Data do recibo: 
+Mensagem: Em Edição
+Página 1 de 1
+Este relatório foi gerado pelo Sistema Público de Escrituração Digital – Sped
+Versão 6.0.3 do Visualizador
+Hashcode do Arquivo: `;
+
+  const win = window.open();
+  win.document.write(`<html><head><title>Relatório Apuração ICMS - SPED</title><style>body{font-family:'Courier New',monospace;padding:30px;white-space:pre-wrap;font-size:11px;background:#fff;}</style></head><body>${relatorio.replace(/\n/g,'<br>')}</body></html>`);
+  win.document.close();
+}
+</script>
+</body>
+</html>
